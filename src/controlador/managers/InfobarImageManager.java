@@ -115,25 +115,73 @@ public class InfobarImageManager implements ThemeChangeListener{
             String fileDisplay = "Archivo: N/A";
 
             String selectedKey = model.getSelectedImageKey();
+            String fullPathString = "Ruta: N/A";
             if (selectedKey != null) {
                 Path fullPath = model.getRutaCompleta(selectedKey);
                 if (fullPath != null) {
                     Path folderPath = fullPath.getParent();
                     Path fileName = fullPath.getFileName();
                     
-                    pathDisplay = "Ruta: " + (folderPath != null ? folderPath.toString() + "\\" : "");
+                    if (folderPath != null) {
+                        fullPathString = "Ruta: " + folderPath.toString() + "\\";
+                        pathDisplay = formatDynamicPath(folderPath.toString(), pathField, "Ruta: ", "\\");
+                    }
                     fileDisplay = "Archivo: " + (fileName != null ? fileName.toString() : "");
                 }
             } else if (model.getCarpetaRaizActual() != null) {
-                pathDisplay = "Carpeta: " + model.getCarpetaRaizActual().toString();
+                fullPathString = "Carpeta: " + model.getCarpetaRaizActual().toString();
+                pathDisplay = formatDynamicPath(model.getCarpetaRaizActual().toString(), pathField, "Carpeta: ", "");
             }
 
             pathField.setText(pathDisplay);
-            pathField.setToolTipText(pathDisplay);
+            pathField.setToolTipText(fullPathString);
             fileLabel.setText(fileDisplay);
             fileLabel.setToolTipText(fileDisplay);
         }
     } // --- Fin del método actualizarNombreArchivo ---
+
+    private String formatDynamicPath(String pathStr, javax.swing.JTextField field, String prefix, String suffix) {
+        if (pathStr == null) return prefix + suffix;
+        try {
+            java.awt.FontMetrics fm = field.getFontMetrics(field.getFont());
+            // Ancho disponible (asumimos el preferredSize menos un margen de seguridad)
+            int availableWidth = field.getPreferredSize().width - 15;
+            if (availableWidth <= 0) availableWidth = 385; // fallback
+            
+            String fullText = prefix + pathStr + suffix;
+            if (fm.stringWidth(fullText) <= availableWidth) {
+                return fullText;
+            }
+            
+            java.nio.file.Path p = java.nio.file.Paths.get(pathStr);
+            int nameCount = p.getNameCount();
+            
+            // Vamos quitando carpetas desde la raíz hasta que quepa
+            for (int i = 0; i < nameCount; i++) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("...\\");
+                for (int j = i + 1; j < nameCount; j++) {
+                    sb.append(p.getName(j).toString());
+                    if (j < nameCount - 1) {
+                        sb.append("\\");
+                    }
+                }
+                String testStr = prefix + sb.toString() + suffix;
+                if (fm.stringWidth(testStr) <= availableWidth) {
+                    return testStr;
+                }
+            }
+            
+            // Si incluso la última carpeta no cabe, devolvemos lo mínimo
+            if (nameCount > 0) {
+                return prefix + "...\\" + p.getName(nameCount - 1).toString() + suffix;
+            }
+            
+            return prefix + "...\\" + suffix;
+        } catch (Exception e) {
+            return prefix + pathStr + suffix;
+        }
+    }
 
     private void actualizarIndiceTotal() {
         JLabel label = registry.get("label.info.indiceTotal");

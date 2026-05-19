@@ -363,6 +363,43 @@ public class ThemeManager {
         return new java.util.HashMap<>(TEMAS_DISPONIBLES);
     }
     
+    /**
+     * Aplica personalizaciones de color en "vivo" al tema actual.
+     * Actualiza el UIManager, FlatLaf y el objeto temaActual, notificando a los listeners.
+     * @param overrides Mapa de claves de propiedad y colores a aplicar.
+     */
+    public void applyLiveCustomizations(Map<String, Color> overrides) {
+        if (overrides == null || overrides.isEmpty()) return;
+
+        // 1. Actualizar FlatLaf GlobalExtraDefaults
+        Map<String, String> extraDefaults = new HashMap<>();
+        overrides.forEach((k, v) -> {
+            // Actualizar UIManager directamente para efectos inmediatos en algunos componentes
+            UIManager.put(k, v);
+            // Preparar para FlatLaf
+            extraDefaults.put(k, String.format("#%02x%02x%02x", v.getRed(), v.getGreen(), v.getBlue()));
+        });
+        FlatLaf.setGlobalExtraDefaults(extraDefaults);
+
+        // 2. Re-construir el objeto Tema actual para que refleje los nuevos colores.
+        // Usamos las propiedades acumuladas si es posible, o solo los overrides.
+        Properties newProps = new Properties();
+        if (temaActual != null) {
+            // Intentamos mantener el ID y nombre
+            String currentId = temaActual.nombreInterno();
+            String currentName = temaActual.nombreDisplay();
+            
+            // Pasamos los overrides como properties
+            overrides.forEach(newProps::put);
+            
+            this.temaActual = new Tema(currentId, currentName, newProps);
+            logger.debug("Tema actual '{}' actualizado con {} personalizaciones en vivo.", currentName, overrides.size());
+        }
+
+        // 3. Notificar a los listeners para que los componentes manuales se refresquen
+        notificarListeners(this.temaActual);
+    }
+
     public record ThemeInfo(String nombreDisplay, Supplier<LookAndFeel> lafSupplier, Properties customProperties, ThemeCategory category) {}
     
     public enum ThemeCategory {

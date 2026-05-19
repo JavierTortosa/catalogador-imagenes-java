@@ -25,8 +25,9 @@ import controlador.utils.ComponentRegistry; // ¡La dependencia clave!
 /**
  * Clase responsable de aplicar un objeto Tema a todos los componentes
  * de la UI registrados en un ComponentRegistry.
+ * Implementa ThemeChangeListener para integrarse automáticamente con ThemeManager.
  */
-public class ThemeApplier {
+public class ThemeApplier implements ThemeChangeListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(ThemeApplier.class);
 	
@@ -70,6 +71,12 @@ public class ThemeApplier {
 
         logger.info (">>> Aplicación del tema completada. <<<");
     } // ---FIN de metodo [applyTheme]---
+
+    @Override
+    public void onThemeChanged(Tema nuevoTema) {
+        // Invocado automáticamente cuando ThemeManager notifica un cambio de tema
+        javax.swing.SwingUtilities.invokeLater(() -> applyTheme(nuevoTema));
+    } // ---FIN de metodo [onThemeChanged]---
 
     /**
      * Aplica colores a un componente individual basándose en su tipo.
@@ -160,6 +167,17 @@ public class ThemeApplier {
         JLabel modoZoomLabel = registry.get("label.info.modoZoom");
         if (modoZoomLabel != null) modoZoomLabel.setForeground(tema.colorTextoSecundario());
         // ... aplicar a otros JLabels de la barra de info que usen color secundario
+
+        // Textfields de la barra de estado (tienen setForeground explícito al construirse,
+        // por eso updateComponentTreeUI no los actualiza; hay que hacerlo manualmente)
+        java.awt.Component carpetaTextField = registry.get("textfield.estado.carpetaRaiz");
+        if (carpetaTextField != null) {
+            carpetaTextField.setForeground(statusBarForegroundColor);
+        }
+        java.awt.Component rutaTextField = registry.get("textfield.info.rutaImagen");
+        if (rutaTextField != null) {
+            rutaTextField.setForeground(statusBarForegroundColor);
+        }
 
         // Paneles con bordes titulados
         JPanel panelIzquierdo = registry.get("panel.izquierdo.listaArchivos");

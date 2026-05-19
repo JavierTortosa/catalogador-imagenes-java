@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import controlador.VisorController;
 import controlador.actions.config.ToggleToolbarButtonVisibilityAction;
 import controlador.actions.config.ToggleUIElementVisibilityAction;
+import controlador.actions.tema.ToggleThemeAction;
 import controlador.commands.AppActionCommands; // Asumo que lo necesitas para algún log o comparación, aunque no directamente aquí
 import controlador.managers.interfaces.IViewManager;
 import controlador.utils.ComponentRegistry;
@@ -494,6 +495,21 @@ public class MenuBarBuilder {
                 if (itemDef.textoMostrado() != null && !itemDef.textoMostrado().isBlank()) {
                     item.setText(itemDef.textoMostrado());
                 }
+            } else if (comandoOClave.startsWith("cmd.tema.")) {
+                // --- MEJORA: Generar acción de tema dinámicamente si no existe en ActionFactory ---
+                String idTema = comandoOClave.replace("cmd.tema.", "");
+                Action dynamicThemeAction = new ToggleThemeAction(
+                    this.themeManager, 
+                    this.controllerRef, 
+                    idTema, 
+                    itemDef.textoMostrado(), 
+                    comandoOClave
+                );
+                item.setAction(dynamicThemeAction);
+                item.setText(itemDef.textoMostrado());
+                // Registrarla en el mapa para futuras referencias durante esta construcción
+                this.actionMap.put(comandoOClave, dynamicThemeAction);
+                
             } else {
                 // Si no se encuentra una acción específica, asignamos la de "funcionalidad pendiente".
                 // Esto elimina la necesidad del ActionListener global.

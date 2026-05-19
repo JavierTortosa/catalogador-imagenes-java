@@ -19,7 +19,9 @@ public abstract class AbstractListCoordinator implements IListCoordinator {
         // Implementación vacía por defecto.
     } // end of method
 
-    // También podemos mover aquí otros métodos que podrían tener implementaciones por defecto.
-    // Por ahora, solo necesitamos este.
+    @Override
+    public void forzarActualizacionDeTiraDeMiniaturas() {
+        // Implementación vacía por defecto.
+    }
 
 } // end of class

@@ -698,9 +698,10 @@ public class ViewBuilder {
         registry.register("textfield.estado.carpetaRaiz", carpetaRaizTextField);
 
         // Contenedor para la etiqueta de ruta (para que ocupe el espacio central sobrante)
-        JPanel panelRuta = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        JPanel panelRuta = new JPanel(new BorderLayout());
+        panelRuta.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
         panelRuta.setOpaque(false);
-        panelRuta.add(carpetaRaizTextField);
+        panelRuta.add(carpetaRaizTextField, BorderLayout.CENTER);
         
         bottomStatusBar.add(panelRuta, BorderLayout.CENTER);
 
@@ -838,38 +839,47 @@ public class ViewBuilder {
         rutaImagenTextField.setBorder(null);
         rutaImagenTextField.setFont(UIManager.getFont("Label.font"));
         rutaImagenTextField.setForeground(UIManager.getColor("Label.foreground"));
+        rutaImagenTextField.setPreferredSize(new Dimension(400, 20));
         registry.register("textfield.info.rutaImagen", rutaImagenTextField);
 
         JLabel nombreArchivoInfoLabel = new JLabel("Archivo: N/A");
         nombreArchivoInfoLabel.setOpaque(false);
+        nombreArchivoInfoLabel.setPreferredSize(new Dimension(300, 20));
         registry.register("label.info.nombreArchivo", nombreArchivoInfoLabel);
 
         JLabel indiceTotalInfoLabel = new JLabel("Idx: N/A");
         indiceTotalInfoLabel.setOpaque(false);
+        indiceTotalInfoLabel.setPreferredSize(new Dimension(70, 20));
         registry.register("label.info.indiceTotal", indiceTotalInfoLabel);
 
         JLabel dimensionesOriginalesInfoLabel = new JLabel("Dim: N/A");
         dimensionesOriginalesInfoLabel.setOpaque(false);
+        dimensionesOriginalesInfoLabel.setPreferredSize(new Dimension(100, 20));
         registry.register("label.info.dimensiones", dimensionesOriginalesInfoLabel);
 
         JLabel tamanoArchivoInfoLabel = new JLabel("Tam: N/A");
         tamanoArchivoInfoLabel.setOpaque(false);
+        tamanoArchivoInfoLabel.setPreferredSize(new Dimension(80, 20));
         registry.register("label.info.tamano", tamanoArchivoInfoLabel);
 
         JLabel fechaArchivoInfoLabel = new JLabel("Fch: N/A");
         fechaArchivoInfoLabel.setOpaque(false);
+        fechaArchivoInfoLabel.setPreferredSize(new Dimension(110, 20));
         registry.register("label.info.fecha", fechaArchivoInfoLabel);
 
         JLabel modoZoomNombreInfoLabel = new JLabel("Modo: N/A");
         modoZoomNombreInfoLabel.setOpaque(false);
+        modoZoomNombreInfoLabel.setPreferredSize(new Dimension(150, 20));
         registry.register("label.info.modoZoom", modoZoomNombreInfoLabel);
 
         JLabel porcentajeZoomVisualRealInfoLabel = new JLabel("%Z: N/A");
         porcentajeZoomVisualRealInfoLabel.setOpaque(false);
+        porcentajeZoomVisualRealInfoLabel.setPreferredSize(new Dimension(60, 20));
         registry.register("label.info.porcentajeZoom", porcentajeZoomVisualRealInfoLabel);
 
         JLabel formatoImagenInfoLabel = new JLabel("Fmt: N/A");
         formatoImagenInfoLabel.setOpaque(false);
+        formatoImagenInfoLabel.setPreferredSize(new Dimension(60, 20));
         registry.register("label.info.formatoImagen", formatoImagenInfoLabel);
         formatoImagenInfoLabel.setToolTipText("Formato del archivo de imagen actual");
 
@@ -890,6 +900,9 @@ public class ViewBuilder {
         gbc.weightx = 1.0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel.add(Box.createHorizontalGlue(), gbc);
+
+        gbc.weightx = 0.0;
+        gbc.fill = GridBagConstraints.NONE;
 
         gbc.gridx = 4;
         panel.add(new JSeparator(SwingConstants.VERTICAL), gbc);

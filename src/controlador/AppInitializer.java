@@ -114,6 +114,7 @@ public class AppInitializer {
     private FolderTreeManager folderTreeManager;
     private FilterManager filterManager;
     private GlobalInputManager globalInputManager;
+    private vista.theme.ThemeApplier themeApplier;
 
     // UI y Factorías
     private ActionFactory actionFactory;
@@ -309,6 +310,8 @@ public class AppInitializer {
         this.controller.setInfobarImageManager(this.infobarImageManager);
 
         // Suscripciones a eventos de cambio de tema
+        this.themeApplier = new vista.theme.ThemeApplier(this.registry);
+        this.themeManager.addThemeChangeListener(this.themeApplier);
         this.themeManager.addThemeChangeListener(this.toolbarManager);
         this.themeManager.addThemeChangeListener(this.controller);
         this.themeManager.addThemeChangeListener(this.viewManager);

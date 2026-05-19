@@ -345,6 +345,14 @@ public class FilterManager {
         logger.info("[FilterManager] Nueva lista maestra absoluta establecida con {} elementos.", this.absoluteMasterList.getSize());
     } // ---FIN de metodo setAbsoluteMasterList---
     
+    /**
+     * Devuelve el tamaño de la lista maestra absoluta (sin filtrar).
+     * @return El número de elementos, o 0 si no está inicializada.
+     */
+    public int getAbsoluteMasterListSize() {
+        return this.absoluteMasterList != null ? this.absoluteMasterList.getSize() : 0;
+    } // ---FIN de metodo getAbsoluteMasterListSize---
+    
     
     
 // **********************************************************************************************************************************************************
@@ -447,8 +455,9 @@ public class FilterManager {
             modeloEnUso.clear();
             modeloEnUso.addAll(java.util.Collections.list(nuevaLista.elements()));
             
-            String titulo = isFilterActive() ? "Archivos (Filtro): " : "Archivos: ";
-            visorController.getView().setTituloPanelIzquierdo(titulo + modeloEnUso.getSize());
+            int totalArchivos = getAbsoluteMasterListSize();
+            String titulo = isFilterActive() ? "Archivos (Filtro): " + totalArchivos + " - " + modeloEnUso.getSize() : "Archivos: " + modeloEnUso.getSize();
+            visorController.getView().setTituloPanelIzquierdo(titulo);
             
             visorController.getListCoordinator().reiniciarYSeleccionarIndice(finalIndice);
             
@@ -542,6 +551,10 @@ public class FilterManager {
 
                     visorController.getListCoordinator().reiniciarYSeleccionarIndice(modeloEnUso.isEmpty() ? -1 : 0);
                     
+                    int totalArchivos = getAbsoluteMasterListSize();
+                    String titulo = isFilterActive() ? "Archivos (Filtro): " + totalArchivos + " - " + modeloEnUso.getSize() : "Archivos: " + modeloEnUso.getSize();
+                    visorController.getView().setTituloPanelIzquierdo(titulo);
+                    
                     // --- INICIO MODIFICACIÓN: Mostrar mensaje con el resultado ---
                     if (statusBarManager != null) {
                         javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
@@ -586,6 +599,9 @@ public class FilterManager {
         modeloEnUso.addAll(java.util.Collections.list(this.masterModelSinFinito.elements()));
         
         visorController.getListCoordinator().reiniciarYSeleccionarIndice(this.indiceSeleccionadoAntesDeFiltrar);
+        
+        int totalArchivos = getAbsoluteMasterListSize();
+        visorController.getView().setTituloPanelIzquierdo("Archivos: " + totalArchivos);
 
         this.masterModelSinFinito = null;
         this.indiceSeleccionadoAntesDeFiltrar = -1;

@@ -161,7 +161,10 @@ public class ImageListManager {
         
         if (view != null) {
             view.setListaImagenesModel(model.getModeloLista());
-            view.setTituloPanelIzquierdo("Archivos: " + model.getModeloLista().getSize());
+            int totalArchivos = this.filterManager != null && this.filterManager.getAbsoluteMasterListSize() > 0 ? this.filterManager.getAbsoluteMasterListSize() : model.getModeloLista().getSize();
+            boolean isFilterActive = this.filterManager != null && this.filterManager.isFilterActive();
+            String titulo = isFilterActive ? "Archivos (Filtro): " + totalArchivos + " - " + model.getModeloLista().getSize() : "Archivos: " + totalArchivos;
+            view.setTituloPanelIzquierdo(titulo);
         }
         
         int indiceCalculado = -1;
@@ -508,7 +511,10 @@ public class ImageListManager {
          
          if (view != null) {
              view.setListaImagenesModel(model.getModeloLista());
-             view.setTituloPanelIzquierdo("Archivos: " + model.getModeloLista().getSize());
+             int totalArchivos = this.filterManager != null && this.filterManager.getAbsoluteMasterListSize() > 0 ? this.filterManager.getAbsoluteMasterListSize() : model.getModeloLista().getSize();
+             boolean isFilterActive = this.filterManager != null && this.filterManager.isFilterActive();
+             String titulo = isFilterActive ? "Archivos (Filtro): " + totalArchivos + " - " + model.getModeloLista().getSize() : "Archivos: " + totalArchivos;
+             view.setTituloPanelIzquierdo(titulo);
          }
          
          int indiceCalculado = -1;

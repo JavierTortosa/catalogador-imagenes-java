@@ -24,13 +24,17 @@ public class ExportWorker extends SwingWorker<String, String> {
     private final TaskProgressDialog dialogo;
     private final boolean soloModificados;
     private final boolean limpiarDestino;
+    private final boolean isMoveOperation;
+    private final vista.panels.export.ExportPanel exportPanel;
 
-    public ExportWorker(List<ExportItem> cola, Path carpetaDestino, TaskProgressDialog dialogo, boolean soloModificados, boolean limpiarDestino) {
+    public ExportWorker(List<ExportItem> cola, Path carpetaDestino, TaskProgressDialog dialogo, boolean soloModificados, boolean limpiarDestino, boolean isMoveOperation, vista.panels.export.ExportPanel exportPanel) {
         this.cola = cola;
         this.carpetaDestino = carpetaDestino;
         this.dialogo = dialogo;
         this.soloModificados = soloModificados;
         this.limpiarDestino = limpiarDestino;
+        this.isMoveOperation = isMoveOperation;
+        this.exportPanel = exportPanel;
     } // --- Fin del método ExportWorker (constructor) ---
 
     
@@ -113,7 +117,11 @@ public class ExportWorker extends SwingWorker<String, String> {
             return; 
         }
         
-        Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
+        if (isMoveOperation) {
+            Files.move(source, destination, StandardCopyOption.REPLACE_EXISTING);
+        } else {
+            Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
+        }
     } // --- Fin del método copyFile ---
 
     private void limpiarContenidoDirectorio(Path directorio) throws IOException {
@@ -142,6 +150,10 @@ public class ExportWorker extends SwingWorker<String, String> {
     protected void done() {
         dialogo.setVisible(false);
         dialogo.dispose();
+        
+        if (exportPanel != null) {
+            exportPanel.resetMoveOperation();
+        }
         
         try {
             String resultado = get(); // Obtenemos el mensaje de éxito o cancelación.

@@ -735,10 +735,10 @@ public class VisorController implements IModoController, ThemeChangeListener {
         javax.swing.JTextField tfCarpetaInf = registry.get("textfield.estado.carpetaRaiz");
 
         if (tfRutaSup != null) {
-            tfRutaSup.addMouseListener(new PathPopupListener(tfRutaSup));
+            tfRutaSup.addMouseListener(new PathPopupListener(tfRutaSup, true));
         }
         if (tfCarpetaInf != null) {
-            tfCarpetaInf.addMouseListener(new PathPopupListener(tfCarpetaInf));
+            tfCarpetaInf.addMouseListener(new PathPopupListener(tfCarpetaInf, false));
         }
     }
 
@@ -747,9 +747,11 @@ public class VisorController implements IModoController, ThemeChangeListener {
      */
     private class PathPopupListener extends MouseAdapter {
         private final javax.swing.JTextField textField;
+        private final boolean allowFilter;
 
-        public PathPopupListener(javax.swing.JTextField textField) {
+        public PathPopupListener(javax.swing.JTextField textField, boolean allowFilter) {
             this.textField = textField;
+            this.allowFilter = allowFilter;
         }
 
         @Override
@@ -761,9 +763,12 @@ public class VisorController implements IModoController, ThemeChangeListener {
             if (e.isPopupTrigger()) {
                 JPopupMenu menu = new JPopupMenu();
                 
-                String textoRaw = textField.getText();
-                // Limpiar prefijos si existen ("Carpeta: ", "Ruta: ")
-                final String rutaLimpia = textoRaw.replaceFirst("^(Carpeta: |Ruta: )", "").trim();
+                String textoRaw = textField.getToolTipText();
+                if (textoRaw == null || textoRaw.isEmpty()) {
+                    textoRaw = textField.getText();
+                }
+                // Limpiar prefijos si existen ("Carpeta: ", "Ruta: ", "Carpeta Destino: ")
+                final String rutaLimpia = textoRaw.replaceFirst("^(Carpeta Destino: |Carpeta: |Ruta: )", "").trim();
 
                 JMenuItem copiarItem = new JMenuItem("Copiar ruta");
                 copiarItem.addActionListener(al -> {
@@ -772,27 +777,29 @@ public class VisorController implements IModoController, ThemeChangeListener {
                 });
                 menu.add(copiarItem);
 
-                menu.addSeparator();
+                if (allowFilter) {
+                    menu.addSeparator();
 
-                JMenuItem addPosItem = new JMenuItem("Añadir a filtros (+)");
-                addPosItem.addActionListener(al -> {
-                    if (generalController != null) {
-                        generalController.solicitarAnadirFiltroSilencioso(rutaLimpia, 
-                            controlador.managers.filter.FilterCriterion.FilterSource.FOLDER_PATH, 
-                            controlador.managers.filter.FilterCriterion.FilterType.CONTAINS);
-                    }
-                });
-                menu.add(addPosItem);
+                    JMenuItem addPosItem = new JMenuItem("Añadir a filtros (+)");
+                    addPosItem.addActionListener(al -> {
+                        if (generalController != null) {
+                            generalController.solicitarAnadirFiltroSilencioso(rutaLimpia, 
+                                controlador.managers.filter.FilterCriterion.FilterSource.FOLDER_PATH, 
+                                controlador.managers.filter.FilterCriterion.FilterType.CONTAINS);
+                        }
+                    });
+                    menu.add(addPosItem);
 
-                JMenuItem addNegItem = new JMenuItem("Añadir a filtros (-)");
-                addNegItem.addActionListener(al -> {
-                    if (generalController != null) {
-                        generalController.solicitarAnadirFiltroSilencioso(rutaLimpia, 
-                            controlador.managers.filter.FilterCriterion.FilterSource.FOLDER_PATH, 
-                            controlador.managers.filter.FilterCriterion.FilterType.DOES_NOT_CONTAIN);
-                    }
-                });
-                menu.add(addNegItem);
+                    JMenuItem addNegItem = new JMenuItem("Añadir a filtros (-)");
+                    addNegItem.addActionListener(al -> {
+                        if (generalController != null) {
+                            generalController.solicitarAnadirFiltroSilencioso(rutaLimpia, 
+                                controlador.managers.filter.FilterCriterion.FilterSource.FOLDER_PATH, 
+                                controlador.managers.filter.FilterCriterion.FilterType.DOES_NOT_CONTAIN);
+                        }
+                    });
+                    menu.add(addNegItem);
+                }
 
                 menu.show(e.getComponent(), e.getX(), e.getY());
             }
@@ -2128,7 +2135,11 @@ public class VisorController implements IModoController, ThemeChangeListener {
 
         JPanel panelIzquierdo = registry.get("panel.izquierdo.listaArchivos");
         if(panelIzquierdo != null && panelIzquierdo.getBorder() instanceof javax.swing.border.TitledBorder) {
-            ((javax.swing.border.TitledBorder)panelIzquierdo.getBorder()).setTitle("Archivos: " + modeloVisualizador.getSize());
+            controlador.managers.FilterManager fm = generalController != null ? generalController.getFilterManager() : null;
+            boolean isFilterActive = fm != null && fm.isFilterActive();
+            int totalFiles = fm != null ? fm.getAbsoluteMasterListSize() : modeloVisualizador.getSize();
+            String titulo = isFilterActive ? "Archivos (Filtro): " + totalFiles + " - " + modeloVisualizador.getSize() : "Archivos: " + totalFiles;
+            ((javax.swing.border.TitledBorder)panelIzquierdo.getBorder()).setTitle(titulo);
             panelIzquierdo.repaint();
         }
         

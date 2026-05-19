@@ -29,9 +29,12 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.LookAndFeel;
 import javax.swing.UIDefaults;
+import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
@@ -42,6 +45,7 @@ import com.formdev.flatlaf.FlatLaf;
 
 import vista.theme.ThemeManager;
 import vista.theme.ThemeManager.ThemeCategory;
+import vista.theme.ThemePreviewPanel;
 
 public class ThemeCustomizerDialog extends JDialog {
 
@@ -54,133 +58,282 @@ public class ThemeCustomizerDialog extends JDialog {
     
     private final Map<String, ColorPreviewPanel> colorPreviewPanels = new HashMap<>();
     private final Map<String, String[]> labelToKeysMap = new HashMap<>();
+    private final Map<String, JButton> labelToButtonMap = new HashMap<>();
+    private final Map<String, Integer> labelToTabIndexMap = new HashMap<>();
+    private ThemePreviewPanel themePreview;
+    private JTabbedPane tabbedPane;
+    /** Evita que el listener del combo de tema base dispare durante la inicialización */
+    private boolean isInitializing = true;
 
     public ThemeCustomizerDialog(JFrame owner, ThemeManager themeManager) {
         super(owner, "Editor de Temas Personalizados", true);
         this.themeManager = themeManager;
 
-        setSize(550, 640);
+        setSize(1100, 800);
         setLocationRelativeTo(owner);
         setLayout(new BorderLayout());
 
-        JPanel mainPanel = new JPanel(new GridBagLayout());
-        mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        // --- 1. Panel de Previsualización (Izquierda) ---
+        themePreview = new ThemePreviewPanel();
+        themePreview.setBorder(BorderFactory.createCompoundBorder(
+            new EmptyBorder(10, 10, 10, 10),
+            BorderFactory.createTitledBorder("Vista Previa Interactiva")
+        ));
+        themePreview.setOnZoneClicked(this::handleZoneClicked);
+
+        // --- 2. Panel de Controles (Derecha) ---
+        JPanel controlPanel = new JPanel(new BorderLayout());
+        controlPanel.setBorder(new EmptyBorder(10, 0, 10, 10));
+
+        // Cabecera: Nombre y Tema Base
+        JPanel headerPanel = new JPanel(new GridBagLayout());
+        headerPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder("Configuración General"),
+            new EmptyBorder(5, 5, 5, 5)
+        ));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.LINE_END;
-        mainPanel.add(new JLabel("Tema Base:"), gbc);
-
-        gbc.gridx = 1; gbc.weightx = 1.0; gbc.anchor = GridBagConstraints.LINE_START;
-        
-     // --- INICIO DE LA CORRECCIÓN ---
-        java.util.List<ThemeManager.ThemeInfo> themeList = new java.util.ArrayList<>(
-                themeManager.getAvailableThemes().values()
-            );
-            
-            // Filtramos para no poder basar un tema personalizado en otro.
-            themeList.removeIf(t -> t.category() == ThemeCategory.CUSTOM);
-            
-            // Ordenamos la lista.
-            themeList.sort(java.util.Comparator.comparing(ThemeManager.ThemeInfo::nombreDisplay));
-            
-            // Creamos el JComboBox a partir de un array del tipo correcto.
-            baseThemeSelector = new JComboBox<>(themeList.toArray(new ThemeManager.ThemeInfo[0]));
-            // --- FIN DE LA CORRECCIÓN ---
-
-            baseThemeSelector.setRenderer(new ThemeInfoRenderer());
-            baseThemeSelector.addActionListener(e -> updateColorPreviews());
-            mainPanel.add(baseThemeSelector, gbc);
-        
-            
-//        ThemeManager.ThemeInfo[] themes = themeManager.getAvailableThemes().values().stream()
-//                .filter(t -> t.category() != ThemeCategory.CUSTOM) // No basar un tema personalizado en otro
-//                .sorted(Comparator.comparing(ThemeManager.ThemeInfo::nombreDisplay))
-//                .toArray(ThemeManager.ThemeInfo[]::new);
-//        baseThemeSelector = new JComboBox<>(themes);
-//        
-//        mainPanel.add(baseThemeSelector, gbc);
-
-        gbc.gridy++; gbc.gridx = 0; gbc.weightx = 0; gbc.anchor = GridBagConstraints.LINE_END;
-        mainPanel.add(new JLabel("Nombre del Nuevo Tema:"), gbc);
-
-        gbc.gridx = 1; gbc.weightx = 1.0; gbc.anchor = GridBagConstraints.LINE_START;
+        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
+        headerPanel.add(new JLabel("Nombre del Tema:"), gbc);
+        gbc.gridx = 1; gbc.weightx = 1.0;
         customThemeNameField = new JTextField();
-        mainPanel.add(customThemeNameField, gbc);
+        headerPanel.add(customThemeNameField, gbc);
 
-        gbc.gridy++; gbc.gridx = 0; gbc.gridwidth = 2;
-        mainPanel.add(createSeparator("Acento y Selección"), gbc);
-        
-        addColorPickerRow(mainPanel, gbc, "Color de Acento:", "List.selectionBackground", "Component.accentColor");
-        addColorPickerRow(mainPanel, gbc, "Fondo de Selección:", "List.selectionBackground", "Table.selectionBackground", "Tree.selectionBackground");
-        addColorPickerRow(mainPanel, gbc, "Texto de Selección:", "List.selectionForeground", "Table.selectionForeground", "Tree.selectionForeground");
-        
-        
-        addColorPickerRow(mainPanel, gbc, "Borde de Foco:", 
-        	    "Component.focusColor",               // Color de foco general (el principal)
-        	    "Component.focusedBorderColor",       // Color para bordes cuando el componente tiene foco
-        	    "List.focusCellHighlightBorder",      // ¡La clave para el borde de las celdas de JList!
-        	    "Table.focusCellHighlightBorder",     // La clave para el borde de las celdas de JTable
-        	    "Tree.focusCellHighlightBorder",      // La clave para el borde de los nodos de JTree
-        	    "TabbedPane.focusColor",              // Color de foco para las pestañas
-        	    "ComboBox.focusColor",                // Color de foco para los ComboBox
-        	    "Button.focusedBorderColor",          // Color de borde de foco específico para botones
-        	    "ToggleButton.focusedBorderColor"     // Color de borde de foco específico para toggle buttons
-        	);
-        
-//        // --- INICIO DE LA CORRECCIÓN ---
-//        // Añadimos la clave específica para el borde de foco de la JList.
-//     // Hacemos que "Borde de Foco" sea mucho más completo, incluyendo JTable y JTabbedPane.
-//        addColorPickerRow(mainPanel, gbc, "Borde de Foco:", 
-//                "Component.focusColor", 
-//                "Component.focusedBorderColor", 
-//                "List.focusCellHighlightBorder",
-//                "Table.focusCellHighlightBorder", // Clave para tablas
-//                "TabbedPane.focusColor",          // Clave para pestañas
-//                "ComboBox.focusColor"             // Clave para ComboBoxes
-//            );
-//        // --- FIN DE LA CORRECCIÓN ---
-        
-        gbc.gridy++; gbc.gridx = 0; gbc.gridwidth = 2;
-        mainPanel.add(createSeparator("Fondos"), gbc);
-        addColorPickerRow(mainPanel, gbc, "Fondo Principal:", "Panel.background", "windowBackground");
-        addColorPickerRow(mainPanel, gbc, "Fondo Secundario (Barras):", "ToolBar.background", "MenuBar.background");
-        addColorPickerRow(mainPanel, gbc, "Fondo Componentes (Texto):", "TextField.background", "ComboBox.background", "Spinner.background", "TextArea.background");
+        gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
+        headerPanel.add(new JLabel("Basado en:"), gbc);
+        gbc.gridx = 1;
+        java.util.List<ThemeManager.ThemeInfo> themeList = new java.util.ArrayList<>(themeManager.getAvailableThemes().values());
+        themeList.removeIf(t -> t.category() == ThemeCategory.CUSTOM);
+        themeList.sort(java.util.Comparator.comparing(ThemeManager.ThemeInfo::nombreDisplay));
+        baseThemeSelector = new JComboBox<>(themeList.toArray(new ThemeManager.ThemeInfo[0]));
+        baseThemeSelector.setRenderer(new ThemeInfoRenderer());
+        baseThemeSelector.addActionListener(e -> updateColorPreviews());
+        headerPanel.add(baseThemeSelector, gbc);
 
-        gbc.gridy++; gbc.gridx = 0; gbc.gridwidth = 2;
-        mainPanel.add(createSeparator("Texto y Bordes"), gbc);
-        addColorPickerRow(mainPanel, gbc, "Texto Principal (Etiquetas):", "Label.foreground", "CheckBox.foreground", "RadioButton.foreground");
-        addColorPickerRow(mainPanel, gbc, "Texto de Botones:", "Button.foreground");
-        addColorPickerRow(mainPanel, gbc, "Borde Título:", "TitledBorder.titleColor");
+        controlPanel.add(headerPanel, BorderLayout.NORTH);
 
-        gbc.gridy++; gbc.gridx = 0; gbc.gridwidth = 2;
-        mainPanel.add(createSeparator("Personalizados de la Aplicación"), gbc);
-        addColorPickerRow(mainPanel, gbc, "Fondo Barra de Estado:", "Visor.statusBarBackground");
-        addColorPickerRow(mainPanel, gbc, "Texto Barra de Estado:", "Visor.statusBarForeground");
+        // Pestañas de Colores
+        tabbedPane = new JTabbedPane();
+        tabbedPane.addTab("Barras Sup.", createBarsTab());
+        tabbedPane.addTab("Status Bars", createStatusBarsTab());
+        tabbedPane.addTab("Cuerpo", createMainTab());
+        tabbedPane.addTab("Miniaturas", createThumbTab());
+        tabbedPane.addTab("Acento y Bordes", createAccentTab());
         
+        controlPanel.add(tabbedPane, BorderLayout.CENTER);
+
+        // --- 3. JSplitPane para unir ambos ---
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, themePreview, controlPanel);
+        splitPane.setDividerLocation(550);
+        splitPane.setContinuousLayout(true);
+        add(splitPane, BorderLayout.CENTER);
+
+        // Botones de acción
         JPanel buttonPanel = new JPanel();
-        JButton saveButton = new JButton("Guardar y Aplicar al Reiniciar");
+        buttonPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
+        JButton saveButton = new JButton("Guardar Tema");
+        saveButton.putClientProperty("JButton.buttonType", "roundRect");
         saveButton.addActionListener(e -> saveCustomTheme());
+        
+        JButton applyButton = new JButton("Aplicar");
+        applyButton.addActionListener(e -> {
+            // 1. Obtener y aplicar el tema base seleccionado
+            ThemeManager.ThemeInfo selectedBase = (ThemeManager.ThemeInfo) baseThemeSelector.getSelectedItem();
+            if (selectedBase != null) {
+                // Buscamos el ID del tema base en el manager
+                String baseId = null;
+                for (Map.Entry<String, ThemeManager.ThemeInfo> entry : themeManager.getAvailableThemes().entrySet()) {
+                    if (entry.getValue() == selectedBase) {
+                        baseId = entry.getKey();
+                        break;
+                    }
+                }
+                
+                if (baseId != null) {
+                    // Aplicar el tema base (sin notificar todavía para evitar doble refresco)
+                    themeManager.setTemaActual(baseId, false);
+                }
+            }
+
+            // 2. Aplicar las personalizaciones de color acumuladas (esto notifica y refresca)
+            themeManager.applyLiveCustomizations(customColors);
+            
+            // Refrescar toda la aplicación
+            if (getOwner() != null) {
+                javax.swing.SwingUtilities.updateComponentTreeUI(getOwner());
+            }
+            
+            // Cerrar la ventana
+            dispose();
+        });
+
         JButton cancelButton = new JButton("Cancelar");
         cancelButton.addActionListener(e -> dispose());
+        
         buttonPanel.add(saveButton);
+        buttonPanel.add(applyButton);
         buttonPanel.add(cancelButton);
-
-        JScrollPane scrollPane = new JScrollPane(mainPanel);
-        scrollPane.setBorder(null);
-        
-        add(scrollPane, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
+
+        // Seleccionar el tema actual por defecto
+        String currentThemeId = themeManager.getTemaActual().nombreInterno();
+        ThemeManager.ThemeInfo currentInfo = themeManager.getAvailableThemes().get(currentThemeId);
         
-        updateColorPreviews();
+        if (currentInfo != null) {
+            if (currentInfo.category() == ThemeCategory.CUSTOM
+                    || currentInfo.category() == ThemeCategory.CUSTOM_INTERNAL) {
+                // Si es personalizado, intentar buscar el tema base por el nombre de la clase del LAF
+                try {
+                    String baseClassName = UIManager.getLookAndFeel().getClass().getName();
+                    for (int i = 0; i < baseThemeSelector.getItemCount(); i++) {
+                        ThemeManager.ThemeInfo info = baseThemeSelector.getItemAt(i);
+                        if (info.lafSupplier().get().getClass().getName().equals(baseClassName)) {
+                            baseThemeSelector.setSelectedIndex(i);
+                            break;
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.error("Error al identificar el tema base del tema personalizado", e);
+                }
+            } else {
+                // Si es un tema estándar, seleccionarlo directamente
+                for (int i = 0; i < baseThemeSelector.getItemCount(); i++) {
+                    if (baseThemeSelector.getItemAt(i).nombreDisplay().equals(currentInfo.nombreDisplay())) {
+                        baseThemeSelector.setSelectedIndex(i);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Inicializar los selectores de color con el ESTADO ACTUAL del UIManager
+        // (no con los defaults de un LAF fresco), para que el diálogo refleje el tema aplicado.
+        initializeFromCurrentTheme();
+        isInitializing = false;
     } // ---FIN de metodo [Constructor ThemeCustomizerDialog]---
+
+    private JPanel createBarsTab() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.weightx = 1.0; gbc.gridx = 0; gbc.gridy = -1;
+
+        addColorPickerRow(panel, gbc, "Menú Fondo:", 0, "MenuBar.background");
+        addColorPickerRow(panel, gbc, "Menú Texto:", 0, "MenuBar.foreground");
+        gbc.gridy++; panel.add(new javax.swing.JSeparator(), gbc);
+        addColorPickerRow(panel, gbc, "Botones Fondo:", 0, "ToolBar.background");
+        addColorPickerRow(panel, gbc, "Botones Texto:", 0, "Button.foreground");
+        
+        gbc.gridy++; gbc.weighty = 1.0; panel.add(new JPanel(), gbc);
+        return panel;
+    }
+
+    private JPanel createStatusBarsTab() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.weightx = 1.0; gbc.gridx = 0; gbc.gridy = -1;
+
+        addColorPickerRow(panel, gbc, "Status Bar Fondo:", 1, "Visor.statusBarBackground");
+        addColorPickerRow(panel, gbc, "Status Bar Texto:", 1, "Visor.statusBarForeground");
+        gbc.gridy++; panel.add(new javax.swing.JSeparator(), gbc);
+        addColorPickerRow(panel, gbc, "TextBox Fondo:", 1, "TextField.background");
+        addColorPickerRow(panel, gbc, "TextBox Texto:", 1, "TextField.foreground");
+        
+        gbc.gridy++; gbc.weighty = 1.0; panel.add(new JPanel(), gbc);
+        return panel;
+    }
+
+    private JPanel createMainTab() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.weightx = 1.0; gbc.gridx = 0; gbc.gridy = -1;
+
+        addColorPickerRow(panel, gbc, "Lista Fondo:", 2, "List.background");
+        addColorPickerRow(panel, gbc, "Lista Texto:", 2, "List.foreground");
+        gbc.gridy++; panel.add(new javax.swing.JSeparator(), gbc);
+        addColorPickerRow(panel, gbc, "Visor Fondo:", 2, "windowBackground");
+        
+        gbc.gridy++; gbc.weighty = 1.0; panel.add(new JPanel(), gbc);
+        return panel;
+    }
+
+    private JPanel createThumbTab() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.weightx = 1.0; gbc.gridx = 0; gbc.gridy = -1;
+
+        addColorPickerRow(panel, gbc, "Miniaturas Fondo:", 3, "Panel.background");
+        addColorPickerRow(panel, gbc, "Miniaturas Texto:", 3, "Label.foreground");
+        
+        gbc.gridy++; gbc.weighty = 1.0; panel.add(new JPanel(), gbc);
+        return panel;
+    }
+
+    private JPanel createAccentTab() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.weightx = 1.0; gbc.gridx = 0; gbc.gridy = -1;
+
+        addColorPickerRow(panel, gbc, "Color de Acento:", 4, "Component.accentColor");
+        addColorPickerRow(panel, gbc, "Fondo Selección:", 4, "List.selectionBackground");
+        addColorPickerRow(panel, gbc, "Texto Selección:", 4, "List.selectionForeground");
+        addColorPickerRow(panel, gbc, "Borde de Foco:", 4, "Component.focusColor", "Component.focusedBorderColor");
+        addColorPickerRow(panel, gbc, "Imagen Marcada:", 4, "Visor.markedImageBorder");
+        
+        gbc.gridy++; gbc.weighty = 1.0; panel.add(new JPanel(), gbc);
+        return panel;
+    }
+    
+    private void handleZoneClicked(String propertyKey) {
+        String labelToFind = null;
+        for (Map.Entry<String, String[]> entry : labelToKeysMap.entrySet()) {
+            for (String key : entry.getValue()) {
+                if (key.equals(propertyKey)) {
+                    labelToFind = entry.getKey();
+                    break;
+                }
+            }
+            if (labelToFind != null) break;
+        }
+
+        if (labelToFind != null) {
+            // Cambiar a la pestaña correcta
+            int tabIndex = labelToTabIndexMap.getOrDefault(labelToFind, 0);
+            tabbedPane.setSelectedIndex(tabIndex);
+            
+            JButton button = labelToButtonMap.get(labelToFind);
+            if (button != null) {
+                button.doClick();
+            }
+        }
+    }
     
     // ... (el resto de la clase no necesita cambios)
     private void updateColorPreviews() {
+        // No disparar durante la inicialización del diálogo
+        if (isInitializing) return;
+
         ThemeManager.ThemeInfo selectedThemeInfo = (ThemeManager.ThemeInfo) baseThemeSelector.getSelectedItem();
         if (selectedThemeInfo == null) return;
 
+        // El usuario ha cambiado el tema BASE: limpiamos las personalizaciones anteriores
+        // y mostramos los colores por defecto del nuevo tema base.
         customColors.clear();
 
         try {
@@ -199,25 +352,71 @@ public class ThemeCustomizerDialog extends JDialog {
                             break;
                         }
                     }
-                    
-                    if (foundColor == null) {
-                        if (labelText.equals("Fondo Barra de Estado:")) foundColor = defaults.getColor("ToolBar.background");
-                        else if (labelText.equals("Texto Barra de Estado:")) foundColor = defaults.getColor("List.selectionBackground");
-                    }
 
-                    ColorPreviewPanel previewPanel = colorPreviewPanels.get(labelText);
-                    if (previewPanel != null) {
-                        previewPanel.setColor(foundColor);
+                    ColorPreviewPanel rowPreview = colorPreviewPanels.get(labelText);
+                    if (rowPreview != null) {
+                        rowPreview.setColor(foundColor);
                     }
                 }
+                refreshThemePreviewFromPickers();
             }
         } catch (Exception e) {
             logger.error("No se pudieron cargar los colores por defecto para el tema: " + selectedThemeInfo.nombreDisplay(), e);
         }
     } // ---FIN de metodo [updateColorPreviews]---
 
+    /**
+     * Inicializa los selectores de color con el estado ACTUAL del UIManager,
+     * que refleja el tema realmente aplicado en la aplicación en este momento.
+     * Se llama una única vez al abrir el diálogo.
+     */
+    private void initializeFromCurrentTheme() {
+        for (Map.Entry<String, String[]> entry : labelToKeysMap.entrySet()) {
+            String labelText = entry.getKey();
+            String[] keys = entry.getValue();
+            Color foundColor = null;
 
-    private void addColorPickerRow(JPanel parent, GridBagConstraints gbc, String labelText, String... propertyKeys) {
+            // Leer el color actual del UIManager (estado real aplicado)
+            for (String key : keys) {
+                foundColor = UIManager.getColor(key);
+                if (foundColor != null) break;
+            }
+
+            ColorPreviewPanel rowPreview = colorPreviewPanels.get(labelText);
+            if (rowPreview != null) {
+                rowPreview.setColor(foundColor);
+            }
+
+            // Pre-poblar customColors con el estado actual para que "Aplicar"
+            // preserve todos los colores incluso sin cambiar nada
+            if (foundColor != null) {
+                for (String key : keys) {
+                    customColors.put(key, foundColor);
+                }
+            }
+        }
+        refreshThemePreviewFromPickers();
+    } // ---FIN de metodo [initializeFromCurrentTheme]---
+
+    /** Actualiza el panel de vista previa con los colores actuales de los selectores. */
+    private void refreshThemePreviewFromPickers() {
+        if (themePreview == null) return;
+        Map<String, Color> previewColors = new HashMap<>();
+        for (Map.Entry<String, String[]> entry : labelToKeysMap.entrySet()) {
+            ColorPreviewPanel panel = colorPreviewPanels.get(entry.getKey());
+            Color c = (panel != null) ? panel.getColor() : null;
+            if (c != null) {
+                for (String key : entry.getValue()) {
+                    previewColors.put(key, c);
+                }
+            }
+        }
+        themePreview.setColors(previewColors);
+    } // ---FIN de metodo [refreshThemePreviewFromPickers]---
+
+
+    private void addColorPickerRow(JPanel parent, GridBagConstraints gbc, String labelText, int tabIndex, String... propertyKeys) {
+        labelToTabIndexMap.put(labelText, tabIndex);
         gbc.gridy++; gbc.gridwidth = 1;
         gbc.gridx = 0; gbc.weightx = 0; gbc.anchor = GridBagConstraints.LINE_END;
         parent.add(new JLabel(labelText), gbc);
@@ -234,6 +433,7 @@ public class ThemeCustomizerDialog extends JDialog {
         labelToKeysMap.put(labelText, propertyKeys);
 
         JButton changeButton = new JButton("Cambiar...");
+        labelToButtonMap.put(labelText, changeButton);
         changeButton.addActionListener(e -> {
             Color currentColor = colorPreview.getColor();
             Color newColor = JColorChooser.showDialog(this, "Elige un color para: " + labelText, currentColor);
@@ -242,6 +442,8 @@ public class ThemeCustomizerDialog extends JDialog {
                 for (String key : propertyKeys) {
                     customColors.put(key, newColor);
                 }
+                // Solo actualizamos la vista previa interna; la app real no se toca hasta "Aplicar"
+                refreshThemePreviewFromPickers();
             }
         });
 

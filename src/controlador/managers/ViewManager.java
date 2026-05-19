@@ -675,7 +675,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
         // >>> INICIO DE LA LÓGICA CORREGIDA Y SEGURA <<<
 
         // 1. Obtenemos la instancia específica del ExportPanel desde el registro.
-        vista.panels.export.ExportPanel exportPanel = registry.get("panel.proyecto.exportacion");
+        vista.panels.export.ExportPanel exportPanel = registry.get("panel.proyecto.exportacion.completo");
 
         if (exportPanel != null) {
             // 2. Pedimos al ToolbarManager la barra reconstruida.
@@ -697,7 +697,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
                 logger.warn("  WARN: ToolbarManager no pudo proporcionar la barra 'acciones_exportacion'.");
             }
         } else {
-            logger.warn("  WARN: No se encontró el componente 'panel.proyecto.exportacion' en el registro.");
+            logger.warn("  WARN: No se encontró el componente 'panel.proyecto.exportacion.completo' en el registro.");
         }
         // >>> FIN DE LA LÓGICA CORREGIDA <<<
 

@@ -30,7 +30,7 @@ import controlador.managers.ToolbarManager;
 import controlador.utils.ComponentRegistry;
 import modelo.proyecto.ExportItem;
 
-public class ExportPanel extends JPanel {
+public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListener {
 
     private static final Logger logger = LoggerFactory.getLogger(ExportPanel.class);
     private static final long serialVersionUID = 1L;
@@ -56,6 +56,8 @@ public class ExportPanel extends JPanel {
     private JTextField txtProjectName;
     private JTextArea areaProjectDescription;
     
+    private javax.swing.JToggleButton btnMoveCopy;
+    
     public ExportPanel(ProjectController controller, java.util.function.Consumer<javax.swing.event.TableModelEvent> tableChangedCallback) {
         super(new BorderLayout(5, 5));
         this.projectController = controller;
@@ -63,8 +65,12 @@ public class ExportPanel extends JPanel {
         this.tableModel = new ExportTableModel(tableChangedCallback);
         
         initComponents();
+        setupHighlightingListener();
         
-        // LA LLAMADA A setupHighlightingListener() SE ELIMINA COMPLETAMENTE DE AQUÍ
+        if (projectController != null && projectController.getGeneralController() != null &&
+            projectController.getGeneralController().getVisorController() != null) {
+            projectController.getGeneralController().getVisorController().getThemeManager().addThemeChangeListener(this);
+        }
         
         Component parent = tablaExportacion.getParent();
         if (parent instanceof javax.swing.JViewport) {
@@ -195,9 +201,34 @@ public class ExportPanel extends JPanel {
         this.lblResumen = new JLabel("Cargue la selección para ver el estado.");
         southPanel.add(this.lblResumen, BorderLayout.SOUTH);
         
-        // 3. El panel del Este con el tamaño total (no cambia, pero lo muevo aquí por claridad)
-        JPanel eastPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 0, 0));
+        // 3. El panel del Este con el tamaño total y botón de Mover/Copiar
+        JPanel eastPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 0));
         eastPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
+        
+        btnMoveCopy = new javax.swing.JToggleButton();
+        btnMoveCopy.putClientProperty("JButton.buttonType", "toolBarButton");
+        actualizarIconos();
+        btnMoveCopy.setToolTipText("Activar para MOVER los archivos (Desactivado = Copiar)");
+        btnMoveCopy.setFocusPainted(false);
+        btnMoveCopy.setContentAreaFilled(false);
+        btnMoveCopy.setOpaque(false);
+        btnMoveCopy.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+        
+        btnMoveCopy.addItemListener(e -> {
+            if (btnMoveCopy.isSelected()) {
+                btnMoveCopy.setContentAreaFilled(true);
+                btnMoveCopy.setOpaque(true);
+                btnMoveCopy.setBackground(new Color(255, 0, 0)); // Rojo muy intenso para peligro
+                btnMoveCopy.setToolTipText("MOVER archivos activo (se eliminarán del origen)");
+            } else {
+                btnMoveCopy.setContentAreaFilled(false);
+                btnMoveCopy.setOpaque(false);
+                btnMoveCopy.setBackground(null);
+                btnMoveCopy.setToolTipText("COPIAR archivos activo (se conservarán en el origen)");
+            }
+        });
+        eastPanel.add(btnMoveCopy);
+
         lblTotalSize = new JLabel();
         lblTotalSize.setHorizontalAlignment(JLabel.RIGHT);
         actualizarTamañoTotalExportacion();
@@ -412,6 +443,34 @@ public class ExportPanel extends JPanel {
     public ExportDetailPanel getDetailPanel() {
         return this.detailPanel;
     } // ---FIN de metodo [getDetailPanel]---
+
+    public boolean isMoveOperationActive() {
+        return btnMoveCopy != null && btnMoveCopy.isSelected();
+    }
+
+    public void resetMoveOperation() {
+        if (btnMoveCopy != null && btnMoveCopy.isSelected()) {
+            btnMoveCopy.setSelected(false);
+        }
+    }
+
+    private void actualizarIconos() {
+        if (projectController == null || btnMoveCopy == null) return;
+        vista.util.IconUtils iconUtils = projectController.getGeneralController().getVisorController().getIconUtils();
+        if (iconUtils != null) {
+            javax.swing.ImageIcon iconCopy = iconUtils.getScaledIcon("21012 copy files.png", 24, 24);
+            javax.swing.ImageIcon iconMove = iconUtils.getScaledIcon("21011 move files.png", 24, 24);
+            btnMoveCopy.setIcon(iconCopy);
+            btnMoveCopy.setSelectedIcon(iconMove);
+        }
+    }
+
+    @Override
+    public void onThemeChanged(vista.theme.Tema nuevoTema) {
+        SwingUtilities.invokeLater(() -> {
+            actualizarIconos();
+        });
+    }
 
 } // --- FIN de clase [ExportPanel]---
 

@@ -302,9 +302,12 @@ public class InfobarStatusManager implements ThemeChangeListener {
             }
             
             rootField.setText(folderDisplay);
+            rootField.setCaretPosition(0);
             rootField.setToolTipText(folderDisplay);
         }
     }// --- Fin del método actualizarRutaArchivoInferior ---
+
+
 
     private void actualizarIndicadoresDeEstado() {
 

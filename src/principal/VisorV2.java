@@ -22,7 +22,7 @@ public class VisorV2 {
      */
     public static final void main(String[] args) {
 
-        version = "V2.6.10";
+        version = "V2.7.50";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -40,39 +40,41 @@ public class VisorV2 {
 
     }
 
+    // GENERAL
+    // TODO la rueda del mouse en modo grid tiene que desplazarse por filas, no a la siguiente imagen
+    // TODO con ctrl+ + y ctrl + - tiene que aumentar o dismiuir el tamaño de la imgen del grid, este hotkey debe aparecer en el resumen y en el manual de instrucciones
+
+    
     // VISUALIZADOR
     // TODO HACER SALTO DE CARPETA. Cuando estamos viendo una carpeta que vemos que no nos cuadra, poder saltar todas las imagenes de esa carpeta
     // TODO CTRL + SHIFT DEBE ACTIVAR EL MODO PANEO Y DESACTIVARLO CUANDO SE DEJA DE PULSAR
-    // 
-
+    
+    
     // PROYECTO
-
     // TODO hacer que el salto de pagina avance o retroceda los items que se estipulan en el config, ahora lo hace pero de la lista general, no en la lista especifica, si movemos items a descartes pasa del item 0 al 10 pero si en medio no hay items porque estan en descartes va al item 10 igual
     // TODO permitir la seleccion multiple en modo proyecto
     // TODO permitir seleccionar varios archivos con el raton + shift por ej. para enviarlos a descartes o a exportar
     // TODO añadir una imagen al proyecto arrastrando desde la carpeta de windows
     // TODO importar un txt que contenga ruta/nombre y poder añadir ese txt o crear nuevo proyecto con base a ese txt
     // TODO hacer que la lista de imagenes cargada pueda copiar las imagenes al portapapeles para enviar por whatsapp por ej....
+    // TODO antes de exportar, que muestre una pantalla de confirmacion (se van a exportar estas imagenes con estos archivos asociados a esta carpeta
+    // FIXME falta un boton para MOVER los archivos en lugar de copiarlos 
 
+    
     // TOOLBAR
 
+    
     // ZOOM
 
-    // GENERAL
-    // TODO la rueda del mouse en modo grid tiene que desplazarse por filas, no a la siguiente imagen
-    // TODO con ctrl+ + y ctrl + - tiene que aumentar o dismiuir el tamaño de la imgen del grid, este hotkey debe aparecer en el resumen y en el manual de instrucciones
+    
+    //DATOS
+    // FIXME cada carpeta de la ruta del archivo es un tag y se debe reflejar en la base de datos
     
     
-    // VISUALIZADOR
-    // FIXME el marco que se muestra alrededor de la imagen deberia ser rojo. ahora creo que tiene el color de acento y no se distingue de marcada y no marcada
-    
-    
-    // PROYECTO 
-    // FIXME EL BOTON DE CAMBIAR DE CARPETA NO DEBERIA PODERSE UTILIZAR
-    // TODO antes de exportar, que muestre una pantalla de confirmacion (se van a exportar estas imagenes con estos archivos asociados a esta carpeta
-
     // CARROUSEL
 
+    
+    
     /*
     OPINIONES DE ANTIGRAVITY
     -------------------------

@@ -1548,11 +1548,31 @@ public class ProjectController implements IModoController {
         // --- FIN DE LA FASE 2: VALIDACIÓN PREVIA ---
 
         // Si hemos llegado hasta aquí, todas las validaciones han pasado.
+        boolean isMoveOperation = exportPanel.isMoveOperationActive();
+
+        if (isMoveOperation) {
+            javax.swing.ImageIcon warnIcon = generalController.getVisorController().getIconUtils().getScaledCommonIcon("status-warning.png", 48, 48);
+            int confirm = JOptionPane.showConfirmDialog(
+                    view,
+                    "¡ATENCIÓN!\n\nEl botón de 'Mover' está activado.\n" +
+                    "Los archivos se MOVERÁN a la carpeta destino y se ELIMINARÁN de la biblioteca original.\n\n" +
+                    "¿Estás seguro de que deseas continuar con el movimiento?",
+                    "Confirmar Movimiento de Archivos",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE,
+                    warnIcon);
+            
+            if (confirm != JOptionPane.YES_OPTION) {
+                logger.info("[ProjectController] Exportación (Mover) cancelada por el usuario.");
+                return;
+            }
+        }
+
         TaskProgressDialog dialogo = new TaskProgressDialog(
                 view,
                 "Progreso de Exportación",
-                "Copiando archivos del proyecto...");
-        ExportWorker worker = new ExportWorker(colaParaCopiar, carpetaDestino, dialogo, soloModificados, limpiarDestino);
+                isMoveOperation ? "Moviendo archivos del proyecto..." : "Copiando archivos del proyecto...");
+        ExportWorker worker = new ExportWorker(colaParaCopiar, carpetaDestino, dialogo, soloModificados, limpiarDestino, isMoveOperation, exportPanel);
 
         worker.addPropertyChangeListener(evt -> {
             if ("progress".equals(evt.getPropertyName())) {

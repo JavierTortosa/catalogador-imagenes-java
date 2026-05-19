@@ -258,6 +258,10 @@ public class GeneralController
         this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null en GeneralController");
     } // --- Fin del método setRegistry ---
 
+    public FilterManager getFilterManager() {
+        return this.filterManager;
+    } // --- Fin del método getFilterManager ---
+
     // ******************************************************************************************
     // Fin Setters
 
