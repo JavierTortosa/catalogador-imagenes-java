@@ -45,6 +45,7 @@ public class InfobarStatusManager implements ThemeChangeListener {
     private static final Logger logger = LoggerFactory.getLogger(InfobarStatusManager.class);
 
     private VisorController visorController;
+    private MenuPopupManager menuPopupManager;
     private final VisorModel model;
     private final ComponentRegistry registry;
     private final ThemeManager themeManager;
@@ -290,7 +291,8 @@ public class InfobarStatusManager implements ThemeChangeListener {
         if (esVisible) {
             String folderDisplay = "Carpeta: (ninguna)";
             
-            Path rootPath = model.getCarpetaRaizActual();
+            // Carpeta del selector/explorador (independiente de la ruta de la imagen en la barra superior)
+            Path rootPath = resolverCarpetaRaizParaBarraInferior();
             if (rootPath != null) {
                 folderDisplay = "Carpeta: " + rootPath.toString();
             } else if (projectService != null && projectService.getCurrentProject() != null) {
@@ -307,6 +309,24 @@ public class InfobarStatusManager implements ThemeChangeListener {
         }
     }// --- Fin del método actualizarRutaArchivoInferior ---
 
+    /**
+     * Devuelve la carpeta raíz que debe mostrarse en la barra inferior.
+     * En Visualizador/Carrusel usa siempre la del contexto del explorador (selector de carpetas),
+     * no la ruta del archivo seleccionado (esa va en la barra superior de imagen).
+     */
+    private Path resolverCarpetaRaizParaBarraInferior() {
+        if (model == null) {
+            return null;
+        }
+        VisorModel.WorkMode modo = model.getCurrentWorkMode();
+        if (modo == VisorModel.WorkMode.VISUALIZADOR || modo == VisorModel.WorkMode.CARROUSEL) {
+            Path carpetaVisualizador = model.getCarpetaRaizDelVisualizador();
+            if (carpetaVisualizador != null) {
+                return carpetaVisualizador;
+            }
+        }
+        return model.getCarpetaRaizActual();
+    } // --- Fin del método resolverCarpetaRaizParaBarraInferior ---
 
 
     private void actualizarIndicadoresDeEstado() {
@@ -441,62 +461,17 @@ public class InfobarStatusManager implements ThemeChangeListener {
     } // --- Fin del método configurarListenersControles ---
 
     private void mostrarMenuPorcentajes(Component invoker) {
-        JPopupMenu menu = new JPopupMenu();
-        int[] porcentajes = { 25, 50, 75, 100, 150, 200 };
-        for (int p : porcentajes) {
-            JMenuItem item = new JMenuItem(p + "%");
-            item.addActionListener(e -> aplicarZoomPersonalizado(p));
-            menu.add(item);
+        if (menuPopupManager != null) {
+            menuPopupManager.mostrarMenuPorcentajes(invoker);
         }
-        menu.addSeparator();
-        JMenuItem otrosItem = new JMenuItem("Otro...");
-        otrosItem.addActionListener(e -> {
-            String input = JOptionPane.showInputDialog(invoker, "Introduce el porcentaje:", "Zoom Personalizado",
-                    JOptionPane.PLAIN_MESSAGE);
-            if (input != null && !input.trim().isEmpty()) {
-                try {
-                    aplicarZoomPersonalizado(Double.parseDouble(input.replace('%', ' ').trim()));
-                } catch (NumberFormatException ex) { // <-- ¡CORRECCIÓN AQUÍ!
-                    JOptionPane.showMessageDialog(invoker, "Porcentaje inválido.", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        });
-        menu.add(otrosItem);
-        menu.show(invoker, 0, -invoker.getHeight());
-    }// --- Fin del método mostrarMenuPorcentajes
+    }
 
     private void mostrarMenuModosZoom(Component invoker) {
-        JPopupMenu menu = new JPopupMenu();
-        ZoomModeEnum[] modosParaMenu = {
-                ZoomModeEnum.FIT_TO_SCREEN,
-                ZoomModeEnum.FIT_TO_WIDTH,
-                ZoomModeEnum.FIT_TO_HEIGHT,
-                ZoomModeEnum.DISPLAY_ORIGINAL,
-                ZoomModeEnum.FILL,
-                ZoomModeEnum.MAINTAIN_CURRENT_ZOOM,
-                ZoomModeEnum.USER_SPECIFIED_PERCENTAGE
-        };
-        for (ZoomModeEnum modo : modosParaMenu) {
-            Action accionAsociada = actionMap.get(modo.getAssociatedActionCommand());
-            if (accionAsociada != null) {
-                JMenuItem item = new JMenuItem(accionAsociada);
-                item.setText(modo.getNombreLegible());
-                item.setIcon((javax.swing.Icon) accionAsociada.getValue(Action.SMALL_ICON));
-                menu.add(item);
-            }
+        if (menuPopupManager != null) {
+            menuPopupManager.mostrarMenuModosZoom(invoker);
         }
-        menu.show(invoker, 0, -menu.getPreferredSize().height);
-    }// --- Fin del método mostrarMenuModosZoom
+    }
 
-    private void aplicarZoomPersonalizado(double porcentaje) {
-        logger.debug("[StatusBarManager] ---> Delegando al VisorController la solicitud de zoom: " + porcentaje + "%");
-
-        if (this.visorController != null) {
-            this.visorController.getZoomManager().solicitarZoomPersonalizado(porcentaje);
-        } else {
-            logger.error("ERROR: visorController es nulo. No se puede delegar la acción.");
-        }
-    } // --- FIN del metodo aplicarZoomPersonalizado ---
 
     /**
      * MÉTODO HELPER para aclarar un color.
@@ -686,6 +661,10 @@ public class InfobarStatusManager implements ThemeChangeListener {
 
     public void setController(VisorController controller) {
         this.visorController = Objects.requireNonNull(controller);
+    }
+
+    public void setMenuPopupManager(MenuPopupManager menuPopupManager) {
+        this.menuPopupManager = menuPopupManager;
     }
 
 }// --- Fin de la clase InfobarStatusManager ---

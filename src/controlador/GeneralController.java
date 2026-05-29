@@ -43,6 +43,7 @@ import controlador.services.NavigationService;
 import controlador.services.ProjectLifecycleService;
 import controlador.services.SearchSortService;
 import controlador.services.ZoomPanService;
+import controlador.managers.MenuPopupManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
@@ -80,6 +81,7 @@ public class GeneralController
     private ImageListManager imageListManager;
     private DataController dataController;
     private AppModeService appModeService;
+    private MenuPopupManager menuPopupManager;
     private ProjectLifecycleService projectLifecycleService;
     private SearchSortService searchSortService;
     private FilterService filterService; 
@@ -1295,20 +1297,8 @@ public class GeneralController
     } // ---FIN de metodo solicitarAnadirFiltro---
 
     public JPopupMenu crearMenuContextualParaArbol() {
-        JPopupMenu menu = new JPopupMenu();
-
-        Action openAction = this.actionMap.get(AppActionCommands.CMD_TREE_OPEN_FOLDER);
-        Action drillDownAction = this.actionMap.get(AppActionCommands.CMD_TREE_DRILL_DOWN_FOLDER);
-
-        if (openAction != null) {
-            menu.add(new JMenuItem(openAction));
-        }
-        if (drillDownAction != null) {
-            menu.add(new JMenuItem(drillDownAction));
-        }
-
-        return menu;
-    } // --- Fin del método crearMenuContextualParaArbol ---
+        return menuPopupManager.crearMenuContextualParaArbol();
+    }
 
     public void solicitarAbrirCarpetaDesdeArbol() {
         navigationService.abrirCarpetaDesdeArbol();
@@ -1446,5 +1436,9 @@ public class GeneralController
     
     public void setAppModeService(AppModeService s) { 
     	this.appModeService = s; 
+    }
+    
+    public void setMenuPopupManager(MenuPopupManager menuPopupManager) {
+        this.menuPopupManager = menuPopupManager;
     }
 } // --- Fin de la clase GeneralController ---

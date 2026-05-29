@@ -37,6 +37,8 @@ import controlador.managers.GlobalInputManager;
 import controlador.managers.ImageListManager;
 import controlador.managers.InfobarImageManager;
 import controlador.managers.InfobarStatusManager;
+import controlador.managers.MenuPopupManager;
+import controlador.managers.KeyboardShortcutManager;
 import controlador.managers.ToolbarManager;
 import controlador.managers.ViewManager;
 import controlador.managers.ZoomManager;
@@ -120,6 +122,8 @@ public class AppInitializer {
     private InfobarImageManager infobarImageManager;
     private InfobarStatusManager statusBarManager;
     private ToolbarManager toolbarManager;
+    private MenuPopupManager menuPopupManager;
+    private KeyboardShortcutManager keyboardShortcutManager;
     private ViewManager viewManager;
     private BackgroundControlManager backgroundControlManager;
     private CarouselManager carouselManager;
@@ -432,6 +436,7 @@ public class AppInitializer {
         
         // 7. Inyectamos el gestor de modos y sincronizacion
         this.generalController.setAppModeService(this.appModeService);
+        this.generalController.setMenuPopupManager(this.menuPopupManager);
 
         // 7.1 Inyectamos dependencias adicionales en AppModeService
         this.appModeService.setVisorController(this.controller);
@@ -550,6 +555,8 @@ public class AppInitializer {
                 this.generalController.setActionMap(this.actionMap);
                 this.searchSortService.setActionMap(this.actionMap);
                 this.searchSortService.setVisorController(this.controller);
+                this.menuPopupManager = new MenuPopupManager(this.actionMap, this.registry,
+                        this.generalController, this.actionFactory, this.model);
 
                 // 3.3: ¡Paso clave! Crear la ventana principal (JFrame)
                 logger.debug("    -> Creando VisorView (JFrame)...");
@@ -564,6 +571,8 @@ public class AppInitializer {
                 this.controller.setView(this.view);
                 this.view.setController(this.controller);
                 this.projectController.setView(this.view);
+                this.keyboardShortcutManager = new KeyboardShortcutManager(this.view, this.actionMap,
+                        this.controller.getListCoordinator(), this.registry, this.statusBarManager);
 
                 // 3.5: Inicializar acciones que dependen de la vista
                 this.actionFactory.initializeViewDependentActions();
@@ -579,6 +588,7 @@ public class AppInitializer {
                 this.dataController.setStatusBarManager(this.statusBarManager);
                 this.displayModeManager.setInfobarStatusManager(this.statusBarManager);
                 this.statusBarManager.setController(this.controller);
+                this.statusBarManager.setMenuPopupManager(this.menuPopupManager);
                 this.searchSortService.setStatusBarManager(this.statusBarManager);
 
                 this.displayModeManager.setModel(this.model);
@@ -619,7 +629,7 @@ public class AppInitializer {
                 if (this.projectManagerService != null)
                     this.projectManagerService.initialize();
 
-                this.controller.configurarAtajosTecladoGlobales();
+                this.keyboardShortcutManager.configurarAtajosTecladoGlobales();
                 this.globalInputManager.configurarListeners();
 
                 // --- INICIO: AÑADIR LISTENER INTERACTIVO A LA LISTA DE FILTROS ---
@@ -662,7 +672,7 @@ public class AppInitializer {
                 KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner",
                         this.globalInputManager);
                 this.controller.configurarListenersVistaInternal();
-                this.controller.configurarMenusContextuales();
+                this.menuPopupManager.configurarMenusContextuales();
                 this.projectController.configurarListeners();
 
                 this.globalInputManager.initialize();

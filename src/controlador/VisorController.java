@@ -61,6 +61,7 @@ import controlador.managers.DisplayModeManager;
 import controlador.managers.ImageListManager;
 import controlador.managers.InfobarImageManager;
 import controlador.managers.InfobarStatusManager;
+import controlador.managers.MenuPopupManager;
 import controlador.managers.ToolbarManager;
 import controlador.managers.ViewManager;
 import controlador.managers.interfaces.IListCoordinator;
@@ -137,6 +138,7 @@ public class VisorController implements IModoController, ThemeChangeListener {
     
     
     private ConfigApplicationManager configAppManager;
+    private MenuPopupManager menuPopupManager;
     
     private Map<String, AbstractButton> botonesPorNombre;
     
@@ -144,16 +146,8 @@ public class VisorController implements IModoController, ThemeChangeListener {
     
 
 
-    // --- Atributos para Menús Contextuales ---
-    private JPopupMenu popupMenuImagenPrincipal;
-    private JPopupMenu popupMenuListaNombres;
-    private JPopupMenu popupMenuListaMiniaturas;
-    private JPopupMenu popupMenuGrid;
-    private MouseListener popupListenerImagenPrincipal;
-    private MouseListener popupListenerListaNombres;
-    private MouseListener popupListenerListaMiniaturas;
-    private MouseListener popupListenerGrid;
-    
+
+
     /**
      * Constructor principal (AHORA SIMPLIFICADO).
      * Delega toda la inicialización a AppInitializer.
@@ -551,260 +545,20 @@ public class VisorController implements IModoController, ThemeChangeListener {
      * Este método se llama durante la inicialización de la UI.
      */
     public void configurarMenusContextuales() {
-        logger.debug("  [VisorController] Configurando Menús Contextuales...");
-        if (actionMap == null || actionMap.isEmpty()) {
-            logger.warn("WARN [configurarMenusContextuales]: ActionMap es nulo o vacío. No se pueden crear menús.");
-            return;
-        }
-
-        // Crear los JPopupMenu para cada área.
-        popupMenuImagenPrincipal = crearMenuContextualStandard();
-        popupMenuListaNombres = crearMenuContextualStandard();
-        popupMenuListaMiniaturas = crearMenuContextualStandard();
-        popupMenuGrid = crearMenuContextualStandard();
-
-        // Obtener los componentes de la UI donde se activarán los menús desde el registro.
-        JLabel labelImagenPrincipal = registry.get("label.imagenPrincipal");
-        JList<String> listaNombres = registry.get("list.nombresArchivo");
-        JList<String> listaMiniaturas = registry.get("list.miniaturas");
-        JList<String> gridList = registry.get("list.grid");
-        
-        // --- INICIO CORRECCIÓN: Instanciar PopupListener y guardar la referencia ---
-        // Para labelImagenPrincipal
-        if (labelImagenPrincipal != null) {
-            // Eliminar el listener previamente si existe para evitar duplicados.
-            if (popupListenerImagenPrincipal != null) {
-                labelImagenPrincipal.removeMouseListener(popupListenerImagenPrincipal);
-            }
-            // Crear una nueva instancia y guardarla.
-            popupListenerImagenPrincipal = new PopupListener(popupMenuImagenPrincipal);
-            labelImagenPrincipal.addMouseListener(popupListenerImagenPrincipal);
-            logger.debug("    -> Menú contextual añadido a label.imagenPrincipal.");
-        } else {
-            logger.warn("WARN [configurarMenusContextuales]: 'label.imagenPrincipal' no encontrado en el registro.");
-        }
-
-        // Para listaNombres
-        if (listaNombres != null) {
-            // Eliminar el listener previamente si existe.
-            if (popupListenerListaNombres != null) {
-                listaNombres.removeMouseListener(popupListenerListaNombres);
-            }
-            // Crear una nueva instancia y guardarla.
-            popupListenerListaNombres = new PopupListener(popupMenuListaNombres);
-            listaNombres.addMouseListener(popupListenerListaNombres);
-            logger.debug("    -> Menú contextual añadido a list.nombresArchivo.");
-        } else {
-            logger.warn("WARN [configurarMenusContextuales]: 'list.nombresArchivo' no encontrado en el registro.");
-        }
-
-        // Para listaMiniaturas
-        if (listaMiniaturas != null) {
-            // Eliminar el listener previamente si existe.
-            if (popupListenerListaMiniaturas != null) {
-                listaMiniaturas.removeMouseListener(popupListenerListaMiniaturas);
-            }
-            // Crear una nueva instancia y guardarla.
-            popupListenerListaMiniaturas = new PopupListener(popupMenuListaMiniaturas);
-            listaMiniaturas.addMouseListener(popupListenerListaMiniaturas);
-            logger.debug("    -> Menú contextual añadido a list.miniaturas.");
-        } else {
-            logger.warn("WARN [configurarMenusContextuales]: 'list.miniaturas' no encontrado en el registro.");
-        }
-
-        
-        // --- INICIO DEL NUEVO BLOQUE PARA EL GRID ---
-        
-        if (gridList != null) {
-            // Eliminar listeners antiguos para evitar duplicados
-            if (popupListenerGrid != null) {
-                gridList.removeMouseListener(popupListenerGrid);
-            }
-            
-            // Creamos un listener especial para la JList del grid
-            popupListenerGrid = new MouseAdapter() {
-                public void mousePressed(MouseEvent e) { maybeShowPopup(e); }
-                public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
-
-                private void maybeShowPopup(MouseEvent e) {
-                    if (e.isPopupTrigger()) {
-                        // Paso CRUCIAL: Identificar la celda bajo el cursor
-                        int index = gridList.locationToIndex(e.getPoint());
-                        
-                        // Si el cursor está sobre una celda válida y no está ya seleccionada, la seleccionamos.
-                        // Esto asegura que la Action (ej. "Marcar Imagen") actúe sobre la imagen correcta.
-                        if (index != -1 && gridList.getSelectedIndex() != index) {
-                            gridList.setSelectedIndex(index);
-                        }
-                        
-                        // Ahora que la selección es correcta, mostramos el menú.
-                        popupMenuGrid.show(e.getComponent(), e.getX(), e.getY());
-                    }
-                }
-            };
-            
-            gridList.addMouseListener(popupListenerGrid);
-            logger.debug("    -> Menú contextual añadido a list.grid.");
-        } else {
-            logger.warn("WARN [configurarMenusContextuales]: 'list.grid' no encontrado en el registro.");
-        }
-        // --- FIN DEL NUEVO BLOQUE PARA EL GRID ---
-
-        configurarMenusContextualesRuta();
-        
-        logger.debug("  [VisorController] Menús Contextuales configurados.");
-    } // --- FIN del metodo configurarMenusContextuales ---
-
-    /**
-     * Configura los menús contextuales para las rutas copiables en las barras de estado.
-     */
-    private void configurarMenusContextualesRuta() {
-        javax.swing.JTextField tfRutaSup = registry.get("textfield.info.rutaImagen");
-        javax.swing.JTextField tfCarpetaInf = registry.get("textfield.estado.carpetaRaiz");
-
-        if (tfRutaSup != null) {
-            tfRutaSup.addMouseListener(new PathPopupListener(tfRutaSup, true));
-        }
-        if (tfCarpetaInf != null) {
-            tfCarpetaInf.addMouseListener(new PathPopupListener(tfCarpetaInf, false));
-        }
+        menuPopupManager.configurarMenusContextuales();
     }
 
-    /**
-     * Listener específico para las rutas que ofrece copiar y filtrar.
-     */
-    private class PathPopupListener extends MouseAdapter {
-        private final javax.swing.JTextField textField;
-        private final boolean allowFilter;
+    public void showCarouselSpeedMenu(java.awt.Component invoker) {
+        menuPopupManager.showCarouselSpeedMenu(invoker);
+    }
 
-        public PathPopupListener(javax.swing.JTextField textField, boolean allowFilter) {
-            this.textField = textField;
-            this.allowFilter = allowFilter;
-        }
-
-        @Override
-        public void mousePressed(MouseEvent e) { maybeShow(e); }
-        @Override
-        public void mouseReleased(MouseEvent e) { maybeShow(e); }
-
-        private void maybeShow(MouseEvent e) {
-            if (e.isPopupTrigger()) {
-                JPopupMenu menu = new JPopupMenu();
-                
-                String textoRaw = textField.getToolTipText();
-                if (textoRaw == null || textoRaw.isEmpty()) {
-                    textoRaw = textField.getText();
-                }
-                // Limpiar prefijos si existen ("Carpeta: ", "Ruta: ", "Carpeta Destino: ")
-                final String rutaLimpia = textoRaw.replaceFirst("^(Carpeta Destino: |Carpeta: |Ruta: )", "").trim();
-
-                JMenuItem copiarItem = new JMenuItem("Copiar ruta");
-                copiarItem.addActionListener(al -> {
-                    java.awt.datatransfer.StringSelection selection = new java.awt.datatransfer.StringSelection(rutaLimpia);
-                    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
-                });
-                menu.add(copiarItem);
-
-                if (allowFilter) {
-                    menu.addSeparator();
-
-                    JMenuItem addPosItem = new JMenuItem("Añadir a filtros (+)");
-                    addPosItem.addActionListener(al -> {
-                        if (generalController != null) {
-                            generalController.solicitarAnadirFiltroSilencioso(rutaLimpia, 
-                                controlador.managers.filter.FilterCriterion.FilterSource.FOLDER_PATH, 
-                                controlador.managers.filter.FilterCriterion.FilterType.CONTAINS);
-                        }
-                    });
-                    menu.add(addPosItem);
-
-                    JMenuItem addNegItem = new JMenuItem("Añadir a filtros (-)");
-                    addNegItem.addActionListener(al -> {
-                        if (generalController != null) {
-                            generalController.solicitarAnadirFiltroSilencioso(rutaLimpia, 
-                                controlador.managers.filter.FilterCriterion.FilterSource.FOLDER_PATH, 
-                                controlador.managers.filter.FilterCriterion.FilterType.DOES_NOT_CONTAIN);
-                        }
-                    });
-                    menu.add(addNegItem);
-                }
-
-                menu.show(e.getComponent(), e.getX(), e.getY());
-            }
-        }
+    public void setMenuPopupManager(MenuPopupManager menuPopupManager) {
+        this.menuPopupManager = menuPopupManager;
     }
 
     
-    /**
-     * Crea y devuelve un JPopupMenu con un conjunto estándar de acciones
-     * para el modo VISUALIZADOR.
-     * @return Un JPopupMenu pre-poblado.
-     */
-    private JPopupMenu crearMenuContextualStandard() {
-        JPopupMenu menu = new JPopupMenu();
-        if (actionMap == null) return menu; // Seguridad
 
-        // 1. Acciones de Proyecto/Marcado
-        // ¡CORRECCIÓN! Usamos la Action directamente, que ya sabe cómo manejar el estado.
-        Action marcarAction = actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
-        if (marcarAction != null) {
-            JCheckBoxMenuItem marcarItem = new JCheckBoxMenuItem(marcarAction);
-            menu.add(marcarItem);
-        }
-        
-        menu.addSeparator();
-
-        // 2. Acciones de Archivo/Ubicación
-        menu.add(new JMenuItem(actionMap.get(AppActionCommands.CMD_IMAGEN_LOCALIZAR)));
-        
-        menu.addSeparator();
-
-        // 3. Acciones de Zoom/Vista (como JCheckBoxMenuItem para reflejar estado)
-        menu.add(new JCheckBoxMenuItem(actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE)));
-        menu.add(new JMenuItem(actionMap.get(AppActionCommands.CMD_ZOOM_RESET))); // Reset no es un toggle
-        menu.addSeparator();
-        menu.add(new JCheckBoxMenuItem(actionMap.get(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES)));
-        menu.add(new JCheckBoxMenuItem(actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS)));
-
-        return menu;
-    }// Fin del metodo crearMenuContextualStandard
-    
-
-    /**
-     * Clase interna para manejar la lógica de mostrar el JPopupMenu
-     * en respuesta a un clic de ratón (especialmente clic derecho).
-     */
-    private static class PopupListener extends MouseAdapter {
-        private final JPopupMenu popupMenu;
-
-        public PopupListener(JPopupMenu popupMenu) {
-            this.popupMenu = popupMenu;
-        }
-
-        @Override
-        public void mousePressed(MouseEvent e) {
-            maybeShowPopup(e);
-        }
-
-        @Override
-        public void mouseReleased(MouseEvent e) {
-            maybeShowPopup(e);
-        }
-
-        private void maybeShowPopup(MouseEvent e) {
-            if (e.isPopupTrigger()) {
-                popupMenu.show(e.getComponent(), e.getX(), e.getY());
-            }
-        }
-    }
-    // --- FIN AÑADIDO: Métodos para Menús Contextuales ---
-    
-// *********************************************************************************************************** FIN POPUP MENU  
-
-    
 // *************************************************************************************************************** NAVEGACION
-    
-	
     void configurarFocusListenerMenu() {
         if (view == null) return;
         JMenuBar menuBar = view.getJMenuBar();
@@ -1673,30 +1427,8 @@ public class VisorController implements IModoController, ThemeChangeListener {
      *
      * @param nuevoTema El nombre interno del nuevo tema a aplicar (ej. "dark", "clear", "blue").
      */
-     public void cambiarTemaYNotificar(String nuevoTema) {
-         if (themeManager == null) {
-             logger.error("ERROR [cambiarTemaYNotificar]: ThemeManager es nulo.");
-             return;
-         }
-         if (nuevoTema == null || nuevoTema.trim().isEmpty()) {
-             logger.error("ERROR [cambiarTemaYNotificar]: El nombre del nuevo tema no puede ser nulo o vacío.");
-             return;
-         }
-         String temaLimpio = nuevoTema.trim().toLowerCase();
-         logger.debug("[VisorController] Solicitud para cambiar tema a: " + temaLimpio);
 
-         // Delegar al ThemeManager.
-         // ThemeManager internamente:
-         // 1. Cambia su temaActual.
-         // 2. Actualiza ConfigurationManager.
-         // 3. Llama a this.sincronizarEstadoDeTodasLasToggleThemeActions() (donde 'this' es VisorController).
-         // 4. Muestra el JOptionPane.
-         themeManager.setTemaActual(temaLimpio, true); 
 
-         logger.debug("[VisorController] Fin cambiarTemaYNotificar.");
-         
-     }// FIN del metodo cambiarTemaYNotificar
-       
 
      /**
      * Sincroniza explícitamente el estado visual de los JCheckBoxMenuItems que controlan
@@ -1936,40 +1668,7 @@ public class VisorController implements IModoController, ThemeChangeListener {
      *
      * @param invoker El componente (el JLabel) sobre el cual se mostrará el menú.
      */
-    public void showCarouselSpeedMenu(java.awt.Component invoker) {
-        JPopupMenu speedMenu = new JPopupMenu();
-
-        java.util.Map<String, Integer> speedOptions = new java.util.LinkedHashMap<>();
-        speedOptions.put("Muy Rápido (1.0s)", 1000);
-        speedOptions.put("Rápido (2.0s)", 2000);
-        speedOptions.put("Normal (5.0s)", 5000);
-        speedOptions.put("Lento (10.0s)", 10000);
-        speedOptions.put("Muy Lento (20.0s)", 20000);
-
-        CarouselManager carouselManager = getActionFactory().getCarouselManager();
-
-        for (java.util.Map.Entry<String, Integer> entry : speedOptions.entrySet()) {
-            String text = entry.getKey();
-            int delayMs = entry.getValue();
-            Action setSpeedAction = new controlador.actions.carousel.SetCarouselSpeedAction(
-                getModel(), carouselManager, text, delayMs);
-            speedMenu.add(new javax.swing.JMenuItem(setSpeedAction));
-        }
-
-        speedMenu.addSeparator(); // Un separador para distinguir la opción especial
-
-        Action setReverseSpeedAction = new controlador.actions.carousel.SetCarouselSpeedAction(
-            getModel(),
-            carouselManager,
-            "Velocidad Inversa (-5.0s)",
-            -5000 // <-- Le pasamos un valor negativo
-        );
-        speedMenu.add(new javax.swing.JMenuItem(setReverseSpeedAction));
-
-        speedMenu.show(invoker, 0, -speedMenu.getPreferredSize().height);
-    } // --- Fin del método showCarouselSpeedMenu ---
-    
-	
+    	
 // ************************************************************************************************** FIN GESTION DE PROYECTOS
 // ***************************************************************************************************************************
 	  
@@ -2251,7 +1950,10 @@ public class VisorController implements IModoController, ThemeChangeListener {
     public DefaultListModel<String> getModeloMiniaturasCarrusel() {return this.modeloMiniaturasCarrusel;}
 
     public DefaultListModel<String> getModeloMiniaturas() {
-        return imageListManager.getModeloMiniaturas();
+        if (model != null && model.getCurrentWorkMode() == WorkMode.CARROUSEL) {
+            return this.modeloMiniaturasCarrusel;
+        }
+        return this.modeloMiniaturasVisualizador;
     }
     
     public void setMostrarNombresMiniaturas(boolean mostrar) {
