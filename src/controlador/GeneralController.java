@@ -3,24 +3,17 @@ package controlador;
 import java.awt.Component;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import javax.swing.Action;
 import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 
@@ -31,7 +24,6 @@ import controlador.actions.filtro.SetFilterTypeAction;
 import controlador.commands.AppActionCommands;
 import controlador.interfaces.ContextSensitiveAction;
 import controlador.interfaces.IModoController;
-import controlador.managers.CarouselManager;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.DisplayModeManager;
 import controlador.managers.FilterManager;
@@ -45,15 +37,18 @@ import controlador.managers.filter.FilterCriterion.FilterSource;
 import controlador.managers.filter.FilterCriterion.FilterType;
 import controlador.managers.interfaces.IProjectManager;
 import controlador.managers.tree.FolderTreeManager;
+import controlador.services.AppModeService;
+import controlador.services.FilterService;
+import controlador.services.NavigationService;
+import controlador.services.ProjectLifecycleService;
+import controlador.services.SearchSortService;
+import controlador.services.ZoomPanService;
 import controlador.utils.ComponentRegistry;
-import modelo.ListContext;
 import modelo.VisorModel;
-import modelo.VisorModel.DisplayMode;
 import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import vista.components.Direction;
-import vista.panels.ImageDisplayPanel;
 
 /**
  * Controlador de aplicación de alto nivel.
@@ -84,13 +79,15 @@ public class GeneralController
     private FilterManager filterManager;
     private ImageListManager imageListManager;
     private DataController dataController;
-
-    private javax.swing.border.Border sortButtonActiveBorder;
-    private javax.swing.border.Border sortButtonInactiveBorder;
-
+    private AppModeService appModeService;
+    private ProjectLifecycleService projectLifecycleService;
+    private SearchSortService searchSortService;
+    private FilterService filterService; 
+    private NavigationService navigationService;
+    private ZoomPanService zoomPanService;
+    
     private Map<controlador.managers.filter.FilterCriterion.SourceType, javax.swing.Icon> typeIconsMap;
     private Map<String, Action> actionMap;
-    private boolean sortBordersInitialized = false;
 
     private volatile boolean isChangingSubfolderMode = false;
 
@@ -164,7 +161,7 @@ public class GeneralController
 
             // --- FIN: LÓGICA DE DEBOUNCING ---
 
-            configurePlaceholderText(searchField);
+            searchSortService.configurePlaceholderText(searchField);
 
             sincronizarEstadoControlesTornado();
 
@@ -264,204 +261,44 @@ public class GeneralController
 
     // ******************************************************************************************
     // Fin Setters
-
+    
     /**
      * Delega la solicitud de actualizar el título de la ventana principal al
-     * VisorController.
+     * AppModeService.
      * Este método se llama después de operaciones que pueden cambiar el contexto,
      * como cargar un nuevo proyecto.
      */
     public void actualizarTituloVentana() {
-        if (visorController != null) {
-            viewManager.actualizarTituloVentana();
+        if (appModeService != null) {
+            appModeService.actualizarTituloPrincipal();
+        } else {
+            logger.error("[GeneralController] AppModeService es nulo. No se pudo actualizar el título de la ventana.");
         }
     } // ---FIN de metodo actualizarTituloVentana---
 
-    /**
-     * Orquesta la acción de "Nuevo Proyecto".
-     * Comprueba si hay cambios sin guardar antes de proceder.
-     */
     public void handleNewProject() {
-        if (promptToSaveChangesIfNecessary() == UserChoice.CANCEL) {
-            return; // El usuario canceló, no hacer nada.
-        }
+        projectLifecycleService.handleNewProject();
+    }
 
-        projectController.solicitarNuevoProyecto();
-        // solicitarNuevoProyecto ya se encarga de cambiar de modo y actualizar título.
-    } // ---FIN de metodo handleNewProject---
-
-    /**
-     * Orquesta la acción de "Abrir Proyecto".
-     * Comprueba si hay cambios sin guardar y luego muestra el diálogo para abrir un
-     * archivo.
-     */
     public void handleOpenProject() {
-        if (promptToSaveChangesIfNecessary() == UserChoice.CANCEL) {
-            return; // El usuario canceló.
-        }
+        projectLifecycleService.handleOpenProject();
+    }
 
-        // La lógica del JFileChooser ahora reside aquí, en el orquestador.
-        javax.swing.JFileChooser fileChooser = new javax.swing.JFileChooser();
-        fileChooser.setDialogTitle("Abrir Proyecto");
-        fileChooser.setCurrentDirectory(projectController.getProjectManager().getCarpetaBaseProyectos().toFile());
-        javax.swing.filechooser.FileNameExtensionFilter filter = new javax.swing.filechooser.FileNameExtensionFilter(
-                "Archivos de Proyecto (*.prj)", "prj");
-        fileChooser.setFileFilter(filter);
-
-        int result = fileChooser.showOpenDialog(visorController.getView());
-        if (result == javax.swing.JFileChooser.APPROVE_OPTION) {
-            Path selectedFile = fileChooser.getSelectedFile().toPath();
-            projectController.solicitarAbrirProyecto(selectedFile);
-        }
-    } // ---FIN de metodo handleOpenProject---
-
-    /**
-     * Orquesta la acción de "Guardar Proyecto".
-     * Si el proyecto es nuevo (temporal), delega a "Guardar Como".
-     */
     public void handleSaveProject() {
-        if (projectController.getProjectManager().getArchivoProyectoActivo() == null) {
-            handleSaveProjectAs(); // Es un proyecto temporal, necesita un nombre.
-        } else {
-            projectController.solicitarGuardarProyecto();
-            // solicitarGuardarProyecto ya actualiza el título a través del listener
-        }
-    } // ---FIN de metodo handleSaveProject---
+        projectLifecycleService.handleSaveProject();
+    }
 
-    /**
-     * Orquesta la acción de "Guardar Proyecto Como".
-     * Siempre muestra el diálogo para elegir una nueva ubicación.
-     */
     public void handleSaveProjectAs() {
-        projectController.solicitarGuardarProyectoComo();
-    } // ---FIN de metodo handleSaveProjectAs---
+        projectLifecycleService.handleSaveProjectAs();
+    }
 
-    /**
-     * Orquesta la acción de "Eliminar Proyecto".
-     * Muestra los diálogos y delega la lógica de borrado.
-     */
     public void handleDeleteProject() {
-        // La lógica que estaba en EliminarProyectoAction se mueve aquí.
-        javax.swing.JFileChooser fileChooser = new javax.swing.JFileChooser();
-        fileChooser.setDialogTitle("Seleccionar Proyecto a Eliminar");
+        projectLifecycleService.handleDeleteProject();
+    }
 
-        controlador.managers.interfaces.IProjectManager pm = projectController.getProjectManager();
-        Path dirInicial = pm.getCarpetaBaseProyectos();
-        if (dirInicial != null) {
-            fileChooser.setCurrentDirectory(dirInicial.toFile());
-        }
-
-        javax.swing.filechooser.FileNameExtensionFilter filter = new javax.swing.filechooser.FileNameExtensionFilter(
-                "Archivos de Proyecto (*.prj)", "prj");
-        fileChooser.setFileFilter(filter);
-
-        int result = fileChooser.showDialog(visorController.getView(), "Eliminar Seleccionado");
-
-        if (result == javax.swing.JFileChooser.APPROVE_OPTION) {
-            Path archivoAEliminar = fileChooser.getSelectedFile().toPath();
-
-            int confirm = javax.swing.JOptionPane.showConfirmDialog(
-                    visorController.getView(),
-                    "¿Estás ABSOLUTAMENTE SEGURO de que quieres eliminar el proyecto '" + archivoAEliminar.getFileName()
-                            + "'?\n" +
-                            "Esta acción es irreversible y borrará el archivo del disco.",
-                    "Confirmar Eliminación Permanente",
-                    javax.swing.JOptionPane.YES_NO_OPTION,
-                    javax.swing.JOptionPane.WARNING_MESSAGE);
-
-            if (confirm == javax.swing.JOptionPane.YES_OPTION) {
-                try {
-                    Files.delete(archivoAEliminar);
-                    logger.info("Proyecto eliminado exitosamente: {}", archivoAEliminar);
-                    javax.swing.JOptionPane.showMessageDialog(visorController.getView(),
-                            "El proyecto ha sido eliminado.", "Eliminación Completada",
-                            javax.swing.JOptionPane.INFORMATION_MESSAGE);
-
-                    // Comprobar si el proyecto eliminado era el activo
-                    if (Objects.equals(pm.getArchivoProyectoActivo(), archivoAEliminar)) {
-                        pm.nuevoProyecto();
-                        cambiarModoDeTrabajo(VisorModel.WorkMode.VISUALIZADOR);
-                    }
-
-                } catch (java.io.IOException ex) {
-                    logger.error("Error al intentar eliminar el archivo de proyecto: " + archivoAEliminar, ex);
-                    javax.swing.JOptionPane.showMessageDialog(visorController.getView(),
-                            "No se pudo eliminar el archivo del proyecto.\nError: " + ex.getMessage(),
-                            "Error de Eliminación", javax.swing.JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        }
-    } // ---FIN de metodo handleDeleteProject---
-
-    /**
-     * Orquesta el proceso de apagado limpio de la aplicación.
-     * Es llamado desde el WindowListener de la vista principal.
-     */
     public void handleApplicationShutdown() {
-        logger.info("--- [GeneralController] Gestionando el cierre de la aplicación ---");
-
-        UserChoice choice = promptToSaveChangesIfNecessary();
-
-        if (choice == UserChoice.CANCEL) {
-            logger.info("  -> Cierre de la aplicación CANCELADO por el usuario.");
-            return; // Abortar el cierre.
-        }
-
-        controlador.managers.interfaces.IProjectManager pm = projectController.getProjectManager();
-
-        if (choice == UserChoice.DONT_SAVE && pm.hayCambiosSinGuardar()) {
-            logger.info("  -> Usuario eligió no guardar. Creando sesión de recuperación...");
-            Path recoveryPath = pm.guardarSesionDeRecuperacion();
-            if (recoveryPath != null) {
-                configuration.setString(ConfigKeys.PROYECTO_RECUPERACION_PENDIENTE,
-                        recoveryPath.toAbsolutePath().toString());
-            }
-        } else {
-            configuration.setString(ConfigKeys.PROYECTO_RECUPERACION_PENDIENTE, "");
-        }
-
-        // --- Guardar SIEMPRE el estado del CONTEXTO DEL VISUALIZADOR ---
-        if (model != null && configuration != null) {
-            logger.debug("  -> Guardando estado de la sesión de exploración (desde el contexto del Visualizador)...");
-
-            // Obtenemos explícitamente el contexto del visualizador, sin importar el modo
-            // activo.
-            ListContext visualizadorContext = model.getVisualizadorListContext();
-
-            if (visualizadorContext != null) {
-                Path ultimaCarpeta = visualizadorContext.getCarpetaRaizContexto();
-                String ultimaImagenKey = visualizadorContext.getSelectedImageKey();
-
-                String carpetaParaGuardar = (ultimaCarpeta != null) ? ultimaCarpeta.toAbsolutePath().toString() : "";
-                configuration.setString(ConfigKeys.INICIO_CARPETA, carpetaParaGuardar);
-                logger.debug("    -> {} actualizada a: {}", ConfigKeys.INICIO_CARPETA, carpetaParaGuardar);
-
-                String imagenParaGuardar = (ultimaImagenKey != null) ? ultimaImagenKey : "";
-                configuration.setString(ConfigKeys.INICIO_IMAGEN, imagenParaGuardar);
-                logger.debug("    -> {} actualizada a: {}", ConfigKeys.INICIO_IMAGEN, imagenParaGuardar);
-            } else {
-                logger.warn(
-                        "  -> No se pudo obtener el contexto del visualizador para guardar el estado de la sesión.");
-            }
-        }
-
-        // --- GUARDADO FINAL DE CONFIGURACIÓN ---
-        logger.debug("  -> Guardando estado final de la ventana y configuración...");
-        visorController.guardarEstadoVentanaEnConfig();
-
-        try {
-            configuration.guardarConfiguracion(configuration.getConfig());
-        } catch (java.io.IOException e) {
-            logger.error("### ERROR FATAL AL GUARDAR CONFIGURACIÓN DURANTE EL CIERRE: " + e.getMessage());
-        }
-
-        // --- APAGADO DE SERVICIOS ---
-        visorController.apagarExecutorServiceOrdenadamente();
-
-        logger.info("--- Apagado limpio completado. Saliendo de la JVM. ---\n\n");
-
-        System.exit(0);
-    } // ---FIN de metodo handleApplicationShutdown---
+        projectLifecycleService.handleApplicationShutdown();
+    }
 
     /**
      * Orquesta el guardado explícito del archivo de configuración.
@@ -495,58 +332,6 @@ public class GeneralController
     } // ---FIN de metodo handleSaveConfiguration---
 
     /**
-     * Representa las posibles elecciones del usuario en el diálogo de "guardar
-     * cambios".
-     */
-    private enum UserChoice {
-        SAVE, DONT_SAVE, CANCEL
-    }
-
-    /**
-     * MÉTODO CLAVE REUTILIZABLE. Comprueba si hay cambios sin guardar y, si los
-     * hay,
-     * pregunta al usuario qué hacer.
-     * 
-     * @return La elección del usuario (SAVE, DONT_SAVE, CANCEL). Si no había
-     *         cambios,
-     *         devuelve DONT_SAVE (indicando que se puede proceder sin guardar).
-     */
-    private UserChoice promptToSaveChangesIfNecessary() {
-        controlador.managers.interfaces.IProjectManager pm = projectController.getProjectManager();
-        if (pm == null || !pm.hayCambiosSinGuardar()) {
-            return UserChoice.DONT_SAVE; // No hay cambios, se puede proceder.
-        }
-
-        // Sincronizar la UI al modelo antes de preguntar, para asegurar que se guarde
-        // el estado más reciente.
-        projectController.sincronizarModeloConUI();
-        projectController.sincronizarArchivosAsociadosConModelo();
-        projectController.sincronizarDescripcionDesdeUI();
-
-        String[] options = { "Guardar", "No Guardar", "Cancelar" };
-        int result = javax.swing.JOptionPane.showOptionDialog(
-                visorController.getView(),
-                "El proyecto '" + pm.getNombreProyectoActivo() + "' tiene cambios sin guardar. ¿Qué deseas hacer?",
-                "Cambios sin Guardar",
-                javax.swing.JOptionPane.YES_NO_CANCEL_OPTION,
-                javax.swing.JOptionPane.WARNING_MESSAGE,
-                null,
-                options,
-                options[0]);
-
-        switch (result) {
-            case javax.swing.JOptionPane.YES_OPTION: // Guardar
-                handleSaveProject();
-                // Si el usuario canceló el diálogo "Guardar Como", el proyecto seguirá "sucio".
-                return pm.hayCambiosSinGuardar() ? UserChoice.CANCEL : UserChoice.SAVE;
-            case javax.swing.JOptionPane.NO_OPTION: // No Guardar
-                return UserChoice.DONT_SAVE;
-            default: // Cancelar o cerrar el diálogo
-                return UserChoice.CANCEL;
-        }
-    } // ---FIN de metodo promptToSaveChangesIfNecessary---
-
-    /**
      * Orquesta la transición entre los diferentes modos de trabajo de la
      * aplicación.
      * Es el punto de entrada central para cambiar de vista. Contiene la lógica
@@ -571,7 +356,7 @@ public class GeneralController
                 // archivo.
                 // Si el helper devuelve 'false', significa que el usuario canceló,
                 // por lo tanto, debemos abortar la transición.
-                if (!manejarAperturaDeProyectoVacio()) {
+                if (!appModeService.manejarAperturaDeProyectoVacio()) {
                     sincronizarEstadoBotonesDeModo(); // Revertir el estado visual del botón
                     return; // Abortar la transición
                 }
@@ -674,285 +459,17 @@ public class GeneralController
         }
     } // --- Fin del método verificarYGestionarRecuperacion ---
 
-    /**
-     * Método helper que gestiona el flujo cuando se intenta entrar en modo proyecto
-     * sin un proyecto cargado. Muestra un diálogo para abrir un archivo.
-     * 
-     * @return {@code true} si un proyecto fue seleccionado y cargado exitosamente,
-     *         {@code false} si el usuario canceló la operación.
-     */
-    private boolean manejarAperturaDeProyectoVacio() {
-        logger.debug("[GeneralController] Manejando apertura de proyecto vacío...");
-
-        // Obtenemos una referencia a la ventana principal para centrar el diálogo
-        Component parent = (visorController != null && visorController.getView() != null) ? visorController.getView()
-                : null;
-
-        // Mostramos el JFileChooser
-        javax.swing.JFileChooser fileChooser = new javax.swing.JFileChooser();
-        fileChooser.setDialogTitle("Abrir Proyecto");
-        fileChooser.setCurrentDirectory(projectController.getProjectManager().getCarpetaBaseProyectos().toFile());
-        javax.swing.filechooser.FileNameExtensionFilter filter = new javax.swing.filechooser.FileNameExtensionFilter(
-                "Archivos de Proyecto (*.prj)", "prj");
-        fileChooser.setFileFilter(filter);
-
-        int result = fileChooser.showOpenDialog(parent);
-
-        if (result == javax.swing.JFileChooser.APPROVE_OPTION) {
-            // El usuario seleccionó un archivo.
-            Path selectedFile = fileChooser.getSelectedFile().toPath();
-            logger.debug(" -> Usuario seleccionó el archivo: {}", selectedFile);
-
-            // Delegamos la carga de datos al ProjectController.
-            projectController.solicitarAbrirProyecto(selectedFile);
-
-            // Verificamos si la carga fue exitosa (ahora hay imágenes en el proyecto)
-            IProjectManager pm = visorController.getProjectManager();
-            if (!pm.getImagenesMarcadas().isEmpty() || !pm.getImagenesDescartadas().isEmpty()) {
-
-                logger.debug(" -> Proyecto cargado exitosamente. Se procederá con el cambio de modo.");
-                return true; // Éxito
-            } else {
-                logger.warn(" -> El proyecto seleccionado ({}) está vacío o no se pudo cargar.",
-                        selectedFile.getFileName());
-                // Opcional: Mostrar un mensaje al usuario
-                javax.swing.JOptionPane.showMessageDialog(parent, "El proyecto seleccionado está vacío o no es válido.",
-                        "Proyecto Vacío", javax.swing.JOptionPane.WARNING_MESSAGE);
-                return false; // Fracaso
-            }
-        } else {
-            // El usuario canceló el diálogo.
-            logger.debug(" -> El usuario canceló la apertura del proyecto.");
-            return false; // Cancelado
-        }
-    } // ---FIN de metodo manejarAperturaDeProyectoVacio---
-
-    /**
-     * Realiza las tareas de "limpieza" o guardado de estado de un modo antes de
-     * abandonarlo.
-     * 
-     * @param modoQueSeAbandona El modo que estamos dejando.
-     */
-    private void salirModo(VisorModel.WorkMode modoQueSeAbandona) {
-        logger.debug("  [GeneralController] Saliendo del modo: " + modoQueSeAbandona);
-
-        // --- LÓGICA DE GUARDADO AL SALIR DEL MODO PROYECTO ---
-        if (modoQueSeAbandona == WorkMode.PROYECTO) {
-            if (projectController != null) {
-                // Sincronizamos el estado de la UI (listas, descripción, etc.) al modelo en
-                // memoria.
-                // ESTO NO GUARDA EN DISCO, solo asegura que el ProjectModel esté actualizado.
-                projectController.sincronizarModeloConUI();
-
-                // Guardamos el estado del panel de exportación.
-                model.setProjectExportPanelVisible(projectController.isExportPanelVisible());
-                logger.debug("    -> Modo Proyecto: Estado de UI sincronizado con el modelo en memoria.");
-            }
-        }
-
-        // --- LÓGICA DE GUARDADO AL SALIR DEL MODO VISUALIZADOR ---
-        if (modoQueSeAbandona == WorkMode.VISUALIZADOR) {
-            // Si salimos del modo visualizador Y hay cambios pendientes (el usuario marcó
-            // algo),
-            // guardamos el estado en el archivo TEMPORAL. Esto preserva el "proyecto sin
-            // nombre".
-            if (visorController != null && visorController.getProjectManager() != null
-                    && visorController.getProjectManager().hayCambiosSinGuardar()) {
-                // Solo guardamos si no tenemos un proyecto con nombre. Si lo tenemos, los
-                // cambios se quedan en memoria
-                // esperando un guardado explícito.
-                if (visorController.getProjectManager().getArchivoProyectoActivo() == null) {
-                    logger.info(
-                            "Saliendo del modo VISUALIZADOR con cambios en proyecto temporal. Guardando en archivo temporal...");
-                    visorController.getProjectManager().guardarAArchivo(); // Esto guardará en "seleccion_temporal.prj"
-                }
-            }
-        }
-
-        // --- LÓGICA DEL CARRUSEL (se mantiene igual) ---
-        if (modoQueSeAbandona == WorkMode.CARROUSEL && !model.isSyncVisualizadorCarrusel()) {
-            ListContext carruselCtx = model.getCarouselListContext();
-            model.setUltimaCarpetaCarrusel(carruselCtx.getCarpetaRaizContexto());
-            model.setUltimaImagenKeyCarrusel(carruselCtx.getSelectedImageKey());
-            logger.debug("    -> Modo Carrusel Independiente: Guardando estado en el modelo.");
-        }
-
-        if (modoQueSeAbandona == WorkMode.CARROUSEL) {
-            CarouselManager carouselManager = visorController.getActionFactory().getCarouselManager();
-            if (carouselManager != null) {
-                carouselManager.onCarouselModeChanged(false); // Notificar salida
-            }
-        }
-
-    } // --- Fin del método salirModo ---
+    private void salirModo(WorkMode modo) {
+    	appModeService.salirModo(modo);
+    }
 
     private void entrarModo(WorkMode modoAlQueSeEntra) {
-        logger.debug("  [GeneralController] Entrando en modo: " + modoAlQueSeEntra);
-        if (displayModeManager != null) {
-            ListContext contextoDestino = model.getVisualizadorListContext();
-            if (modoAlQueSeEntra == WorkMode.PROYECTO)
-                contextoDestino = model.getProyectoListContext();
-            DisplayMode modoGuardado = contextoDestino.getDisplayMode();
-            displayModeManager.switchToDisplayMode(modoGuardado);
-        }
-
-        SwingUtilities.invokeLater(() -> {
-            logger.debug("    -> [EDT-1] Cambiando tarjeta del CardLayout a: " + modoAlQueSeEntra);
-
-            switch (modoAlQueSeEntra) {
-                case VISUALIZADOR:
-                    boolean miniaturasVisibles = configuration
-                            .getBoolean("interfaz.menu.vista.imagenes_en_miniatura.seleccionado", true);
-                    if (registry.get("scroll.miniaturas") != null) {
-                        registry.get("scroll.miniaturas").setVisible(miniaturasVisibles);
-                    }
-                    if (model.isSyncVisualizadorCarrusel()) {
-                        model.getVisualizadorListContext().clonarDesde(model.getCarouselListContext());
-                    }
-                    viewManager.cambiarAVista("container.workmodes", "VISTA_VISUALIZADOR");
-                    break;
-                case PROYECTO:
-                    viewManager.cambiarAVista("container.workmodes", "VISTA_PROYECTOS");
-                    break;
-                case DATOS:
-                    viewManager.cambiarAVista("container.workmodes", "VISTA_DATOS");
-                    break;
-                case EDICION:
-                    viewManager.cambiarAVista("container.workmodes", "VISTA_EDICION");
-                    break;
-                case CARROUSEL:
-                    viewManager.cambiarAVista("container.workmodes", "VISTA_CARROUSEL_WORKMODE");
-                    break;
-            }
-
-            JPanel workModesContainer = registry.get("container.workmodes");
-            if (workModesContainer != null) {
-                workModesContainer.revalidate();
-                workModesContainer.repaint();
-            }
-
-            SwingUtilities.invokeLater(() -> {
-                logger.debug("    -> [EDT-2] Restaurando y sincronizando UI para: " + modoAlQueSeEntra);
-                switch (modoAlQueSeEntra) {
-                    case VISUALIZADOR:
-                        visorController.restaurarUiVisualizador();
-                        break;
-                    case PROYECTO:
-                        projectController.activarVistaProyecto();
-                        projectController.configurarContextMenuTablaExportacion();
-                        if (model.isProjectExportPanelVisible()) {
-                            projectController.setExportPanelVisible(true);
-                            projectController.solicitarPreparacionColaExportacion();
-                            projectController.sincronizarSeleccionEnTablaExportacion();
-                        }
-                        break;
-                    case CARROUSEL:
-                        ListContext contextoCarrusel = model.getCarouselListContext();
-                        if (model.isSyncVisualizadorCarrusel())
-                            contextoCarrusel.clonarDesde(model.getVisualizadorListContext());
-                        else if (contextoCarrusel.getModeloLista() == null
-                                || contextoCarrusel.getModeloLista().isEmpty())
-                            contextoCarrusel.clonarDesde(model.getVisualizadorListContext());
-                        visorController.restaurarUiCarrusel();
-                        if (visorController.getActionFactory().getCarouselManager() != null)
-                            visorController.getActionFactory().getCarouselManager().onCarouselModeChanged(true);
-                        break;
-                    // --- INICIO DE LA MODIFICACIÓN ---
-                    case DATOS:
-                        if (dataController != null) {
-                            dataController.activate();
-                        } else {
-                            logger.error("DataController es nulo. No se puede activar el Modo Datos.");
-                        }
-                        break;
-                    // --- FIN DE LA MODIFICACIÓN ---
-                    case EDICION:
-                        break;
-                }
-                actualizarEstadoUiParaModo(modoAlQueSeEntra);
-                if (toolbarManager != null)
-                    toolbarManager.reconstruirContenedorDeToolbars(modoAlQueSeEntra);
-                if (modoAlQueSeEntra == WorkMode.CARROUSEL
-                        && visorController.getActionFactory().getCarouselManager() != null) {
-                    visorController.getActionFactory().getCarouselManager().findAndWireUpFastMoveButtons();
-                    visorController.getActionFactory().getCarouselManager().findAndWireUpSpeedButtons();
-                    visorController.getActionFactory().getCarouselManager().wireUpEventListeners();
-                }
-                sincronizarEstadoBotonesDeModo();
-                logger.debug("    -> [EDT-2] Restauración de UI para " + modoAlQueSeEntra + " completada.");
-            });
-        });
-    } // --- Fin del método entrarModo ---
-
-    /**
-     * MÉTODO MAESTRO DE SINCRONIZACIÓN DE UI.
-     * Habilita/deshabilita y selecciona/deselecciona componentes de la UI
-     * (acciones, botones)
-     * basándose en el modo de trabajo actual y el estado del Modelo.
-     * 
-     * @param modoActual El modo que se acaba de activar.
-     */
+    	appModeService.entrarModo(modoAlQueSeEntra);
+    }
+    
     private void actualizarEstadoUiParaModo(WorkMode modoActual) {
-        logger.debug("  [GeneralController] Actualizando estado de la UI para el modo: " + modoActual);
-
-        // --- 1. LÓGICA DE HABILITACIÓN/DESHABILITACIÓN (Enabled/Disabled) ---
-        boolean subcarpetasHabilitado = (modoActual == WorkMode.VISUALIZADOR || modoActual == WorkMode.CARROUSEL);
-
-        // 2. Obtenemos todas las acciones relacionadas con esta funcionalidad.
-        Action subfolderAction = this.actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-        Action soloCarpetaAction = this.actionMap.get(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA);
-        Action conSubcarpetasAction = this.actionMap.get(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS);
-
-        // 3. Aplicamos la misma regla a TODAS las acciones.
-        if (subfolderAction != null) {
-            subfolderAction.setEnabled(subcarpetasHabilitado);
-        }
-        if (soloCarpetaAction != null) {
-            soloCarpetaAction.setEnabled(subcarpetasHabilitado);
-        }
-        if (conSubcarpetasAction != null) {
-            conSubcarpetasAction.setEnabled(subcarpetasHabilitado);
-        }
-
-        // --- 2. LÓGICA DE SELECCIÓN (Selected/Deselected) para Toggles ---
-
-        if (configAppManager != null) {
-            // Sincronizar el toggle de subcarpetas
-            if (subfolderAction != null) {
-
-                // Leemos el estado del contexto de lista ACTUALMENTE ACTIVO en el modelo.
-                // model.isMostrarSoloCarpetaActual() ya es inteligente y devuelve el del
-                // contexto correcto.
-
-                // log [DEBUG-SYNC] Modo:
-                logger.debug("  [DEBUG-SYNC] Modo: " + modoActual
-                        + ", Valor de isMostrarSoloCarpetaActual() en modelo: " + model.isMostrarSoloCarpetaActual());
-
-                boolean estadoModeloSubcarpetas = !model.isMostrarSoloCarpetaActual();
-
-                subfolderAction.putValue(Action.SELECTED_KEY, estadoModeloSubcarpetas);
-                configAppManager.actualizarAspectoBotonToggle(subfolderAction, estadoModeloSubcarpetas);
-            }
-
-            // Sincronizar el toggle de proporciones
-            Action proporcionesAction = actionMap.get(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
-            if (proporcionesAction != null) {
-                // De forma similar, model.isMantenerProporcion() leerá del contexto de zoom
-                // correcto.
-                boolean estadoModeloProporciones = model.isMantenerProporcion();
-                proporcionesAction.putValue(Action.SELECTED_KEY, estadoModeloProporciones);
-                configAppManager.actualizarAspectoBotonToggle(proporcionesAction, estadoModeloProporciones);
-            }
-        }
-
-        // --- 3. ACTUALIZACIÓN DE OTROS COMPONENTES ---
-
-        if (this.statusBarManager != null) {
-            this.statusBarManager.actualizar();
-        }
-
-        logger.debug("  [GeneralController] Estado de la UI actualizado.");
-    } // --- Fin del método actualizarEstadoUiParaModo ---
+        appModeService.actualizarUiModo(modoActual, this.actionMap);
+    }
 
     @Override
     public void onProjectStateChanged(boolean hasUnsavedChanges) {
@@ -998,67 +515,10 @@ public class GeneralController
     // ***********************************************************************************************************************
     // INICIO SINCRONIZACION
 
-    /**
-     * Sincroniza el estado LÓGICO Y VISUAL de los botones de modo de trabajo.
-     * Asegura que solo el botón del modo activo esté seleccionado y que se aplique
-     * el estilo visual personalizado.
-     */
+    
     public void sincronizarEstadoBotonesDeModo() {
-        if (this.actionMap == null || this.model == null || this.configAppManager == null) {
-            logger.warn("WARN [GeneralController.sincronizarEstadoBotonesDeModo]: Dependencias nulas.");
-            return;
-        }
-
-        // 1. Obtener el WorkMode actual del modelo.
-        WorkMode modoActivo = this.model.getCurrentWorkMode();
-        String comandoModoActivo;
-
-        // 2. Mapear el WorkMode actual a su comando de acción correspondiente.
-        switch (modoActivo) {
-            case VISUALIZADOR:
-                comandoModoActivo = AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR;
-                break;
-            case PROYECTO:
-                comandoModoActivo = AppActionCommands.CMD_PROYECTO_GESTIONAR;
-                break;
-            case DATOS:
-                comandoModoActivo = AppActionCommands.CMD_MODO_DATOS;
-                break;
-            case EDICION:
-                comandoModoActivo = AppActionCommands.CMD_MODO_EDICION;
-                break;
-            case CARROUSEL:
-                comandoModoActivo = AppActionCommands.CMD_VISTA_CAROUSEL;
-                break;
-            default:
-                // Fallback por si acaso
-                comandoModoActivo = AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR;
-                break;
-        }
-
-        // 3. Crear una lista de TODOS los comandos de los botones de modo.
-        List<String> comandosDeModo = List.of(
-                AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR,
-                AppActionCommands.CMD_PROYECTO_GESTIONAR,
-                AppActionCommands.CMD_MODO_DATOS,
-                AppActionCommands.CMD_MODO_EDICION,
-                AppActionCommands.CMD_VISTA_CAROUSEL);
-
-        // El resto del método se queda igual, ya que la lógica de iteración es
-        // correcta.
-        for (String comando : comandosDeModo) {
-            Action action = this.actionMap.get(comando);
-            if (action != null) {
-                // a) Actualizar el estado lógico de la Action
-                boolean isSelected = comando.equals(comandoModoActivo);
-                action.putValue(Action.SELECTED_KEY, isSelected);
-
-                // b) Actualizar el estado visual del botón asociado
-                this.configAppManager.actualizarAspectoBotonToggle(action, isSelected);
-            }
-        }
-        logger.debug("[GeneralController] Sincronizados botones de modo. Activo: " + comandoModoActivo);
-    } // --- Fin del método sincronizarEstadoBotonesDeModo ---
+        appModeService.sincronizarBotonesModo(this.actionMap);
+    }
 
     /**
      * Orquesta una sincronización completa del estado lógico de todas las Actions
@@ -1135,203 +595,12 @@ public class GeneralController
      *                  imagen.
      */
     public void panImageToEdge(Direction direction) {
-        logger.debug("[GeneralController] Solicitud de paneo ABSOLUTO a: " + direction);
-        if (model == null || model.getCurrentImage() == null || registry == null) {
-            logger.error("ERROR [GeneralController.panImageToEdge]: Dependencias nulas o sin imagen actual.");
-            return;
-        }
+        zoomPanService.panToEdge(direction);
+    }
 
-        ImageDisplayPanel displayPanel = viewManager.getActiveDisplayPanel();
-
-        if (displayPanel == null || displayPanel.getWidth() <= 0 || displayPanel.getHeight() <= 0) {
-            logger.error(
-                    "ERROR [GeneralController.panImageToEdge]: ImageDisplayPanel no encontrado o sin dimensiones válidas.");
-            return;
-        }
-
-        BufferedImage currentImage = model.getCurrentImage();
-        double zoomFactor = model.getZoomFactor();
-
-        int imageScaledWidth = (int) (currentImage.getWidth() * zoomFactor);
-        int imageScaledHeight = (int) (currentImage.getHeight() * zoomFactor);
-
-        int panelWidth = displayPanel.getWidth();
-        int panelHeight = displayPanel.getHeight();
-
-        // Calcular el punto inicial del centrado (si la imagen estuviera centrada sin
-        // paneo)
-        // La imagen se dibuja desde (xBase + offsetX, yBase + offsetY)
-        double xBaseCentered = (double) (panelWidth - imageScaledWidth) / 2;
-        double yBaseCentered = (double) (panelHeight - imageScaledHeight) / 2;
-
-        int newOffsetX = model.getImageOffsetX(); // Partimos del offset actual del modelo
-        int newOffsetY = model.getImageOffsetY();
-
-        // Si la imagen es más pequeña que el panel en esa dimensión, el paneo al borde
-        // no tiene sentido.
-        // En ese caso, la imagen ya está "en el borde" (y centrada) o no se puede mover
-        // más allá del centro.
-        // Aquí solo calculamos si la imagen es MÁS GRANDE que el panel en esa
-        // dimensión,
-        // de lo contrario, los offsets serán 0 (centrado) por defecto si se aplican los
-        // límites.
-
-        switch (direction) {
-            case UP:
-                if (imageScaledHeight > panelHeight) {
-                    newOffsetY = (int) -yBaseCentered; // Borde superior: el inicio de la imagen debe estar al inicio
-                                                       // del panel
-                } else { // Imagen más pequeña que el panel en vertical, centramos o dejamos en 0.
-                    newOffsetY = 0; // O mantener el offset actual si ya está centrada.
-                }
-                break;
-            case DOWN:
-                if (imageScaledHeight > panelHeight) {
-                    // Borde inferior: el final de la imagen (yBase + offsetY + imageScaledHeight)
-                    // debe coincidir con el final del panel (panelHeight)
-                    newOffsetY = (int) (panelHeight - imageScaledHeight - yBaseCentered);
-                } else {
-                    newOffsetY = 0;
-                }
-                break;
-            case LEFT:
-                if (imageScaledWidth > panelWidth) {
-                    newOffsetX = (int) -xBaseCentered; // Borde izquierdo: el inicio de la imagen debe estar al inicio
-                                                       // del panel
-                } else {
-                    newOffsetX = 0;
-                }
-                break;
-            case RIGHT:
-                if (imageScaledWidth > panelWidth) {
-                    // Borde derecho: el final de la imagen (xBase + offsetX + imageScaledWidth)
-                    // debe coincidir con el final del panel (panelWidth)
-                    newOffsetX = (int) (panelWidth - imageScaledWidth - xBaseCentered);
-                } else {
-                    newOffsetX = 0;
-                }
-                break;
-            case NONE:
-                // No hacer nada
-                return;
-        }
-
-        // Si la imagen escalada es más pequeña que el panel en una dimensión,
-        // aseguramos que el offset no mueva la imagen fuera de un estado "centrado" en
-        // esa dimensión.
-        // Esto es para que si paneas a la izquierda, y la imagen es más pequeña que el
-        // panel en X,
-        // no se pegue al borde sino que se quede centrada.
-        if (imageScaledWidth <= panelWidth) {
-            newOffsetX = 0; // Si la imagen cabe, el offset es 0 (centrado)
-        }
-        if (imageScaledHeight <= panelHeight) {
-            newOffsetY = 0; // Si la imagen cabe, el offset es 0 (centrado)
-        }
-
-        // Actualizar el modelo con los nuevos offsets
-        model.setImageOffsetX(newOffsetX);
-        model.setImageOffsetY(newOffsetY);
-
-        // Solicitar el repintado del panel para que muestre la imagen en la nueva
-        // posición
-        displayPanel.repaint();
-        logger.debug("[GeneralController] Paneo absoluto a " + direction + " aplicado. Offset: (" + newOffsetX + ", "
-                + newOffsetY + ")");
-    } // --- Fin del método panImageToEdge ---
-
-    /**
-     * Panea la imagen de forma incremental en la dirección especificada por una
-     * cantidad fija.
-     * Esta es la lógica de paneo INCREMENTAL.
-     * 
-     * @param direction La dirección (UP, DOWN, LEFT, RIGHT) del paneo incremental.
-     * @param amount    La cantidad de píxeles a mover en cada paso.
-     */
     public void panImageIncrementally(Direction direction, int amount) {
-        logger.debug("[GeneralController] Solicitud de paneo INCREMENTAL (" + amount + "px) a: " + direction);
-        if (model == null || model.getCurrentImage() == null || registry == null) {
-            logger.error("ERROR [GeneralController.panImageIncrementally]: Dependencias nulas o sin imagen actual.");
-            return;
-        }
-
-        ImageDisplayPanel displayPanel = viewManager.getActiveDisplayPanel();
-
-        // TODO: Igual que arriba, si hay múltiples paneles de display, obtener el correcto.
-        if (displayPanel == null || displayPanel.getWidth() <= 0 || displayPanel.getHeight() <= 0) {
-            logger.error(
-                    "ERROR [GeneralController.panImageIncrementally]: ImageDisplayPanel no encontrado o sin dimensiones válidas.");
-            return;
-        }
-
-        BufferedImage currentImage = model.getCurrentImage();
-        double zoomFactor = model.getZoomFactor();
-
-        int imageScaledWidth = (int) (currentImage.getWidth() * zoomFactor);
-        int imageScaledHeight = (int) (currentImage.getHeight() * zoomFactor);
-
-        int panelWidth = displayPanel.getWidth();
-        int panelHeight = displayPanel.getHeight();
-
-        int currentOffsetX = model.getImageOffsetX();
-        int currentOffsetY = model.getImageOffsetY();
-
-        int newOffsetX = currentOffsetX;
-        int newOffsetY = currentOffsetY;
-
-        // Calcular el nuevo offset incremental, y luego aplicar límites para que no se
-        // salga de la imagen.
-        switch (direction) {
-            case UP:
-                newOffsetY = currentOffsetY - amount;
-                break;
-            case DOWN:
-                newOffsetY = currentOffsetY + amount;
-                break;
-            case LEFT:
-                newOffsetX = currentOffsetX - amount;
-                break;
-            case RIGHT:
-                newOffsetX = currentOffsetX + amount;
-                break;
-            case NONE:
-                return;
-        }
-
-        // Lógica para limitar el paneo dentro de los límites de la imagen/panel
-        double xBaseCentered = (double) (panelWidth - imageScaledWidth) / 2;
-        double yBaseCentered = (double) (panelHeight - imageScaledHeight) / 2;
-
-        // Si la imagen es más grande que el panel:
-        if (imageScaledWidth > panelWidth) {
-            int minPossibleX = panelWidth - imageScaledWidth - (int) xBaseCentered;
-            int maxPossibleX = (int) -xBaseCentered;
-            newOffsetX = Math.max(minPossibleX, Math.min(newOffsetX, maxPossibleX));
-        } else {
-            newOffsetX = (int) -xBaseCentered; // Si la imagen es más pequeña, siempre se centra (offset es negativo de
-                                               // xBase)
-            // Opcional: si la imagen es más pequeña, se podría forzar newOffsetX = 0 (si se
-            // prefiere pegar al centro visual)
-        }
-
-        if (imageScaledHeight > panelHeight) {
-            int minPossibleY = panelHeight - imageScaledHeight - (int) yBaseCentered;
-            int maxPossibleY = (int) -yBaseCentered;
-            newOffsetY = Math.max(minPossibleY, Math.min(newOffsetY, maxPossibleY));
-        } else {
-            newOffsetY = (int) -yBaseCentered; // Si la imagen es más pequeña, siempre se centra
-            // Opcional: si la imagen es más pequeña, se podría forzar newOffsetY = 0
-        }
-
-        // Actualizar el modelo con los nuevos offsets
-        model.setImageOffsetX(newOffsetX);
-        model.setImageOffsetY(newOffsetY);
-
-        // Solicitar el repintado del panel
-        displayPanel.repaint();
-        logger.debug(
-                "[GeneralController] Paneo incremental aplicado. Offset: (" + newOffsetX + ", " + newOffsetY + ")");
-    } // --- Fin del método panImageIncrementally ---
+        zoomPanService.panIncrementally(direction, amount);
+    }
 
     /**
      * Actúa como un router para la acción de marcar/desmarcar una imagen.
@@ -1759,6 +1028,7 @@ public class GeneralController
         // Esto es necesario porque el refresco -> sincronizarCarpetaConBD
         // usa model.getCarpetaRaizActual() para saber qué escanear.
         model.setCarpetaRaizActual(nuevaCarpeta);
+        model.setCarpetaRaizInicialParaVisualizador(nuevaCarpeta);
 
         // 2. Sincronizar el árbol de carpetas.
         if (this.folderTreeManager != null) {
@@ -1883,220 +1153,17 @@ public class GeneralController
         }
     } // --- FIN del metodo solicitarToggleModoCargaSubcarpetas ---
 
-    /**
-     * Reordena la lista de archivos actual basándose en el estado de sortDirection
-     * del modelo y actualiza la UI del botón de ordenación.
-     * [VERSIÓN CORREGIDA Y LIMPIA]
-     */
     public void resortFileListAndSyncButton() {
-        VisorModel.SortDirection direction = model.getSortDirection();
-        ListContext currentContext = model.getCurrentListContext();
-        if (currentContext == null)
-            return;
+        searchSortService.resortFileListAndSyncButton();
+    }
 
-        DefaultListModel<String> listModel = currentContext.getModeloLista();
-        if (listModel.isEmpty()) {
-            syncSortButtonUI(direction);
-            return;
-        }
-
-        if (direction == VisorModel.SortDirection.NONE) {
-            solicitarCargaDesdeNuevaRaiz(model.getCarpetaRaizActual());
-            syncSortButtonUI(direction);
-            return;
-        }
-
-        List<String> items = new ArrayList<>();
-        for (int i = 0; i < listModel.getSize(); i++) {
-            items.add(listModel.getElementAt(i));
-        }
-
-        String selectedKey = model.getSelectedImageKey();
-
-        // Lógica de ordenación por NOMBRE DE ARCHIVO
-        items.sort((pathStr1, pathStr2) -> {
-            Path p1 = Paths.get(pathStr1);
-            Path p2 = Paths.get(pathStr2);
-            Path fn1 = p1.getFileName();
-            Path fn2 = p2.getFileName();
-            String s1 = (fn1 != null) ? fn1.toString() : p1.toString();
-            String s2 = (fn2 != null) ? fn2.toString() : p2.toString();
-            return s1.compareToIgnoreCase(s2);
-        });
-
-        // Si es descendente, simplemente invertimos la lista ya ordenada
-        if (direction == VisorModel.SortDirection.DESCENDING) {
-            Collections.reverse(items);
-        }
-
-        listModel.clear();
-        listModel.addAll(items);
-
-        int newIndex = (selectedKey != null) ? listModel.indexOf(selectedKey) : -1;
-        if (newIndex == -1 && !listModel.isEmpty()) {
-            newIndex = 0;
-        }
-
-        if (this.getVisorController().getListCoordinator() != null) {
-            this.getVisorController().getListCoordinator().reiniciarYSeleccionarIndice(newIndex);
-        }
-
-        syncSortButtonUI(direction);
-    } // ---FIN de metodo resortFileListAndSyncButton---
-
-    /**
-     * Sincroniza ÚNICAMENTE la apariencia del botón de ordenación basándose
-     * en el estado actual del modelo, sin alterar la lista.
-     */
     public void sincronizarBotonDeOrdenacion() {
-        if (model == null)
-            return;
-        syncSortButtonUI(model.getSortDirection());
-    } // --- FIN del metodo sincronizarBotonDeOrdenacion ---
+        searchSortService.sincronizarBotonDeOrdenacion();
+    }
 
-    /**
-     * Actualiza el icono, tooltip y BORDE del botón de ordenación, usando
-     * el color de acento del tema actual, igual que el resto de la aplicación.
-     * [VERSIÓN FINAL CON ARQUITECTURA DE TEMA]
-     */
-    private void syncSortButtonUI(VisorModel.SortDirection direction) {
-        Action sortAction = this.actionMap.get(AppActionCommands.CMD_ORDEN_CICLO);
-        if (sortAction == null)
-            return;
-
-        String buttonKey = "interfaz.boton.orden_lista.orden_ciclo";
-        javax.swing.JButton sortButton = registry.get(buttonKey);
-
-        if (sortButton == null) {
-            return;
-        }
-
-        // --- INICIALIZACIÓN DE BORDES (se hace solo una vez) ---
-        if (!sortBordersInitialized) {
-            int thickness = 2;
-
-            // LA CLAVE: Usamos el color de acento definido por el tema.
-            // Es el mismo que usa BackgroundControlManager a través del objeto Tema.
-            java.awt.Color activeColor = javax.swing.UIManager.getColor("Component.accentColor");
-            if (activeColor == null) {
-                // Fallback por si la clave no existiera en algún tema raro.
-                activeColor = javax.swing.UIManager.getColor("Component.focusColor");
-                if (activeColor == null) {
-                    activeColor = new java.awt.Color(59, 142, 255);
-                }
-            }
-
-            this.sortButtonActiveBorder = javax.swing.BorderFactory.createLineBorder(activeColor, thickness);
-
-            // El borde inactivo reserva el espacio para que el botón no "salte".
-            this.sortButtonInactiveBorder = javax.swing.BorderFactory.createEmptyBorder(thickness, thickness, thickness,
-                    thickness);
-
-            sortBordersInitialized = true;
-        }
-
-        // --- LÓGICA DE ACTUALIZACIÓN ---
-        String iconKey;
-        String tooltip;
-
-        switch (direction) {
-            case ASCENDING:
-            case DESCENDING:
-                if (direction == VisorModel.SortDirection.ASCENDING) {
-                    iconKey = "30004-orden_ascendente.png";
-                    tooltip = "Orden: Ascendente (clic para Z-A)";
-                } else {
-                    iconKey = "30005-orden_descendente.png";
-                    tooltip = "Orden: Descendente (clic para apagar)";
-                }
-                sortButton.setBorder(this.sortButtonActiveBorder);
-                break;
-
-            case NONE:
-            default:
-                iconKey = "30006-orden_off.png";
-                tooltip = "Orden: Apagado (clic para A-Z)";
-                sortButton.setBorder(this.sortButtonInactiveBorder);
-                break;
-        }
-
-        int iconSize = configuration.getInt("iconos.ancho", 24);
-        ImageIcon newIcon = this.getVisorController().getIconUtils().getScaledIcon(iconKey, iconSize, iconSize);
-        sortAction.putValue(Action.SMALL_ICON, newIcon);
-        sortAction.putValue(Action.SHORT_DESCRIPTION, tooltip);
-
-        sortButton.repaint();
-    } // --- FIN del metodo syncSortButtonUI ---
-
-    /**
-     * Orquesta la búsqueda de la siguiente coincidencia usando el FilterManager.
-     * Este método es llamado por el ActionListener del campo de búsqueda.
-     */
-    private void buscarSiguienteCoincidencia() {
-        if (registry == null || model == null || visorController == null || filterManager == null
-                || visorController.getListCoordinator() == null) {
-            logger.warn("[GeneralController] No se puede buscar, faltan dependencias críticas.");
-            return;
-        }
-
-        // 1. Obtener el campo de texto y el texto a buscar.
-        javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
-        if (searchField == null) {
-            logger.error("[GeneralController] No se encontró el JTextField 'textfield.filtro.orden' en el registro.");
-            return;
-        }
-
-        String searchText = searchField.getText();
-        if (searchText.isBlank() || searchText.equals("Texto a buscar...")) {
-            return; // No hay nada que buscar.
-        }
-
-        // 2. Obtener el contexto actual para la búsqueda.
-        ListContext currentContext = model.getCurrentListContext();
-        DefaultListModel<String> masterListModel = currentContext.getModeloLista();
-        int startIndex = visorController.getListCoordinator().getOfficialSelectedIndex();
-
-        // 3. Delegar la búsqueda al FilterManager.
-        int foundIndex = filterManager.buscarSiguiente(masterListModel, startIndex, searchText);
-
-        // 4. Procesar el resultado.
-        if (foundIndex != -1) {
-            // Coincidencia encontrada: usar el ListCoordinator para seleccionar.
-            visorController.getListCoordinator().seleccionarImagenPorIndice(foundIndex);
-
-        } else {
-            // No se encontró: notificar al usuario.
-            if (statusBarManager != null) {
-                statusBarManager.mostrarMensajeTemporal("No se encontró: \"" + searchText + "\"", 3000);
-            }
-        }
-    } // --- Fin del método buscarSiguienteCoincidencia ---
-
-    /**
-     * Configura el comportamiento del texto placeholder en un JTextField.
-     */
-    private void configurePlaceholderText(javax.swing.JTextField searchField) {
-        searchField.addFocusListener(new java.awt.event.FocusAdapter() {
-            @Override
-            public void focusGained(java.awt.event.FocusEvent e) {
-                if (searchField.getText().equals("Texto a buscar...")) {
-                    searchField.setText("");
-                    searchField.setForeground(javax.swing.UIManager.getColor("TextField.foreground"));
-                }
-            }
-
-            @Override
-            public void focusLost(java.awt.event.FocusEvent e) {
-                if (searchField.getText().isEmpty()) {
-                    searchField.setText("Texto a buscar...");
-                    searchField.setForeground(javax.swing.UIManager.getColor("TextField.placeholderForeground"));
-                }
-            }
-        });
-        if (searchField.getText().equals("Texto a buscar...")) {
-            searchField.setForeground(javax.swing.UIManager.getColor("TextField.placeholderForeground"));
-        }
-    } // --- Fin del método configurePlaceholderText ---
+    public void buscarSiguienteCoincidencia() {
+        searchSortService.buscarSiguienteCoincidencia();
+    }
 
     /**
      * Es llamado por la ToggleLiveFilterAction. Delega el cambio de estado
@@ -2105,16 +1172,8 @@ public class GeneralController
      * @param isSelected El nuevo estado del modo filtro.
      */
     public void onLiveFilterStateChanged(boolean isSelected) {
-        // 1. Delegar la lógica de negocio al manager
-        filterManager.setLiveFilterActive(isSelected);
-
-        // 2. Mantener la lógica de sincronización de UI en el controlador
-        Action liveFilterAction = actionMap.get(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER);
-        if (configAppManager != null && liveFilterAction != null) {
-            configAppManager.actualizarAspectoBotonToggle(liveFilterAction, isSelected);
-            sincronizarEstadoControlesTornado();
-        }
-    } // --- Fin del método onLiveFilterStateChanged ---
+        searchSortService.onLiveFilterStateChanged(isSelected);
+    }
 
     /**
      * Es llamado por la AddFilterAction. Orquesta la adición de un nuevo filtro.
@@ -2123,61 +1182,20 @@ public class GeneralController
      * @param type   El tipo de filtro (CONTAINS o DOES_NOT_CONTAIN).
      */
     public void solicitarAnadirFiltro(FilterSource source, FilterType type) {
-        limpiarEstadoFiltroRapidoSiActivo();
-
-        javax.swing.JTextField tf = registry.get("textfield.filtro.texto");
-        if (tf == null || tf.getText().isBlank())
-            return;
-
-        // --- INICIO CORRECCIÓN ---
-        // Obtenemos el tipo de filtro activo DESDE el FilterManager
-        filterManager.addFilter(new FilterCriterion(tf.getText(), filterManager.getFiltroActivoSource(), type));
-        // --- FIN CORRECCIÓN ---
-
-        tf.setText("");
-
-        filterManager.gestionarFiltroPersistente();
-
-    } // --- Fin del método solicitarAnadirFiltro ---
-
-    /**
-     * Añade un filtro directamente sin depender del JTextField de la UI.
-     * Útil para menús contextuales de ruta.
-     */
-    public void solicitarAnadirFiltroSilencioso(String texto, FilterSource source, FilterType type) {
-        if (texto == null || texto.isBlank()) return;
-        
-        filterManager.addFilter(new FilterCriterion(texto, source, type));
-        filterManager.gestionarFiltroPersistente();
+        filterService.añadirFiltro(filterManager.getFiltroActivoSource(), type);
     }
 
-    /**
-     * Es llamado por la RemoveFilterAction. Elimina el filtro actualmente
-     * seleccionado.
-     */
+    public void solicitarAnadirFiltroSilencioso(String texto, FilterSource source, FilterType type) {
+        filterService.añadirFiltroSilencioso(texto, source, type);
+    }
+
     public void solicitarEliminarFiltroSeleccionado() {
+        filterService.eliminarFiltroSeleccionado();
+    }
 
-        limpiarEstadoFiltroRapidoSiActivo();
-
-        JList<FilterCriterion> filterList = registry.get("list.filtrosActivos");
-        if (filterList == null || filterList.getSelectedValue() == null)
-            return;
-
-        filterManager.removeFilter(filterList.getSelectedValue());
-        filterManager.gestionarFiltroPersistente();
-    } // --- Fin del método solicitarEliminarFiltroSeleccionado ---
-
-    /**
-     * Es llamado por la ClearAllFiltersAction. Limpia todos los filtros activos.
-     */
     public void solicitarLimpiarTodosLosFiltros() {
-
-        limpiarEstadoFiltroRapidoSiActivo();
-
-        filterManager.clearFilters();
-        filterManager.gestionarFiltroPersistente();
-
-    } // --- Fin del método solicitarLimpiarTodosLosFiltros ---
+        filterService.limpiarTodosLosFiltros();
+    }
 
     /**
      * NUEVO MÉTODO HELPER.
@@ -2185,21 +1203,8 @@ public class GeneralController
      * activo, lo desactiva y limpia su JTextField asociado.
      */
     public void limpiarEstadoFiltroRapidoSiActivo() {
-
-        javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
-
-        if (model.isLiveFilterActive()) {
-            // Desactiva la lógica del filtro rápido y restaura la lista
-            onLiveFilterStateChanged(false);
-        }
-
-        if (searchField != null) {
-            // Usamos invokeLater para asegurar que la limpieza ocurra sin conflictos
-            // con otros eventos de la UI.
-            SwingUtilities.invokeLater(() -> searchField.setText(""));
-        }
-
-    } // --- Fin del método limpiarEstadoFiltroRapidoSiActivo ---
+        searchSortService.limpiarEstadoFiltroRapidoSiActivo();
+    }
 
     /**
      * Cambia el tipo de filtro que se usará al añadir un nuevo criterio.
@@ -2208,9 +1213,8 @@ public class GeneralController
      * @param nuevoSource El nuevo FilterSource a establecer como activo.
      */
     public void solicitarCambioTipoFiltro(FilterSource nuevoSource) {
-        // La lógica y el estado ahora son gestionados por FilterManager
-        filterManager.setFiltroActivoSource(nuevoSource);
-    } // --- Fin del método solicitarCambioTipoFiltro ---
+        filterService.cambiarTipoFiltro(nuevoSource);
+    }
 
     /**
      * Orquesta la conversión del filtro rápido (Tornado) en un filtro persistente.
@@ -2218,76 +1222,12 @@ public class GeneralController
      * AÑADE el filtro del Tornado a los filtros persistentes existentes.
      */
     public void solicitarPersistenciaDeFiltroRapido() {
-        logger.debug("[GeneralController] Solicitud para AÑADIR filtro rápido a persistentes...");
+        searchSortService.solicitarPersistenciaDeFiltroRapido();
+    }
 
-        // 1. Validaciones (se mantienen igual)
-        if (!model.isLiveFilterActive()) {
-            logger.warn("  -> Acción ignorada: El filtro Tornado no está activo.");
-            return;
-        }
-        javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
-        if (searchField == null || searchField.getText().isBlank()
-                || searchField.getText().equals("Texto a buscar...")) {
-            logger.warn("  -> Acción ignorada: El campo de texto del Tornado está vacío.");
-            return;
-        }
-        String textoFiltro = searchField.getText();
-
-        // 2. Desactivar el filtro Tornado.
-        // Llamamos a onLiveFilterStateChanged(false), que se encarga de:
-        // a) Poner model.setLiveFilterActive(false).
-        // b) Llamar a limpiarFiltro(), que restaura la lista principal a como estaba
-        // ANTES del Tornado.
-        // c) Actualizar el estado del botón del Tornado.
-        onLiveFilterStateChanged(false);
-
-        // 3. AÑADIR el nuevo criterio al FilterManager.
-        // Esta es la operación clave que pedías.
-        filterManager.addFilter(new FilterCriterion(textoFiltro, FilterCriterion.FilterSource.FILENAME,
-                FilterCriterion.FilterType.CONTAINS));
-
-        // 4. Llamar a la función de refresco de filtros persistentes.
-        // Esta función ahora leerá la lista de filtros actualizada (los antiguos + el
-        // nuevo)
-        // y la aplicará sobre la lista principal (que fue restaurada en el paso 2).
-        filterManager.refrescarConFiltrosPersistentes();
-
-        // 5. Limpiar el campo de texto y sincronizar los botones.
-        SwingUtilities.invokeLater(() -> searchField.setText(""));
-        sincronizarEstadoControlesTornado();
-
-        logger.debug("[GeneralController] Filtro Tornado AÑADIDO a persistentes con éxito.");
-    } // ---FIN de metodo solicitarPersistenciaDeFiltroRapido---
-
-    /**
-     * Sincroniza el estado (habilitado/deshabilitado) de los botones relacionados
-     * con el filtro Tornado basándose en el estado actual de la aplicación.
-     */
     private void sincronizarEstadoControlesTornado() {
-        if (actionMap == null || model == null || registry == null) {
-            return;
-        }
-
-        Action toggleTornadoAction = actionMap.get(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER);
-        Action persistTornadoAction = actionMap.get(AppActionCommands.CMD_FILTRO_ACTIVO);
-        javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
-
-        if (toggleTornadoAction == null || persistTornadoAction == null || searchField == null) {
-            return;
-        }
-
-        boolean isTornadoActive = model.isLiveFilterActive();
-        String searchText = searchField.getText();
-        boolean hasText = !searchText.isBlank() && !searchText.equals("Texto a buscar...");
-
-        // Regla 1: El botón "Persistir" solo se habilita si el Tornado está activo Y
-        // hay texto.
-        persistTornadoAction.setEnabled(isTornadoActive && hasText);
-
-        // Regla 2: El botón para activar/desactivar el Tornado está siempre habilitado.
-        toggleTornadoAction.setEnabled(true);
-
-    } // ---FIN de metodo sincronizarEstadoControlesTornado---
+        searchSortService.sincronizarEstadoControlesTornado();
+    }
 
     public void handleFilterListClick(java.awt.event.MouseEvent e,
             controlador.managers.filter.FilterCriterion criterion) {
@@ -2371,64 +1311,32 @@ public class GeneralController
     } // --- Fin del método crearMenuContextualParaArbol ---
 
     public void solicitarAbrirCarpetaDesdeArbol() {
-        if (folderTreeManager != null) {
-            folderTreeManager.handleOpenFolderAction();
-        }
-    } // --- Fin del método solicitarAbrirCarpetaDesdeArbol ---
+        navigationService.abrirCarpetaDesdeArbol();
+    }
 
     public void solicitarEntrarEnCarpetaDesdeArbol() {
-        if (folderTreeManager != null) {
-            folderTreeManager.handleDrillDownFolderAction();
-        }
-    } // --- Fin del método solicitarEntrarEnCarpetaDesdeArbol ---
+        navigationService.entrarEnCarpetaDesdeArbol();
+    }
 
     public void solicitarNavegarCarpetaAnterior() {
-        if (folderNavManager != null) {
-            // Esta llamada ahora es inteligente: usará el historial si puede,
-            // o subirá al padre si no puede.
-            folderNavManager.navegarACarpetaPadre();
-        } else {
-            logger.error("FolderNavigationManager no está inicializado.");
-        }
-    } // --- FIN del metodo solicitarNavegarCarpetaAnterior ---
+        navigationService.navegarCarpetaAnterior();
+    }
 
-    /**
-     * Delega la solicitud de "entrar" en una subcarpeta al FolderNavigationManager.
-     * Este método es llamado por la Action correspondiente.
-     */
     public void solicitarNavegarCarpetaSiguiente() {
-        if (folderNavManager != null) {
-            folderNavManager.entrarEnSubcarpeta();
-        } else {
-            logger.error(
-                    "[GeneralController] FolderNavigationManager no está inicializado. No se puede entrar en subcarpeta.");
-        }
-    } // --- Fin del método solicitarNavegarCarpetaSiguiente ---
+        navigationService.navegarCarpetaSiguiente();
+    }
 
-    /**
-     * Delega la solicitud de volver a la carpeta raíz al FolderNavigationManager.
-     * Este método es llamado por la Action correspondiente.
-     */
     public void solicitarNavegarCarpetaRaiz() {
-        if (folderNavManager != null) {
-            folderNavManager.volverACarpetaRaiz();
-        } else {
-            logger.error(
-                    "[GeneralController] FolderNavigationManager no está inicializado. No se puede volver a la raíz.");
-        }
-    } // --- Fin del método solicitarNavegarCarpetaRaiz ---
+        navigationService.navegarRaiz();
+    }
+
+    public void solicitarSalirDeSubcarpeta() {
+        navigationService.salirDeSubcarpeta();
+    }
 
     public void setFolderNavigationManager(FolderNavigationManager folderNavManager) {
         this.folderNavManager = Objects.requireNonNull(folderNavManager);
-    } // --- FIN del metodo setFolderNavigationManager ---
-
-    public void solicitarSalirDeSubcarpeta() {
-        if (folderNavManager != null) {
-            folderNavManager.salirDeSubcarpetaConHistorial();
-        } else {
-            logger.error("[GeneralController] FolderNavigationManager no está inicializado.");
-        }
-    }// --- FIN del metodo solicitarSalirDeSubcarpeta ---
+    }
 
     /**
      * Comanda a la VisorView para que actualice su borde visual de sincronización.
@@ -2516,4 +1424,27 @@ public class GeneralController
         this.dataController = dataController;
     }
 
+    public void setFilterService(FilterService filterService) {
+        this.filterService = filterService;
+    }
+
+    public void setNavigationService(NavigationService navigationService) {
+        this.navigationService = navigationService;
+    }
+    
+    public void setProjectLifecycleService(ProjectLifecycleService s) { 
+    	this.projectLifecycleService = s; 
+    }
+    
+    public void setSearchSortService(SearchSortService s) { 
+    	this.searchSortService = s; 
+    }
+    
+    public void setZoomPanService(ZoomPanService s) { 
+    	this.zoomPanService = s; 
+    }
+    
+    public void setAppModeService(AppModeService s) { 
+    	this.appModeService = s; 
+    }
 } // --- Fin de la clase GeneralController ---

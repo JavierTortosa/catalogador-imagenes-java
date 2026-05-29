@@ -11,7 +11,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.datatransfer.StringSelection;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -143,8 +142,8 @@ public class VisorController implements IModoController, ThemeChangeListener {
     
     private Map<String, JMenuItem> menuItemsPorNombre;
     
-    private volatile boolean isRebuildingToolbars = false;	// Ayuda al cierre de las toolbar Flotantes
-    
+
+
     // --- Atributos para Menús Contextuales ---
     private JPopupMenu popupMenuImagenPrincipal;
     private JPopupMenu popupMenuListaNombres;
@@ -395,88 +394,9 @@ public class VisorController implements IModoController, ThemeChangeListener {
 	} // --- Fin del método configurarListenersVistaInternal ---
 	
     
-    /**
-     * Revalida y repinta el panel que contiene las barras de herramientas.
-     * Es útil después de mostrar u ocultar una barra de herramientas individual o un botón.
-     */
-    public void revalidateToolbarContainer() {
-        if (registry == null) {
-            logger.error("ERROR [revalidateToolbarContainer]: ComponentRegistry es nulo.");
-            return;
-        }
-        
-        // Obtenemos el contenedor de las barras de herramientas desde el registro.
-        // ViewBuilder debe haberlo registrado con esta clave.
-        JPanel toolbarContainer = registry.get("container.toolbars");
-        
-        if (toolbarContainer != null) {
-            // Revalidate recalcula el layout, repaint lo redibuja.
-            toolbarContainer.revalidate();
-            toolbarContainer.repaint();
-        } else {
-            logger.warn("WARN [revalidateToolbarContainer]: 'container.toolbars' no encontrado en el registro.");
-        }
-    } // --- FIN del metodo revalidateToolbarContainer ---
-    
-    
-    /**
-     * Orquesta de forma segura la reconstrucción del contenedor de barras de herramientas.
-     * Utiliza un flag para evitar que múltiples eventos de cierre disparen reconstrucciones
-     * en cascada y causen un bucle infinito.
-     */
-    public void solicitarReconstruccionDeToolbars() {
-        if (isRebuildingToolbars) return; // Si ya está en proceso, no hace nada.
 
-        try {
-            isRebuildingToolbars = true; // Bloquea
-            
-            // 1. Desactivamos los listeners ANTES de manipular el contenedor.
-            desactivarListenersDeToolbars();
-            
-            // 2. Llamamos a la reconstrucción.
-            if (toolbarManager != null) {
-                toolbarManager.reconstruirContenedorDeToolbars(model.getCurrentWorkMode());
-            }
 
-        } finally {
-            // 3. Reactivamos los listeners DESPUÉS de que la UI se ha estabilizado.
-            //    Lo hacemos en un invokeLater para asegurar que se ejecuta al final de la cola de eventos.
-            javax.swing.SwingUtilities.invokeLater(() -> {
-                reactivarListenersDeToolbars();
-                isRebuildingToolbars = false; // Desbloquea
-            });
-        }
-    } // --- Fin del método solicitarReconstruccionDeToolbars ---
-    
-    
-    /**
-     * Itera sobre todas las barras gestionadas y les quita su AncestorListener.
-     */
-    private void desactivarListenersDeToolbars() {
-        logger.debug("  -> Desactivando AncestorListeners...");
-        if (toolbarManager == null) return;
-        for (javax.swing.JToolBar tb : toolbarManager.getManagedToolbars().values()) {
-            Object listenerObj = tb.getClientProperty("JM_ANCESTOR_LISTENER");
-            if (listenerObj instanceof javax.swing.event.AncestorListener) {
-                tb.removeAncestorListener((javax.swing.event.AncestorListener) listenerObj);
-            }
-        }
-    }
 
-    /**
-     * Itera sobre todas las barras gestionadas y les vuelve a añadir su AncestorListener.
-     */
-    private void reactivarListenersDeToolbars() {
-        logger.debug("  -> Reactivando AncestorListeners...");
-        if (toolbarManager == null) return;
-        for (javax.swing.JToolBar tb : toolbarManager.getManagedToolbars().values()) {
-            Object listenerObj = tb.getClientProperty("JM_ANCESTOR_LISTENER");
-            if (listenerObj instanceof javax.swing.event.AncestorListener) {
-                tb.addAncestorListener((javax.swing.event.AncestorListener) listenerObj);
-            }
-        }
-    }
-    
     
 // *********************************************************************************************** configurarShutdownHookInternal
     
@@ -488,19 +408,24 @@ public class VisorController implements IModoController, ThemeChangeListener {
     public void shutdownApplication() {
         logger.info("--- [VisorController] Solicitud de cierre de aplicación recibida, delegando a GeneralController ---");
         
-        // --- INICIO DE LA MODIFICACIÓN: Cierre de la conexión a la BD ---
-        logger.info("Cerrando la conexión a la base de datos...");
-        DatabaseManager.getInstance().closeConnection();
-        // --- FIN DE LA MODIFICACIÓN ---
-        
         if (generalController != null) {
             generalController.handleApplicationShutdown();
         } else {
-            // Fallback muy básico si GeneralController no está disponible
             logger.error("GeneralController es nulo. Realizando cierre de emergencia.");
+            finalizarRecursosAlCerrar();
             System.exit(0);
         }
     } // --- FIN del metodo shutdownApplication ---
+
+    /**
+     * Libera recursos globales (BD y pool de hilos). Se invoca al final del cierre,
+     * cuando el usuario ya ha confirmado la salida.
+     */
+    public void finalizarRecursosAlCerrar() {
+        logger.info("Cerrando la conexión a la base de datos...");
+        DatabaseManager.getInstance().closeConnection();
+        apagarExecutorServiceOrdenadamente();
+    } // --- FIN del metodo finalizarRecursosAlCerrar ---
     
     
     /**
@@ -536,7 +461,10 @@ public class VisorController implements IModoController, ThemeChangeListener {
      * GeneralController durante el proceso de cierre.
      */
     public void apagarExecutorServiceOrdenadamente() {
-        if (executorService != null && !executorService.isShutdown()) {
+    	
+    	logger.info("Apaga el ExecutorService de forma ordenada");
+        
+    	if (executorService != null && !executorService.isShutdown()) {
            executorService.shutdown();
            try {
                if (!executorService.awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS)) {
@@ -1338,24 +1266,7 @@ public class VisorController implements IModoController, ThemeChangeListener {
       * y pueda leer el nuevo estado de configuración para mostrar/ocultar nombres.
       */
      public void solicitarRefrescoRenderersMiniaturas() {
-         if (view != null && registry.get("list.miniaturas") != null) {
-             logger.debug("  [Controller] Solicitando repintado de listaMiniaturas.");
-             registry.get("list.miniaturas").repaint();
-
-             // Si ocultar/mostrar nombres cambia la ALTURA de las celdas,
-             // podrías necesitar más que un simple repaint().
-             // Por ahora, asumamos que la altura de la celda es fija y solo cambia
-             // la visibilidad del JLabel del nombre.
-             // Si la altura cambia, necesitarías:
-             // 1. Que MiniaturaListCellRenderer devuelva una nueva PreferredSize.
-             // 2. Invalidar el layout de la JList:
-             //    registry.get("list.miniaturas").revalidate();
-             //    registry.get("list.miniaturas").repaint();
-             // 3. Posiblemente recalcular el número de miniaturas visibles si la altura de celda cambió.
-             //    Esto haría que el `ComponentListener` de redimensionamiento sea más complejo
-             //    o que necesites llamar a actualizarModeloYVistaMiniaturas aquí también.
-             // ¡POR AHORA, MANTENGAMOSLO SIMPLE CON SOLO REPAINT!
-         }
+         imageListManager.solicitarRefrescoRenderersMiniaturas();
      } // --- FIN metodo solicitarRefrescoRenderersMiniaturas
      
      
@@ -1614,82 +1525,13 @@ public class VisorController implements IModoController, ThemeChangeListener {
     
     @Override
     public void aumentarTamanoMiniaturas() {
-        final int STEP = 10;
-        final int MAX_SIZE = 300;
-
-        if (model.getCurrentDisplayMode() == VisorModel.DisplayMode.GRID) {
-            int currentWidth = configuration.getInt(ConfigKeys.GRID_THUMBNAIL_WIDTH, 120);
-            int newWidth = Math.min(currentWidth + STEP, MAX_SIZE);
-            configuration.setString(ConfigKeys.GRID_THUMBNAIL_WIDTH, String.valueOf(newWidth));
-            configuration.setString(ConfigKeys.GRID_THUMBNAIL_HEIGHT, String.valueOf(newWidth));
-            GridDisplayPanel gridVisor = registry.get("panel.display.grid");
-            if (gridVisor != null) gridVisor.setGridCellSize(newWidth, newWidth);
-        } else {
-            // --- CIRUGÍA PARA LA BARRA DE MINIATURAS ---
-            // 1. Calcular y guardar el nuevo tamaño en la configuración
-            int currentNormWidth = configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, 70);
-            int newNormWidth = Math.min(currentNormWidth + STEP, MAX_SIZE);
-            configuration.setString(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, String.valueOf(newNormWidth));
-            configuration.setString(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, String.valueOf(newNormWidth));
-
-            // 2. Limpiar la caché de imágenes viejas
-            if (servicioMiniaturas != null) {
-                servicioMiniaturas.limpiarCache();
-            }
-
-            // 3. (Paso crucial) Llamar al nuevo método en la VISTA para que actualice TODO el layout
-            if (view != null) {
-                view.actualizarLayoutBarraMiniaturas();
-            }
-            
-            // 4. (Paso final, ahora sí en el orden correcto)
-            //    Actualizar el contenido del viewport de miniaturas. Esto se hace al final,
-            //    cuando la UI ya tiene sus nuevas dimensiones.
-            if (listCoordinator instanceof ListCoordinator) {
-                ((ListCoordinator) listCoordinator).forzarActualizacionDeTiraDeMiniaturas();
-            }
-        }
-    } // ---FIN de metodo aumentarTamanoMiniaturas---
+        imageListManager.aumentarTamanoMiniaturas();
+    }
     
-
     @Override
     public void reducirTamanoMiniaturas() {
-        final int STEP = 10;
-        final int MIN_SIZE = 40;
-
-        if (model.getCurrentDisplayMode() == VisorModel.DisplayMode.GRID) {
-            int currentWidth = configuration.getInt(ConfigKeys.GRID_THUMBNAIL_WIDTH, 120);
-            int newWidth = Math.max(currentWidth - STEP, MIN_SIZE);
-            configuration.setString(ConfigKeys.GRID_THUMBNAIL_WIDTH, String.valueOf(newWidth));
-            configuration.setString(ConfigKeys.GRID_THUMBNAIL_HEIGHT, String.valueOf(newWidth));
-            GridDisplayPanel gridVisor = registry.get("panel.display.grid");
-            if (gridVisor != null) gridVisor.setGridCellSize(newWidth, newWidth);
-        } else {
-            // --- CIRUGÍA PARA LA BARRA DE MINIATURAS ---
-            // 1. Calcular y guardar el nuevo tamaño en la configuración
-            int currentNormWidth = configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, 70);
-            int newNormWidth = Math.max(currentNormWidth - STEP, MIN_SIZE);
-            configuration.setString(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, String.valueOf(newNormWidth));
-            configuration.setString(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, String.valueOf(newNormWidth));
-
-            // 2. Limpiar la caché de imágenes viejas
-            if (servicioMiniaturas != null) {
-                servicioMiniaturas.limpiarCache();
-            }
-
-            // 3. (Paso crucial) Llamar al nuevo método en la VISTA para que actualice TODO el layout
-            if (view != null) {
-                view.actualizarLayoutBarraMiniaturas();
-            }
-            
-            // 4. (Paso final, ahora sí en el orden correcto)
-            //    Actualizar el contenido del viewport de miniaturas.
-            if (listCoordinator instanceof ListCoordinator) {
-                ((ListCoordinator) listCoordinator).forzarActualizacionDeTiraDeMiniaturas();
-            }
-        }
-        
-    } // ---FIN de metodo reducirTamanoMiniaturas---
+        imageListManager.reducirTamanoMiniaturas();
+    }
     
      
 // **************************************************************************************************** FIN DE IModoController     
@@ -1862,43 +1704,6 @@ public class VisorController implements IModoController, ThemeChangeListener {
      * Se asegura de que su estado "seleccionado" coincida con la configuración de visibilidad
      * del botón que controlan. Se debe llamar después de que toda la UI haya sido construida.
      */
-    public void sincronizarEstadoVisualCheckboxesDeBotones() {
-        logger.debug("[VisorController] Sincronizando estado visual de Checkboxes de visibilidad de botones...");
-        
-        // Validaciones para evitar NullPointerException
-        if (this.menuItemsPorNombre == null || configuration == null) {
-            logger.warn("  WARN: No se puede sincronizar, el mapa de menús o la configuración son nulos.");
-            return;
-        }
-
-        Map<String, JMenuItem> menuItems = this.menuItemsPorNombre;
-        
-        // Iteramos sobre todos los items de menú que hemos creado y mapeado.
-        for (Map.Entry<String, JMenuItem> entry : menuItems.entrySet()) {
-            JMenuItem item = entry.getValue();
-            
-            // Nos interesan solo los que son JCheckBoxMenuItem y cuya Action es del tipo correcto.
-            if (item instanceof JCheckBoxMenuItem && item.getAction() instanceof controlador.actions.config.ToggleToolbarButtonVisibilityAction) {
-                JCheckBoxMenuItem checkbox = (JCheckBoxMenuItem) item;
-                controlador.actions.config.ToggleToolbarButtonVisibilityAction action = (controlador.actions.config.ToggleToolbarButtonVisibilityAction) item.getAction();
-                
-                // Usamos el nuevo getter para obtener la clave de visibilidad del botón.
-                String buttonVisibilityKey = action.getButtonVisibilityKey();
-
-                if (buttonVisibilityKey != null) {
-                    // Leemos el estado REAL que debería tener el checkbox.
-                    boolean estadoCorrecto = configuration.getBoolean(buttonVisibilityKey, true);
-                    
-                    // Si el estado visual actual del checkbox no coincide, lo forzamos.
-                    if (checkbox.isSelected() != estadoCorrecto) {
-                        logger.debug("  -> CORRIGIENDO estado para '" + checkbox.getText().trim() + "'. Debería ser: " + estadoCorrecto + " (Estaba: " + checkbox.isSelected() + ")");
-                        checkbox.setSelected(estadoCorrecto);
-                    }
-                }
-            }
-        }
-        logger.debug("[VisorController] Sincronización de checkboxes de visibilidad finalizada.");
-    } // --- FIN del método sincronizarEstadoVisualCheckboxesDeBotones ---
 
     
     private void cargarVisorNormal() {
@@ -1946,81 +1751,8 @@ public class VisorController implements IModoController, ThemeChangeListener {
 	 * @return Un objeto RangoMiniaturasCalculado con los valores 'antes' y
 	 *         'despues'.
 	 */
-	public RangoMiniaturasCalculado calcularNumMiniaturasDinamicas(){
-		// --- 1. OBTENER LÍMITES SUPERIORES DE CONFIGURACIÓN/MODELO (sin cambios) ---
-		int cfgMiniaturasAntes, cfgMiniaturasDespues;
-
-		if (model != null){
-			cfgMiniaturasAntes = model.getMiniaturasAntes();
-			cfgMiniaturasDespues = model.getMiniaturasDespues();
-		} else if (configuration != null){
-			
-			cfgMiniaturasAntes = configuration.getInt("miniaturas.cantidad.antes", DEFAULT_MINIATURAS_ANTES_FALLBACK);
-			cfgMiniaturasDespues = configuration.getInt("miniaturas.cantidad.despues",
-					DEFAULT_MINIATURAS_DESPUES_FALLBACK);
-			logger.warn("  [CalcularMiniaturas] WARN: Modelo nulo, usando valores de config/fallback.");
-		} else{
-			
-			cfgMiniaturasAntes = DEFAULT_MINIATURAS_ANTES_FALLBACK;
-			cfgMiniaturasDespues = DEFAULT_MINIATURAS_DESPUES_FALLBACK;
-			logger.error("  [CalcularMiniaturas] ERROR: Modelo y Config nulos, usando fallbacks.");
-		}
-
-		// --- 2. OBTENER COMPONENTES DE LA VISTA DESDE EL REGISTRO ---
-		JScrollPane scrollPane = registry.get("scroll.miniaturas");
-		JList<String> listaMin = registry.get("list.miniaturas");
-
-		// --- 3. VALIDAR DISPONIBILIDAD DE COMPONENTES ---
-		if (scrollPane == null || listaMin == null){
-			
-			logger.warn(
-					"  [CalcularMiniaturas] WARN: ScrollPane o JList de miniaturas nulos en registro. Devolviendo máximos configurados.");
-			return new RangoMiniaturasCalculado(cfgMiniaturasAntes, cfgMiniaturasDespues);
-		}
-
-		// --- 4. OBTENER DIMENSIONES ACTUALES DE LA UI ---
-		int viewportWidth = scrollPane.getViewport().getWidth();
-		int cellWidth = listaMin.getFixedCellWidth();
-
-		// Log de depuración
-		// logger.debug(" [CalcularMiniaturas DEBUG] ViewportWidth: " + ...);
-
-		// --- 5. LÓGICA DE FALLBACK MEJORADA ---
-		if (viewportWidth <= 0 || cellWidth <= 0 || !scrollPane.isShowing())
-		{
-			logger.warn(
-					"  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.");
-			return new RangoMiniaturasCalculado(cfgMiniaturasAntes, cfgMiniaturasDespues);
-		}
-
-		// --- 6. CÁLCULO Y DISTRIBUCIÓN (sin cambios) ---
-		int totalMiniaturasQueCaben = viewportWidth / cellWidth;
-		int numAntesCalculado;
-		int numDespuesCalculado;
-		int maxTotalConfigurado = cfgMiniaturasAntes + 1 + cfgMiniaturasDespues;
-
-		if (totalMiniaturasQueCaben >= maxTotalConfigurado){
-			numAntesCalculado = cfgMiniaturasAntes;
-			numDespuesCalculado = cfgMiniaturasDespues;
-			
-		} else if (totalMiniaturasQueCaben <= 1){
-			numAntesCalculado = 0;
-			numDespuesCalculado = 0;
-		} else{
-			int miniaturasLateralesDisponibles = totalMiniaturasQueCaben - 1;
-			double ratioAntesOriginal = (cfgMiniaturasAntes + cfgMiniaturasDespues > 0)
-					? (double) cfgMiniaturasAntes / (cfgMiniaturasAntes + cfgMiniaturasDespues)
-					: 0.5;
-			numAntesCalculado = (int) Math.round(miniaturasLateralesDisponibles * ratioAntesOriginal);
-			numDespuesCalculado = miniaturasLateralesDisponibles - numAntesCalculado;
-			numAntesCalculado = Math.min(numAntesCalculado, cfgMiniaturasAntes);
-			numDespuesCalculado = Math.min(numDespuesCalculado, cfgMiniaturasDespues);
-		}
-
-		// --- 7. DEVOLVER EL RESULTADO CALCULADO ---
-		logger.debug("  [CalcularMiniaturas] Rango dinámico calculado -> Antes: " + numAntesCalculado
-				+ ", Despues: " + numDespuesCalculado);
-		return new RangoMiniaturasCalculado(numAntesCalculado, numDespuesCalculado);
+	public ImageListManager.RangoMiniaturasCalculado calcularNumMiniaturasDinamicas(){
+		return imageListManager.calcularNumMiniaturasDinamicas();
 	}// --- FIN del metodo calcularNumMiniaturasDinamicas ---
      
      
@@ -2509,85 +2241,22 @@ public class VisorController implements IModoController, ThemeChangeListener {
     public ProjectManager getProjectManager() {return this.projectManager;}
     public ActionFactory getActionFactory() {return this.actionFactory;}
     public ThemeManager getThemeManager() {return this.themeManager;}
+    public ImageListManager getImageListManager() {return this.imageListManager;}
+    public InfobarStatusManager getStatusBarManager() {return this.statusBarManager;}
+    public InfobarImageManager getInfobarImageManager() {return this.infobarImageManager;}
+    public String getVersion() {return this.version;}
+    public GeneralController getGeneralController() {return this.generalController;}
+    public DisplayModeManager getDisplayModeManager() {return this.displayModeManager;}
     public DefaultListModel<String> getModeloMiniaturasVisualizador() {return this.modeloMiniaturasVisualizador;}
     public DefaultListModel<String> getModeloMiniaturasCarrusel() {return this.modeloMiniaturasCarrusel;}
-    public DisplayModeManager getDisplayModeManager() {return this.displayModeManager;}
-    public InfobarStatusManager getStatusBarManager() {return this.statusBarManager;}
-    public GeneralController getGeneralController() {return this.generalController;}
-    public ImageListManager getImageListManager() { return this.imageListManager; }
-    public InfobarImageManager getInfobarImageManager() { return this.infobarImageManager; }
-    public String getVersion() {return this.version;}
-    
-    /**
-     * Devuelve el modelo de lista de miniaturas correcto según el modo de trabajo actual.
-     * @return El DefaultListModel para el modo Visualizador o Carrusel.
-     */
+
     public DefaultListModel<String> getModeloMiniaturas() {
-        if (model != null && model.getCurrentWorkMode() == WorkMode.CARROUSEL) {
-            return this.modeloMiniaturasCarrusel;
-        }
-        // Por defecto, o si el modo es Visualizador, devuelve el del visualizador.
-        return this.modeloMiniaturasVisualizador;
-    } // --- Fin del método getModeloMiniaturas ---
+        return imageListManager.getModeloMiniaturas();
+    }
     
-    /**
-     * Establece si se deben mostrar los nombres de archivo debajo de las miniaturas
-     * y refresca el renderer para que el cambio visual sea inmediato.
-     *
-     * @param mostrar El nuevo estado deseado: true para mostrar nombres, false para ocultarlos.
-     */
     public void setMostrarNombresMiniaturas(boolean mostrar) {
-        logger.debug("[VisorController] Solicitud para cambiar 'Mostrar Nombres en Miniaturas' a: " + mostrar);
-
-        // --- 1. VALIDACIÓN DE DEPENDENCIAS ESENCIALES ---
-        if (configuration == null || view == null || registry.get("list.miniaturas") == null || this.model == null ||
-            this.servicioMiniaturas == null || this.themeManager == null || this.iconUtils == null) {
-            logger.error("ERROR CRÍTICO [setMostrarNombresMiniaturas]: Faltan dependencias esenciales (config, view, model, etc.). Operación cancelada.");
-            return;
-        }
-
-        // --- 2. ACTUALIZAR LA CONFIGURACIÓN PERSISTENTE ---
-        configuration.setString(ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, String.valueOf(mostrar));
-        logger.debug("  -> Configuración '" + ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE + "' actualizada en memoria a: " + mostrar);
-
-        // --- 3. RECREAR Y APLICAR EL RENDERER DE MINIATURAS EN LA VISTA ---
-        logger.debug("  -> Preparando para recrear y asignar nuevo MiniaturaListCellRenderer...");
-
-        // 3.1. Obtener solo las dimensiones (los colores ya no son necesarios aquí).
-        int thumbWidth = configuration.getInt("miniaturas.tamano.normal.ancho", 40);
-        int thumbHeight = configuration.getInt("miniaturas.tamano.normal.alto", 40);
-
-        // 3.2. Crear la nueva instancia del renderer usando el CONSTRUCTOR MODERNO.
-        MiniaturaListCellRenderer newRenderer = new MiniaturaListCellRenderer(
-            this.servicioMiniaturas,
-            this.model,
-            this.projectManager,
-            this.themeManager,         // <--- Le pasamos el ThemeManager
-            this.iconUtils,            // <--- Le pasamos el IconUtils
-            thumbWidth,
-            thumbHeight,
-            mostrar                    // <--- Le pasamos el flag de comportamiento
-        );
-        logger.debug("    -> Nueva instancia de MiniaturaListCellRenderer creada con el constructor moderno.");
-
-        // 3.3. Asignar el nuevo renderer a la JList (sin cambios en esta parte).
-        final MiniaturaListCellRenderer finalRenderer = newRenderer;
-        SwingUtilities.invokeLater(() -> {
-            JList<String> listaMin = registry.get("list.miniaturas");
-            listaMin.setCellRenderer(finalRenderer);
-            listaMin.setFixedCellHeight(finalRenderer.getAlturaCalculadaDeCelda());
-            listaMin.setFixedCellWidth(finalRenderer.getAnchoCalculadaDeCelda());
-            listaMin.revalidate();
-            listaMin.repaint();
-            logger.debug("      [EDT] Nuevo renderer asignado y lista de miniaturas actualizada.");
-
-            if (this.listCoordinator != null) {
-                this.listCoordinator.forzarActualizacionDeTiraDeMiniaturas();
-            }
-        });
-
-        logger.debug("[VisorController] setMostrarNombresMiniaturas completado.");
-    }// --- FIN del metodo setMostrarNombresMiniaturas ---
+        imageListManager.setMostrarNombresMiniaturas(mostrar);
+    }
     
     /**
      * Método centralizado para cambiar el estado de "Navegación Circular".
@@ -2773,25 +2442,6 @@ public class VisorController implements IModoController, ThemeChangeListener {
 // ***************************************************************************************************************************    
     
     
-// *************************************************************************** CLASE ANIDADA DE CONTROL DE MINIATURAS VISIBLES
-// ***************************************************************************************************************************    
-     
-     
-     public static class RangoMiniaturasCalculado { // Puede ser public o package-private
-         public final int antes;
-         public final int despues;
-
-         public RangoMiniaturasCalculado(int antes, int despues) {
-             this.antes = antes;
-             this.despues = despues;
-         }
-     }
-
-     
-// *********************************************************************** FIN CLASE ANIDADA DE CONTROL DE MINIATURAS VISIBLES
-// ***************************************************************************************************************************    
-
-     
     /**
      * Comprueba si un archivo es una imagen basándose en su extensión.
      */

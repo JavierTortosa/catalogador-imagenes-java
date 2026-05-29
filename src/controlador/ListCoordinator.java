@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.interfaces.ContextSensitiveAction;
+import controlador.managers.ImageListManager;
 import controlador.utils.ComponentRegistry;
 import modelo.ListContext;
 import modelo.MasterSelectionChangeListener;
@@ -141,12 +142,11 @@ public class ListCoordinator extends AbstractListCoordinator {
     	
     	logger.debug("[ListCoordinator] Iniciando ActualizarTiraDeMiniaturas");
     	
-    	// --- INICIO DE LA MODIFICACIÓN ---
-        // Si estamos en modo Grid, la barra de miniaturas está oculta y no necesita actualizarse.
-        if (model != null && model.getCurrentDisplayMode() == VisorModel.DisplayMode.GRID) {
+    	// Si estamos en modo Grid o Polaroid, la barra de miniaturas está oculta y no necesita actualizarse.
+        if (model != null && (model.getCurrentDisplayMode() == VisorModel.DisplayMode.GRID
+                           || model.getCurrentDisplayMode() == VisorModel.DisplayMode.POLAROID)) {
             return; // No hacer nada.
         }
-        // --- FIN DE LA MODIFICACIÓN ---
     	
     	
     	if (!thumbnailUpdatesEnabled || controller.getModeloMiniaturas() == null || model.getCurrentListContext() == null) return;
@@ -161,7 +161,7 @@ public class ListCoordinator extends AbstractListCoordinator {
             return;
         }
 
-        VisorController.RangoMiniaturasCalculado rango = controller.calcularNumMiniaturasDinamicas();
+        ImageListManager.RangoMiniaturasCalculado rango = controller.calcularNumMiniaturasDinamicas();
         int inicio = Math.max(0, selectedIndex - rango.antes);
         int fin = Math.min(modeloPrincipal.getSize() - 1, selectedIndex + rango.despues);
 

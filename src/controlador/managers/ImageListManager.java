@@ -12,16 +12,14 @@ import java.util.concurrent.Future;
 
 import javax.swing.Action;
 import javax.swing.DefaultListModel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import controlador.ListCoordinator;
 import controlador.VisorController;
-import controlador.commands.AppActionCommands;
 import controlador.managers.FilterManager.FilterResult;
 import controlador.managers.interfaces.IListCoordinator;
 import controlador.utils.ComponentRegistry;
@@ -48,9 +46,13 @@ public class ImageListManager {
     private final IListCoordinator listCoordinator;
     private final ThumbnailService thumbnailService;
     private final ExecutorService executorService;
-    private final InfobarStatusManager statusBarManager;
+    private InfobarStatusManager statusBarManager;
     private final ComponentRegistry registry;
     private final Map<String, Action> actionMap;
+    private servicios.ConfigurationManager configuration;
+    private DisplayModeManager displayModeManager;
+    private vista.theme.ThemeManager themeManager;
+    private vista.util.IconUtils iconUtils;
     
 //    private final GeneralController generalController;
     
@@ -78,6 +80,10 @@ public class ImageListManager {
         this.statusBarManager = visorController.getStatusBarManager();
         this.registry = visorController.getComponentRegistry();
         this.actionMap = visorController.getActionMap();
+        this.configuration = visorController.getConfigurationManager();
+        this.displayModeManager = visorController.getDisplayModeManager();
+        this.themeManager = visorController.getThemeManager();
+        this.iconUtils = visorController.getIconUtils();
         
         this.imagenDAO = new ImagenDAO();
         this.tagDAO = new TagDAO(); 
@@ -192,6 +198,11 @@ public class ImageListManager {
         if (alFinalizarConExito != null) {
             alFinalizarConExito.run();
         }
+
+        if (statusBarManager != null) {
+            statusBarManager.actualizar();
+        }
+
         logger.debug("-->>> FIN ImageListManager.cargarListaImagenes (MODO LECTURA ESTRICTO)");
     } // --- fin del metodo cargarListaImagenes ---
     
@@ -576,6 +587,10 @@ public class ImageListManager {
             visorController.getViewManager().asegurarVisibilidadPanelesBase();
         }
 
+        if (statusBarManager != null) {
+            statusBarManager.actualizar();
+        }
+
         logger.debug("-->>> FIN ImageListManager.recargarListaDesdeBDSinSincronizar (SEGURO)");
      } // ---FIN de metodo [recargarListaDesdeBDSinSincronizar]---
 
@@ -617,6 +632,185 @@ public class ImageListManager {
              logger.info("[ImageListManager] Sincronización completa: {} registros eliminados de la BD.", borrados);
          }
      }
+
+    // ==================== GESTIÓN DE MINIATURAS ====================
+
+    public DefaultListModel<String> getModeloMiniaturasVisualizador() {
+        return visorController.getModeloMiniaturasVisualizador();
+    }
+
+    public DefaultListModel<String> getModeloMiniaturasCarrusel() {
+        return visorController.getModeloMiniaturasCarrusel();
+    }
+
+    public DefaultListModel<String> getModeloMiniaturas() {
+        if (model != null && model.getCurrentWorkMode() == WorkMode.CARROUSEL) {
+            return visorController.getModeloMiniaturasCarrusel();
+        }
+        return visorController.getModeloMiniaturasVisualizador();
+    }
+
+    public void solicitarRefrescoRenderersMiniaturas() {
+        if (registry.get("list.miniaturas") != null) {
+            logger.debug("  [ImageListManager] Solicitando repintado de listaMiniaturas.");
+            registry.get("list.miniaturas").repaint();
+        }
+    }
+
+    public void setMostrarNombresMiniaturas(boolean mostrar) {
+        logger.debug("[ImageListManager] Solicitud para cambiar 'Mostrar Nombres en Miniaturas' a: " + mostrar);
+
+        if (configuration == null || view == null || registry.get("list.miniaturas") == null || model == null ||
+            thumbnailService == null || themeManager == null || iconUtils == null) {
+            logger.error("ERROR CRÍTICO [setMostrarNombresMiniaturas]: Faltan dependencias esenciales. Operación cancelada.");
+            return;
+        }
+
+        configuration.setString(servicios.ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, String.valueOf(mostrar));
+
+        int thumbWidth = configuration.getInt("miniaturas.tamano.normal.ancho", 40);
+        int thumbHeight = configuration.getInt("miniaturas.tamano.normal.alto", 40);
+
+        vista.renderers.MiniaturaListCellRenderer newRenderer = new vista.renderers.MiniaturaListCellRenderer(
+            thumbnailService,
+            model,
+            visorController.getProjectManager(),
+            themeManager,
+            iconUtils,
+            thumbWidth,
+            thumbHeight,
+            mostrar
+        );
+
+        final vista.renderers.MiniaturaListCellRenderer finalRenderer = newRenderer;
+        SwingUtilities.invokeLater(() -> {
+            javax.swing.JList<String> listaMin = registry.get("list.miniaturas");
+            listaMin.setCellRenderer(finalRenderer);
+            listaMin.setFixedCellHeight(finalRenderer.getAlturaCalculadaDeCelda());
+            listaMin.setFixedCellWidth(finalRenderer.getAnchoCalculadaDeCelda());
+            listaMin.revalidate();
+            listaMin.repaint();
+
+            if (listCoordinator != null) {
+                listCoordinator.forzarActualizacionDeTiraDeMiniaturas();
+            }
+        });
+
+        logger.debug("[ImageListManager] setMostrarNombresMiniaturas completado.");
+    }
+
+    public void aumentarTamanoMiniaturas() {
+        final int STEP = 10;
+        final int MAX_SIZE = 300;
+
+        if (model.getCurrentDisplayMode() == VisorModel.DisplayMode.GRID) {
+            int currentWidth = configuration.getInt(servicios.ConfigKeys.GRID_THUMBNAIL_WIDTH, 120);
+            int newWidth = Math.min(currentWidth + STEP, MAX_SIZE);
+            configuration.setString(servicios.ConfigKeys.GRID_THUMBNAIL_WIDTH, String.valueOf(newWidth));
+            configuration.setString(servicios.ConfigKeys.GRID_THUMBNAIL_HEIGHT, String.valueOf(newWidth));
+            vista.panels.GridDisplayPanel gridVisor = registry.get("panel.display.grid");
+            if (gridVisor != null) gridVisor.setGridCellSize(newWidth, newWidth);
+        } else {
+            int currentNormWidth = configuration.getInt(servicios.ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, 70);
+            int newNormWidth = Math.min(currentNormWidth + STEP, MAX_SIZE);
+            configuration.setString(servicios.ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, String.valueOf(newNormWidth));
+            configuration.setString(servicios.ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, String.valueOf(newNormWidth));
+
+            if (thumbnailService != null) thumbnailService.limpiarCache();
+            if (view != null) view.actualizarLayoutBarraMiniaturas();
+            if (listCoordinator instanceof ListCoordinator) {
+                ((ListCoordinator) listCoordinator).forzarActualizacionDeTiraDeMiniaturas();
+            }
+        }
+    }
+
+    public void reducirTamanoMiniaturas() {
+        final int STEP = 10;
+        final int MIN_SIZE = 40;
+
+        if (model.getCurrentDisplayMode() == VisorModel.DisplayMode.GRID) {
+            int currentWidth = configuration.getInt(servicios.ConfigKeys.GRID_THUMBNAIL_WIDTH, 120);
+            int newWidth = Math.max(currentWidth - STEP, MIN_SIZE);
+            configuration.setString(servicios.ConfigKeys.GRID_THUMBNAIL_WIDTH, String.valueOf(newWidth));
+            configuration.setString(servicios.ConfigKeys.GRID_THUMBNAIL_HEIGHT, String.valueOf(newWidth));
+            vista.panels.GridDisplayPanel gridVisor = registry.get("panel.display.grid");
+            if (gridVisor != null) gridVisor.setGridCellSize(newWidth, newWidth);
+        } else {
+            int currentNormWidth = configuration.getInt(servicios.ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, 70);
+            int newNormWidth = Math.max(currentNormWidth - STEP, MIN_SIZE);
+            configuration.setString(servicios.ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, String.valueOf(newNormWidth));
+            configuration.setString(servicios.ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, String.valueOf(newNormWidth));
+
+            if (thumbnailService != null) thumbnailService.limpiarCache();
+            if (view != null) view.actualizarLayoutBarraMiniaturas();
+            if (listCoordinator instanceof ListCoordinator) {
+                ((ListCoordinator) listCoordinator).forzarActualizacionDeTiraDeMiniaturas();
+            }
+        }
+    }
+
+    public RangoMiniaturasCalculado calcularNumMiniaturasDinamicas() {
+        int cfgMiniaturasAntes, cfgMiniaturasDespues;
+
+        if (model != null) {
+            cfgMiniaturasAntes = model.getMiniaturasAntes();
+            cfgMiniaturasDespues = model.getMiniaturasDespues();
+        } else if (configuration != null) {
+            cfgMiniaturasAntes = configuration.getInt("miniaturas.cantidad.antes", 8);
+            cfgMiniaturasDespues = configuration.getInt("miniaturas.cantidad.despues", 8);
+        } else {
+            cfgMiniaturasAntes = 8;
+            cfgMiniaturasDespues = 8;
+        }
+
+        javax.swing.JScrollPane scrollPane = registry.get("scroll.miniaturas");
+        javax.swing.JList<String> listaMin = registry.get("list.miniaturas");
+
+        if (scrollPane == null || listaMin == null) {
+            return new RangoMiniaturasCalculado(cfgMiniaturasAntes, cfgMiniaturasDespues);
+        }
+
+        int viewportWidth = scrollPane.getViewport().getWidth();
+        int cellWidth = listaMin.getFixedCellWidth();
+
+        if (viewportWidth <= 0 || cellWidth <= 0 || !scrollPane.isShowing()) {
+            return new RangoMiniaturasCalculado(cfgMiniaturasAntes, cfgMiniaturasDespues);
+        }
+
+        int totalMiniaturasQueCaben = viewportWidth / cellWidth;
+        int numAntesCalculado;
+        int numDespuesCalculado;
+        int maxTotalConfigurado = cfgMiniaturasAntes + 1 + cfgMiniaturasDespues;
+
+        if (totalMiniaturasQueCaben >= maxTotalConfigurado) {
+            numAntesCalculado = cfgMiniaturasAntes;
+            numDespuesCalculado = cfgMiniaturasDespues;
+        } else if (totalMiniaturasQueCaben <= 1) {
+            numAntesCalculado = 0;
+            numDespuesCalculado = 0;
+        } else {
+            int miniaturasLateralesDisponibles = totalMiniaturasQueCaben - 1;
+            double ratioAntesOriginal = (cfgMiniaturasAntes + cfgMiniaturasDespues > 0)
+                    ? (double) cfgMiniaturasAntes / (cfgMiniaturasAntes + cfgMiniaturasDespues)
+                    : 0.5;
+            numAntesCalculado = (int) Math.round(miniaturasLateralesDisponibles * ratioAntesOriginal);
+            numDespuesCalculado = miniaturasLateralesDisponibles - numAntesCalculado;
+            numAntesCalculado = Math.min(numAntesCalculado, cfgMiniaturasAntes);
+            numDespuesCalculado = Math.min(numDespuesCalculado, cfgMiniaturasDespues);
+        }
+
+        return new RangoMiniaturasCalculado(numAntesCalculado, numDespuesCalculado);
+    }
+
+    public static class RangoMiniaturasCalculado {
+        public final int antes;
+        public final int despues;
+
+        public RangoMiniaturasCalculado(int antes, int despues) {
+            this.antes = antes;
+            this.despues = despues;
+        }
+    }
 
 } // --- FIN de clase ImageListManager ---
 

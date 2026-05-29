@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -27,7 +28,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
-import java.util.LinkedHashMap;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 
@@ -37,10 +37,9 @@ import org.slf4j.LoggerFactory;
 import controlador.commands.AppActionCommands;
 import controlador.interfaces.ContextSensitiveAction;
 import controlador.interfaces.IModoController;
+import controlador.managers.DataManager;
 import controlador.managers.DisplayModeManager;
 import controlador.managers.ExportQueueManager;
-import controlador.managers.DataManager;
-import controlador.DataController;
 import controlador.managers.interfaces.IProjectManager;
 import controlador.managers.interfaces.IZoomManager;
 import controlador.utils.ComponentRegistry;
@@ -126,7 +125,7 @@ public class ProjectController implements IModoController {
                 if (e.getValueIsAdjusting() || projectListCoordinator.isSincronizandoUI())
                     return;
                 if ("seleccion".equals(model.getProyectoListContext().getNombreListaActiva())) {
-                    projectListCoordinator.seleccionarImagenPorIndice(projectList.getSelectedIndex());
+                    projectListCoordinator.sincronizarVistaConSeleccionLista(projectList);
                 }
             });
         }
@@ -137,7 +136,7 @@ public class ProjectController implements IModoController {
                 if (e.getValueIsAdjusting() || projectListCoordinator.isSincronizandoUI())
                     return;
                 if ("descartes".equals(model.getProyectoListContext().getNombreListaActiva())) {
-                    projectListCoordinator.seleccionarImagenPorIndice(descartesList.getSelectedIndex());
+                    projectListCoordinator.sincronizarVistaConSeleccionLista(descartesList);
                 }
             });
         }
@@ -850,107 +849,137 @@ public class ProjectController implements IModoController {
     } // --- Fin del método poblarListaDescartes ---
 
     public void moverSeleccionActualADescartes() {
-        if (model == null || projectManager == null || registry == null)
-            return;
-
-        // 1. Obtener la lista y el índice ANTES de cualquier cambio.
-        JList<String> listaSeleccionUI = registry.get("list.proyecto.nombres");
-        if (listaSeleccionUI == null)
-            return;
-        int indiceOriginal = listaSeleccionUI.getSelectedIndex();
-        if (indiceOriginal == -1) {
-            logger.debug("No hay imagen seleccionada para mover a descartes.");
+        if (model == null || projectManager == null || registry == null) {
             return;
         }
 
-        // 2. Obtener la clave de la imagen a mover.
-        String claveSeleccionada = listaSeleccionUI.getSelectedValue();
-        Path rutaAbsoluta = model.getProyectoListContext().getRutaCompleta(claveSeleccionada);
-        if (rutaAbsoluta == null)
+        JList<String> listaSeleccionUI = registry.get("list.proyecto.nombres");
+        if (listaSeleccionUI == null) {
             return;
+        }
 
-        // 3. Realizar la operación en el modelo de datos y guardar.
-        projectManager.moverAdescartes(rutaAbsoluta);
-        projectManager.notificarModificacion();
+        int indiceAncla = obtenerIndiceAnclaDeLista(listaSeleccionUI);
+        List<Path> rutasAMover = obtenerRutasDesdeListaSeleccionada(listaSeleccionUI);
+        if (rutasAMover.isEmpty()) {
+            logger.debug("No hay imágenes seleccionadas para mover a descartes.");
+            return;
+        }
 
-        // 4. Refrescar TODA la UI del proyecto. Esto reconstruirá los modelos de las
-        // JList.
+        int movidos = projectManager.moverVariosAdescartes(rutasAMover);
+        if (movidos == 0) {
+            return;
+        }
+
+        logger.debug("  [ProjectController] {} imagen(es) movida(s) a descartes.", movidos);
         refrescarVistaProyectoCompleta();
-
-        // 5. Calcular y aplicar la nueva selección de forma inteligente.
-        SwingUtilities.invokeLater(() -> {
-            // Volvemos a obtener la JList y su modelo, ya que han sido actualizados.
-            JList<String> listaActualizada = registry.get("list.proyecto.nombres");
-            if (listaActualizada == null)
-                return;
-            int nuevoTamanio = listaActualizada.getModel().getSize();
-
-            if (nuevoTamanio > 0) {
-                int nuevoIndiceASeleccionar = indiceOriginal;
-                // Si el índice original ya no existe (porque era el último), seleccionamos el
-                // nuevo último.
-                if (nuevoIndiceASeleccionar >= nuevoTamanio) {
-                    nuevoIndiceASeleccionar = nuevoTamanio - 1;
-                }
-
-                // Usamos el coordinador para que la selección se propague a toda la UI
-                projectListCoordinator.seleccionarImagenPorIndice(nuevoIndiceASeleccionar);
-            } else {
-                // Si la lista quedó vacía, deseleccionamos todo.
-                projectListCoordinator.seleccionarImagenPorIndice(-1);
-            }
-        });
+        reubicarSeleccionTrasOperacionEnLista(registry.get("list.proyecto.nombres"), indiceAncla, "seleccion");
     } // --- Fin del método moverSeleccionActualADescartes ---
 
     public void restaurarDesdeDescartes() {
-        if (registry == null || projectManager == null)
-            return;
-
-        // 1. Obtener la lista y el índice ANTES del cambio.
-        JList<String> listaDescartesUI = registry.get("list.proyecto.descartes");
-        if (listaDescartesUI == null)
-            return;
-        int indiceOriginal = listaDescartesUI.getSelectedIndex();
-        if (indiceOriginal == -1) {
-            logger.debug("No hay imagen seleccionada en descartes para restaurar.");
+        if (registry == null || projectManager == null) {
             return;
         }
 
-        String claveSeleccionada = listaDescartesUI.getSelectedValue();
-        Path rutaAbsoluta = java.nio.file.Paths.get(claveSeleccionada);
+        JList<String> listaDescartesUI = registry.get("list.proyecto.descartes");
+        if (listaDescartesUI == null) {
+            return;
+        }
 
-        // 2. Realizar la operación en el modelo de datos y guardar.
-        projectManager.restaurarDeDescartes(rutaAbsoluta);
-        projectManager.notificarModificacion();
+        int indiceAncla = obtenerIndiceAnclaDeLista(listaDescartesUI);
+        List<Path> rutasARestaurar = obtenerRutasDesdeListaSeleccionada(listaDescartesUI);
+        if (rutasARestaurar.isEmpty()) {
+            logger.debug("No hay imágenes seleccionadas en descartes para restaurar.");
+            return;
+        }
 
-        // 3. Refrescar TODA la UI del proyecto.
+        int restaurados = projectManager.restaurarVariosDeDescartes(rutasARestaurar);
+        if (restaurados == 0) {
+            return;
+        }
+
+        logger.debug("  [ProjectController] {} imagen(es) restaurada(s) desde descartes.", restaurados);
         refrescarVistaProyectoCompleta();
 
-        // 4. Calcular y aplicar la nueva selección en la lista de DESCARTES.
         SwingUtilities.invokeLater(() -> {
-            // Volvemos a obtener la JList y su modelo, ya que han sido actualizados.
             JList<String> listaActualizada = registry.get("list.proyecto.descartes");
-            if (listaActualizada == null)
+            if (listaActualizada == null) {
                 return;
+            }
             int nuevoTamanio = listaActualizada.getModel().getSize();
-
-            // Nos aseguramos de que el foco lógico esté en la lista de descartes
             setProjectViewState(ProjectViewState.VIEW_DISCARDS);
 
             if (nuevoTamanio > 0) {
-                int nuevoIndiceASeleccionar = indiceOriginal;
-                if (nuevoIndiceASeleccionar >= nuevoTamanio) {
-                    nuevoIndiceASeleccionar = nuevoTamanio - 1;
-                }
-                projectListCoordinator.seleccionarImagenPorIndice(nuevoIndiceASeleccionar);
+                reubicarSeleccionTrasOperacionEnLista(listaActualizada, indiceAncla, "descartes");
             } else {
-                // Si la lista de descartes quedó vacía, movemos el foco a la de selección
                 setProjectViewState(ProjectViewState.VIEW_SELECTION);
-                projectListCoordinator.seleccionarImagenPorIndice(0); // Seleccionamos el primero de la otra lista
+                JList<String> listaSeleccion = registry.get("list.proyecto.nombres");
+                if (listaSeleccion != null && listaSeleccion.getModel().getSize() > 0) {
+                    projectListCoordinator.seleccionarImagenPorIndice(0);
+                } else {
+                    projectListCoordinator.seleccionarImagenPorIndice(-1);
+                }
             }
         });
-
     } // --- Fin del método restaurarDesdeDescartes ---
+
+    /**
+     * Obtiene las rutas absolutas de todos los elementos seleccionados en una JList de proyecto.
+     */
+    private List<Path> obtenerRutasDesdeListaSeleccionada(JList<String> lista) {
+        if (lista == null || lista.getModel() == null) {
+            return java.util.Collections.emptyList();
+        }
+        int[] indices = lista.getSelectedIndices();
+        if (indices.length == 0) {
+            return java.util.Collections.emptyList();
+        }
+        List<Path> rutas = new java.util.ArrayList<>();
+        for (int indice : indices) {
+            String clave = lista.getModel().getElementAt(indice);
+            if (clave != null && !clave.isEmpty()) {
+                rutas.add(java.nio.file.Paths.get(clave));
+            }
+        }
+        return rutas;
+    } // --- Fin del método obtenerRutasDesdeListaSeleccionada ---
+
+    /**
+     * Índice de referencia para re-seleccionar tras una operación por lotes (ancla o mínimo seleccionado).
+     */
+    private int obtenerIndiceAnclaDeLista(JList<String> lista) {
+        if (lista == null) {
+            return -1;
+        }
+        int ancla = lista.getAnchorSelectionIndex();
+        if (ancla >= 0) {
+            return ancla;
+        }
+        return lista.getMinSelectionIndex();
+    } // --- Fin del método obtenerIndiceAnclaDeLista ---
+
+    /**
+     * Tras refrescar una lista, deja seleccionado un único índice coherente con la operación anterior.
+     */
+    private void reubicarSeleccionTrasOperacionEnLista(JList<String> lista, int indiceAncla, String focoLista) {
+        SwingUtilities.invokeLater(() -> {
+            if (lista == null) {
+                return;
+            }
+            if (focoLista != null) {
+                cambiarFocoListaActiva(focoLista);
+            }
+            int nuevoTamanio = lista.getModel().getSize();
+            if (nuevoTamanio <= 0) {
+                projectListCoordinator.seleccionarImagenPorIndice(-1);
+                return;
+            }
+            int nuevoIndice = indiceAncla;
+            if (nuevoIndice < 0 || nuevoIndice >= nuevoTamanio) {
+                nuevoIndice = Math.min(Math.max(indiceAncla, 0), nuevoTamanio - 1);
+            }
+            projectListCoordinator.seleccionarImagenPorIndice(nuevoIndice);
+        });
+    } // --- Fin del método reubicarSeleccionTrasOperacionEnLista ---
 
     private void refrescarListasDeProyecto() {
         logger.debug("  [ProjectController] Refrescando ambas listas del proyecto...");
@@ -1677,9 +1706,6 @@ public class ProjectController implements IModoController {
                     + "'). No se realiza ninguna acción.");
         }
 
-        // Después de mover la imagen, notificamos el cambio y actualizamos el título.
-        projectManager.notificarModificacion();
-
     } // --- Fin del método solicitudAlternarMarcaImagen ---
 
     // ********************************************************************************************
@@ -2028,7 +2054,7 @@ public class ProjectController implements IModoController {
      * Sincroniza la descripción del proyecto desde el campo de texto de la UI
      * hacia el ProjectModel en memoria.
      */
-    void sincronizarDescripcionDesdeUI() {
+    public void sincronizarDescripcionDesdeUI() {
         if (projectManager == null || registry == null)
             return;
 
@@ -2083,32 +2109,37 @@ public class ProjectController implements IModoController {
     // ********************************************************************************************
 
     public void solicitarEliminacionPermanente() {
-        if (registry == null || projectManager == null || view == null)
+        if (registry == null || projectManager == null || view == null) {
             return;
+        }
 
         JList<String> listaDescartesUI = registry.get("list.proyecto.descartes");
-
-        if (listaDescartesUI == null)
+        if (listaDescartesUI == null) {
             return;
+        }
 
-        String claveSeleccionada = listaDescartesUI.getSelectedValue();
-
-        if (claveSeleccionada == null || claveSeleccionada.isEmpty())
+        List<Path> rutasAEliminar = obtenerRutasDesdeListaSeleccionada(listaDescartesUI);
+        if (rutasAEliminar.isEmpty()) {
             return;
+        }
 
-        int confirm = JOptionPane.showConfirmDialog(view,
-                "¿Seguro que quieres eliminar esta imagen del proyecto?\n(No se borrará el archivo del disco)",
+        int cantidad = rutasAEliminar.size();
+        String mensaje = cantidad == 1
+                ? "¿Seguro que quieres eliminar esta imagen del proyecto?\n(No se borrará el archivo del disco)"
+                : "¿Seguro que quieres eliminar estas " + cantidad + " imágenes del proyecto?\n(No se borrarán los archivos del disco)";
+
+        int confirm = JOptionPane.showConfirmDialog(view, mensaje,
                 "Confirmar Eliminación", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            Path rutaAbsoluta = java.nio.file.Paths.get(claveSeleccionada);
-            // 1. Modifica el modelo en memoria
-            projectManager.eliminarDeProyecto(rutaAbsoluta);
-            projectManager.notificarModificacion();
-
-            // 2. Refresca la UI (en este caso, refrescar las listas es suficiente)
-
-            refrescarListasDeProyecto();
+            int indiceAncla = obtenerIndiceAnclaDeLista(listaDescartesUI);
+            int eliminados = projectManager.eliminarVariosDeProyecto(rutasAEliminar);
+            if (eliminados > 0) {
+                logger.debug("  [ProjectController] {} imagen(es) eliminada(s) del proyecto.", eliminados);
+                refrescarListasDeProyecto();
+                reubicarSeleccionTrasOperacionEnLista(registry.get("list.proyecto.descartes"), indiceAncla,
+                        "descartes");
+            }
         }
     } // --- Fin del método solicitarEliminacionPermanente ---
 

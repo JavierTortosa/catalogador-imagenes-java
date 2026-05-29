@@ -22,14 +22,13 @@ import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import controlador.commands.AppActionCommands;
 import controlador.factory.ActionFactory;
 import controlador.managers.BackgroundControlManager;
 import controlador.managers.CarouselManager;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.DataManager;
-import controlador.commands.AppActionCommands;
 import controlador.managers.DisplayModeManager;
-import vista.config.IconScope;
 import controlador.managers.EditionManager;
 import controlador.managers.FileOperationsManager;
 import controlador.managers.FilterManager;
@@ -43,6 +42,12 @@ import controlador.managers.ViewManager;
 import controlador.managers.ZoomManager;
 import controlador.managers.filter.FilterCriterion;
 import controlador.managers.tree.FolderTreeManager;
+import controlador.services.AppModeService;
+import controlador.services.FilterService;
+import controlador.services.NavigationService;
+import controlador.services.ProjectLifecycleService;
+import controlador.services.SearchSortService;
+import controlador.services.ZoomPanService;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigKeys;
@@ -57,6 +62,7 @@ import vista.builders.MenuBarBuilder;
 import vista.builders.ProjectBuilder;
 import vista.builders.ToolbarBuilder;
 import vista.builders.ViewBuilder;
+import vista.config.IconScope;
 import vista.config.ToolbarButtonDefinition;
 import vista.config.ToolbarComponentDefinition;
 import vista.config.UIDefinitionService;
@@ -97,7 +103,15 @@ public class AppInitializer {
     // Coordinadores
     private ListCoordinator listCoordinator;
     private ProjectListCoordinator projectListCoordinator;
-
+    
+    // Services 
+    private FilterService filterService; //PENDIENTE DE REFACTORIZAR
+    private NavigationService navigationService; //PENDIENTE DE REFACTORIZAR
+    private ProjectLifecycleService projectLifecycleService; //PENDIENTE DE REFACTORIZAR
+    private SearchSortService searchSortService;//PENDIENTE DE REFACTORIZAR
+    private ZoomPanService zoomPanService;//PENDIENTE DE REFACTORIZAR
+    private AppModeService appModeService;
+    
     // Managers
     private ConfigApplicationManager configAppManager;
     private ZoomManager zoomManager;
@@ -168,8 +182,7 @@ public class AppInitializer {
         this.model = new VisorModel();
         this.configuration = ConfigurationManager.getInstance();
 
-        // --- INICIO DE LA MODIFICACIÓN: Inicialización de la Base de Datos (AHORA
-        // CONFIGURABLE) ---
+        // Inicialización de la Base de Datos (AHORA CONFIGURABLE) ---
         logger.info("Inicializando la capa de persistencia de datos...");
         try {
             // Primero, pasamos la configuración para que decida la ruta de la BD.
@@ -180,7 +193,7 @@ public class AppInitializer {
             // Un error aquí es crítico. No se puede continuar.
             manejarErrorFatalInicializacion("No se pudo inicializar la base de datos.", e);
         }
-        // --- FIN DE LA MODIFICACIÓN ---
+        
 
         this.themeManager = new ThemeManager(this.configuration);
         this.themeManager.install();
@@ -190,7 +203,6 @@ public class AppInitializer {
         this.projectManagerService = new ProjectManager();
         this.registry = new ComponentRegistry();
 
-        // --- INICIO DE LA CORRECCIÓN ---
         // Controladores, Coordinadores y Managers (en orden de dependencia)
         this.generalController = new GeneralController();
         this.globalInputManager = new GlobalInputManager();
@@ -210,13 +222,11 @@ public class AppInitializer {
         this.carouselManager = new CarouselManager(listCoordinator, this.controller, this.registry, this.model,
                 this.iconUtils);
 
-        // --- INICIO DE LA MODIFICACIÓN: Instanciación de componentes del Modo Datos
-        // ---
+        // --- Instanciación de componentes del Modo Datos ---
         this.dataManager = new DataManager();
         this.dataController = new DataController(this.model, this.registry, this.dataManager);
         this.dataBuilder = new DataBuilder(this.registry, this.model, this.themeManager, this.iconUtils,
                 this.gridThumbnailService);
-        // --- FIN DE LA MODIFICACIÓN ---
 
         // UI Builders y Servicios de UI
         UIDefinitionService uiDefSvc = new UIDefinitionService();
@@ -276,6 +286,26 @@ public class AppInitializer {
                 this.projectManagerService, iconMap, this.viewManager, this.themeManager, this.registry,
                 this.generalController, this.projectController);
 
+        
+        // PENDIENTE DE REFACTORIZACION
+        
+        // Instanciamos el servicio de navegacion
+        this.navigationService = new NavigationService(this.folderNavManager, this.folderTreeManager);
+        
+        // Instanciamos el servicio de ciclo de vida de proyectos
+        this.projectLifecycleService = new ProjectLifecycleService(this.projectController, this.generalController,
+                this.controller, this.model, this.configuration);
+        
+        // Instanciamos el servicio de búsqueda, tornado y ordenación
+        this.searchSortService = new SearchSortService(this.model, this.filterManager, this.registry,
+                this.configAppManager, this.configuration);
+        
+        // Instanciamos el paneo de imagen
+        this.zoomPanService = new ZoomPanService(this.model, this.viewManager);
+        
+        // Instanciamos la orquestacion de mosdos y sincronizacion
+        this.appModeService = new AppModeService(this.model, this.viewManager, this.toolbarManager, this.displayModeManager, this.configAppManager, this.statusBarManager);
+        
         logger.debug(" -> Instanciación de componentes completada.");
     } // ---FIN de metodo instantiateComponents---
 
@@ -379,13 +409,43 @@ public class AppInitializer {
         generalController.setFilterManager(this.filterManager);
         generalController.setFolderNavigationManager(this.folderNavManager);
         generalController.setFolderTreeManager(this.folderTreeManager);
+        
+        //PENDIENTE DE REFACTORIZACION
+        
+        // 1. Instanciamos el servicio (en la fase 1: instantiateComponents)
+        this.filterService = new FilterService(this.filterManager, this.registry, this.model);
 
-        // --- INICIO DE LA MODIFICACIÓN: Cableado de componentes del Modo Datos ---
+        // 2. Inyectamos el servicio (en la fase 2: wireDependencies)
+        this.generalController.setFilterService(this.filterService);
+        
+        // 3. Inyectamos navigationService
+        this.generalController.setNavigationService(this.navigationService);
+        
+        // 4. Inyectamos projectLifecycleService ("Guardar", "Abrir" y "Nuevo" proyecto) 
+        this.generalController.setProjectLifecycleService(this.projectLifecycleService);
+        
+        // 5. Inyectamos el Filtro Tornado
+        this.generalController.setSearchSortService(this.searchSortService);
+        
+        // 6. Inyectamos el paneo de imagenes
+        this.generalController.setZoomPanService(this.zoomPanService);
+        
+        // 7. Inyectamos el gestor de modos y sincronizacion
+        this.generalController.setAppModeService(this.appModeService);
+
+        // 7.1 Inyectamos dependencias adicionales en AppModeService
+        this.appModeService.setVisorController(this.controller);
+        this.appModeService.setProjectController(this.projectController);
+        this.appModeService.setDataController(this.dataController);
+        this.appModeService.setConfiguration(this.configuration);
+        this.appModeService.setRegistry(this.registry);
+
+        
+        // --- Cableado de componentes del Modo Datos ---
         this.viewBuilder.setDataBuilder(this.dataBuilder);
         this.generalController.setDataController(this.dataController);
         this.dataController.setProjectManager(this.projectManagerService);
         this.dataController.setVisorController(this.controller);
-        // --- FIN DE LA MODIFICACIÓN ---
 
         // Inyectar dependencias en FilterManager para que pueda operar de forma
         // autónoma
@@ -481,12 +541,15 @@ public class AppInitializer {
 
                 this.zoomManager.setActionMap(this.actionMap);
                 this.toolbarBuilder.setActionMap(this.actionMap);
+                this.appModeService.setActionMap(this.actionMap);
                 this.viewBuilder.setActionMap(this.actionMap);
                 this.configAppManager.setActionMap(this.actionMap);
                 this.viewManager.setActionMap(this.actionMap);
                 this.controller.setActionMap(this.actionMap);
                 this.projectController.setActionMap(this.actionMap);
                 this.generalController.setActionMap(this.actionMap);
+                this.searchSortService.setActionMap(this.actionMap);
+                this.searchSortService.setVisorController(this.controller);
 
                 // 3.3: ¡Paso clave! Crear la ventana principal (JFrame)
                 logger.debug("    -> Creando VisorView (JFrame)...");
@@ -516,6 +579,7 @@ public class AppInitializer {
                 this.dataController.setStatusBarManager(this.statusBarManager);
                 this.displayModeManager.setInfobarStatusManager(this.statusBarManager);
                 this.statusBarManager.setController(this.controller);
+                this.searchSortService.setStatusBarManager(this.statusBarManager);
 
                 this.displayModeManager.setModel(this.model);
                 this.displayModeManager.setRegistry(this.registry);
@@ -529,6 +593,7 @@ public class AppInitializer {
                 imageListManager.setFilterManager(this.filterManager);
                 this.controller.setImageListManager(imageListManager);
                 this.generalController.setImageListManager(imageListManager);
+                this.appModeService.setImageListManager(imageListManager);
 
                 this.actionFactory.setImageListManager(imageListManager);
                 this.actionFactory.initializeLateActions();

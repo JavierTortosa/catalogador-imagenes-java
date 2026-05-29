@@ -207,6 +207,47 @@ public class ProjectListCoordinator extends AbstractListCoordinator  {
         }
     } // --- Fin del método seleccionarImagenPorIndice ---
 
+    /**
+     * Actualiza visor y modelo según la selección actual de la JList (incluye selección múltiple),
+     * sin modificar qué filas están seleccionadas en la lista.
+     */
+    public void sincronizarVistaConSeleccionLista(JList<String> lista) {
+        if (isSyncingUI || lista == null) {
+            return;
+        }
+
+        int indiceVista = lista.getLeadSelectionIndex();
+        if (indiceVista < 0) {
+            indiceVista = lista.getMinSelectionIndex();
+        }
+
+        if (indiceVista < 0) {
+            if (model.getProyectoListContext().getSelectedImageKey() != null) {
+                seleccionarImagenEnLista(lista, -1);
+            } else {
+                forzarActualizacionEstadoAcciones();
+            }
+            return;
+        }
+
+        if (indiceVista >= lista.getModel().getSize()) {
+            return;
+        }
+
+        String claveSeleccionada = lista.getModel().getElementAt(indiceVista);
+        if (Objects.equals(claveSeleccionada, model.getProyectoListContext().getSelectedImageKey())) {
+            forzarActualizacionEstadoAcciones();
+            return;
+        }
+
+        isSyncingUI = true;
+        try {
+            aplicarClaveAlVisor(lista, claveSeleccionada, indiceVista);
+        } finally {
+            SwingUtilities.invokeLater(() -> isSyncingUI = false);
+        }
+    } // --- Fin del método sincronizarVistaConSeleccionLista ---
+
     @Override
     public void reiniciarYSeleccionarIndice(int indiceDeseado) {
 
@@ -348,43 +389,37 @@ public class ProjectListCoordinator extends AbstractListCoordinator  {
             return;
         }
         
-        
         logger.debug("[ProjectListCoordinator] Nueva selección en Proyecto. Clave: " + claveSeleccionada);
         
         isSyncingUI = true;
         try {
-            // 1. Actualizar el Modelo (la fuente de verdad)
-            model.getProyectoListContext().setSelectedImageKey(claveSeleccionada);
-            if (lista.getName().equals("list.proyecto.nombres")) { 
-                model.getProyectoListContext().setSeleccionListKey(claveSeleccionada);
-            } else {
-                model.getProyectoListContext().setDescartesListKey(claveSeleccionada);
-            }
-
-            // 2. Cargar la imagen principal
-            int indiceEnModeloUnificado = model.getProyectoListContext().getModeloLista().indexOf(claveSeleccionada);
-            controller.actualizarImagenPrincipal(indiceEnModeloUnificado);
-            
-            // 3. Sincronizar la UI (seleccionar el item en la JList)
+            aplicarClaveAlVisor(lista, claveSeleccionada, indice);
             lista.setSelectedIndex(indice);
             lista.ensureIndexIsVisible(indice);
-            
-            // --- INICIO DE LA MODIFICACIÓN ---
-            // 4. Sincronizar la tabla de exportación si es visible
-            if (projectController != null) {
-                projectController.sincronizarSeleccionEnTablaExportacion();
-            }
-            // --- FIN DE LA MODIFICACIÓN ---
-            
-            fireMasterSelectionChanged(indice, lista.getName());
-            
-            forzarActualizacionEstadoAcciones();
-            
         } finally {
             SwingUtilities.invokeLater(() -> isSyncingUI = false);
         }
         
     } // --- Fin del método seleccionarImagenEnLista ---
+
+    private void aplicarClaveAlVisor(JList<String> lista, String claveSeleccionada, int indice) {
+        model.getProyectoListContext().setSelectedImageKey(claveSeleccionada);
+        if ("list.proyecto.nombres".equals(lista.getName())) {
+            model.getProyectoListContext().setSeleccionListKey(claveSeleccionada);
+        } else {
+            model.getProyectoListContext().setDescartesListKey(claveSeleccionada);
+        }
+
+        int indiceEnModeloUnificado = model.getProyectoListContext().getModeloLista().indexOf(claveSeleccionada);
+        controller.actualizarImagenPrincipal(indiceEnModeloUnificado);
+
+        if (projectController != null) {
+            projectController.sincronizarSeleccionEnTablaExportacion();
+        }
+
+        fireMasterSelectionChanged(indice, lista.getName());
+        forzarActualizacionEstadoAcciones();
+    } // --- Fin del método aplicarClaveAlVisor ---
     
 
     
