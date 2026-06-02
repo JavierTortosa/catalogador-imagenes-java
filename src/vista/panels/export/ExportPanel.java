@@ -103,6 +103,7 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
         }
         
         JPanel mainContentPanel = new JPanel(new BorderLayout(5, 5));
+        
         TitledBorder exportBorder = BorderFactory.createTitledBorder("Exportar");
         mainContentPanel.setBorder(exportBorder);
         projectController.getGeneralController().getRegistry().register("panel.exportacion.container", mainContentPanel);
@@ -112,18 +113,34 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
         tablaExportacion.setShowGrid(true);
         tablaExportacion.setGridColor(UIManager.getColor("Component.borderColor"));
         
+        // tamaño columnas panel exportar
+        
+        //checkbox
         TableColumn checkColumn = tablaExportacion.getColumnModel().getColumn(0);
         checkColumn.setPreferredWidth(30);
         checkColumn.setMaxWidth(30);
         tablaExportacion.getTableHeader().getColumnModel().getColumn(0).setHeaderRenderer(new CheckHeaderRenderer());
-        TableColumn statusColumn = tablaExportacion.getColumnModel().getColumn(2);
+
+        //codigo
+        TableColumn codeColumn = tablaExportacion.getColumnModel().getColumn(1);
+        codeColumn.setPreferredWidth(60);
+        codeColumn.setMaxWidth(70);
+
+        //nombre imagen
+        TableColumn imageColumn = tablaExportacion.getColumnModel().getColumn(2);
+        imageColumn.setPreferredWidth(550);
         
+        //status
+        TableColumn statusColumn = tablaExportacion.getColumnModel().getColumn(3);
+        statusColumn.setPreferredWidth(120);
+        statusColumn.setMaxWidth(120);
         statusColumn.setCellRenderer(new vista.panels.export.StatusCellRenderer(projectController.getGeneralController().getVisorController().getIconUtils()));
         
-        TableColumn assignedFilesColumn = tablaExportacion.getColumnModel().getColumn(3);
+        //archivos asignados
+        TableColumn assignedFilesColumn = tablaExportacion.getColumnModel().getColumn(4);
         Action toggleDetailsAction = projectController.getActionMap().get(AppActionCommands.CMD_EXPORT_DETALLES_SELECCION);
         assignedFilesColumn.setCellRenderer(new MultiLineCellRenderer(toggleDetailsAction));
-        assignedFilesColumn.setPreferredWidth(300);
+        assignedFilesColumn.setPreferredWidth(500);
         
         tablaExportacion.getTableHeader().addMouseListener(new HeaderMouseListener(tablaExportacion));
         
@@ -224,7 +241,7 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
                 btnMoveCopy.setContentAreaFilled(false);
                 btnMoveCopy.setOpaque(false);
                 btnMoveCopy.setBackground(null);
-                btnMoveCopy.setToolTipText("COPIAR archivos activo (se conservarán en el origen)");
+                btnMoveCopy.setToolTipText("COPIAR archivos activos (se conservarán en el origen)");
             }
         });
         eastPanel.add(btnMoveCopy);

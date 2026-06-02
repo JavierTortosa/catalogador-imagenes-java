@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import modelo.proyecto.ExportStatus;
-
 /**
  * Representa la configuración de exportación guardada para una única imagen en un proyecto.
  * Esta clase está diseñada para ser parte del ProjectModel y ser serializada a JSON.
@@ -35,6 +33,24 @@ public class ExportConfig {
     private ExportStatus status;
 
     // --- ARCHIVOS ASOCIADOS ---
+
+    /**
+     * Código de catálogo asignado a esta imagen (ej. "C001", "C002").
+     * Permite a los clientes referenciar imágenes fácilmente en el PDF.
+     */
+    private String codigoCatalogo;
+
+    /** Número de piezas que componen el modelo */
+    private int piezas;
+
+    /** Nivel de dificultad de pintado (ej. "Fácil", "Medio", "Difícil") */
+    private String lvl;
+
+    /** Precio de venta al público */
+    private String pvp;
+
+    /** Notas u observaciones sobre este item */
+    private String notas;
 
     /**
      * La lista de rutas (como String) a los archivos asociados (.zip, .stl, etc.)
@@ -76,6 +92,23 @@ public class ExportConfig {
         this.status = status;
     } // ---FIN de metodo setStatus---
 
+    public String getCodigoCatalogo() {
+        return codigoCatalogo;
+    }
+
+    public void setCodigoCatalogo(String codigoCatalogo) {
+        this.codigoCatalogo = codigoCatalogo;
+    }
+
+    public int getPiezas() { return piezas; }
+    public void setPiezas(int piezas) { this.piezas = piezas; }
+    public String getLvl() { return lvl; }
+    public void setLvl(String lvl) { this.lvl = lvl; }
+    public String getPvp() { return pvp; }
+    public void setPvp(String pvp) { this.pvp = pvp; }
+    public String getNotas() { return notas; }
+    public void setNotas(String notas) { this.notas = notas; }
+
     public List<String> getAssociatedFiles() {
         // Garantiza que nunca devolvemos null, crucial para la deserialización desde JSON antiguos.
         if (this.associatedFiles == null) {
@@ -90,7 +123,7 @@ public class ExportConfig {
     
     @Override
     public int hashCode() {
-        return Objects.hash(associatedFiles, exportEnabled, ignoreCompressed, status);
+        return Objects.hash(associatedFiles, codigoCatalogo, exportEnabled, ignoreCompressed, lvl, notas, piezas, pvp, status);
     } // ---FIN de metodo hashCode---
 
     @Override
@@ -100,8 +133,13 @@ public class ExportConfig {
         ExportConfig other = (ExportConfig) obj;
         return exportEnabled == other.exportEnabled && 
                ignoreCompressed == other.ignoreCompressed && 
+               piezas == other.piezas &&
                status == other.status &&
-               Objects.equals(associatedFiles, other.associatedFiles);
+               Objects.equals(associatedFiles, other.associatedFiles) &&
+               Objects.equals(codigoCatalogo, other.codigoCatalogo) &&
+               Objects.equals(lvl, other.lvl) &&
+               Objects.equals(notas, other.notas) &&
+               Objects.equals(pvp, other.pvp);
     } // ---FIN de metodo equals---
 
 } // --- FIN de clase ExportConfig ---

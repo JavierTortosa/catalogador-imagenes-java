@@ -983,7 +983,17 @@ public class UIDefinitionService {
 
                 // Botón final para iniciar la exportación
                 new ToolbarButtonDefinition(AppActionCommands.CMD_INICIAR_EXPORTACION, "21005-iniciar_exportación.png",
-                        "Iniciar Exportación", "acciones_exportacion"));
+                        "Iniciar Exportación", "acciones_exportacion"),
+                
+                new SeparatorDefinition(),
+                
+                new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORTAR_PDF, "21013-File-Pdf.png",
+                        "Crear PDF", "acciones_exportacion")
+                
+        		);
+        
+        		
+        
 
         List<ToolbarComponentDefinition> componentesDetallesExportacion = List.of(
                 new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_ADD_ASSOCIATED_FILE,
@@ -1031,7 +1041,7 @@ public class UIDefinitionService {
                         List.copyOf(botonesEdicion), ToolbarAlignment.CENTER)
 
                 // Botones de modos de zoom
-                , new ToolbarDefinition("zoom", "Zoom", 30, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO),
+                , new ToolbarDefinition("zoom", "Zoom", 30, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.PROYECTO),
                         List.copyOf(botonesZoom), ToolbarAlignment.CENTER)
 
                 // Botones de DisplayMode
@@ -1043,7 +1053,7 @@ public class UIDefinitionService {
                 // Cambio tamaño de miniaturas
                 ,
                 new ToolbarDefinition("barra_zoom_miniaturas", "Zoom de Miniaturas", 50,
-                        EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botones_zoom_miniaturas,
+                        EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.PROYECTO), botones_zoom_miniaturas,
                         ToolbarAlignment.CENTER)
 
                 // Grupo Derecha
@@ -1086,7 +1096,7 @@ public class UIDefinitionService {
                 // Boton aislado de Abrir Carpeta
                 ,
                 new ToolbarDefinition("abrir_carpeta", "Abrir Carpeta", 110,
-                		EnumSet.complementOf(EnumSet.of(WorkMode.PROYECTO)), List.copyOf(botonesAbrirCarpeta),
+                		EnumSet.allOf(WorkMode.class), List.copyOf(botonesAbrirCarpeta),
                 		ToolbarAlignment.RIGHT)
                 
                 

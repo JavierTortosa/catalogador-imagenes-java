@@ -67,6 +67,15 @@ public class ExportQueueManager {
                     // --- Prioridad 1: Hay configuración guardada para esta imagen ---
                     itemNuevo.setSeleccionadoParaExportar(config.isExportEnabled());
                     
+                    // Restauramos el código de catálogo si existe
+                    if (config.getCodigoCatalogo() != null) {
+                        itemNuevo.setCodigoCatalogo(config.getCodigoCatalogo());
+                    }
+                    itemNuevo.setPiezas(config.getPiezas());
+                    if (config.getLvl() != null) itemNuevo.setLvl(config.getLvl());
+                    if (config.getPvp() != null) itemNuevo.setPvp(config.getPvp());
+                    if (config.getNotas() != null) itemNuevo.setNotas(config.getNotas());
+
                     List<String> rutasGuardadasStr = config.getAssociatedFiles();
                     if (rutasGuardadasStr != null && !rutasGuardadasStr.isEmpty()) {
                         List<Path> pathsGuardados = rutasGuardadasStr.stream()

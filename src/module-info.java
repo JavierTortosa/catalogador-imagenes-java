@@ -27,6 +27,15 @@ module VisorImagenes {
 	requires com.github.benmanes.caffeine;
 	requires net.coobird.thumbnailator;
 	
+    // Requerido para la generación de PDFs
+    requires org.apache.pdfbox;
+    
+    // Requerido para leer ficheros .zip y .tar de forma genérica
+    requires org.apache.commons.compress;
+    
+    // Requerido para dar soporte nativo al formato .rar
+    requires junrar;
+	
 	requires java.sql;
     // NO HAY NADA MÁS AQUÍ. SE ACABARON LOS REQUIRES.
 
@@ -55,4 +64,5 @@ module VisorImagenes {
     opens servicios to com.formdev.flatlaf, ch.qos.logback.core;
     opens vista to com.formdev.flatlaf, ch.qos.logback.core;
     
+
 }

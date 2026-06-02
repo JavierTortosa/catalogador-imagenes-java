@@ -448,6 +448,7 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_PROYECTO_ANADIR_ARCHIVOS, createAddFilesToProjectAction());
         actionMap.put(AppActionCommands.CMD_PROYECTO_VACIAR_DESCARTES, createVaciarDescartesAction());
         actionMap.put(AppActionCommands.CMD_INICIAR_EXPORTACION, createIniciarExportacionAction());
+        actionMap.put(AppActionCommands.CMD_EXPORTAR_PDF, createExportarPdf());
         actionMap.put(AppActionCommands.CMD_EXPORT_SELECCIONAR_CARPETA, createSeleccionarCarpetaAction());
         actionMap.put(AppActionCommands.CMD_EXPORT_REFRESH, createRefreshExportQueueAction());
 
@@ -615,6 +616,13 @@ public class ActionFactory {
                 createSwitchWorkModeAction(WorkMode.DATOS, AppActionCommands.CMD_MODO_DATOS, "Modo Datos"));
         registerAction(AppActionCommands.CMD_MODO_EDICION,
                 createSwitchWorkModeAction(WorkMode.EDICION, AppActionCommands.CMD_MODO_EDICION, "Modo Edición"));
+
+        // --- Acciones para el Árbol de Tags (Modo Datos) ---
+        registerAction(AppActionCommands.CMD_DATOS_TAGS_VISTA_LISTA, createTagViewAction(AppActionCommands.CMD_DATOS_TAGS_VISTA_LISTA, "Vista por lista"));
+        registerAction(AppActionCommands.CMD_DATOS_TAGS_VISTA_ARBOL, createTagViewAction(AppActionCommands.CMD_DATOS_TAGS_VISTA_ARBOL, "Vista por árbol"));
+        registerAction(AppActionCommands.CMD_DATOS_TAGS_ORDENAR, createTagSortAction());
+        registerAction(AppActionCommands.CMD_DATOS_TAGS_FILTRAR, createTagFilterAction());
+        registerAction(AppActionCommands.CMD_DATOS_TAG_TOGGLE_ASIGNADO, createToggleTagAction());
 
         // --- Acciones para el Árbol de Carpetas ---
         registerAction(AppActionCommands.CMD_TREE_OPEN_FOLDER, createOpenFolderAction());
@@ -1164,14 +1172,17 @@ public class ActionFactory {
     } // ---FIN de metodo createEliminarProyectoAction---
 
     private Action createMoveToDiscardsAction() {
-        // Esta acción no necesita icono ya que es para un menú contextual
-        return new MoveToDiscardsAction(this.generalController, this.model);
+        MoveToDiscardsAction action = new MoveToDiscardsAction(this.generalController,
+                this.generalController.getVisorController().getComponentRegistry());
+        this.contextSensitiveActions.add(action);
+        return action;
     } // --- FIN del método createMoveToDiscardsAction ---
 
     private Action createRestoreFromDiscardsAction() {
-        // Esta acción no necesita icono
-        return new RestoreFromDiscardsAction(this.generalController,
+        RestoreFromDiscardsAction action = new RestoreFromDiscardsAction(this.generalController,
                 this.generalController.getVisorController().getComponentRegistry());
+        this.contextSensitiveActions.add(action);
+        return action;
     } // --- FIN del método createRestoreFromDiscardsAction ---
 
     private Action createAssignFileAction() {
@@ -1218,7 +1229,7 @@ public class ActionFactory {
      * Esta acción es para el menú contextual de la lista de descartes.
      */
     private Action createEliminarDeProyectoAction() {
-        return new AbstractAction("Eliminar permanentemente del proyecto") {
+        return new AbstractAction("Eliminar del proyecto (selección)") {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -1258,6 +1269,16 @@ public class ActionFactory {
         action.setEnabled(false);
         return action;
     } // --- Fin del método createIniciarExportacionAction ---
+    
+    private Action createExportarPdf () {
+    	return new AbstractAction("Exportar a PDF") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // El controlador debe saber qué items están marcados en la tabla
+            	generalController.getProjectController().generarCatalogoPDF();
+            }
+        };
+    }
 
     /**
      * Crea la acción para seleccionar la carpeta de destino de la exportación.
@@ -1859,4 +1880,69 @@ public class ActionFactory {
                 "FileOperationsManager no puede ser null en setFileOperationsManager");
     }
 
+    // --- MÉTODOS PARA CREAR ACCIONES DE TAGS (MODO DATOS) ---
+    private Action createTagViewAction(String command, String name) {
+        javax.swing.Action action = new javax.swing.AbstractAction("") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                logger.info("Acción de vista tag: " + command);
+            }
+        };
+        String iconName = command.contains("lista") ? "30100-Vector.png" : "30101-Hierarchy.png";
+        action.putValue(javax.swing.Action.SMALL_ICON, iconUtils.getScaledIcon(iconName, 24, 24));
+        action.putValue(javax.swing.Action.SHORT_DESCRIPTION, name);
+        return action;
+    }
+
+    private Action createTagSortAction() {
+        javax.swing.Action action = new javax.swing.AbstractAction("") {
+            private int estado = 0; // 0: ASC, 1: DESC, 2: OFF
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                estado = (estado + 1) % 3;
+                updateIcon(this);
+                logger.info("Orden cambiado a estado: " + estado);
+            }
+
+            private void updateIcon(javax.swing.Action action) {
+                String iconName = (estado == 0) ? "30004-orden_ascendente.png" : 
+                                  (estado == 1) ? "30005-orden_descendente.png" : "30006-orden_off.png";
+                action.putValue(javax.swing.Action.SMALL_ICON, iconUtils.getScaledIcon(iconName, 24, 24));
+            }
+        };
+        action.putValue(javax.swing.Action.SMALL_ICON, iconUtils.getScaledIcon("30004-orden_ascendente.png", 24, 24));
+        action.putValue(javax.swing.Action.SHORT_DESCRIPTION, "Ordenar Tags");
+        return action;
+    }
+
+    private Action createTagFilterAction() {
+        return new javax.swing.AbstractAction("Filtrar Tags") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                logger.info("Acción de filtrar tags");
+            }
+        };
+    }
+
+    private Action createToggleTagAction() {
+        javax.swing.Action action = new javax.swing.AbstractAction("") {
+            private boolean isAsignado = false; // Estado inicial
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                isAsignado = !isAsignado;
+                updateIcon(this);
+                logger.info("Estado del tag cambiado: " + (isAsignado ? "Asignado" : "No asignado"));
+            }
+
+            private void updateIcon(javax.swing.Action action) {
+                String iconName = isAsignado ? "30106-Check-Square-2.png" : "30105-Layout-Square.png";
+                action.putValue(javax.swing.Action.SMALL_ICON, iconUtils.getScaledIcon(iconName, 24, 24));
+            }
+        };
+        action.putValue(javax.swing.Action.SMALL_ICON, iconUtils.getScaledIcon("30105-Layout-Square.png", 24, 24));
+        action.putValue(javax.swing.Action.SHORT_DESCRIPTION, "Tag asignado");
+        return action;
+    }
 } // --- FIN de la clase ActionFactory ---

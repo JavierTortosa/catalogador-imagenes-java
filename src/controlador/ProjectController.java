@@ -47,7 +47,11 @@ import controlador.utils.DesktopUtils;
 import controlador.worker.ExportWorker;
 import modelo.ListContext;
 import modelo.VisorModel;
+import modelo.export.pdf.PDFExportPreflightService;
+import modelo.export.pdf.PDFGeneratorService;
 import modelo.proyecto.ExportItem;
+import vista.dialogos.PDFExportPreflightDialog;
+import vista.dialogos.PDFPreviewDialog;
 import modelo.proyecto.ExportStatus;
 import modelo.proyecto.ProjectModel;
 import vista.VisorView;
@@ -422,6 +426,7 @@ public class ProjectController implements IModoController {
 
         javax.swing.event.DocumentListener listener = new javax.swing.event.DocumentListener() {
             private void notificar() {
+                sincronizarDescripcionDesdeUI();
                 projectManager.notificarModificacion();
             }
 
@@ -1465,20 +1470,14 @@ public class ProjectController implements IModoController {
         int rowIndex = tableModel.findRowIndexByPath(claveSeleccionada);
 
         SwingUtilities.invokeLater(() -> {
-            if (rowIndex != -1) {
-                // Si encontramos la fila, la seleccionamos y nos aseguramos de que sea visible
-                if (tablaExportacion.getSelectedRow() != rowIndex) {
-                    tablaExportacion.setRowSelectionInterval(rowIndex, rowIndex);
-                    tablaExportacion.scrollRectToVisible(tablaExportacion.getCellRect(rowIndex, 0, true));
-                    logger.trace("Tabla de exportación sincronizada a la fila {} para la clave {}", rowIndex,
-                            claveSeleccionada);
+            int currentRow = tableModel.findRowIndexByPath(claveSeleccionada);
+            if (currentRow != -1 && currentRow < tablaExportacion.getRowCount()) {
+                if (tablaExportacion.getSelectedRow() != currentRow) {
+                    tablaExportacion.setRowSelectionInterval(currentRow, currentRow);
+                    tablaExportacion.scrollRectToVisible(tablaExportacion.getCellRect(currentRow, 0, true));
                 }
             } else {
-                // Si la imagen seleccionada no está en la tabla (ej. es un descarte), limpiamos
-                // la selección
                 tablaExportacion.clearSelection();
-                logger.trace("La clave {} no se encontró en la tabla de exportación. Selección limpiada.",
-                        claveSeleccionada);
             }
         });
     } // ---FIN de metodo [sincronizarSeleccionEnTablaExportacion]---
@@ -1622,6 +1621,111 @@ public class ProjectController implements IModoController {
         worker.execute();
         dialogo.setVisible(true);
     } // --- Fin del método solicitarInicioExportacion ---
+
+    public void generarCatalogoPDF() {
+        ExportPanel exportPanel = registry.get("panel.proyecto.exportacion.completo");
+        if (exportPanel == null) return;
+
+        ExportTableModel model = (ExportTableModel) exportPanel.getTablaExportacion().getModel();
+        List<ExportItem> seleccionados = model.getCola().stream()
+                .filter(ExportItem::isSeleccionadoParaExportar)
+                .collect(Collectors.toList());
+
+        if (seleccionados.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Selecciona elementos en la tabla.");
+            return;
+        }
+
+        int numDigitos = String.valueOf(seleccionados.size()).length();
+        if (numDigitos < 3) numDigitos = 3;
+        String formato = "C%0" + numDigitos + "d";
+        for (int i = 0; i < seleccionados.size(); i++) {
+            seleccionados.get(i).setCodigoCatalogo(String.format(formato, i + 1));
+        }
+
+        // Mostrar vista previa interactiva
+        PDFPreviewDialog preview = new PDFPreviewDialog(view, seleccionados);
+        preview.setVisible(true);
+        if (!preview.isConfirmed()) return;
+        // Después del preview la lista puede haber cambiado, actualizar los códigos
+        for (int i = 0; i < seleccionados.size(); i++) {
+            seleccionados.get(i).setCodigoCatalogo(String.format(formato, i + 1));
+        }
+
+        if (seleccionados.isEmpty()) return;
+
+        List<Path> paths = seleccionados.stream()
+                .map(ExportItem::getRutaImagen)
+                .collect(Collectors.toList());
+
+        PDFExportPreflightService preflightService = new PDFExportPreflightService();
+        PDFExportPreflightService.PreflightResult result = preflightService.checkPreflight(paths);
+
+        if (!result.isSuccess) {
+            PDFExportPreflightDialog dialog = new PDFExportPreflightDialog(view, paths, result.warnings);
+            dialog.setVisible(true);
+            if (!dialog.isGenerateConfirmed()) return;
+        }
+
+        JFileChooser chooser = new JFileChooser();
+        javax.swing.filechooser.FileNameExtensionFilter pdfFilter = new javax.swing.filechooser.FileNameExtensionFilter("Archivos PDF (*.pdf)", "pdf");
+        chooser.setFileFilter(pdfFilter);
+        chooser.setAcceptAllFileFilterUsed(false);
+
+        if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+            File destino = chooser.getSelectedFile();
+            if (!destino.getName().toLowerCase().endsWith(".pdf")) {
+                destino = new File(destino.getAbsolutePath() + ".pdf");
+            }
+            if (destino.exists()) {
+                int resp = JOptionPane.showConfirmDialog(null,
+                        "El archivo ya existe. ¿Deseas sobrescribirlo?",
+                        "Confirmar sobrescritura",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE);
+                if (resp != JOptionPane.YES_OPTION) return;
+            }
+            try {
+                sincronizarDescripcionDesdeUI();
+                String notasProyecto = projectManager != null && projectManager.getCurrentProject() != null
+                        ? projectManager.getCurrentProject().getProjectDescription()
+                        : null;
+                new PDFGeneratorService().crearPresupuesto(seleccionados, destino, notasProyecto);
+                if (sincronizarDatosCatalogoConModelo(seleccionados)) {
+                    projectManager.notificarModificacion();
+                }
+                JOptionPane.showMessageDialog(null, "PDF Creado con éxito.");
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Error al generar el PDF:\n" + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private boolean sincronizarDatosCatalogoConModelo(List<ExportItem> items) {
+        if (projectManager == null) return false;
+        ProjectModel modeloActual = projectManager.getCurrentProject();
+        if (modeloActual == null) return false;
+        Map<String, modelo.proyecto.ExportConfig> exportConfigsMap = modeloActual.getExportConfigs();
+        boolean modificado = false;
+        for (ExportItem item : items) {
+            String claveImagen = item.getRutaImagen().toString().replace("\\", "/");
+            modelo.proyecto.ExportConfig config = exportConfigsMap.computeIfAbsent(claveImagen, k -> new modelo.proyecto.ExportConfig());
+            if (!Objects.equals(config.getCodigoCatalogo(), item.getCodigoCatalogo())
+                    || config.getPiezas() != item.getPiezas()
+                    || !Objects.equals(config.getLvl(), item.getLvl())
+                    || !Objects.equals(config.getPvp(), item.getPvp())
+                    || !Objects.equals(config.getNotas(), item.getNotas())) {
+                modificado = true;
+            }
+            config.setCodigoCatalogo(item.getCodigoCatalogo());
+            config.setPiezas(item.getPiezas());
+            config.setLvl(item.getLvl());
+            config.setPvp(item.getPvp());
+            config.setNotas(item.getNotas());
+        }
+        return modificado;
+    }
 
     public void solicitarAbrirUbicacionImagen() {
         if (exportQueueManager == null || registry == null)
@@ -2012,6 +2116,13 @@ public class ProjectController implements IModoController {
                         .collect(Collectors.toList());
                 config.setAssociatedFiles(rutasComoString);
             }
+
+            // Guardamos el código de catálogo
+            config.setCodigoCatalogo(item.getCodigoCatalogo());
+            config.setPiezas(item.getPiezas());
+            config.setLvl(item.getLvl());
+            config.setPvp(item.getPvp());
+            config.setNotas(item.getNotas());
 
             // 4. Guardar el objeto de configuración completo en el mapa del modelo.
             String claveImagen = item.getRutaImagen().toString().replace("\\", "/");

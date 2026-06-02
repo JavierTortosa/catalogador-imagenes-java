@@ -25,6 +25,11 @@ public class ExportItem {
     private ExportStatus estadoArchivoComprimido;
     private boolean seleccionadoParaExportar = true;
     private boolean tieneConflictoDeNombre = false;
+    private String codigoCatalogo;
+    private int piezas;
+    private String lvl;
+    private String pvp;
+    private String notas;
     private long imageSize = -1; // -1 indica que no ha sido calculado
     private long associatedFilesSize = -1; // -1 indica que no ha sido calculado
 
@@ -147,7 +152,17 @@ public class ExportItem {
     public void setSeleccionadoParaExportar(boolean seleccionadoParaExportar) { this.seleccionadoParaExportar = seleccionadoParaExportar; } // ---FIN de metodo [setSeleccionadoParaExportar]---
     public boolean tieneConflictoDeNombre() { return tieneConflictoDeNombre; } // ---FIN de metodo [tieneConflictoDeNombre]---
     public void setTieneConflictoDeNombre(boolean tieneConflictoDeNombre) { this.tieneConflictoDeNombre = tieneConflictoDeNombre; } // ---FIN de metodo [setTieneConflictoDeNombre]---
-    
-    
+    public String getCodigoCatalogo() { return codigoCatalogo; }
+    public void setCodigoCatalogo(String codigoCatalogo) { this.codigoCatalogo = codigoCatalogo; }
+    public int getPiezas() { return piezas; }
+    public void setPiezas(int piezas) { this.piezas = piezas; }
+    public String getLvl() { return lvl; }
+    public void setLvl(String lvl) { this.lvl = lvl; }
+    public String getPvp() { return pvp; }
+    public void setPvp(String pvp) { this.pvp = pvp; }
+    public String getNotas() { return notas; }
+    public void setNotas(String notas) { this.notas = notas; }
+
+
 } // --- FIN de clase [ExportItem]---
 

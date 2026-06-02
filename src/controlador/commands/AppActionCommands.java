@@ -38,6 +38,16 @@ public interface AppActionCommands {
     public static final String CMD_TREE_OPEN_FOLDER                 = "cmd.tree.open_folder";
     public static final String CMD_TREE_DRILL_DOWN_FOLDER           = "cmd.tree.drill_down_folder";
     
+ // --- Árbol de Tags (Modo Datos) ---
+    public static final String CMD_DATOS_TAGS_VISTA_LISTA		= "cmd.datos.tags.vista_lista";
+    public static final String CMD_DATOS_TAGS_VISTA_ARBOL		= "cmd.datos.tags.vista_arbol";
+    public static final String CMD_DATOS_TAGS_ORDENAR			= "cmd.datos.tags.ordenar";
+    public static final String CMD_DATOS_TAGS_FILTRAR			= "cmd.datos.tags.filtrar";
+    public static final String CMD_DATOS_TAG_NUEVO				= "cmd.datos.tag.nuevo";
+    public static final String CMD_DATOS_TAG_RENOMBRAR			= "cmd.datos.tag.renombrar";
+    public static final String CMD_DATOS_TAG_BORRAR				= "cmd.datos.tag.borrar";
+    public static final String CMD_DATOS_TAG_TOGGLE_ASIGNADO	= "cmd.datos.tag.toggle_asignado";
+    
     
  // --- Filtros
     public static final String CMD_FILTRO_ACTIVO					= "cmd.filtro.activo";
@@ -153,6 +163,7 @@ public interface AppActionCommands {
 	    public static final String CMD_EXPORT_LIMPIAR_NO_ENCONTRADOS = "cmd.export.limpiar_no_encontrados";
 	    public static final String CMD_EXPORT_REFRESH				= "cmd.export.refresh";
 	    public static final String CMD_INICIAR_EXPORTACION 			= "cmd.export.iniciar"; 
+	    public static final String CMD_EXPORTAR_PDF		 			= "cmd.export.pdf";
 	    public static final String CMD_EXPORT_SELECCIONAR_CARPETA 	= "cmd.export.seleccionar.carpeta";
 	    public static final String CMD_EXPORT_ASSIGN_PANNEL			= "cmd.export.assign_pannel";
 	    

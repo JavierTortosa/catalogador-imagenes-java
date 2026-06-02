@@ -20,7 +20,7 @@ public class ExportTableModel extends AbstractTableModel {
     private List<ExportItem> cola;
     private boolean notifyListeners = true;
     
-    private final String[] nombresColumnas = {"", "Imagen", "Estado", "Archivos Asignados", "Tamaño"};
+    private final String[] nombresColumnas = {"", "Código", "Imagen", "Estado", "Archivos Asignados", "Tamaño"};
     
 
     public ExportTableModel(java.util.function.Consumer<javax.swing.event.TableModelEvent> callback) {
@@ -66,13 +66,17 @@ public class ExportTableModel extends AbstractTableModel {
         
         switch (columnIndex) {
 	        case 0: return item.isSeleccionadoParaExportar();
-	        case 1: 
+	        case 1: {
+                String cod = item.getCodigoCatalogo();
+                return cod != null ? cod : "";
+            }
+	        case 2: 
                 Path fPath = item.getRutaImagen();
                 Path fnPath = fPath.getFileName();
                 return (fnPath != null) ? fnPath.toString() : fPath.toString();
-	        case 2: return item; // Para el renderer de estado
-	        case 3: return item.getRutasArchivosAsociados(); // Devolvemos la lista de Paths
-	        case 4: return utils.StringUtils.formatFileSize(item.getTotalSize());
+	        case 3: return item; // Para el renderer de estado
+	        case 4: return item.getRutasArchivosAsociados(); // Devolvemos la lista de Paths
+	        case 5: return utils.StringUtils.formatFileSize(item.getTotalSize());
 	        default: return null;
         }
     } // ---FIN de metodo [getValueAt]---
@@ -82,9 +86,10 @@ public class ExportTableModel extends AbstractTableModel {
         switch (columnIndex) {
 	        case 0: return Boolean.class;
 	        case 1: return String.class;
-	        case 2: return ExportItem.class;
-	        case 3: return List.class; // La columna contiene una lista
-	        case 4: return String.class; // La columna Tamaño es un String
+	        case 2: return String.class;
+	        case 3: return ExportItem.class;
+	        case 4: return List.class; // La columna contiene una lista
+	        case 5: return String.class; // La columna Tamaño es un String
 	        default: return Object.class;
         }
     } // ---FIN de metodo [getColumnClass]---
