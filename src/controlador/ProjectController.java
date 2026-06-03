@@ -17,10 +17,8 @@ import java.util.stream.Collectors;
 
 import javax.swing.Action;
 import javax.swing.DefaultListModel;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JList;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -34,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.commands.AppActionCommands;
-import controlador.interfaces.ContextSensitiveAction;
 import controlador.interfaces.IModoController;
 import controlador.managers.DataManager;
 import controlador.managers.DisplayModeManager;
@@ -50,6 +47,7 @@ import controlador.services.proyecto.ProjectExportService;
 import controlador.services.proyecto.ProjectFileManagementService;
 import controlador.services.proyecto.ProjectIntegrityService;
 import controlador.services.proyecto.ProjectSyncService;
+import controlador.ui.ProjectUIManager;
 import controlador.worker.ExportWorker;
 import modelo.ListContext;
 import modelo.VisorModel;
@@ -61,6 +59,7 @@ import modelo.proyecto.ExportStatus;
 import modelo.proyecto.ProjectModel;
 import vista.VisorView;
 import vista.dialogos.TaskProgressDialog;
+import vista.theme.Tema;
 import vista.panels.export.ExportDetailPanel;
 import vista.panels.export.ExportPanel;
 import vista.panels.export.ExportTableModel;
@@ -68,14 +67,6 @@ import vista.panels.export.ExportTableModel;
 public class ProjectController implements IModoController {
 
     private static final Logger logger = LoggerFactory.getLogger(ProjectController.class);
-
-    // Define los posibles estados de visualización del panel de proyecto
-    private enum ProjectViewState {
-        VIEW_SELECTION, // Foco en la lista de Selección, Grid normal
-        VIEW_DISCARDS, // Foco en la lista de Descartes, Grid normal
-        VIEW_EXPORT // Panel de exportación activo, Grid muestra Selección con bordes de estado
-    }
-
 
     private ProjectViewState currentViewState = ProjectViewState.VIEW_SELECTION; // Estado inicial
 
@@ -94,6 +85,7 @@ public class ProjectController implements IModoController {
     private ProjectFileManagementService fileManagementService;
     private ProjectIntegrityService integrityService;
     private ProjectSyncService syncService;
+    private ProjectUIManager uiManager;
 
     private Map<String, Action> actionMap;
     private Map<String, ExportItem> exportItemMap = new HashMap<>();
@@ -1907,32 +1899,8 @@ public class ProjectController implements IModoController {
         if (registry == null || generalController == null || generalController.getVisorController() == null
                 || generalController.getVisorController().getThemeManager() == null)
             return;
-
-        JPanel panelSeleccion = registry.get("panel.proyecto.seleccion.container");
-        JPanel panelDescartes = registry.get("panel.proyecto.descartes.container");
-        java.awt.Color titleColor = generalController.getVisorController().getThemeManager().getTemaActual()
-                .colorBordeTitulo();
-
-        // Actualizar título para "Selección Actual"
-        if (panelSeleccion != null && panelSeleccion.getBorder() instanceof javax.swing.border.TitledBorder) {
-            javax.swing.border.TitledBorder border = (javax.swing.border.TitledBorder) panelSeleccion.getBorder();
-            JList<?> list = registry.get("list.proyecto.nombres");
-            int count = (list != null && list.getModel() != null) ? list.getModel().getSize() : 0;
-            border.setTitle("Selección Actual: " + count);
-            border.setTitleColor(titleColor);
-            panelSeleccion.repaint();
-        }
-
-        // Actualizar título para "Descartes"
-        if (panelDescartes != null && panelDescartes.getBorder() instanceof javax.swing.border.TitledBorder) {
-            javax.swing.border.TitledBorder border = (javax.swing.border.TitledBorder) panelDescartes.getBorder();
-            JList<?> list = registry.get("list.proyecto.descartes");
-            int count = (list != null && list.getModel() != null) ? list.getModel().getSize() : 0;
-            border.setTitle("Descartes: " + count);
-            border.setTitleColor(titleColor);
-            panelDescartes.repaint();
-        }
-        logger.debug("[ProjectController] Contadores de títulos de paneles actualizados.");
+        Tema tema = generalController.getVisorController().getThemeManager().getTemaActual();
+        uiManager.actualizarContadoresDeTitulos(tema);
     } // --- Fin del metodo: actualizarContadoresDeTitulos ---
 
 
@@ -1982,142 +1950,15 @@ public class ProjectController implements IModoController {
                 || generalController.getVisorController() == null
                 || generalController.getVisorController().getThemeManager() == null)
             return;
-        JList<String> projectList = registry.get("list.proyecto.nombres");
-        JList<String> descartesList = registry.get("list.proyecto.descartes");
-        if (projectList == null || descartesList == null)
-            return;
-        String focoActivo = model.getProyectoListContext().getNombreListaActiva();
-        vista.theme.Tema tema = generalController.getVisorController().getThemeManager().getTemaActual();
-        java.awt.Color colorFondoActivo = tema.colorFondoSecundario();
-        java.awt.Color colorFondoInactivo = tema.colorBorde();
-        java.awt.Color colorTextoActivo = tema.colorTextoPrimario();
-        java.awt.Color colorTextoInactivo = tema.colorTextoSecundario().brighter();
-        if ("seleccion".equals(focoActivo)) {
-            projectList.setBackground(colorFondoActivo);
-            projectList.setForeground(colorTextoActivo);
-            descartesList.setBackground(colorFondoInactivo);
-            descartesList.setForeground(colorTextoInactivo);
-        } else {
-            projectList.setBackground(colorFondoInactivo);
-            projectList.setForeground(colorTextoInactivo);
-            descartesList.setBackground(colorFondoActivo);
-            descartesList.setForeground(colorTextoActivo);
-        }
-
-        projectList.repaint();
-        descartesList.repaint();
+        String nombreListaActiva = model.getProyectoListContext().getNombreListaActiva();
+        Tema tema = generalController.getVisorController().getThemeManager().getTemaActual();
+        uiManager.actualizarAparienciaListasPorFoco(nombreListaActiva, tema);
     } // --- Fin del metodo: actualizarAparienciaListasPorFoco ---
-
-
-    // Crea un MouseListener que muestra un menú contextual en un JComponent
-    private java.awt.event.MouseAdapter createContextMenuListener(javax.swing.JComponent component,
-            Object... menuItems) {
-        return new java.awt.event.MouseAdapter() {
-            public void mousePressed(java.awt.event.MouseEvent e) {
-                if (e.isPopupTrigger())
-                    showMenu(e);
-            }
-
-
-            public void mouseReleased(java.awt.event.MouseEvent e) {
-                if (e.isPopupTrigger())
-                    showMenu(e);
-            }
-
-
-            private void showMenu(java.awt.event.MouseEvent e) {
-                logger.debug("[ContextMenuListener] Evento de popup detectado en el componente: {}",
-                        component.getClass().getSimpleName());
-
-                if (component instanceof JTable) {
-                    JTable table = (JTable) component;
-                    int row = table.rowAtPoint(e.getPoint());
-                    if (row != -1) {
-                        if (table.getSelectedRow() != row) {
-                            table.setRowSelectionInterval(row, row);
-                        }
-                    } else {
-                        logger.debug("[ContextMenuListener] Clic en área vacía de la tabla. No se mostrará el menú.");
-                        return;
-                    }
-                }
-
-                javax.swing.JPopupMenu menu = new javax.swing.JPopupMenu();
-                for (Object item : menuItems) {
-                    if (item instanceof Action) {
-                        Action action = (Action) item;
-
-                        // Si la acción es sensible al contexto, le pedimos que se actualice ahora
-                        // mismo.
-                        if (action instanceof ContextSensitiveAction) {
-                            ((ContextSensitiveAction) action).updateEnabledState(model);
-                        }
-                        menu.add(action);
-                    } else if (item instanceof javax.swing.JPopupMenu.Separator) {
-                        menu.addSeparator();
-                    }
-                }
-
-                if (menu.getComponentCount() > 0) {
-                    logger.debug("[ContextMenuListener] Mostrando menú con {} componentes.", menu.getComponentCount());
-                    menu.show(e.getComponent(), e.getX(), e.getY());
-                } else {
-                    logger.debug("[ContextMenuListener] El menú no tiene componentes, no se mostrará.");
-                }
-            }
-        };
-    } // --- Fin del metodo: createContextMenuListener ---
 
 
     // Construye y devuelve un JPopupMenu dinámico para el visor principal (Single o
     public JPopupMenu crearMenuContextualVisorManualmente() {
-        logger.debug("[MenuContextualVisor] Creando menú manualmente para el estado de vista: {} y modo display: {}",
-                currentViewState, model.getCurrentDisplayMode());
-
-        JPopupMenu menu = new JPopupMenu();
-        boolean isGridMode = (model.getCurrentDisplayMode() == VisorModel.DisplayMode.GRID);
-        boolean hasSelection = model.getSelectedImageKey() != null && !model.getSelectedImageKey().isEmpty();
-
-        // Paso 1: Añadir acciones basadas en el contexto de la selección (Mover, Localizar, etc.)
-        if (hasSelection) {
-            switch (currentViewState) {
-                case VIEW_SELECTION:
-                case VIEW_EXPORT:
-                    menu.add(actionMap.get(AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES));
-                    menu.add(actionMap.get(AppActionCommands.CMD_PROYECTO_LOCALIZAR_ARCHIVO));
-                    break;
-                case VIEW_DISCARDS:
-                    menu.add(actionMap.get(AppActionCommands.CMD_PROYECTO_RESTAURAR_DE_DESCARTES));
-                    menu.add(actionMap.get(AppActionCommands.CMD_PROYECTO_LOCALIZAR_ARCHIVO));
-                    menu.addSeparator();
-                    menu.add(actionMap.get(AppActionCommands.CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE));
-                    break;
-            }
-            menu.addSeparator();
-        }
-
-        // Paso 2: Añadir acciones de Paneo/Zoom (solo si no es Grid)
-        Action toggleZoomAction = actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
-        if (toggleZoomAction != null) {
-            JCheckBoxMenuItem toggleZoomItem = new JCheckBoxMenuItem(toggleZoomAction);
-            toggleZoomItem.setSelected(model.isZoomHabilitado());
-            toggleZoomItem.setEnabled(!isGridMode);
-            menu.add(toggleZoomItem);
-        }
-
-        Action resetZoomAction = actionMap.get(AppActionCommands.CMD_ZOOM_RESET);
-        if (resetZoomAction != null) {
-            JMenuItem resetZoomItem = new JMenuItem(resetZoomAction);
-            resetZoomItem.setEnabled(!isGridMode);
-            menu.add(resetZoomItem);
-        }
-
-        menu.addSeparator();
-
-        // Paso 3: Acción global: Añadir archivos (SIEMPRE disponible al final)
-        menu.add(actionMap.get(AppActionCommands.CMD_PROYECTO_ANADIR_ARCHIVOS));
-
-        return menu;
+        return uiManager.crearMenuContextualVisorManualmente(currentViewState, model, actionMap);
     } // --- Fin del metodo: crearMenuContextualVisorManualmente ---
 
 
@@ -2145,45 +1986,7 @@ public class ProjectController implements IModoController {
 
     // Configura el menú contextual para la tabla de exportación
     public void configurarContextMenuTablaExportacion() {
-        logger.debug("[DIAGNÓSTICO] Se ha llamado a configurarContextMenuTablaExportacion().");
-
-        JTable tablaExportacion = getTablaExportacionDesdeRegistro();
-        if (tablaExportacion == null || actionMap == null) {
-            logger.error("[DIAGNÓSTICO] No se puede configurar menú: tablaExportacion es {} y actionMap es {}.",
-                    (tablaExportacion == null ? "NULL" : "OK"),
-                    (actionMap == null ? "NULL" : "OK"));
-            return;
-        }
-
-        // Limpiamos listeners antiguos para evitar duplicados
-        for (java.awt.event.MouseListener ml : tablaExportacion.getMouseListeners()) {
-            if (ml.getClass().getName().contains("ContextMenuListener")) { // Una forma de identificar nuestro listener
-                tablaExportacion.removeMouseListener(ml);
-            }
-        }
-
-        // Obtenemos las acciones que queremos en el menú
-        Action quitarAction = actionMap.get(AppActionCommands.CMD_EXPORT_QUITAR_DE_COLA);
-        Action asignarAction = actionMap.get(AppActionCommands.CMD_EXPORT_ASIGNAR_ARCHIVO);
-        Action ignorarAction = actionMap.get(AppActionCommands.CMD_EXPORT_IGNORAR_COMPRIMIDO);
-        Action relocalizarAction = actionMap.get(AppActionCommands.CMD_EXPORT_RELOCALIZAR_IMAGEN);
-        Action limpiarHuerfanosAction = actionMap.get(AppActionCommands.CMD_EXPORT_LIMPIAR_NO_ENCONTRADOS);
-        Action abrirUbicacionAction = actionMap.get(AppActionCommands.CMD_EXPORT_ABRIR_UBICACION);
-
-        // Creamos el listener usando el método helper
-        java.awt.event.MouseAdapter contextMenuListener = createContextMenuListener(tablaExportacion,
-                asignarAction,
-                quitarAction,
-                new javax.swing.JPopupMenu.Separator(),
-                ignorarAction,
-                relocalizarAction,
-                limpiarHuerfanosAction,
-                new javax.swing.JPopupMenu.Separator(),
-                abrirUbicacionAction);
-
-        // Asignamos el listener a la tabla
-        tablaExportacion.addMouseListener(contextMenuListener);
-        logger.debug("[DIAGNÓSTICO] Menú contextual configurado y listener añadido a la tabla de exportación.");
+        uiManager.configurarContextMenuTablaExportacion(actionMap, model);
     } // --- Fin del metodo: configurarContextMenuTablaExportacion ---
 
 
@@ -2616,29 +2419,7 @@ public class ProjectController implements IModoController {
 
     // Calcula y ajusta la posición del divisor del split pane derecho (vertical)
     public void ajustarPosicionDivisorDerecho() {
-        if (registry == null)
-            return;
-
-        JSplitPane rightSplit = registry.get("splitpane.proyecto.right");
-        vista.panels.GridDisplayPanel gridPanel = registry.get("panel.display.grid.proyecto");
-
-        if (rightSplit != null && gridPanel != null && rightSplit.isVisible()) {
-            SwingUtilities.invokeLater(() -> {
-                int cellHeight = gridPanel.getGridList().getFixedCellHeight();
-                if (cellHeight <= 0)
-                    cellHeight = 132;
-
-                int desiredHeight = (int) (cellHeight * 1.5) + 15;
-
-                // Asegurarnos de no poner el divisor en una posición inválida
-                int maxLocation = rightSplit.getHeight() - rightSplit.getDividerSize() - 50; // Dejar un mínimo para el
-                                                                                             // panel inferior
-                desiredHeight = Math.min(desiredHeight, maxLocation);
-
-                rightSplit.setDividerLocation(desiredHeight);
-                logger.debug("Posición del divisor derecho ajustada a {}px.", desiredHeight);
-            });
-        }
+        uiManager.ajustarPosicionDivisorDerecho();
     } // --- Fin del metodo: ajustarPosicionDivisorDerecho ---
 
 
@@ -2676,6 +2457,7 @@ public class ProjectController implements IModoController {
 
     public void setRegistry(ComponentRegistry registry) {
         this.registry = Objects.requireNonNull(registry);
+        this.uiManager = new ProjectUIManager(this.registry);
     }
 
 

@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.12.20";
+        version = "V2.12.30";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
