@@ -49,6 +49,7 @@ import controlador.services.proyecto.PdfWorkflowService;
 import controlador.services.proyecto.ProjectExportService;
 import controlador.services.proyecto.ProjectFileManagementService;
 import controlador.services.proyecto.ProjectIntegrityService;
+import controlador.services.proyecto.ProjectSyncService;
 import controlador.worker.ExportWorker;
 import modelo.ListContext;
 import modelo.VisorModel;
@@ -92,6 +93,7 @@ public class ProjectController implements IModoController {
     private PdfWorkflowService pdfWorkflowService;
     private ProjectFileManagementService fileManagementService;
     private ProjectIntegrityService integrityService;
+    private ProjectSyncService syncService;
 
     private Map<String, Action> actionMap;
     private Map<String, ExportItem> exportItemMap = new HashMap<>();
@@ -490,31 +492,17 @@ public class ProjectController implements IModoController {
         }
 
         String nombreListaActiva = model.getProyectoListContext().getNombreListaActiva();
+        List<String> sourceData = syncService.getSourceData(nombreListaActiva);
 
-        // Se determina la fuente de datos real desde el ProjectManager, no desde la UI.
-        List<Path> sourceData;
-        if ("descartes".equals(nombreListaActiva)) {
-            sourceData = projectManager.getImagenesDescartadas();
-            logger.debug("Fuente de datos para masterList: Descartes ({} elementos)", sourceData.size());
-        } else { // "seleccion" (o cualquier otro caso por defecto)
-            sourceData = projectManager.getImagenesMarcadas();
-            logger.debug("Fuente de datos para masterList: Selección ({} elementos)", sourceData.size());
-        }
-
-        // Se construye un nuevo modelo de lista con los datos correctos.
         DefaultListModel<String> newMasterModel = new DefaultListModel<>();
-        for (Path p : sourceData) {
-            newMasterModel.addElement(p.toString().replace("\\", "/"));
+        for (String pathStr : sourceData) {
+            newMasterModel.addElement(pathStr);
         }
 
-        // Se notifica al VisorModel del nuevo modelo de datos para el grid.
-        // El mapa de rutas completo no cambia, solo la lista de claves a mostrar.
         model.setMasterListAndNotify(newMasterModel, model.getProyectoListContext().getRutaCompletaMap(), this);
 
         sincronizarSeleccionEnGridProyecto();
-
-    } // --- Fin del nuevo método actualizarModeloPrincipalConListaDeProyectoActiva
-      // ---
+    } // --- Fin del metodo: actualizarModeloPrincipalConListaDeProyectoActiva ---
 
     public void sincronizarSeleccionEnGridProyecto() {
         if (registry == null || projectListCoordinator == null)
@@ -1847,107 +1835,32 @@ public class ProjectController implements IModoController {
             return;
         }
 
-        logger.debug("[ProjectController] Iniciando sincronización de UI -> Modelo de Proyecto...");
-
         ProjectModel modeloActual = projectManager.getCurrentProject();
         if (modeloActual == null) {
             logger.error("ERROR CRÍTICO [sincronizarModeloConUI]: El ProjectModel en ProjectManager es nulo.");
             return;
         }
 
-        // Preservamos el mapa de etiquetas existente para no perderlo al reconstruir la
-        // lista de selección.
         Map<String, String> etiquetasExistentes = new HashMap<>(modeloActual.getSelectedImages());
 
-        // 1. Sincronizar la lista de SELECCIÓN desde la UI al Modelo
         JList<String> listaSeleccionUI = registry.get("list.proyecto.nombres");
-        if (listaSeleccionUI != null && listaSeleccionUI.getModel() != null) {
-            modeloActual.getSelectedImages().clear();
-            javax.swing.ListModel<String> modeloUI = listaSeleccionUI.getModel();
-            for (int i = 0; i < modeloUI.getSize(); i++) {
-                String clave = modeloUI.getElementAt(i);
-                String etiqueta = etiquetasExistentes.get(clave); // Recuperar etiqueta si existía
-                modeloActual.getSelectedImages().put(clave, etiqueta);
-            }
-        }
+        List<String> elementosSeleccion = listaSeleccionUI != null && listaSeleccionUI.getModel() != null
+                ? listModelToList(listaSeleccionUI.getModel()) : List.of();
 
-        // 2. Sincronizar la lista de DESCARTES desde la UI al Modelo
         JList<String> listaDescartesUI = registry.get("list.proyecto.descartes");
-        if (listaDescartesUI != null && listaDescartesUI.getModel() != null) {
-            modeloActual.getDiscardedImages().clear();
-            javax.swing.ListModel<String> modeloUI = listaDescartesUI.getModel();
-            for (int i = 0; i < modeloUI.getSize(); i++) {
-                modeloActual.getDiscardedImages().add(modeloUI.getElementAt(i));
-            }
-        }
+        List<String> elementosDescartes = listaDescartesUI != null && listaDescartesUI.getModel() != null
+                ? listModelToList(listaDescartesUI.getModel()) : List.of();
 
-        logger.info(
-                "[ProjectController] Sincronización de UI -> Modelo completada. El modelo está listo para guardarse.");
+        syncService.sincronizarListas(modeloActual, elementosSeleccion, elementosDescartes, etiquetasExistentes);
     } // --- Fin del metodo: sincronizarModeloConUI ---
 
 
-    // Sincroniza el mapa de 'associatedFiles' en el ProjectModel con el estado
     public void sincronizarArchivosAsociadosConModelo() {
         if (projectManager == null || exportQueueManager == null) {
             logger.warn("[sincronizarArchivosAsociados] Sincronización abortada (dependencias nulas).");
             return;
         }
-
-        logger.info("[ProjectController] Iniciando sincronización de Cola de Exportación -> Modelo de Proyecto...");
-
-        ProjectModel modeloActual = projectManager.getCurrentProject();
-        if (modeloActual == null) {
-            logger.error("ERROR CRÍTICO [sincronizarArchivosAsociados]: El ProjectModel en ProjectManager es nulo.");
-            return;
-        }
-
-        // 1. Obtener el mapa de configuraciones del modelo y limpiarlo.
-        Map<String, modelo.proyecto.ExportConfig> exportConfigsMap = modeloActual.getExportConfigs();
-        exportConfigsMap.clear();
-
-        // 2. Obtener el estado actual de la cola de exportación.
-        List<ExportItem> colaActual = exportQueueManager.getColaDeExportacion();
-        int contador = 0;
-
-        // 3. Iterar sobre la cola y construir un objeto ExportConfig para cada item.
-        for (ExportItem item : colaActual) {
-            // Creamos un nuevo objeto de configuración.
-            modelo.proyecto.ExportConfig config = new modelo.proyecto.ExportConfig();
-
-            // Guardamos el estado del checkbox.
-            config.setExportEnabled(item.isSeleccionadoParaExportar());
-
-            // Guardamos el estado de "ignorar".
-            config.setIgnoreCompressed(
-                    item.getEstadoArchivoComprimido() == modelo.proyecto.ExportStatus.IGNORAR_COMPRIMIDO);
-                    
-            // Guardamos el estado de asignación (Automático, Manual, etc.)
-            config.setStatus(item.getEstadoArchivoComprimido());
-
-            // Guardamos la lista de archivos asociados.
-            if (item.getRutasArchivosAsociados() != null && !item.getRutasArchivosAsociados().isEmpty()) {
-                List<String> rutasComoString = item.getRutasArchivosAsociados().stream()
-                        .map(path -> path.toString().replace("\\", "/"))
-                        .collect(Collectors.toList());
-                config.setAssociatedFiles(rutasComoString);
-            }
-
-            // Guardamos el código de catálogo
-            config.setCodigoCatalogo(item.getCodigoCatalogo());
-            config.setPiezas(item.getPiezas());
-            config.setLvl(item.getLvl());
-            config.setPvp(item.getPvp());
-            config.setNotas(item.getNotas());
-
-            // 4. Guardar el objeto de configuración completo en el mapa del modelo.
-            String claveImagen = item.getRutaImagen().toString().replace("\\", "/");
-            exportConfigsMap.put(claveImagen, config);
-            contador++;
-        }
-
-        logger.info(
-                "[ProjectController] Sincronización de configuración de exportación completada. Se persistirán {} entradas.",
-                contador);
+        syncService.sincronizarArchivosAsociadosConModelo();
     } // --- Fin del metodo: sincronizarArchivosAsociadosConModelo ---
 
 
@@ -1984,8 +1897,7 @@ public class ProjectController implements IModoController {
         ProjectModel currentProject = projectManager.getCurrentProject();
 
         if (propsPanel != null && currentProject != null) {
-            currentProject.setProjectDescription(propsPanel.getProjectDescriptionArea().getText());
-            logger.debug("Descripción del ProjectModel sincronizada desde la UI.");
+            syncService.sincronizarDescripcion(currentProject, propsPanel.getProjectDescriptionArea().getText());
         }
     } // --- Fin del metodo: sincronizarDescripcionDesdeUI ---
 
@@ -2744,10 +2656,21 @@ public class ProjectController implements IModoController {
     }
 
 
+    private List<String> listModelToList(javax.swing.ListModel<String> model)
+    {
+        List<String> result = new ArrayList<>();
+        for (int i = 0; i < model.getSize(); i++)
+        {
+            result.add(model.getElementAt(i));
+        }
+        return result;
+    }
+
     public void setProjectManager(IProjectManager projectManager) {
         this.projectManager = Objects.requireNonNull(projectManager);
         this.fileManagementService = new ProjectFileManagementService(this.projectManager, this.exportQueueManager);
         this.integrityService = new ProjectIntegrityService(this.projectManager);
+        this.syncService = new ProjectSyncService(this.projectManager, this.exportQueueManager);
     }
 
 

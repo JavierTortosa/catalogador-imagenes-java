@@ -49,7 +49,7 @@ que existe realmente en el disco duro. Métodos a extraer:
     de negocio (accede a BD, comprueba Files.exists, actualiza mapas).
   - solicitarLimpiarImagenesNoEncontradas()
 
-[] 5. ProjectSyncService
+[x] 5. ProjectSyncService
 
 Responsabilidad: Estandarizar cómo se mueven los datos entre la Vista (JLists,
 Tablas) y el Modelo (ProjectModel). Métodos a extraer:
