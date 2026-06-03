@@ -159,8 +159,10 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
     public void configurarListeners() {
         logger.debug("[GestorEntradaGlobal] Configurando listeners de entrada globales...");
 
+        // Referencia al grid del modo Datos para navegación con rueda
+        JList<String> dataModeGrid = registry.get("list.datamode.grid");
+
         java.awt.event.MouseWheelListener masterWheelListener = e -> {
-            // --- INICIO DE LA CORRECCIÓN ---
             // Obtenemos las referencias a los JLabels de imagen UNA SOLA VEZ, al inicio del evento.
             Component etiquetaImagenVisualizador = registry.get("label.imagenPrincipal");
             Component etiquetaImagenProyecto = registry.get("label.proyecto.imagen");
@@ -172,7 +174,6 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
             boolean sobreLaImagen = (etiquetaImagenVisualizador != null && sourceComponent == etiquetaImagenVisualizador) ||
                                     (etiquetaImagenProyecto != null && sourceComponent == etiquetaImagenProyecto) ||
                                     (etiquetaImagenCarrusel != null && sourceComponent == etiquetaImagenCarrusel);
-            // --- FIN DE LA CORRECCIÓN ---
 
             JTable tablaExportacion = registry.get("tabla.exportacion");
             boolean sobreTablaExportacion = (tablaExportacion != null && SwingUtilities.isDescendingFrom(sourceComponent, tablaExportacion));
@@ -206,6 +207,52 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
                 return;
             }
 
+            // Verificar si estamos sobre una grid (HORIZONTAL_WRAP) para scroll por filas.
+            // El evento puede venir del JList directamente o de un hijo (cellRenderer panel),
+            // así que buscamos el JList más cercano en la jerarquía.
+            // Nota: SwingUtilities.getAncestorOfClass NO incluye el propio sourceComponent,
+            // así que lo verificamos explícitamente.
+            Component possibleJList = (sourceComponent instanceof JList)
+                ? sourceComponent
+                : SwingUtilities.getAncestorOfClass(JList.class, sourceComponent);
+            if (possibleJList instanceof JList) {
+                JList<?> gridList = (JList<?>) possibleJList;
+                if (gridList.getLayoutOrientation() == JList.HORIZONTAL_WRAP) {
+                    int viewportWidth = gridList.getVisibleRect().width;
+                    int cellWidth = gridList.getFixedCellWidth();
+                    if (viewportWidth <= 0) {
+                        java.awt.Container parent = gridList.getParent();
+                        if (parent != null) viewportWidth = parent.getWidth();
+                    }
+                    if (viewportWidth <= 0) viewportWidth = gridList.getWidth();
+                    if (cellWidth <= 0) cellWidth = viewportWidth;
+                    if (viewportWidth > 0 && cellWidth > 0) {
+                        int elementosPorFila = Math.max(1, viewportWidth / cellWidth);
+                        int rotation = e.getWheelRotation();
+                        int pasos = rotation * elementosPorFila;
+                        
+                        // --- Data mode: navegar directamente en la JList del grid ---
+                        if (gridList == dataModeGrid && model.getCurrentWorkMode() == WorkMode.DATOS) {
+                            int currentIndex = gridList.getSelectedIndex();
+                            int size = gridList.getModel().getSize();
+                            int targetIndex = Math.max(0, Math.min(currentIndex + pasos, size - 1));
+                            if (size > 0 && targetIndex >= 0 && targetIndex != currentIndex) {
+                                gridList.setSelectedIndex(targetIndex);
+                                gridList.ensureIndexIsVisible(targetIndex);
+                            }
+                        } else {
+                            if (pasos < 0) {
+                                for (int i = 0; i > pasos; i--) modoController.navegarAnterior();
+                            } else {
+                                for (int i = 0; i < pasos; i++) modoController.navegarSiguiente();
+                            }
+                        }
+                        e.consume();
+                        return;
+                    }
+                }
+            }
+
             navegarSiguienteOAnterior(e.getWheelRotation());
             e.consume();
         };
@@ -214,6 +261,33 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
         for (Component c : componentesConRueda) {
             for (java.awt.event.MouseWheelListener mwl : c.getMouseWheelListeners()) c.removeMouseWheelListener(mwl);
             c.addMouseWheelListener(masterWheelListener);
+        }
+
+        // --- Lista de archivos (panel izquierdo): navegar items con la rueda en vez de scroll ---
+        // El JList ya tiene masterWheelListener via WHEEL_NAVIGABLE.
+        // Para el JScrollBar, añadimos un listener que navegue y consuma el evento.
+        JScrollPane nameScrollPane = registry.get("scroll.nombresArchivo");
+        if (nameScrollPane != null) {
+            javax.swing.JScrollBar verticalBar = nameScrollPane.getVerticalScrollBar();
+            if (verticalBar != null) {
+                verticalBar.addMouseWheelListener(e -> {
+                    if (e.getWheelRotation() < 0) modoController.navegarAnterior();
+                    else modoController.navegarSiguiente();
+                    e.consume();
+                });
+            }
+        }
+        // Idem para la lista de filtros activos
+        JScrollPane filterScrollPane = registry.get("scroll.filtrosActivos");
+        if (filterScrollPane != null) {
+            javax.swing.JScrollBar verticalBar = filterScrollPane.getVerticalScrollBar();
+            if (verticalBar != null) {
+                verticalBar.addMouseWheelListener(e -> {
+                    if (e.getWheelRotation() < 0) modoController.navegarAnterior();
+                    else modoController.navegarSiguiente();
+                    e.consume();
+                });
+            }
         }
 
      // --- Listeners de clic y arrastre para paneo ---

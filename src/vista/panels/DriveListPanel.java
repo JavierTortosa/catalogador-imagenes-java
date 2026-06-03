@@ -1,12 +1,11 @@
 package vista.panels;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Font;
 import java.awt.Color;
+import java.awt.Component;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.nio.file.Path;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
@@ -25,7 +24,8 @@ import modelo.datos.Disco;
  */
 public class DriveListPanel extends JPanel {
 
-    private final JList<Disco> driveList;
+    private static final long serialVersionUID = 1L;
+	private final JList<Disco> driveList;
     private final DefaultListModel<Disco> listModel;
     private Map<String, Path> connectedDrives;
     private javax.swing.JButton refreshButton;
@@ -75,7 +75,9 @@ public class DriveListPanel extends JPanel {
      * Renderizador personalizado para cada celda de disco.
      */
     private class DriveCellRenderer extends DefaultListCellRenderer {
-        @Override
+        private static final long serialVersionUID = 1L;
+
+		@Override
         public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
             

@@ -43,6 +43,9 @@
               <transformers>
                 <transformer>
                   <mainClass>principal.VisorV2</mainClass>
+                  <manifestEntries>
+                    <Add-Opens>java.base/java.nio java.base/java.lang java.base/java.lang.reflect java.base/java.util</Add-Opens>
+                  </manifestEntries>
                 </transformer>
                 <transformer />
               </transformers>

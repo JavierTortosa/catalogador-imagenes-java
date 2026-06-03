@@ -963,7 +963,7 @@ public class UIDefinitionService {
                 new TextFieldDefinition("textfield.export.destino", "Seleccione una carpeta de destino...", 30),
 
                 new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_DETALLES_SELECCION,
-                        "21006-items_exportar_48x48.png", "Detalles de Archivos", "acciones_exportacion",
+                        "21014-Merge.png", "Detalles de Archivos", "acciones_exportacion",
                         ButtonType.TOGGLE),
                 // new SeparatorDefinition(),
 
@@ -987,12 +987,11 @@ public class UIDefinitionService {
                 
                 new SeparatorDefinition(),
                 
+                new ToolbarButtonDefinition(AppActionCommands.CMD_DETALLES_PDF_SELECCION,"21006-items_exportar_48x48.png", 
+                		"Detalles del PDF", "acciones_exportacion",ButtonType.TOGGLE),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORTAR_PDF, "21013-File-Pdf.png",
-                        "Crear PDF", "acciones_exportacion")
-                
+                		"Crear PDF", "acciones_exportacion")
         		);
-        
-        		
         
 
         List<ToolbarComponentDefinition> componentesDetallesExportacion = List.of(

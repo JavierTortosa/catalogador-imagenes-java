@@ -71,6 +71,7 @@ public class FileOperationsManager implements IFileOperationsManager {
                 Path nuevaCarpetaPath = carpetaSeleccionadaFile.toPath();
                 if (!nuevaCarpetaPath.equals(model.getCarpetaRaizActual())) {
                     model.setCarpetaRaizActual(nuevaCarpetaPath);
+                    model.setCarpetaRaizInicialParaVisualizador(nuevaCarpetaPath);
                     configuration.setString(ConfigurationManager.KEY_INICIO_CARPETA,
                             nuevaCarpetaPath.toAbsolutePath().toString());
                     try {

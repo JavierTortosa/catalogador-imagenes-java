@@ -43,9 +43,10 @@ public class SwitchDisplayModeAction extends AbstractAction {
 
     
     /**
-     * Sincroniza el estado de selección de esta acción (y por tanto, del botón asociado)
+     * Sincroniza el estado de selección y habilitación de esta acción (y por tanto, del botón asociado)
      * con el estado actual del modelo. Este método es llamado por DisplayModeManager
-     * para asegurar que solo el botón del modo activo aparezca seleccionado.
+     * para asegurar que solo el botón del modo activo aparezca seleccionado y que
+     * los botones se habiliten/deshabiliten correctamente según el contexto.
      * 
      * @param model El modelo de datos principal que contiene el estado actual.
      */
@@ -53,12 +54,20 @@ public class SwitchDisplayModeAction extends AbstractAction {
         if (model == null) {
             return;
         }
-        // Compara el modo de esta acción con el modo actual del modelo.
-        boolean isSelected = (model.getCurrentDisplayMode() == this.targetDisplayMode);
         
-        // Pone el valor booleano en la propiedad SELECTED_KEY de la Action.
-        // Swing se encarga de que JToggleButton, JCheckBoxMenuItem, etc. reflejen este estado.
+        // 1. Sincronizar estado de selección (si el modo es el actual)
+        boolean isSelected = (model.getCurrentDisplayMode() == this.targetDisplayMode);
         putValue(SELECTED_KEY, isSelected);
+
+        // 2. Sincronizar estado de habilitación (ENABLED)
+        // En modo DATOS, los modos SINGLE_IMAGE y POLAROID solo se habilitan si hay una imagen seleccionada.
+        boolean isEnabled = true;
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
+            if (this.targetDisplayMode == DisplayMode.SINGLE_IMAGE || this.targetDisplayMode == DisplayMode.POLAROID) {
+                isEnabled = (model.getSelectedImageKey() != null);
+            }
+        }
+        setEnabled(isEnabled);
     } // --- Fin del método updateSelectedState ---
     
     

@@ -7,11 +7,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-
-import controlador.managers.InfobarStatusManager;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
+
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JList;
@@ -22,22 +20,27 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.tree.TreePath;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.managers.DataManager;
+import controlador.managers.InfobarStatusManager;
 import controlador.managers.interfaces.IProjectManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
+import modelo.ListContext;
 import modelo.datos.Tag;
 import servicios.db.TagDAO;
+import vista.components.TagIntelliSenseField;
 import vista.panels.GridDisplayPanel;
 import vista.panels.TagManagementPanel;
 import vista.tree.TagTreeModel;
 import vista.tree.TagTreeCellRenderer;
 import vista.panels.DriveListPanel;
+import vista.dialogos.TagSelectionDialog;
 import modelo.datos.Disco;
 import java.util.Collections;
 
@@ -55,6 +58,9 @@ public class DataController {
     private InfobarStatusManager statusBarManager;
     private VisorController visorController;
     private boolean isInitialized = false;
+
+    // Copia del orden original de la lista plana (para restaurar al desactivar orden)
+    private List<Tag> flatListOriginalOrder = new ArrayList<>();
 
     public DataController(VisorModel model, ComponentRegistry registry, DataManager dataManager) {
         this.model = model;
@@ -98,10 +104,12 @@ public class DataController {
         logger.debug("Inicializando DataController por primera vez...");
         
         initializeTagTree();
+        initializeFlatTagList();
         initializeDriveList();
         setupTagManagementCallbacks();
         setupListeners();
         setupTagCRUDButtons();
+        setupImageTagCRUDButtons();
         
         isInitialized = true;
     } // ---FIN de metodo [initialize]---
@@ -113,12 +121,14 @@ public class DataController {
     public void activate() {
         logger.debug("Activando el Modo Datos...");
         
-        // ¡LA SOLUCIÓN! Recargamos el árbol cada vez que entramos en este modo.
+        // Recargamos el árbol cada vez que entramos en este modo.
         initializeTagTree();
+        refreshFlatTagList();
         refreshDriveList();
-        refreshAvailableTags(); // Recargar la lista de tags del combo
+        refreshAvailableTags();
+        refreshIntelliSense(); // <-- Carga/actualiza el autocompletado
         
-        // Seleccionamos la raíz ("Biblioteca") por defecto para marcarla e indexar todas las imágenes en el grid
+        // Seleccionamos la raíz ("Biblioteca") por defecto
         JTree allTagsTree = registry.get("tree.datamode.alltags");
         if (allTagsTree != null) {
             allTagsTree.setSelectionRow(0);
@@ -129,6 +139,32 @@ public class DataController {
             tagPanel.clearPanel();
         }
     } // ---FIN de metodo [activate]---
+
+    public void guardarContexto() {
+        if (model == null) return;
+        ListContext ctx = model.getDatosListContext();
+        if (ctx == null) return;
+
+        JTree allTagsTree = registry.get("tree.datamode.alltags");
+        if (allTagsTree != null) {
+            Object selectedNode = null;
+            TreePath selPath = allTagsTree.getSelectionPath();
+            if (selPath != null) {
+                selectedNode = selPath.getLastPathComponent();
+            }
+            if (selectedNode instanceof Tag) {
+                ctx.setDatosSelectedTag(((Tag) selectedNode).getNombre());
+            } else if ("Biblioteca".equals(selectedNode)) {
+                ctx.setDatosSelectedTag("Biblioteca");
+            }
+        }
+
+        JList<String> gridList = registry.get("list.datamode.grid");
+        if (gridList != null) {
+            String selectedKey = gridList.getSelectedValue();
+            ctx.setSelectedImageKey(selectedKey);
+        }
+    } // ---FIN de metodo [guardarContexto]---
 
     private void initializeTagTree() {
         JTree allTagsTree = registry.get("tree.datamode.alltags");
@@ -143,10 +179,91 @@ public class DataController {
         allTagsTree.setModel(treeModel);
         
         // Asignamos el renderizador personalizado para ver los conteos.
-        allTagsTree.setCellRenderer(new TagTreeCellRenderer(dao));
+        TagTreeCellRenderer renderer = new TagTreeCellRenderer(dao);
+        renderer.setConnectedDiscoIds(dataManager.getConnectedDiscoIds());
+        renderer.precomputeCounts(dao.getAllTags());
+        allTagsTree.setCellRenderer(renderer);
         
         logger.debug("JTree de etiquetas inicializado con TagTreeModel y TagTreeCellRenderer.");
     } // ---FIN de metodo [initializeTagTree]---
+
+    private void initializeFlatTagList() {
+        JList<Tag> flatList = registry.get("list.datamode.alltags.flat");
+        if (flatList == null) {
+            logger.error("No se encontró 'list.datamode.alltags.flat' en el registro.");
+            return;
+        }
+
+        flatList.addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting()) return;
+            Tag selectedTag = flatList.getSelectedValue();
+            if (selectedTag != null) {
+                loadImagesForTagName(selectedTag.getNombre());
+            }
+        });
+    } // ---FIN de metodo [initializeFlatTagList]---
+
+    @SuppressWarnings("unchecked")
+    private void refreshFlatTagList() {
+        JList<Tag> flatList = registry.get("list.datamode.alltags.flat");
+        if (flatList == null) return;
+
+        DefaultListModel<Tag> model = (DefaultListModel<Tag>) flatList.getModel();
+        model.clear();
+        flatListOriginalOrder.clear();
+
+        List<Tag> allTags = dataManager.getAllTags();
+        for (Tag tag : allTags) {
+            model.addElement(tag);
+            flatListOriginalOrder.add(tag);
+        }
+        // Proveer al renderer acceso a DAO y discoIds para colorear
+        flatList.putClientProperty("flatTagDAO", dataManager.getTagDAO());
+        flatList.putClientProperty("flatDiscoIds", dataManager.getConnectedDiscoIds());
+        logger.debug("Lista plana de tags actualizada con {} elementos.", model.getSize());
+    } // ---FIN de metodo [refreshFlatTagList]---
+
+    /**
+     * Notificado desde DataBuilder cuando el usuario cambia entre vista árbol y lista.
+     * @param isTree true si se cambió a vista árbol, false si a vista lista.
+     */
+    public void onTagViewSwitched(boolean isTree) {
+        logger.debug("Vista de tags cambiada: {} ", isTree ? "árbol" : "lista");
+        if (!isTree) {
+            refreshFlatTagList();
+        }
+    } // ---FIN de metodo [onTagViewSwitched]---
+
+    /**
+     * Ordena la lista plana de tags. Llamado desde el callback del botón de ordenar.
+     * @param estado 0=ASC, 1=DESC, 2=OFF (sin orden)
+     */
+    public void ordenarListaPlana(int estado) {
+        JList<Tag> flatList = registry.get("list.datamode.alltags.flat");
+        if (flatList == null) return;
+        DefaultListModel<Tag> model = (DefaultListModel<Tag>) flatList.getModel();
+        if (model.getSize() == 0) return;
+
+        List<Tag> items = new ArrayList<>();
+        for (int i = 0; i < model.getSize(); i++) items.add(model.get(i));
+
+        switch (estado) {
+            case 0: // ASC
+                items.sort((a, b) -> a.getNombre().compareToIgnoreCase(b.getNombre()));
+                break;
+            case 1: // DESC
+                items.sort((a, b) -> b.getNombre().compareToIgnoreCase(a.getNombre()));
+                break;
+            default: // OFF - restaurar orden original
+                if (!flatListOriginalOrder.isEmpty()) {
+                    items = new ArrayList<>(flatListOriginalOrder);
+                }
+                break;
+        }
+
+        model.clear();
+        for (Tag t : items) model.addElement(t);
+    } // ---FIN de metodo [ordenarListaPlana]---
 
     private void initializeDriveList() {
         DriveListPanel drivePanel = registry.get("panel.datamode.drives");
@@ -199,6 +316,13 @@ public class DataController {
                 String selectedKey = gridList.getSelectedValue();
                 model.setSelectedImageKey(selectedKey);
                 updateTagPanelSelection();
+                // Notificar a DisplayModeManager para actualizar botones
+                if (visorController != null) {
+                    controlador.managers.DisplayModeManager dmm = visorController.getDisplayModeManager();
+                    if (dmm != null) {
+                        dmm.sincronizarEstadoBotonesDisplayMode();
+                    }
+                }
             }
         });
         
@@ -331,16 +455,6 @@ public class DataController {
         TagManagementPanel tagPanel = registry.get("panel.datamode.tagmanagement");
         if (tagPanel == null) return;
 
-        tagPanel.setOnAddTag(tagName -> {
-            List<Path> selectedPaths = getSelectedImagePaths();
-            if (!selectedPaths.isEmpty()) {
-                dataManager.addTagToImages(selectedPaths, tagName);
-                updateTagPanelSelection(); // Refrescar vista de tags de la imagen
-                initializeTagTree(); // Refrescar el árbol de tags
-                refreshAvailableTags(); // Refrescar el combo
-            }
-        });
-
         tagPanel.setOnRemoveTag(tag -> {
             List<Path> selectedPaths = getSelectedImagePaths();
             if (!selectedPaths.isEmpty()) {
@@ -350,145 +464,396 @@ public class DataController {
                 refreshAvailableTags(); // Refrescar el combo
             }
         });
-
-        tagPanel.setOnBrowseTags(() -> {
-            java.awt.Frame mainFrame = (visorController != null) ? visorController.getView() : null;
-            vista.util.IconUtils iconUtils = (visorController != null) ? visorController.getIconUtils() : null;
-            vista.dialogos.TagSelectionDialog dialog = new vista.dialogos.TagSelectionDialog(mainFrame, iconUtils);
-            String selected = dialog.showDialog();
-            if (selected != null) {
-                tagPanel.getComboNewTag().setSelectedItem(selected);
-            }
-        });
     } // ---FIN de metodo [setupTagManagementCallbacks]---
 
     /**
-     * Configura los listeners para los botones CRUD de tags (Nuevo, Renombrar, Borrar).
+     * Obtiene el Tag actualmente seleccionado en el árbol, o null si no hay selección o no es un Tag.
+     */
+    private Tag getSelectedTagFromTree() {
+        JTree allTagsTree = registry.get("tree.datamode.alltags");
+        if (allTagsTree == null) return null;
+        TreePath selPath = allTagsTree.getSelectionPath();
+        if (selPath == null) return null;
+        Object node = selPath.getLastPathComponent();
+        return (node instanceof Tag) ? (Tag) node : null;
+    } // ---FIN de metodo [getSelectedTagFromTree]---
+
+    /**
+     * Recarga los tags disponibles en el campo IntelliSense.
+     */
+    private void refreshIntelliSense() {
+        TagIntelliSenseField field = registry.get("textfield.datamode.tag.intellisense");
+        if (field != null) {
+            field.refreshTags(dataManager.getAllTags());
+            logger.debug("IntelliSense actualizado con {} tags.", dataManager.getAllTags().size());
+        }
+    } // ---FIN de metodo [refreshIntelliSense]---
+
+    /**
+     * Configura los listeners para los botones CRUD de tags (Crear, Editar, Borrar en el panel).
+     * Implementa las Reglas de Oro de la Fase 4:
+     * - Crear: notación x.y.z con padres intermedios.
+     * - Editar: renombrar (solo el nodo hoja) o mover (con validación anti-bucle + alerta de impacto).
+     * - Borrar: opción de borrar toda la rama o solo el nodo (moviendo hijos al padre).
      */
     private void setupTagCRUDButtons() {
-        JButton btnNew = registry.get("btn.datamode.tag.new");
-        JButton btnRename = registry.get("btn.datamode.tag.rename");
+        JButton btnCreate = registry.get("btn.datamode.tag.create");
+        JButton btnEdit   = registry.get("btn.datamode.tag.edit");
         JButton btnDelete = registry.get("btn.datamode.tag.delete");
-        JTree allTagsTree = registry.get("tree.datamode.alltags");
-        
-        if (btnNew != null) {
-            btnNew.addActionListener(e -> {
-                // Determinar el padre: si hay un tag seleccionado en el árbol, será hijo de ese.
-                Long parentId = null;
-                if (allTagsTree != null) {
-                    TreePath selectedPath = allTagsTree.getSelectionPath();
-                    if (selectedPath != null && selectedPath.getLastPathComponent() instanceof Tag) {
-                        Tag selectedTag = (Tag) selectedPath.getLastPathComponent();
-                        parentId = selectedTag.getId();
-                    }
+        TagIntelliSenseField intellSenseField = registry.get("textfield.datamode.tag.intellisense");
+
+        // ── CREAR TAG ────────────────────────────────────────────────────────
+        if (btnCreate != null) {
+            btnCreate.addActionListener(e -> {
+                String input = (intellSenseField != null) ? intellSenseField.getText().trim() : "";
+                if (input.isEmpty()) {
+                    input = JOptionPane.showInputDialog(btnCreate.getTopLevelAncestor(),
+                        "Nombre del tag (usa '.' para jerarquía, ej. juegos.blood):",
+                        "Crear Tag", JOptionPane.PLAIN_MESSAGE);
+                    if (input == null || input.trim().isEmpty()) return;
+                    input = input.trim();
                 }
-                
-                String nombre = JOptionPane.showInputDialog(
-                    btnNew.getTopLevelAncestor(),
-                    parentId != null ? "Nombre del nuevo sub-tag:" : "Nombre del nuevo tag:",
-                    "Crear Etiqueta",
-                    JOptionPane.PLAIN_MESSAGE
-                );
-                
-                if (nombre != null && !nombre.trim().isEmpty()) {
-                    TagDAO dao = new TagDAO();
-                    dao.addTag(nombre.trim(), parentId);
-                    initializeTagTree();
-                    refreshAvailableTags();
-                    logger.info("Nuevo tag '{}' creado con parent_id={}", nombre.trim(), parentId);
+
+                List<Tag> resolved = dataManager.resolveDotNotation(input);
+                if (!resolved.isEmpty()) {
+                    Tag leaf = resolved.get(resolved.size() - 1);
+                    String msg = resolved.size() > 1
+                        ? "Jerarquía '" + input + "' creada (" + resolved.size() + " nivel(es))."
+                        : "Tag '" + leaf.getNombre() + "' creado/encontrado.";
+                    statusBarManager.mostrarMensajeTemporal(msg, 3000);
+                } else {
+                    statusBarManager.mostrarMensajeTemporal("Error al crear tag.", 3000);
                 }
+
+                if (intellSenseField != null) intellSenseField.setText("");
+                afterTagStructureChanged();
             });
         }
-        
-        if (btnRename != null) {
-            btnRename.addActionListener(e -> {
-                if (allTagsTree == null) return;
-                TreePath selectedPath = allTagsTree.getSelectionPath();
-                if (selectedPath == null || !(selectedPath.getLastPathComponent() instanceof Tag)) {
-                    JOptionPane.showMessageDialog(btnRename.getTopLevelAncestor(),
-                        "Selecciona primero un tag en el árbol para renombrarlo.",
-                        "Sin selección", JOptionPane.WARNING_MESSAGE);
+
+        // ── EDITAR TAG (Renombrar o Mover) ────────────────────────────────────
+        if (btnEdit != null) {
+            btnEdit.addActionListener(e -> {
+                Tag tag = getSelectedTagFromTree();
+                if (tag == null) {
+                    JOptionPane.showMessageDialog(btnEdit.getTopLevelAncestor(),
+                        "Selecciona un tag en el árbol para editar.", "Editar Tag",
+                        JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-                
-                Tag selectedTag = (Tag) selectedPath.getLastPathComponent();
-                String nuevoNombre = (String) JOptionPane.showInputDialog(
-                    btnRename.getTopLevelAncestor(),
-                    "Nuevo nombre para '" + selectedTag.getNombre() + "':",
-                    "Renombrar Etiqueta",
-                    JOptionPane.PLAIN_MESSAGE,
-                    null, null, selectedTag.getNombre()
+                if (tag.isReadOnly()) {
+                    JOptionPane.showMessageDialog(btnEdit.getTopLevelAncestor(),
+                        "El tag '" + tag.getNombre() + "' es del sistema y no se puede modificar.",
+                        "Editar Tag", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                // ── Diálogo de elección: Renombrar vs. Mover ──────────────────
+                Object[] opciones = {"Renombrar", "Mover", "Cancelar"};
+                int choice = JOptionPane.showOptionDialog(
+                    btnEdit.getTopLevelAncestor(),
+                    "¿Qué deseas hacer con '" + tag.getNombre() + "'?",
+                    "Editar Etiqueta",
+                    JOptionPane.YES_NO_CANCEL_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null, opciones, opciones[0]
                 );
-                
-                if (nuevoNombre != null && !nuevoNombre.trim().isEmpty()) {
-                    TagDAO dao = new TagDAO();
-                    boolean success = dao.updateTagName(selectedTag.getId(), nuevoNombre.trim());
-                    if (success) {
-                        initializeTagTree();
-                        refreshAvailableTags();
-                        updateTagPanelSelection();
+
+                if (choice == 0) {
+                    // ── RENOMBRAR ─────────────────────────────────────────────
+                    String nuevoNombre = (String) JOptionPane.showInputDialog(
+                        btnEdit.getTopLevelAncestor(),
+                        "Nuevo nombre para '" + tag.getNombre() + "':",
+                        "Renombrar Tag", JOptionPane.PLAIN_MESSAGE,
+                        null, null, tag.getNombre());
+                    if (nuevoNombre == null || nuevoNombre.trim().isEmpty()) return;
+
+                    boolean ok = dataManager.getTagDAO().updateTagName(tag.getId(), nuevoNombre.trim());
+                    if (ok) {
+                        statusBarManager.mostrarMensajeTemporal(
+                            "Tag renombrado a '" + nuevoNombre.trim() + "'.", 3000);
+                        afterTagStructureChanged();
                     } else {
-                        JOptionPane.showMessageDialog(btnRename.getTopLevelAncestor(),
-                            "No se pudo renombrar. Puede que ya exista un tag con ese nombre.",
+                        JOptionPane.showMessageDialog(btnEdit.getTopLevelAncestor(),
+                            "No se pudo renombrar. Ya existe un tag con ese nombre en el mismo nivel.",
                             "Error", JOptionPane.ERROR_MESSAGE);
                     }
+
+                } else if (choice == 1) {
+                    // ── MOVER ─────────────────────────────────────────────────
+                    // 1. Calcular el impacto antes de mover
+                    int impacto = dataManager.getImageCountForTagRecursive(tag);
+
+                    // 2. Mostrar diálogo para elegir el nuevo padre
+                    java.awt.Frame mainFrame = null;
+                    java.awt.Component topComp = btnEdit.getTopLevelAncestor();
+                    if (topComp instanceof java.awt.Frame) mainFrame = (java.awt.Frame) topComp;
+
+                    // Panel del diálogo de mover
+                    javax.swing.JPanel movePanel = new javax.swing.JPanel(new java.awt.BorderLayout(5, 8));
+                    String impactoTxt = impacto > 0
+                        ? "\n⚠ Esta operación afectará a " + impacto + " imagen(es) en la jerarquía."
+                        : "";
+                    movePanel.add(new javax.swing.JLabel(
+                        "<html>Mover '<b>" + tag.getNombre() + "</b>' bajo un nuevo padre.<br>"
+                        + "Introduce la ruta del nuevo padre en notación punto (ej. juegos.estrategia),<br>"
+                        + "o deja en blanco para mover a la RAÍZ." + impactoTxt + "</html>"),
+                        java.awt.BorderLayout.NORTH);
+
+                    TagIntelliSenseField moveField = new TagIntelliSenseField();
+                    moveField.refreshTags(dataManager.getAllTags());
+                    moveField.setColumns(25);
+                    moveField.setToolTipText("Ruta del nuevo padre (vacío = raíz)");
+                    movePanel.add(moveField, java.awt.BorderLayout.CENTER);
+
+                    int confirm = JOptionPane.showConfirmDialog(
+                        btnEdit.getTopLevelAncestor(),
+                        movePanel,
+                        "Mover Etiqueta",
+                        JOptionPane.OK_CANCEL_OPTION,
+                        impacto > 0 ? JOptionPane.WARNING_MESSAGE : JOptionPane.PLAIN_MESSAGE
+                    );
+                    if (confirm != JOptionPane.OK_OPTION) return;
+
+                    String newParentPath = moveField.getText().trim();
+                    Tag newParent = null;
+
+                    if (!newParentPath.isEmpty()) {
+                        // Resolver la ruta del nuevo padre (sin crear nodos nuevos)
+                        List<Tag> resolved = resolveExistingPath(newParentPath);
+                        if (resolved == null || resolved.isEmpty()) {
+                            JOptionPane.showMessageDialog(btnEdit.getTopLevelAncestor(),
+                                "No se encontró la ruta '" + newParentPath + "' en la biblioteca.\n"
+                                + "Solo puedes mover a etiquetas existentes.",
+                                "Ruta no encontrada", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                        newParent = resolved.get(resolved.size() - 1);
+                    }
+
+                    boolean ok = dataManager.moveTag(tag, newParent);
+                    if (ok) {
+                        String destino = (newParent != null) ? "'" + newParent.getNombre() + "'" : "la raíz";
+                        statusBarManager.mostrarMensajeTemporal(
+                            "Tag '" + tag.getNombre() + "' movido a " + destino + ".", 4000);
+                        afterTagStructureChanged();
+                    } else {
+                        JOptionPane.showMessageDialog(btnEdit.getTopLevelAncestor(),
+                            "No se pudo mover el tag.\nVerifica que:\n"
+                            + "  • El destino no es un descendiente del tag.\n"
+                            + "  • No existe ya un tag con ese nombre en el destino.",
+                            "Error al mover", JOptionPane.ERROR_MESSAGE);
+                    }
                 }
+                // choice == 2 → Cancelar (no hace nada)
             });
         }
-        
+
+        // ── BORRAR TAG ────────────────────────────────────────────────────────
         if (btnDelete != null) {
             btnDelete.addActionListener(e -> {
-                if (allTagsTree == null) return;
-                TreePath selectedPath = allTagsTree.getSelectionPath();
-                if (selectedPath == null || !(selectedPath.getLastPathComponent() instanceof Tag)) {
+                Tag tag = getSelectedTagFromTree();
+                if (tag == null) {
                     JOptionPane.showMessageDialog(btnDelete.getTopLevelAncestor(),
-                        "Selecciona primero un tag en el árbol para borrarlo.",
-                        "Sin selección", JOptionPane.WARNING_MESSAGE);
+                        "Selecciona un tag en el árbol para borrar.", "Borrar Tag",
+                        JOptionPane.WARNING_MESSAGE);
                     return;
                 }
-                
-                Tag selectedTag = (Tag) selectedPath.getLastPathComponent();
-                int confirm = JOptionPane.showConfirmDialog(
-                    btnDelete.getTopLevelAncestor(),
-                    "¿Eliminar la etiqueta '" + selectedTag.getNombre() + "'?\n" +
-                    "Se eliminarán también todas las asociaciones con imágenes.\n" +
-                    "Los sub-tags se reasignarán al padre.",
-                    "Confirmar eliminación",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE
-                );
-                
-                if (confirm == JOptionPane.YES_OPTION) {
-                    TagDAO dao = new TagDAO();
-                    dao.deleteTag(selectedTag.getId());
-                    initializeTagTree();
-                    refreshAvailableTags();
-                    updateTagPanelSelection();
-                    
-                    // Limpiar el grid si se estaban mostrando imágenes del tag borrado
-                    GridDisplayPanel gridPanel = registry.get("panel.datamode.grid");
-                    if (gridPanel != null) {
-                        gridPanel.getGridList().setModel(new DefaultListModel<>());
+                if (tag.isReadOnly()) {
+                    JOptionPane.showMessageDialog(btnDelete.getTopLevelAncestor(),
+                        "El tag '" + tag.getNombre() + "' es del sistema y no se puede borrar.",
+                        "Borrar Tag", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                int childCount = dataManager.getTagDAO().getDirectChildCount(tag.getId());
+                int imageCount = dataManager.getImageCountForTagRecursive(tag);
+
+                if (childCount > 0) {
+                    // ── Tiene hijos: preguntar modo de borrado ────────────────
+                    String mensaje = "<html>El tag '<b>" + tag.getNombre() + "</b>' tiene "
+                        + childCount + " hijo(s) directo(s).";
+                    if (imageCount > 0) {
+                        mensaje += "<br>En total, " + imageCount + " imagen(es) están en esta jerarquía.";
                     }
-                    logger.info("Tag '{}' eliminado.", selectedTag.getNombre());
+                    mensaje += "<br><br>¿Qué deseas hacer?</html>";
+
+                    Object[] borrarOpciones = {"Borrar solo este tag", "Borrar toda la rama", "Cancelar"};
+                    int borrarChoice = JOptionPane.showOptionDialog(
+                        btnDelete.getTopLevelAncestor(),
+                        new javax.swing.JLabel(mensaje),
+                        "Borrar Etiqueta",
+                        JOptionPane.YES_NO_CANCEL_OPTION,
+                        JOptionPane.WARNING_MESSAGE,
+                        null, borrarOpciones, borrarOpciones[2]
+                    );
+
+                    if (borrarChoice == 0) {
+                        // Solo este nodo: los hijos se mueven al padre del eliminado
+                        boolean ok = dataManager.getTagDAO().deleteTag(tag.getId());
+                        if (ok) {
+                            statusBarManager.mostrarMensajeTemporal(
+                                "Tag '" + tag.getNombre() + "' eliminado. Sus hijos se han movido al nivel superior.", 4000);
+                            afterTagStructureChanged();
+                        } else {
+                            statusBarManager.mostrarMensajeTemporal("Error al eliminar el tag.", 3000);
+                        }
+                    } else if (borrarChoice == 1) {
+                        // Borrar toda la rama
+                        int confirmFinal = JOptionPane.showConfirmDialog(
+                            btnDelete.getTopLevelAncestor(),
+                            "<html>¿Confirmas borrar '<b>" + tag.getNombre() + "</b>' y TODA su jerarquía descendiente?<br>"
+                            + "Esta acción no se puede deshacer. Se desasociarán " + imageCount + " imagen(es).</html>",
+                            "Confirmar borrado de rama",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE
+                        );
+                        if (confirmFinal != JOptionPane.YES_OPTION) return;
+
+                        boolean ok = dataManager.deleteTagBranch(tag);
+                        if (ok) {
+                            statusBarManager.mostrarMensajeTemporal(
+                                "Rama '" + tag.getNombre() + "' eliminada completamente.", 4000);
+                            afterTagStructureChanged();
+                        } else {
+                            statusBarManager.mostrarMensajeTemporal("Error al eliminar la rama.", 3000);
+                        }
+                    }
+                    // borrarChoice == 2 → Cancelar
+
+                } else {
+                    // ── Sin hijos: confirmación simple ────────────────────────
+                    String msg = "¿Borrar el tag '" + tag.getNombre() + "'?";
+                    if (imageCount > 0) {
+                        msg += "\n\n" + imageCount + " imagen(es) perderán esta etiqueta (no se borrarán).";
+                    }
+                    int confirm = JOptionPane.showConfirmDialog(
+                        btnDelete.getTopLevelAncestor(),
+                        msg, "Confirmar Borrado",
+                        JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                    if (confirm != JOptionPane.YES_OPTION) return;
+
+                    boolean ok = dataManager.getTagDAO().deleteTag(tag.getId());
+                    if (ok) {
+                        statusBarManager.mostrarMensajeTemporal(
+                            "Tag '" + tag.getNombre() + "' eliminado.", 3000);
+                        afterTagStructureChanged();
+                    } else {
+                        statusBarManager.mostrarMensajeTemporal("Error al eliminar el tag.", 3000);
+                    }
                 }
             });
         }
     } // ---FIN de metodo [setupTagCRUDButtons]---
 
     /**
+     * Acción de limpieza/refresco que se ejecuta tras cualquier cambio en la estructura de tags.
+     * Centraliza initializeTagTree + refreshAvailableTags + refreshIntelliSense.
+     */
+    private void afterTagStructureChanged() {
+        initializeTagTree();
+        refreshFlatTagList();
+        refreshAvailableTags();
+        refreshIntelliSense();
+    } // ---FIN de metodo [afterTagStructureChanged]---
+
+    /**
+     * Resuelve una ruta en notación punto buscando SOLO tags existentes (sin crear nuevos).
+     * @param dotPath La ruta a resolver (ej. "juegos.estrategia").
+     * @return Lista de tags desde la raíz hasta la hoja, o null si algún segmento no existe.
+     */
+    private List<Tag> resolveExistingPath(String dotPath) {
+        if (dotPath == null || dotPath.isBlank()) return Collections.emptyList();
+        String[] segments = dotPath.split("\\.");
+        Long parentId = null;
+        List<Tag> path = new ArrayList<>();
+
+        for (String segment : segments) {
+            String trimmed = segment.trim();
+            if (trimmed.isEmpty()) continue;
+
+            java.util.Optional<Tag> existing = dataManager.getTagDAO().findTagByNameAndParent(trimmed, parentId);
+            if (existing.isEmpty()) {
+                logger.warn("resolveExistingPath: no se encontró el segmento '{}' bajo padre ID {}", trimmed, parentId);
+                return null; // ruta no encontrada
+            }
+            path.add(existing.get());
+            parentId = existing.get().getId();
+        }
+        return path;
+    } // ---FIN de metodo [resolveExistingPath]---
+
+    /**
      * Recarga la lista de tags disponibles en el JComboBox del TagManagementPanel.
      */
     private void refreshAvailableTags() {
-        TagManagementPanel tagPanel = registry.get("panel.datamode.tagmanagement");
-        if (tagPanel != null) {
+        javax.swing.JComboBox<String> comboNewTag = registry.get("combo.datamode.img.newtag");
+        if (comboNewTag != null) {
             List<Tag> allTags = dataManager.getAllTags();
-            tagPanel.setAvailableTags(allTags);
+            javax.swing.DefaultComboBoxModel<String> model = new javax.swing.DefaultComboBoxModel<>();
+            model.addElement("");
+            if (allTags != null) {
+                for (Tag tag : allTags) {
+                    model.addElement(tag.getNombre());
+                }
+            }
+            comboNewTag.setModel(model);
+            comboNewTag.setSelectedItem("");
         }
     } // ---FIN de metodo [refreshAvailableTags]---
 
+    /**
+     * Configura los listeners para la asignación de tags a imágenes.
+     */
+    private void setupImageTagCRUDButtons() {
+        JButton btnAssign = registry.get("btn.datamode.tag.assign");
+        javax.swing.JTextField intelliSenseField = registry.get("textfield.datamode.tag.intellisense");
+        javax.swing.JCheckBox chkHerencia = registry.get("checkbox.datamode.tag.herencia");
+        JList<String> gridList = registry.get("list.datamode.grid");
+        
+        if (gridList != null && btnAssign != null) {
+            gridList.addListSelectionListener(e -> {
+                if (!e.getValueIsAdjusting()) {
+                    btnAssign.setEnabled(!gridList.isSelectionEmpty());
+                }
+            });
+        }
+        
+        if (btnAssign != null && intelliSenseField != null) {
+            btnAssign.addActionListener(e -> {
+                String dotPath = intelliSenseField.getText();
+                if (dotPath == null || dotPath.trim().isEmpty()) return;
+
+                List<Tag> resolvedPath = dataManager.resolveDotNotation(dotPath.trim());
+                if (resolvedPath.isEmpty()) {
+                    JOptionPane.showMessageDialog(btnAssign.getTopLevelAncestor(),
+                        "No se pudo resolver la ruta: " + dotPath);
+                    return;
+                }
+
+                List<Path> selectedPaths = getSelectedImagePaths();
+                if (selectedPaths.isEmpty()) return;
+
+                Tag leafTag = resolvedPath.get(resolvedPath.size() - 1);
+
+                if (chkHerencia != null && chkHerencia.isSelected()) {
+                    for (Tag tag : resolvedPath) {
+                        dataManager.addTagToImages(selectedPaths, tag.getNombre());
+                    }
+                } else {
+                    dataManager.addTagToImages(selectedPaths, leafTag.getNombre());
+                }
+
+                intelliSenseField.setText("");
+                updateTagPanelSelection();
+                initializeTagTree();
+                refreshAvailableTags();
+            });
+        }
+    } // ---FIN de metodo [setupImageTagCRUDButtons]---
+
     private List<Path> getSelectedImagePaths() {
         JList<String> gridList = registry.get("list.datamode.grid");
+        if (gridList == null) return new ArrayList<>();
         List<String> selectedKeys = gridList.getSelectedValuesList();
         List<Path> paths = new ArrayList<>();
         Map<String, Path> pathMap = model.getRutaCompletaMap();
@@ -538,6 +903,8 @@ public class DataController {
 
         // Obtenemos las rutas de las imágenes para el tag.
         List<String> imagePaths = dataManager.getImagePathsForTag(tag);
+        // Filtrar solo imágenes en unidades conectadas
+        imagePaths = dataManager.filterConnectedPaths(imagePaths);
         
         // Preparamos el nuevo modelo de lista y el mapa de rutas.
         DefaultListModel<String> gridListModel = new DefaultListModel<>();
@@ -569,6 +936,43 @@ public class DataController {
         });
     } // ---FIN de metodo loadImagesForTag---
 
+    private void loadImagesForTagName(String tagName) {
+        JList<String> gridList = registry.get("list.datamode.grid");
+        if (gridList == null) {
+            logger.error("No se encontró 'list.datamode.grid' en el registro.");
+            return;
+        }
+
+        List<String> imagePaths = dataManager.getImagePathsForTagName(tagName);
+        imagePaths = dataManager.filterConnectedPaths(imagePaths);
+
+        DefaultListModel<String> gridListModel = new DefaultListModel<>();
+        Map<String, Path> gridPathMap = new java.util.HashMap<>();
+
+        int duplicateKeyCounter = 0;
+        for (String pathStr : imagePaths) {
+            Path path = Paths.get(pathStr);
+            Path fn = path.getFileName();
+            String key = (fn != null) ? fn.toString() : path.toString();
+            
+            while (gridPathMap.containsKey(key)) {
+                duplicateKeyCounter++;
+                key = ((fn != null) ? fn.toString() : path.toString()) + " (" + duplicateKeyCounter + ")";
+            }
+
+            gridListModel.addElement(key);
+            gridPathMap.put(key, path);
+        }
+
+        model.getRutaCompletaMap().clear();
+        model.getRutaCompletaMap().putAll(gridPathMap);
+
+        SwingUtilities.invokeLater(() -> {
+            gridList.setModel(gridListModel);
+            logger.debug("Grid del Modo Datos actualizado por nombre '{}' con {} elementos.", tagName, gridListModel.getSize());
+        });
+    } // ---FIN de metodo loadImagesForTagName---
+
     private void loadAllImages() {
         JList<String> gridList = registry.get("list.datamode.grid");
         if (gridList == null) {
@@ -577,6 +981,8 @@ public class DataController {
         }
 
         List<String> imagePaths = dataManager.getAllImagePaths();
+        // Filtrar solo imágenes en unidades conectadas
+        imagePaths = dataManager.filterConnectedPaths(imagePaths);
         
         DefaultListModel<String> gridListModel = new DefaultListModel<>();
         Map<String, Path> gridPathMap = new java.util.HashMap<>();

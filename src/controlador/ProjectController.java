@@ -44,6 +44,9 @@ import controlador.managers.interfaces.IProjectManager;
 import controlador.managers.interfaces.IZoomManager;
 import controlador.utils.ComponentRegistry;
 import controlador.utils.DesktopUtils;
+import controlador.services.proyecto.ExportPreflightReport;
+import controlador.services.proyecto.ExportStatusReport;
+import controlador.services.proyecto.ProjectExportService;
 import controlador.worker.ExportWorker;
 import modelo.ListContext;
 import modelo.VisorModel;
@@ -64,15 +67,13 @@ public class ProjectController implements IModoController {
 
     private static final Logger logger = LoggerFactory.getLogger(ProjectController.class);
 
-    /**
-     * Define los posibles estados de visualización del panel de proyecto.
-     * Esto reemplaza el uso de flags booleanos complejos.
-     */
+    // Define los posibles estados de visualización del panel de proyecto
     private enum ProjectViewState {
         VIEW_SELECTION, // Foco en la lista de Selección, Grid normal
         VIEW_DISCARDS, // Foco en la lista de Descartes, Grid normal
         VIEW_EXPORT // Panel de exportación activo, Grid muestra Selección con bordes de estado
     }
+
 
     private ProjectViewState currentViewState = ProjectViewState.VIEW_SELECTION; // Estado inicial
 
@@ -86,6 +87,7 @@ public class ProjectController implements IModoController {
 
     private IProjectManager projectManager;
     private IZoomManager zoomManager;
+    private ProjectExportService exportService;
 
     private Map<String, Action> actionMap;
     private Map<String, ExportItem> exportItemMap = new HashMap<>();
@@ -94,6 +96,7 @@ public class ProjectController implements IModoController {
     public ProjectController() {
         logger.debug("[ProjectController] Instancia creada.");
         this.exportQueueManager = new ExportQueueManager();
+        this.exportService = new ProjectExportService();
     } // --- Fin del método ProjectController (constructor) ---
 
     void configurarListeners() {
@@ -175,15 +178,10 @@ public class ProjectController implements IModoController {
         // La lógica de estado ahora es manejada por los clics directos en las áreas de
         // trabajo.
 
-    } // --- Fin del método configurarListeners ---
+    } // --- Fin del metodo: configurarListeners ---
 
-    /**
-     * Limpia por completo la interfaz de usuario del modo Proyecto.
-     * Vacía las JLists de selección y descartes, el grid, y deselecciona cualquier
-     * imagen.
-     * Este método es seguro y no fallará incluso si las JLists no tienen el modelo
-     * esperado.
-     */
+
+    // Limpia por completo la interfaz de usuario del modo Proyecto
     private void limpiarVistaProyecto() {
         logger.debug("[ProjectController] Limpiando la vista del modo proyecto...");
 
@@ -235,11 +233,7 @@ public class ProjectController implements IModoController {
         logger.debug("[ProjectController] Vista del proyecto limpiada.");
     } // --- fin de metodo limpiarVistaProyecto ---
 
-    /**
-     * Limpia de forma exhaustiva todo el estado relacionado con el proyecto actual.
-     * Esto incluye la UI, la cola de exportación y los cachés internos.
-     * Es el método a llamar para asegurar un borrón y cuenta nueva.
-     */
+    // Limpia de forma exhaustiva todo el estado relacionado con el proyecto actual
     private void limpiarEstadoCompletoDelProyecto() {
         logger.debug("Iniciando limpieza completa del estado del proyecto...");
 
@@ -262,13 +256,10 @@ public class ProjectController implements IModoController {
         limpiarCacheRenderersProyecto();
 
         logger.debug("Limpieza completa del estado del proyecto finalizada.");
-    } // ---FIN de metodo [limpiarEstadoCompletoDelProyecto]---
+    } // --- Fin del metodo: limpiarEstadoCompletoDelProyecto ---
 
-    /**
-     * El método orquestador central DEFINITIVO.
-     * Cambia la UI del proyecto a un estado bien definido, implementando una
-     * lógica de "Grid pegajoso" una vez que se activa.
-     */
+
+    // El método orquestador central DEFINITIVO
     private void setProjectViewState(ProjectViewState newState) {
         if (currentViewState == newState) {
             logger.trace("Ya estamos en el estado {}, no se realiza ninguna acción.", newState);
@@ -309,14 +300,10 @@ public class ProjectController implements IModoController {
             sincronizarSeleccionEnGridProyecto();
             refrescarGridProyecto();
         });
-    } // ---FIN de metodo [setProjectViewState]---
+    } // --- Fin del metodo: setProjectViewState ---
 
-    /**
-     * Actualiza el mapa interno que se usa para buscar rápidamente un ExportItem
-     * por su clave (Path como String).
-     * 
-     * @param items La lista actual de items de la cola de exportación.
-     */
+
+    // Actualiza el mapa interno que se usa para buscar rápidamente un ExportItem
     private void actualizarMapaDeItemsExportacion(List<ExportItem> items) {
         if (items == null) {
             this.exportItemMap.clear();
@@ -329,7 +316,8 @@ public class ProjectController implements IModoController {
                         Function.identity(),
                         (existing, replacement) -> existing));
         logger.debug("Mapa de items de exportación actualizado. Total: {} items.", this.exportItemMap.size());
-    } // ---FIN de metodo actualizarMapaDeItemsExportacion---
+    } // --- Fin del metodo: actualizarMapaDeItemsExportacion ---
+
 
     public ExportItem getExportItem(String clave) {
         // La condición de si estamos en modo exportación ya la comprueba el llamador
@@ -340,15 +328,10 @@ public class ProjectController implements IModoController {
             return null;
         }
         return exportItemMap.get(clave);
-    } // ---FIN de metodo getExportItem---
+    } // --- Fin del metodo: getExportItem ---
 
-    /**
-     * Alterna la visibilidad del panel de herramientas inferior derecho
-     * (Exportar/Etiquetar).
-     * Guarda y restaura la posición del divisor para una mejor experiencia de
-     * usuario.
-     * AHORA SOLO GESTIONA LA VISIBILIDAD, Y DELEGA EL CAMBIO DE ESTADO.
-     */
+
+    // Alterna la visibilidad del panel de herramientas inferior derecho
     public void toggleExportView() {
         if (registry == null) {
             logger.error("Registry es nulo, no se puede alternar la vista de exportación.");
@@ -401,11 +384,7 @@ public class ProjectController implements IModoController {
         }
     } // --- FIN del metodo toggleExportView ---
 
-    /**
-     * Se llama DESPUÉS de que las barras de herramientas del modo Proyecto
-     * han sido construidas y registradas. Es el momento seguro para configurar
-     * listeners que dependen de componentes de la toolbar.
-     */
+    // Se llama DESPUÉS de que las barras de herramientas del modo Proyecto
     public void postToolbarInitialization() {
         logger.debug("[ProjectController] Realizando inicialización post-toolbars...");
         ensureExportPanelIsFullyInitialized();
@@ -413,12 +392,10 @@ public class ProjectController implements IModoController {
         configurarListenersMetadatos();
         logger.debug("[ProjectController] Inicialización post-toolbars completada.");
 
-    } // ---FIN de metodo [postToolbarInitialization]---
+    } // --- Fin del metodo: postToolbarInitialization ---
 
-    /**
-     * Añade un DocumentListener al área de descripción para que cualquier
-     * cambio notifique al sistema que hay modificaciones sin guardar.
-     */
+
+    // Añade un DocumentListener al área de descripción para que cualquier
     private void configurarListenersMetadatos() {
         vista.panels.export.ProjectMetadataPanel propsPanel = registry.get("panel.proyecto.propiedades");
         if (propsPanel == null || projectManager == null)
@@ -448,7 +425,8 @@ public class ProjectController implements IModoController {
 
         propsPanel.getProjectDescriptionArea().getDocument().addDocumentListener(listener);
         logger.debug("DocumentListener añadido al área de descripción del proyecto.");
-    } // ---FIN de metodo configurarListenersMetadatos---
+    } // --- Fin del metodo: configurarListenersMetadatos ---
+
 
     public void notificarCambioEnProyecto() {
 
@@ -470,14 +448,10 @@ public class ProjectController implements IModoController {
 
             logger.debug("[ProjectController] Cambio detectado, sincronizado y UI de exportación actualizada.");
         }
-    } // ---FIN de metodo notificarCambioEnProyecto---
+    } // --- Fin del metodo: notificarCambioEnProyecto ---
 
-    /**
-     * Resetea el layout del panel derecho a su estado por defecto (panel de
-     * herramientas oculto).
-     * Se debe llamar cada vez que se activa el modo Proyecto para asegurar un
-     * estado inicial limpio.
-     */
+
+    // Resetea el layout del panel derecho a su estado por defecto (panel de
     public void resetProjectViewLayout() {
         lastRightDividerLocation = -1;
 
@@ -502,11 +476,7 @@ public class ProjectController implements IModoController {
 
     } // --- FIN de metodo resetProjectViewLayout ---
 
-    /**
-     * Carga en la `masterList` del `VisorModel` la lista de datos correcta
-     * ('seleccion' o 'descartes') basándose en el foco activo actual.
-     * Utiliza el `ProjectManager` como única fuente de verdad.
-     */
+    // Carga en la `masterList` del `VisorModel` la lista de datos correcta
     public void actualizarModeloPrincipalConListaDeProyectoActiva() {
         if (model == null || projectManager == null) {
             logger.warn(
@@ -565,7 +535,8 @@ public class ProjectController implements IModoController {
                 gridList.clearSelection();
             }
         });
-    } // --- Fin del nuevo método sincronizarSeleccionEnGridProyecto ---
+    } // --- Fin del metodo: sincronizarSeleccionEnGridProyecto ---
+
 
     private void cambiarFocoListaActiva(String nuevoFoco) {
         if ("descartes".equals(nuevoFoco)) {
@@ -573,7 +544,8 @@ public class ProjectController implements IModoController {
         } else {
             setProjectViewState(ProjectViewState.VIEW_SELECTION);
         }
-    } // --- Fin del método cambiarFocoListaActiva ---
+    } // --- Fin del metodo: cambiarFocoListaActiva ---
+
 
     public boolean prepararDatosProyecto() {
         logger.debug("  [ProjectController] Preparando datos para el modo proyecto...");
@@ -611,15 +583,10 @@ public class ProjectController implements IModoController {
         model.getProyectoListContext().actualizarContextoCompleto(modeloUnificado, mapaRutasProyecto);
         logger.debug("    -> Datos del proyecto preparados. Total imágenes: " + modeloUnificado.getSize());
         return true;
-    } // ---FIN de metodo prepararDatosProyecto---
+    } // --- Fin del metodo: prepararDatosProyecto ---
 
-    /**
-     * Se llama desde GeneralController cuando se entra en el modo Proyecto.
-     * Es el punto de entrada principal para activar y configurar la vista del
-     * proyecto.
-     * Contiene la lógica para decidir si mostrar un proyecto existente o preguntar
-     * para abrir uno.
-     */
+
+    // Se llama desde GeneralController cuando se entra en el modo Proyecto
     public void activarVistaProyecto() {
         logger.debug("  [ProjectController] Activando la UI de la vista de proyecto...");
 
@@ -657,18 +624,18 @@ public class ProjectController implements IModoController {
 
         resetProjectViewLayout();
 
-    } // ---FIN de metodo activarVistaProyecto---
+    } // --- Fin del metodo: activarVistaProyecto ---
+
 
     private void ensureExportPanelIsFullyInitialized() {
         ExportPanel exportPanel = registry.get("panel.proyecto.exportacion.completo");
         if (exportPanel != null) {
             exportPanel.setupHighlightingListener();
         }
-    } // ---FIN de metodo [ensureExportPanelIsFullyInitialized]---
+    } // --- Fin del metodo: ensureExportPanelIsFullyInitialized ---
 
-    /**
-     * Rellena las JList de Selección y Descartes con los datos del ProjectManager.
-     */
+
+    // Rellena las JList de Selección y Descartes con los datos del ProjectManager
     private void poblarListasSeleccionYDescartes() {
         List<Path> imagenesMarcadas = projectManager.getImagenesMarcadas();
         DefaultListModel<String> modeloSeleccion = new DefaultListModel<>();
@@ -682,11 +649,10 @@ public class ProjectController implements IModoController {
         poblarListaDescartes();
         actualizarContadoresDeTitulos();
 
-    } // ---fin de metodo poblarListasSeleccionYDescartes---
+    } // --- Fin del metodo: poblarListasSeleccionYDescartes ---
 
-    /**
-     * Determina qué clave de imagen debe estar seleccionada al activar la vista.
-     */
+
+    // Determina qué clave de imagen debe estar seleccionada al activar la vista
     private String determinarClaveASeleccionar(ListContext proyectoContext) {
         String focoActual = proyectoContext.getNombreListaActiva();
         String claveParaMostrar = null;
@@ -722,12 +688,10 @@ public class ProjectController implements IModoController {
         logger.debug("[ProjectController] Clave determinada para la selección inicial: {}", claveParaMostrar);
         return claveParaMostrar;
 
-    } // ---fin de metodo determinarClaveASeleccionar---
+    } // --- Fin del metodo: determinarClaveASeleccionar ---
 
-    /**
-     * Ajusta los componentes visuales de la UI del modo proyecto.
-     * Este método se llama después de que los datos del proyecto han sido cargados.
-     */
+
+    // Ajusta los componentes visuales de la UI del modo proyecto
     private void ajustarLayoutProyectoUI() {
         SwingUtilities.invokeLater(() -> {
             actualizarAparienciaListasPorFoco();
@@ -737,44 +701,51 @@ public class ProjectController implements IModoController {
 
             logger.debug("  [ProjectController] UI de la vista de proyecto activada y apariencia actualizada.");
         });
-    } // ---fin de metodo ajustarLayoutProyectoUI---
+    } // --- Fin del metodo: ajustarLayoutProyectoUI ---
+
 
     @Override
     public void navegarSiguiente() {
         if (projectListCoordinator != null) {
             projectListCoordinator.seleccionarSiguiente();
         }
-    } // ---FIN de metodo navegarSiguiente---
+    } // --- Fin del metodo: navegarSiguiente ---
+
 
     @Override
     public void navegarAnterior() {
         if (projectListCoordinator != null)
             projectListCoordinator.seleccionarAnterior();
-    } // ---FIN de metodo navegarAnterior---
+    } // --- Fin del metodo: navegarAnterior ---
+
 
     @Override
     public void navegarPrimero() {
         if (projectListCoordinator != null)
             projectListCoordinator.seleccionarPrimero();
-    } // ---FIN de metodo navegarPrimero---
+    } // --- Fin del metodo: navegarPrimero ---
+
 
     @Override
     public void navegarUltimo() {
         if (projectListCoordinator != null)
             projectListCoordinator.seleccionarUltimo();
-    } // ---FIN de metodo navegarUltimo---
+    } // --- Fin del metodo: navegarUltimo ---
+
 
     @Override
     public void navegarBloqueSiguiente() {
         if (projectListCoordinator != null)
             projectListCoordinator.seleccionarBloqueSiguiente();
-    } // ---FIN de metodo navegarBloqueSiguiente---
+    } // --- Fin del metodo: navegarBloqueSiguiente ---
+
 
     @Override
     public void navegarBloqueAnterior() {
         if (projectListCoordinator != null)
             projectListCoordinator.seleccionarBloqueAnterior();
-    } // ---FIN de metodo navegarBloqueAnterior---
+    } // --- Fin del metodo: navegarBloqueAnterior ---
+
 
     @Override
     public void aplicarZoomConRueda(java.awt.event.MouseWheelEvent e) {
@@ -784,37 +755,43 @@ public class ProjectController implements IModoController {
                 zoomManager.sincronizarEstadoVisualBotonesYRadiosZoom();
             }
         }
-    } // --- Fin del método aplicarZoomConRueda ---
+    } // --- Fin del metodo: aplicarZoomConRueda ---
+
 
     @Override
     public void aplicarPan(int deltaX, int deltaY) {
         if (zoomManager != null) {
             zoomManager.aplicarPan(deltaX, deltaY);
         }
-    } // --- Fin del método aplicarPan ---
+    } // --- Fin del metodo: aplicarPan ---
+
 
     @Override
     public void iniciarPaneo(java.awt.event.MouseEvent e) {
         if (zoomManager != null && model.isZoomHabilitado()) {
             zoomManager.iniciarPaneo(e);
         }
-    } // --- Fin del método iniciarPaneo ---
+    } // --- Fin del metodo: iniciarPaneo ---
+
 
     @Override
     public void solicitarRefresco() {
         logger.debug("[ProjectController] Solicitud de refresco recibida. Llamando a refrescarListasDeProyecto...");
         refrescarListasDeProyecto();
-    } // --- Fin del método solicitarRefresco ---
+    } // --- Fin del metodo: solicitarRefresco ---
+
 
     @Override
     public void aumentarTamanoMiniaturas() {
         cambiarTamanoGrid(1.2); // Aumenta un 20%
-    } // ---FIN de metodo aumentarTamanoMiniaturas---
+    } // --- Fin del metodo: aumentarTamanoMiniaturas ---
+
 
     @Override
     public void reducirTamanoMiniaturas() {
         cambiarTamanoGrid(0.8); // Reduce un 20%
-    } // ---FIN de metodo reducirTamanoMiniaturas---
+    } // --- Fin del metodo: reducirTamanoMiniaturas ---
+
 
     public void poblarListaDescartes() {
         if (registry == null || projectManager == null) {
@@ -851,7 +828,8 @@ public class ProjectController implements IModoController {
             }
         }
 
-    } // --- Fin del método poblarListaDescartes ---
+    } // --- Fin del metodo: poblarListaDescartes ---
+
 
     public void moverSeleccionActualADescartes() {
         if (model == null || projectManager == null || registry == null) {
@@ -878,7 +856,8 @@ public class ProjectController implements IModoController {
         logger.debug("  [ProjectController] {} imagen(es) movida(s) a descartes.", movidos);
         refrescarVistaProyectoCompleta();
         reubicarSeleccionTrasOperacionEnLista(registry.get("list.proyecto.nombres"), indiceAncla, "seleccion");
-    } // --- Fin del método moverSeleccionActualADescartes ---
+    } // --- Fin del metodo: moverSeleccionActualADescartes ---
+
 
     public void restaurarDesdeDescartes() {
         if (registry == null || projectManager == null) {
@@ -925,11 +904,10 @@ public class ProjectController implements IModoController {
                 }
             }
         });
-    } // --- Fin del método restaurarDesdeDescartes ---
+    } // --- Fin del metodo: restaurarDesdeDescartes ---
 
-    /**
-     * Obtiene las rutas absolutas de todos los elementos seleccionados en una JList de proyecto.
-     */
+
+    // Obtiene las rutas absolutas de todos los elementos seleccionados en una JList de proyecto
     private List<Path> obtenerRutasDesdeListaSeleccionada(JList<String> lista) {
         if (lista == null || lista.getModel() == null) {
             return java.util.Collections.emptyList();
@@ -946,11 +924,10 @@ public class ProjectController implements IModoController {
             }
         }
         return rutas;
-    } // --- Fin del método obtenerRutasDesdeListaSeleccionada ---
+    } // --- Fin del metodo: obtenerRutasDesdeListaSeleccionada ---
 
-    /**
-     * Índice de referencia para re-seleccionar tras una operación por lotes (ancla o mínimo seleccionado).
-     */
+
+    // Índice de referencia para re-seleccionar tras una operación por lotes (ancla o mínimo seleccionado)
     private int obtenerIndiceAnclaDeLista(JList<String> lista) {
         if (lista == null) {
             return -1;
@@ -960,11 +937,10 @@ public class ProjectController implements IModoController {
             return ancla;
         }
         return lista.getMinSelectionIndex();
-    } // --- Fin del método obtenerIndiceAnclaDeLista ---
+    } // --- Fin del metodo: obtenerIndiceAnclaDeLista ---
 
-    /**
-     * Tras refrescar una lista, deja seleccionado un único índice coherente con la operación anterior.
-     */
+
+    // Tras refrescar una lista, deja seleccionado un único índice coherente con la operación anterior
     private void reubicarSeleccionTrasOperacionEnLista(JList<String> lista, int indiceAncla, String focoLista) {
         SwingUtilities.invokeLater(() -> {
             if (lista == null) {
@@ -984,13 +960,15 @@ public class ProjectController implements IModoController {
             }
             projectListCoordinator.seleccionarImagenPorIndice(nuevoIndice);
         });
-    } // --- Fin del método reubicarSeleccionTrasOperacionEnLista ---
+    } // --- Fin del metodo: reubicarSeleccionTrasOperacionEnLista ---
+
 
     private void refrescarListasDeProyecto() {
         logger.debug("  [ProjectController] Refrescando ambas listas del proyecto...");
         prepararDatosProyecto();
         activarVistaProyecto();
-    } // --- Fin del método refrescarListasDeProyecto ---
+    } // --- Fin del metodo: refrescarListasDeProyecto ---
+
 
     public void solicitarPreparacionColaExportacion() {
         solicitarPreparacionColaExportacion(false);
@@ -1030,7 +1008,8 @@ public class ProjectController implements IModoController {
         }
         
         actualizarEstadoExportacionUI();
-    } // --- Fin del método solicitarPreparacionColaExportacion ---
+    } // --- Fin del metodo: solicitarPreparacionColaExportacion ---
+
 
     public void solicitarSeleccionCarpetaDestino() {
         if (registry == null || view == null) {
@@ -1072,13 +1051,15 @@ public class ProjectController implements IModoController {
             logger.debug("  [ProjectController] Selección de carpeta de destino cancelada por el usuario.");
         }
         actualizarEstadoExportacionUI();
-    } // --- Fin del método solicitarSeleccionCarpetaDestino ---
+    } // --- Fin del metodo: solicitarSeleccionCarpetaDestino ---
+
 
     public void onExportItemManuallyAssigned(modelo.proyecto.ExportItem itemModificado) {
         logger.debug("  [ProjectController] Archivo asignado manualmente para: "
                 + itemModificado.getRutaImagen().getFileName());
         actualizarEstadoExportacionUI();
-    } // --- Fin del método onExportItemManuallyAssigned ---
+    } // --- Fin del metodo: onExportItemManuallyAssigned ---
+
 
     public void actualizarEstadoExportacionUI() {
         if (registry == null || exportQueueManager == null || actionMap == null) {
@@ -1098,74 +1079,9 @@ public class ProjectController implements IModoController {
                 .filter(modelo.proyecto.ExportItem::isSeleccionadoParaExportar)
                 .collect(Collectors.toList());
 
-        // --- LOGICA DE DETECCION DE CONFLICTOS MEJORADA ---
+        ExportStatusReport conflictReport = exportService.detectarConflictosEnCola(colaCompleta, itemsSeleccionadosParaExportar);
 
-        // 1. Detectar conflictos de NOMBRE DE IMAGEN (el original)
-        java.util.Set<String> nombresDeImagenDuplicados = itemsSeleccionadosParaExportar.stream()
-                .map(item -> {
-                    Path p = item.getRutaImagen();
-                    Path fn = p.getFileName();
-                    return (fn != null) ? fn.toString() : p.toString();
-                })
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
-                .entrySet().stream()
-                .filter(entry -> entry.getValue() > 1)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
-
-        // 2. Detectar conflictos de NOMBRE DE ARCHIVO ASIGNADO (el nuevo)
-        java.util.Map<String, List<Path>> archivosAsignadosPorNombre = itemsSeleccionadosParaExportar.stream()
-                .filter(item -> item.getRutasArchivosAsociados() != null && !item.getRutasArchivosAsociados().isEmpty())
-                .flatMap(item -> item.getRutasArchivosAsociados().stream()) // Aplanar la lista de archivos
-                .collect(Collectors.groupingBy(path -> {
-                    Path fn = path.getFileName();
-                    return (fn != null) ? fn.toString() : path.toString();
-                }));
-
-        java.util.Set<String> nombresDeAsignadosDuplicados = archivosAsignadosPorNombre.entrySet().stream()
-                .filter(entry -> entry.getValue().size() > 1)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
-
-        // 3. Actualizar el estado de TODOS los items
-        boolean hayConflictos = !nombresDeImagenDuplicados.isEmpty() || !nombresDeAsignadosDuplicados.isEmpty();
-
-        for (modelo.proyecto.ExportItem item : colaCompleta) {
-            Path pImg = item.getRutaImagen();
-            Path fnImg = pImg.getFileName();
-            String sImg = (fnImg != null) ? fnImg.toString() : pImg.toString();
-            boolean conflictoImagen = nombresDeImagenDuplicados.contains(sImg);
-            item.setTieneConflictoDeNombre(conflictoImagen);
-
-            // Solo si no hay un conflicto de imagen (que es más grave), comprobamos el de
-            // asignado
-            if (!conflictoImagen && item.getRutasArchivosAsociados() != null) {
-                boolean conflictoAsignado = item.getRutasArchivosAsociados().stream()
-                        .anyMatch(path -> {
-                            Path fn = path.getFileName();
-                            String s = (fn != null) ? fn.toString() : path.toString();
-                            return nombresDeAsignadosDuplicados.contains(s);
-                        });
-                if (conflictoAsignado) {
-                    // Usamos el estado original para el conflicto, pero lo cambiamos solo si es
-                    // necesario
-                    if (item.getEstadoArchivoComprimido() != ExportStatus.ASIGNADO_DUPLICADO) {
-                        item.setEstadoArchivoComprimido(ExportStatus.ASIGNADO_DUPLICADO);
-                    }
-                } else {
-                    // Si ya NO hay conflicto, lo restauramos a su estado normal (OK o MANUAL)
-                    if (item.getEstadoArchivoComprimido() == ExportStatus.ASIGNADO_DUPLICADO) {
-                        if (item.getCandidatosArchivo() != null && !item.getCandidatosArchivo().isEmpty()) {
-                            item.setEstadoArchivoComprimido(ExportStatus.ENCONTRADO_OK);
-                        } else {
-                            item.setEstadoArchivoComprimido(ExportStatus.ASIGNADO_MANUAL);
-                        }
-                    }
-                }
-            }
-        }
-        // --- FIN DE LA LOGICA DE DETECCION DE CONFLICTOS MEJORADA ---
-
+        boolean hayConflictos = conflictReport.hayConflictos();
         long totalItems = colaCompleta.size();
         long seleccionados = itemsSeleccionadosParaExportar.size();
         String rutaDestino = exportPanel.getRutaDestino();
@@ -1233,15 +1149,10 @@ public class ProjectController implements IModoController {
             projectManager.notificarModificacion();
         }
 
-    } // --- Fin del método actualizarEstadoExportacionUI ---
+    } // --- Fin del metodo: actualizarEstadoExportacionUI ---
 
-    /**
-     * Método de ayuda para actualizar el tooltip (SHORT_DESCRIPTION) de una acción
-     * en el actionMap.
-     * 
-     * @param commandKey  La clave de la acción en el mapa.
-     * @param tooltipText El texto de ayuda a establecer.
-     */
+
+    // Método de ayuda para actualizar el tooltip (SHORT_DESCRIPTION) de una acción
     private void actualizarTooltipAccion(String commandKey, String tooltipText) {
         if (actionMap != null) {
             Action action = actionMap.get(commandKey);
@@ -1249,13 +1160,10 @@ public class ProjectController implements IModoController {
                 action.putValue(Action.SHORT_DESCRIPTION, tooltipText);
             }
         }
-    } // ---FIN de metodo [actualizarTooltipAccion]---
+    } // --- Fin del metodo: actualizarTooltipAccion ---
 
-    /**
-     * Orquesta la adición de uno o más archivos asociados a un ExportItem.
-     * Este método contiene toda la lógica de negocio, liberando a la Action de esa
-     * responsabilidad.
-     */
+
+    // Orquesta la adición de uno o más archivos asociados a un ExportItem
     public void solicitarAnadirArchivoAsociado() {
         JTable tablaExportacion = getTablaExportacionDesdeRegistro();
         if (tablaExportacion == null || tablaExportacion.getSelectedRow() == -1) {
@@ -1306,12 +1214,10 @@ public class ProjectController implements IModoController {
                 exportPanel.getDetailPanel().updateDetails(selectedItem);
             }
         }
-    } // ---FIN de metodo [solicitarAnadirArchivoAsociado]---
+    } // --- Fin del metodo: solicitarAnadirArchivoAsociado ---
 
-    /**
-     * Orquesta la eliminación de un archivo asociado de un ExportItem.
-     * Es llamado por la acción DeleteAssociatedFileAction.
-     */
+
+    // Orquesta la eliminación de un archivo asociado de un ExportItem
     public void solicitarQuitarArchivoAsociado() {
         ExportPanel exportPanel = registry.get("panel.proyecto.exportacion.completo");
         if (exportPanel == null)
@@ -1361,12 +1267,10 @@ public class ProjectController implements IModoController {
             detailPanel.updateDetails(selectedItem); // Actualiza la lista de detalles
             actualizarEstadoExportacionUI();
         }
-    } // ---FIN de metodo [solicitarQuitarArchivoAsociado]---
+    } // --- Fin del metodo: solicitarQuitarArchivoAsociado ---
 
-    /**
-     * Orquesta la localización (abrir explorador) de un archivo asociado.
-     * Es llamado por la acción LocateAssociatedFileAction.
-     */
+
+    // Orquesta la localización (abrir explorador) de un archivo asociado
     public void solicitarLocalizarArchivoAsociado() {
         ExportPanel exportPanel = registry.get("panel.proyecto.exportacion.completo");
         if (exportPanel == null)
@@ -1397,10 +1301,7 @@ public class ProjectController implements IModoController {
         }
     } // --- FIN de metodo solicitarLocalizarArchivoAsociado ---
 
-    /**
-     * Abre un selector de archivos para permitir al usuario añadir una o varias imágenes
-     * o archivos (como STLs) directamente al proyecto.
-     */
+    // Abre un selector de archivos para permitir al usuario añadir una o varias imágenes
     public void solicitarAnadirArchivosAlProyecto() {
         if (view == null || projectManager == null) {
             return;
@@ -1440,15 +1341,7 @@ public class ProjectController implements IModoController {
         }
     } // --- FIN de metodo solicitarAnadirArchivosAlProyecto ---
 
-    /**
-     * Sincroniza la selección de la JTable de exportación para que coincida con la
-     * imagen
-     * actualmente seleccionada en el modelo principal del visor.
-     * Este método es crucial para mantener la consistencia de la UI cuando se
-     * navega
-     * por las imágenes con los controles principales mientras el panel de
-     * exportación está visible.
-     */
+    // Sincroniza la selección de la JTable de exportación para que coincida con la
     public void sincronizarSeleccionEnTablaExportacion() {
         // Solo actuar si estamos en el estado de exportación
         if (!isExportPanelVisible() || model == null) {
@@ -1480,7 +1373,8 @@ public class ProjectController implements IModoController {
                 tablaExportacion.clearSelection();
             }
         });
-    } // ---FIN de metodo [sincronizarSeleccionEnTablaExportacion]---
+    } // --- Fin del metodo: sincronizarSeleccionEnTablaExportacion ---
+
 
     public void solicitarInicioExportacion() {
         if (exportQueueManager == null || registry == null || view == null) {
@@ -1498,110 +1392,77 @@ public class ProjectController implements IModoController {
 
         Path carpetaDestino = java.nio.file.Paths.get(exportPanel.getRutaDestino());
 
-        // --- INICIO DE LA FASE 2: VALIDACIÓN PREVIA ---
-
-        // 1. VALIDAR LA CARPETA DE DESTINO
-        if (!Files.exists(carpetaDestino)) {
-            JOptionPane.showMessageDialog(view, "La carpeta de destino no existe:\n" + carpetaDestino,
-                    "Error de Exportación", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        if (!Files.isDirectory(carpetaDestino)) {
-            JOptionPane.showMessageDialog(view, "La ruta de destino no es una carpeta:\n" + carpetaDestino,
-                    "Error de Exportación", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        if (!Files.isWritable(carpetaDestino)) {
-            JOptionPane.showMessageDialog(view,
-                    "No se tienen permisos de escritura en la carpeta de destino:\n" + carpetaDestino,
-                    "Error de Exportación", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
         List<ExportItem> colaParaCopiar = exportQueueManager.getColaDeExportacion().stream()
                 .filter(ExportItem::isSeleccionadoParaExportar)
                 .collect(Collectors.toList());
 
-        if (colaParaCopiar.isEmpty()) {
-            JOptionPane.showMessageDialog(view, "No hay archivos seleccionados en la cola para exportar.",
-                    "Exportación Vacía", JOptionPane.WARNING_MESSAGE);
+        ExportPreflightReport report = exportService.validarPreflight(colaParaCopiar, carpetaDestino);
+
+        if (!report.isDestinoValido())
+        {
+            JOptionPane.showMessageDialog(view, report.getMensajeError(),
+                    "Error de Exportación", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        // 2. DETECTAR CONFLICTOS DE SOBRESCRITURA
         boolean soloModificados = false;
         boolean limpiarDestino = false;
-        List<String> archivosEnConflicto = new ArrayList<>();
-        for (ExportItem item : colaParaCopiar) {
-            // Comprobar la imagen
-            Path pImg = item.getRutaImagen();
-            Path fnImg = pImg.getFileName();
-            Path destinoImagen = carpetaDestino.resolve((fnImg != null) ? fnImg : pImg);
-            if (Files.exists(destinoImagen)) {
-                Path dImgFn = destinoImagen.getFileName();
-                archivosEnConflicto.add((dImgFn != null) ? dImgFn.toString() : destinoImagen.toString());
-            }
-            // Comprobar los archivos asociados
-            for (Path asociado : item.getRutasArchivosAsociados()) {
-                Path fnAsc = asociado.getFileName();
-                Path destinoAsociado = carpetaDestino.resolve((fnAsc != null) ? fnAsc : asociado);
-                if (Files.exists(destinoAsociado)) {
-                    Path dAscFn = destinoAsociado.getFileName();
-                    archivosEnConflicto.add((dAscFn != null) ? dAscFn.toString() : destinoAsociado.toString());
-                }
-            }
-        }
 
-        if (!archivosEnConflicto.isEmpty()) {
+        if (report.hayConflictos())
+        {
             Object[] options = {"Sincronizar", "Sobrescribir", "Limpiar Carpeta", "Cancelar"};
             int choice = JOptionPane.showOptionDialog(
                     view,
-                    "La carpeta de destino ya contiene " + archivosEnConflicto.size() + " de los archivos.\n" +
-                    "¿Cómo deseas proceder?\n\n" +
-                    "- Sincronizar: Solo añade lo que falta. Respeta lo que hay.\n" +
-                    "- Sobrescribir: Reemplaza archivos, pero deja el resto.\n" +
-                    "- Limpiar: Vacía la carpeta antes de exportar.",
+                    "La carpeta de destino ya contiene " + report.getArchivosEnConflicto().size()
+                            + " de los archivos.\n"
+                            + "¿Cómo deseas proceder?\n\n"
+                            + "- Sincronizar: Solo añade lo que falta. Respeta lo que hay.\n"
+                            + "- Sobrescribir: Reemplaza archivos, pero deja el resto.\n"
+                            + "- Limpiar: Vacía la carpeta antes de exportar.",
                     "Conflicto de archivos en mesa de trabajo",
                     JOptionPane.DEFAULT_OPTION,
                     JOptionPane.WARNING_MESSAGE,
-                    null,
-                    options,
-                    options[0]);
+                    null, options, options[0]);
 
-            if (choice == 0) { // Sincronizar (Solo faltantes)
+            if (choice == 0)
+            {
                 soloModificados = true;
                 logger.info("[ProjectController] Exportación: Sincronizar.");
-            } else if (choice == 1) { // Sobrescribir todo
-                soloModificados = false;
+            }
+            else if (choice == 1)
+            {
                 logger.info("[ProjectController] Exportación: Sobrescribir.");
-            } else if (choice == 2) { // Limpiar Carpeta
-                soloModificados = false;
+            }
+            else if (choice == 2)
+            {
                 limpiarDestino = true;
                 logger.info("[ProjectController] Exportación: Limpieza total previa.");
-            } else {
+            }
+            else
+            {
                 logger.info("[ProjectController] Exportación cancelada por el usuario.");
-                return; 
+                return;
             }
         }
 
-        // --- FIN DE LA FASE 2: VALIDACIÓN PREVIA ---
-
-        // Si hemos llegado hasta aquí, todas las validaciones han pasado.
         boolean isMoveOperation = exportPanel.isMoveOperationActive();
 
-        if (isMoveOperation) {
-            javax.swing.ImageIcon warnIcon = generalController.getVisorController().getIconUtils().getScaledCommonIcon("status-warning.png", 48, 48);
+        if (isMoveOperation)
+        {
+            javax.swing.ImageIcon warnIcon = generalController.getVisorController().getIconUtils()
+                    .getScaledCommonIcon("status-warning.png", 48, 48);
             int confirm = JOptionPane.showConfirmDialog(
                     view,
-                    "¡ATENCIÓN!\n\nEl botón de 'Mover' está activado.\n" +
-                    "Los archivos se MOVERÁN a la carpeta destino y se ELIMINARÁN de la biblioteca original.\n\n" +
-                    "¿Estás seguro de que deseas continuar con el movimiento?",
+                    "¡ATENCIÓN!\n\nEl botón de 'Mover' está activado.\n"
+                            + "Los archivos se MOVERÁN a la carpeta destino y se ELIMINARÁN de la biblioteca original.\n\n"
+                            + "¿Estás seguro de que deseas continuar con el movimiento?",
                     "Confirmar Movimiento de Archivos",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE,
                     warnIcon);
-            
-            if (confirm != JOptionPane.YES_OPTION) {
+
+            if (confirm != JOptionPane.YES_OPTION)
+            {
                 logger.info("[ProjectController] Exportación (Mover) cancelada por el usuario.");
                 return;
             }
@@ -1611,16 +1472,19 @@ public class ProjectController implements IModoController {
                 view,
                 "Progreso de Exportación",
                 isMoveOperation ? "Moviendo archivos del proyecto..." : "Copiando archivos del proyecto...");
-        ExportWorker worker = new ExportWorker(colaParaCopiar, carpetaDestino, dialogo, soloModificados, limpiarDestino, isMoveOperation, exportPanel);
+        ExportWorker worker = new ExportWorker(colaParaCopiar, carpetaDestino, dialogo,
+                soloModificados, limpiarDestino, isMoveOperation, exportPanel);
 
         worker.addPropertyChangeListener(evt -> {
-            if ("progress".equals(evt.getPropertyName())) {
+            if ("progress".equals(evt.getPropertyName()))
+            {
                 dialogo.setProgress((Integer) evt.getNewValue());
             }
         });
         worker.execute();
         dialogo.setVisible(true);
-    } // --- Fin del método solicitarInicioExportacion ---
+    } // --- Fin del metodo: solicitarInicioExportacion ---
+
 
     public void generarCatalogoPDF() {
         ExportPanel exportPanel = registry.get("panel.proyecto.exportacion.completo");
@@ -1702,6 +1566,7 @@ public class ProjectController implements IModoController {
         }
     }
 
+
     private boolean sincronizarDatosCatalogoConModelo(List<ExportItem> items) {
         if (projectManager == null) return false;
         ProjectModel modeloActual = projectManager.getCurrentProject();
@@ -1727,6 +1592,7 @@ public class ProjectController implements IModoController {
         return modificado;
     }
 
+
     public void solicitarAbrirUbicacionImagen() {
         if (exportQueueManager == null || registry == null)
             return;
@@ -1744,7 +1610,8 @@ public class ProjectController implements IModoController {
                         JOptionPane.ERROR_MESSAGE);
             }
         }
-    } // --- Fin del método solicitarAbrirUbicacionImagen ---
+    } // --- Fin del metodo: solicitarAbrirUbicacionImagen ---
+
 
     public void solicitarAlternarIgnorarComprimido() {
         if (registry == null)
@@ -1767,13 +1634,15 @@ public class ProjectController implements IModoController {
 
             actualizarEstadoExportacionUI();
         }
-    } // --- Fin del método solicitarAlternarIgnorarComprimido ---
+    } // --- Fin del metodo: solicitarAlternarIgnorarComprimido ---
+
 
     public void solicitarAsignacionManual() {
         // Esta acción ahora es idéntica a "Añadir Archivo Asociado".
         // Simplemente delegamos la llamada al método orquestador.
         solicitarAnadirArchivoAsociado();
-    } // --- Fin del método solicitarAsignacionManual ---
+    } // --- Fin del metodo: solicitarAsignacionManual ---
+
 
     public void solicitarQuitarDeLaCola() {
         if (exportQueueManager == null || registry == null)
@@ -1788,7 +1657,8 @@ public class ProjectController implements IModoController {
             modelTabla.setCola(exportQueueManager.getColaDeExportacion());
             actualizarEstadoExportacionUI();
         }
-    } // --- Fin del método solicitarQuitarDeLaCola ---
+    } // --- Fin del metodo: solicitarQuitarDeLaCola ---
+
 
     public void solicitudAlternarMarcaImagen() {
         if (model == null) {
@@ -1810,17 +1680,15 @@ public class ProjectController implements IModoController {
                     + "'). No se realiza ninguna acción.");
         }
 
-    } // --- Fin del método solicitudAlternarMarcaImagen ---
+    } // --- Fin del metodo: solicitudAlternarMarcaImagen ---
+
 
     // ********************************************************************************************
     // *********************************************** MÉTODOS PARA GESTIÓN DE
     // ARCHIVOS DE PROYECTO
     // ********************************************************************************************
 
-    /**
-     * Orquesta la creación de un nuevo proyecto.
-     * Limpia el estado del proyecto y devuelve al usuario al modo Visualizador.
-     */
+    // Orquesta la creación de un nuevo proyecto
     public void solicitarNuevoProyecto() {
         if (projectManager == null || generalController == null) {
             logger.error("ERROR [solicitarNuevoProyecto]: Dependencias nulas.");
@@ -1844,7 +1712,8 @@ public class ProjectController implements IModoController {
         generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.VISUALIZADOR);
 
         generalController.actualizarTituloVentana();
-    } // ---FIN de metodo solicitarNuevoProyecto---
+    } // --- Fin del metodo: solicitarNuevoProyecto ---
+
 
     public void solicitarAbrirProyecto(Path rutaArchivo) {
         if (projectManager == null || generalController == null || model == null) {
@@ -1883,7 +1752,8 @@ public class ProjectController implements IModoController {
                     "Error al Abrir Proyecto",
                     JOptionPane.ERROR_MESSAGE);
         }
-    } // ---FIN de metodo solicitarAbrirProyecto---
+    } // --- Fin del metodo: solicitarAbrirProyecto ---
+
 
     public void solicitarGuardarProyecto() {
         if (projectManager == null)
@@ -1913,13 +1783,10 @@ public class ProjectController implements IModoController {
 
         projectManager.markProjectAsSaved();
 
-    } // ---FIN de metodo solicitarGuardarProyecto---
+    } // --- Fin del metodo: solicitarGuardarProyecto ---
 
-    /**
-     * Orquesta el guardado del proyecto actual en una nueva ubicación.
-     * Muestra un JFileChooser y, si tiene éxito, guarda el proyecto.
-     * Confía en que el ProjectModel en memoria es la fuente de la verdad.
-     */
+
+    // Orquesta el guardado del proyecto actual en una nueva ubicación
     public void solicitarGuardarProyectoComo() {
 
         if (projectManager == null || generalController == null || view == null) {
@@ -1980,13 +1847,10 @@ public class ProjectController implements IModoController {
                 "El proyecto se ha guardado correctamente como '" + sFinal + "'.",
                 "Proyecto Guardado",
                 JOptionPane.INFORMATION_MESSAGE);
-    } // ---FIN de metodo solicitarGuardarProyectoComo---
+    } // --- Fin del metodo: solicitarGuardarProyectoComo ---
 
-    /**
-     * Actualiza los metadatos del ProjectModel (nombre, fecha de modificación)
-     * justo antes de una operación de guardado.
-     * El nombre del proyecto se deriva del nombre del archivo activo.
-     */
+
+    // Actualiza los metadatos del ProjectModel (nombre, fecha de modificación)
     private void sincronizarMetadatosParaGuardado() {
         if (projectManager == null)
             return;
@@ -2010,15 +1874,10 @@ public class ProjectController implements IModoController {
 
         currentProject.setLastModifiedDate(System.currentTimeMillis());
         logger.debug("Metadatos del proyecto (nombre y fecha) sincronizados para guardado.");
-    } // ---FIN de metodo sincronizarMetadatosParaGuardado---
+    } // --- Fin del metodo: sincronizarMetadatosParaGuardado ---
 
-    /**
-     * Sincroniza el 'ProjectModel' en el ProjectManager con el estado actual
-     * de las JLists de la interfaz de usuario (selección y descartes).
-     * Este método es el puente que restaura la robustez del sistema, asegurando
-     * que el estado visual actual se consolide en el modelo de datos antes de
-     * cualquier operación de persistencia.
-     */
+
+    // Sincroniza el 'ProjectModel' en el ProjectManager con el estado actual
     public void sincronizarModeloConUI() {
         if (projectManager == null || registry == null) {
             logger.warn("WARN [sincronizarModeloConUI]: ProjectManager o Registry son nulos. Sincronización abortada.");
@@ -2061,17 +1920,10 @@ public class ProjectController implements IModoController {
 
         logger.info(
                 "[ProjectController] Sincronización de UI -> Modelo completada. El modelo está listo para guardarse.");
-    } // ---FIN de metodo sincronizarModeloConUI---
+    } // --- Fin del metodo: sincronizarModeloConUI ---
 
-    /**
-     * Sincroniza el mapa de 'associatedFiles' en el ProjectModel con el estado
-     * actual de la cola de exportación (ExportQueueManager).
-     * ESTA ES LA FUENTE DE VERDAD PARA LA PERSISTENCIA DE ASOCIACIONES.
-     * 1. Fuerza la actualización de la cola de exportación desde la selección
-     * actual.
-     * 2. Limpia el mapa 'associatedFiles' en el modelo.
-     * 3. Reconstruye el mapa 'associatedFiles' a partir de la cola actualizada.
-     */
+
+    // Sincroniza el mapa de 'associatedFiles' en el ProjectModel con el estado
     public void sincronizarArchivosAsociadosConModelo() {
         if (projectManager == null || exportQueueManager == null) {
             logger.warn("[sincronizarArchivosAsociados] Sincronización abortada (dependencias nulas).");
@@ -2133,12 +1985,10 @@ public class ProjectController implements IModoController {
         logger.info(
                 "[ProjectController] Sincronización de configuración de exportación completada. Se persistirán {} entradas.",
                 contador);
-    } // ---FIN de metodo sincronizarArchivosAsociadosConModelo---
+    } // --- Fin del metodo: sincronizarArchivosAsociadosConModelo ---
 
-    /**
-     * Carga los metadatos (nombre, descripción) desde el ProjectModel
-     * al panel de propiedades en la UI.
-     */
+
+    // Carga los metadatos (nombre, descripción) desde el ProjectModel
     private void actualizarPanelDePropiedadesEnUI() {
         if (projectManager == null || registry == null)
             return;
@@ -2159,12 +2009,10 @@ public class ProjectController implements IModoController {
             propsPanel.getProjectDescriptionArea().setText(description);
             logger.debug("Panel de propiedades en la UI actualizado con los datos del modelo.");
         }
-    } // ---FIN de metodo [actualizarPanelDePropiedadesEnUI]---
+    } // --- Fin del metodo: actualizarPanelDePropiedadesEnUI ---
 
-    /**
-     * Sincroniza la descripción del proyecto desde el campo de texto de la UI
-     * hacia el ProjectModel en memoria.
-     */
+
+    // Sincroniza la descripción del proyecto desde el campo de texto de la UI
     public void sincronizarDescripcionDesdeUI() {
         if (projectManager == null || registry == null)
             return;
@@ -2176,12 +2024,10 @@ public class ProjectController implements IModoController {
             currentProject.setProjectDescription(propsPanel.getProjectDescriptionArea().getText());
             logger.debug("Descripción del ProjectModel sincronizada desde la UI.");
         }
-    } // ---FIN de metodo [sincronizarDescripcionDesdeUI]---
+    } // --- Fin del metodo: sincronizarDescripcionDesdeUI ---
 
-    /**
-     * Actualiza los títulos de los paneles "Selección Actual" y "Descartes"
-     * con el número correcto de elementos de sus respectivas listas.
-     */
+
+    // Actualiza los títulos de los paneles "Selección Actual" y "Descartes"
     public void actualizarContadoresDeTitulos() {
         if (registry == null || generalController == null || generalController.getVisorController() == null
                 || generalController.getVisorController().getThemeManager() == null)
@@ -2212,7 +2058,8 @@ public class ProjectController implements IModoController {
             panelDescartes.repaint();
         }
         logger.debug("[ProjectController] Contadores de títulos de paneles actualizados.");
-    } // ---FIN de metodo [actualizarContadoresDeTitulos]---
+    } // --- Fin del metodo: actualizarContadoresDeTitulos ---
+
 
     // ********************************************************************************************
     // ********************************************************** METODOS DE LA
@@ -2252,7 +2099,8 @@ public class ProjectController implements IModoController {
                         "descartes");
             }
         }
-    } // --- Fin del método solicitarEliminacionPermanente ---
+    } // --- Fin del metodo: solicitarEliminacionPermanente ---
+
 
     private void actualizarAparienciaListasPorFoco() {
         if (registry == null || model == null || generalController == null
@@ -2283,15 +2131,10 @@ public class ProjectController implements IModoController {
 
         projectList.repaint();
         descartesList.repaint();
-    } // --- Fin del método actualizarAparienciaListasPorFoco ---
+    } // --- Fin del metodo: actualizarAparienciaListasPorFoco ---
 
-    /**
-     * Crea un MouseListener que muestra un menú contextual en un JComponent.
-     * 
-     * @param component El componente al que se asociará el menú.
-     * @param menuItems Una lista de Actions o Separators para el menú.
-     * @return Un MouseAdapter configurado.
-     */
+
+    // Crea un MouseListener que muestra un menú contextual en un JComponent
     private java.awt.event.MouseAdapter createContextMenuListener(javax.swing.JComponent component,
             Object... menuItems) {
         return new java.awt.event.MouseAdapter() {
@@ -2300,10 +2143,12 @@ public class ProjectController implements IModoController {
                     showMenu(e);
             }
 
+
             public void mouseReleased(java.awt.event.MouseEvent e) {
                 if (e.isPopupTrigger())
                     showMenu(e);
             }
+
 
             private void showMenu(java.awt.event.MouseEvent e) {
                 logger.debug("[ContextMenuListener] Evento de popup detectado en el componente: {}",
@@ -2346,15 +2191,10 @@ public class ProjectController implements IModoController {
                 }
             }
         };
-    } // ---FIN de metodo [createContextMenuListener]---
+    } // --- Fin del metodo: createContextMenuListener ---
 
-    /**
-     * Construye y devuelve un JPopupMenu dinámico para el visor principal (Single o
-     * Grid) del modo proyecto. El contenido del menú depende del estado de vista
-     * actual y del modo de visualización.
-     * 
-     * @return Un JPopupMenu configurado.
-     */
+
+    // Construye y devuelve un JPopupMenu dinámico para el visor principal (Single o
     public JPopupMenu crearMenuContextualVisorManualmente() {
         logger.debug("[MenuContextualVisor] Creando menú manualmente para el estado de vista: {} y modo display: {}",
                 currentViewState, model.getCurrentDisplayMode());
@@ -2403,14 +2243,10 @@ public class ProjectController implements IModoController {
         menu.add(actionMap.get(AppActionCommands.CMD_PROYECTO_ANADIR_ARCHIVOS));
 
         return menu;
-    } // ---FIN de metodo [crearMenuContextualVisorManualmente]---
+    } // --- Fin del metodo: crearMenuContextualVisorManualmente ---
 
-    /**
-     * El método central para refrescar TODA la UI del modo proyecto.
-     * Repuebla las JLists, la tabla de exportación y sincroniza la lista maestra
-     * basándose en el estado actual del ProjectManager.
-     * Esta es la única fuente de verdad para actualizar la vista.
-     */
+
+    // El método central para refrescar TODA la UI del modo proyecto
     public void refrescarVistaProyectoCompleta() {
         logger.info("[ProjectController] Iniciando refresco completo de la vista del proyecto...");
 
@@ -2429,12 +2265,10 @@ public class ProjectController implements IModoController {
         refrescarGridProyecto(); // Asegura que el repintado ocurra siempre.
 
         logger.info("[ProjectController] Refresco completo de la vista del proyecto finalizado.");
-    } // ---FIN de metodo [refrescarVistaProyectoCompleta]---
+    } // --- Fin del metodo: refrescarVistaProyectoCompleta ---
 
-    /**
-     * Configura el menú contextual para la tabla de exportación.
-     * Debe ser llamado una vez durante la inicialización de la UI del proyecto.
-     */
+
+    // Configura el menú contextual para la tabla de exportación
     public void configurarContextMenuTablaExportacion() {
         logger.debug("[DIAGNÓSTICO] Se ha llamado a configurarContextMenuTablaExportacion().");
 
@@ -2475,7 +2309,8 @@ public class ProjectController implements IModoController {
         // Asignamos el listener a la tabla
         tablaExportacion.addMouseListener(contextMenuListener);
         logger.debug("[DIAGNÓSTICO] Menú contextual configurado y listener añadido a la tabla de exportación.");
-    } // ---FIN de metodo [configurarContextMenuTablaExportacion]---
+    } // --- Fin del metodo: configurarContextMenuTablaExportacion ---
+
 
     public void solicitarRelocalizacionImagen() {
         if (registry == null || exportQueueManager == null || view == null)
@@ -2537,13 +2372,10 @@ public class ProjectController implements IModoController {
             refrescarVistaProyectoCompleta();
             logger.info("Imagen relocalizada manualmente con éxito de: {} -> {}", oldPath, nuevaRuta);
         }
-    } // --- Fin del método solicitarRelocalizacionImagen ---
+    } // --- Fin del metodo: solicitarRelocalizacionImagen ---
 
-    /**
-     * Orquesta el movimiento de una imagen de la lista de selección a la de
-     * descartes.
-     * Es llamado por acciones de la UI, como "Quitar de la cola de exportación".
-     */
+
+    // Orquesta el movimiento de una imagen de la lista de selección a la de
     public void solicitarMoverSeleccionadoAdescartes() {
         JTable tablaExportacion = getTablaExportacionDesdeRegistro();
         if (tablaExportacion == null || tablaExportacion.getSelectedRow() == -1) {
@@ -2565,13 +2397,10 @@ public class ProjectController implements IModoController {
             // Paso 2: Ordenar un refresco completo y sincronizado de toda la UI.
             refrescarVistaProyectoCompleta();
         }
-    } // ---FIN de metodo [solicitarMoverSeleccionadoAdescartes]---
+    } // --- Fin del metodo: solicitarMoverSeleccionadoAdescartes ---
 
-    /**
-     * Busca de forma proactiva imágenes en el proyecto que no existan en su ruta física guardada.
-     * Si las encuentra en la base de datos de catalogación bajo una nueva ruta (porque han sido movidas),
-     * actualiza sus rutas automáticamente en el modelo del proyecto y la interfaz de usuario.
-     */
+
+    // Busca de forma proactiva imágenes en el proyecto que no existan en su ruta física guardada
     public void autoRelocalizarImagenesHuerfanas() {
         if (projectManager == null || projectManager.getCurrentProject() == null || generalController == null) {
             return;
@@ -2668,10 +2497,7 @@ public class ProjectController implements IModoController {
         }
     }
 
-    /**
-     * Elimina permanentemente del proyecto todas las imágenes seleccionadas o descartadas
-     * que no existan físicamente en el disco y que no hayan podido ser auto-relocalizadas.
-     */
+    // Elimina permanentemente del proyecto todas las imágenes seleccionadas o descartadas
     public void solicitarLimpiarImagenesNoEncontradas() {
         if (projectManager == null || projectManager.getCurrentProject() == null) {
             return;
@@ -2739,6 +2565,7 @@ public class ProjectController implements IModoController {
         }
     }
 
+
     public void navegarTablaExportacionConRueda(java.awt.event.MouseWheelEvent e) {
         if (registry == null || model == null) {
             logger.warn("WARN [navegarTablaExportacionConRueda]: Registry o Modelo nulos.");
@@ -2770,7 +2597,7 @@ public class ProjectController implements IModoController {
         } else {
             logger.debug("  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: " + currentRow);
         }
-    }// --- Fin del nuevo método navegarTablaExportacionConRueda ---
+    }// --- Fin del metodo: navegarTablaExportacionConRueda ---
 
     public void mostrarImagenDeExportacion(Path rutaImagen) {
         logger.debug("[ProjectController] Solicitud para mostrar imagen de exportación: " + rutaImagen);
@@ -2789,7 +2616,8 @@ public class ProjectController implements IModoController {
 
         projectListCoordinator.seleccionarImagenPorClave(claveImagen);
 
-    } // --- Fin del nuevo método mostrarImagenDeExportacion ---
+    } // --- Fin del metodo: mostrarImagenDeExportacion ---
+
 
     public void solicitarLocalizarArchivoSeleccionado() {
         if (model == null)
@@ -2858,7 +2686,8 @@ public class ProjectController implements IModoController {
                 }
             }
         }
-    } // --- Fin del nuevo método solicitarLocalizarArchivoSeleccionado ---
+    } // --- Fin del metodo: solicitarLocalizarArchivoSeleccionado ---
+
 
     public void solicitarVaciarDescartes() {
         if (projectManager == null || view == null)
@@ -2879,7 +2708,8 @@ public class ProjectController implements IModoController {
 
             refrescarListasDeProyecto();
         }
-    } // --- Fin del nuevo método solicitarVaciarDescartes ---
+    } // --- Fin del metodo: solicitarVaciarDescartes ---
+
 
     public void solicitarEtiquetaParaImagenSeleccionada() {
         if (model.getCurrentDisplayMode() != VisorModel.DisplayMode.GRID)
@@ -2915,7 +2745,8 @@ public class ProjectController implements IModoController {
 
             refrescarGridProyecto();
         }
-    } // ---FIN de metodo solicitarEtiquetaParaImagenSeleccionada---
+    } // --- Fin del metodo: solicitarEtiquetaParaImagenSeleccionada ---
+
 
     public void solicitarBorradoEtiquetaParaImagenSeleccionada() {
         if (model.getCurrentDisplayMode() != VisorModel.DisplayMode.GRID)
@@ -2933,7 +2764,8 @@ public class ProjectController implements IModoController {
 
             refrescarGridProyecto();
         }
-    } // ---FIN de metodo solicitarBorradoEtiquetaParaImagenSeleccionada---
+    } // --- Fin del metodo: solicitarBorradoEtiquetaParaImagenSeleccionada ---
+
 
     public void cambiarTamanoGrid(double factor) {
         if (model.getCurrentDisplayMode() != VisorModel.DisplayMode.GRID)
@@ -2961,7 +2793,8 @@ public class ProjectController implements IModoController {
 
         ajustarPosicionDivisorDerecho();
 
-    } // ---FIN de metodo cambiarTamanoGrid---
+    } // --- Fin del metodo: cambiarTamanoGrid ---
+
 
     private void refrescarGridProyecto() {
         JList<String> gridList = registry.get("list.grid.proyecto");
@@ -2969,15 +2802,10 @@ public class ProjectController implements IModoController {
             gridList.revalidate();
             gridList.repaint();
         }
-    } // ---FIN de metodo refrescarGridProyecto---
+    } // --- Fin del metodo: refrescarGridProyecto ---
 
-    /**
-     * Busca los renderers de las listas de proyecto en el registro y limpia su
-     * caché interno.
-     * Esto es crucial para asegurar que el estado de "archivo no encontrado" se
-     * re-evalúe
-     * cuando se carga o refresca un proyecto.
-     */
+
+    // Busca los renderers de las listas de proyecto en el registro y limpia su
     private void limpiarCacheRenderersProyecto() {
         if (registry == null) {
             return;
@@ -2997,7 +2825,8 @@ public class ProjectController implements IModoController {
         }
 
         logger.debug("[ProjectController] Caché de los renderers de listas de proyecto limpiado.");
-    } // ---FIN de metodo [limpiarCacheRenderersProyecto]---
+    } // --- Fin del metodo: limpiarCacheRenderersProyecto ---
+
 
     public JTable getTablaExportacionDesdeRegistro() {
         if (registry == null)
@@ -3014,30 +2843,19 @@ public class ProjectController implements IModoController {
         logger.warn(
                 "WARN [ProjectController]: No se pudo encontrar 'ExportPanel' en el registro con la clave 'panel.proyecto.exportacion.completo'.");
         return null;
-    } // --- Fin del método getTablaExportacionDesdeRegistro ---
+    } // --- Fin del metodo: getTablaExportacionDesdeRegistro ---
 
-    /**
-     * Comprueba si el panel de herramientas de la derecha (que contiene la
-     * exportación)
-     * está actualmente visible para el usuario.
-     * 
-     * @return true si el panel es visible, false en caso contrario.
-     */
+
+    // Comprueba si el panel de herramientas de la derecha (que contiene la
     public boolean isExportPanelVisible() {
         if (registry == null)
             return false;
         JPanel toolsPanel = registry.get("panel.proyecto.herramientas.container");
         return toolsPanel != null && toolsPanel.isVisible();
-    } // ---FIN de metodo [isExportPanelVisible]---
+    } // --- Fin del metodo: isExportPanelVisible ---
 
-    /**
-     * Establece la visibilidad del panel de herramientas de exportación sin alterar
-     * el
-     * estado lógico de la vista (ProjectViewState). Este método es utilizado por
-     * GeneralController para restaurar la UI al volver al modo proyecto.
-     *
-     * @param visible true para mostrar el panel, false para ocultarlo.
-     */
+
+    // Establece la visibilidad del panel de herramientas de exportación sin alterar
     public void setExportPanelVisible(boolean visible) {
         if (registry == null)
             return;
@@ -3077,14 +2895,10 @@ public class ProjectController implements IModoController {
         if (toggleAction != null) {
             toggleAction.putValue(Action.SELECTED_KEY, visible);
         }
-    } // ---FIN de metodo setExportPanelVisible---
+    } // --- Fin del metodo: setExportPanelVisible ---
 
-    /**
-     * Calcula y ajusta la posición del divisor del split pane derecho (vertical).
-     * La posición se calcula para dejar espacio suficiente para ~1.5 filas de
-     * miniaturas
-     * en el panel superior (el visor del grid).
-     */
+
+    // Calcula y ajusta la posición del divisor del split pane derecho (vertical)
     public void ajustarPosicionDivisorDerecho() {
         if (registry == null)
             return;
@@ -3109,7 +2923,8 @@ public class ProjectController implements IModoController {
                 logger.debug("Posición del divisor derecho ajustada a {}px.", desiredHeight);
             });
         }
-    } // ---FIN de metodo [ajustarPosicionDivisorDerecho]---
+    } // --- Fin del metodo: ajustarPosicionDivisorDerecho ---
+
 
     public void setProjectListCoordinator(ProjectListCoordinator coordinator) {
         this.projectListCoordinator = coordinator;
@@ -3118,58 +2933,72 @@ public class ProjectController implements IModoController {
         }
     }
 
+
     public void setGeneralController(GeneralController generalController) {
         this.generalController = Objects.requireNonNull(generalController,
                 "GeneralController no puede ser null en ProjectController");
     }
 
+
     public void setProjectManager(IProjectManager projectManager) {
         this.projectManager = Objects.requireNonNull(projectManager);
     }
+
 
     public void setRegistry(ComponentRegistry registry) {
         this.registry = Objects.requireNonNull(registry);
     }
 
+
     public void setZoomManager(IZoomManager zoomManager) {
         this.zoomManager = Objects.requireNonNull(zoomManager);
     }
+
 
     public void setView(VisorView view) {
         this.view = Objects.requireNonNull(view);
     }
 
+
     public void setActionMap(Map<String, Action> actionMap) {
         this.actionMap = Objects.requireNonNull(actionMap);
     }
+
 
     public void setModel(VisorModel model) {
         this.model = Objects.requireNonNull(model);
     }
 
+
     public void setDisplayModeManager(DisplayModeManager displayModeManager) {
         this.displayModeManager = displayModeManager;
     }
+
 
     public IProjectManager getProjectManager() {
         return this.projectManager;
     }
 
+
     public ProjectListCoordinator getProjectListCoordinator() {
         return this.projectListCoordinator;
     }
+
 
     public VisorView getView() {
         return this.view;
     }
 
+
     public ComponentRegistry getRegistry() {
         return this.registry;
     }
 
+
     public GeneralController getGeneralController() {
         return this.generalController;
     }
+
 
     public Map<String, Action> getActionMap() {
         return this.actionMap;

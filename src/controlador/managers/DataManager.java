@@ -44,6 +44,14 @@ public class DataManager {
 
 
     /**
+     * Obtiene la instancia de TagDAO para operaciones directas de CRUD.
+     * @return La instancia de TagDAO.
+     */
+    public TagDAO getTagDAO() {
+        return tagDAO;
+    } // ---FIN de metodo [getTagDAO]---
+
+    /**
      * Obtiene una lista de todos los tags existentes en la base de datos,
      * ordenados alfabéticamente.
      * @return Una lista de objetos Tag.
@@ -89,6 +97,45 @@ public class DataManager {
         logger.info("Se encontraron {} imágenes para la jerarquía del tag '{}'.", paths.size(), tag.getNombre());
         return paths;
     } // ---FIN de metodo [getImagePathsForTag]---
+    /**
+     * Obtiene las rutas de imágenes asociadas a TODOS los tags que tengan el nombre dado,
+     * incluyendo los descendientes de cada uno.
+     * útil para la "vista lista" donde se busca por nombre de tag sin importar su ubicación.
+     * @param tagName El nombre del tag a buscar (ej. "armas").
+     * @return Lista de rutas completas de las imágenes encontradas.
+     */
+    public List<String> getImagePathsForTagName(String tagName) {
+        if (tagName == null || tagName.isBlank()) {
+            logger.warn("getImagePathsForTagName: nombre de tag vacío.");
+            return Collections.emptyList();
+        }
+
+        // 1. Encontrar TODOS los tags con ese nombre en cualquier rama.
+        List<Tag> allWithName = tagDAO.findTagsByNameAll(tagName.trim().toLowerCase());
+        if (allWithName.isEmpty()) {
+            logger.debug("No se encontró ningún tag con el nombre '{}'.", tagName);
+            return Collections.emptyList();
+        }
+
+        // 2. Para cada tag encontrado, incluir también sus descendientes.
+        List<String> tagNamesToSearch = new ArrayList<>();
+        for (Tag tag : allWithName) {
+            tagNamesToSearch.add(tag.getNombre());
+            List<Tag> descendants = tagDAO.getAllDescendantTags(tag.getId());
+            for (Tag d : descendants) {
+                tagNamesToSearch.add(d.getNombre());
+            }
+        }
+
+        logger.info("Búsqueda por nombre '{}' encontró {} tags raíz, {} nombres totales a buscar.",
+                tagName, allWithName.size(), tagNamesToSearch.size());
+
+        // 3. Buscar imágenes por todos esos nombres.
+        List<String> paths = tagDAO.findImagePathsByTagNames(tagNamesToSearch);
+        logger.info("Se encontraron {} imágenes para el nombre de tag '{}'.", paths.size(), tagName);
+        return paths;
+    } // ---FIN de metodo [getImagePathsForTagName]---
+
     /**
      * Obtiene los tags asociados a una imagen dada su ruta.
      * @param imagePath La ruta de la imagen.
@@ -231,6 +278,80 @@ public class DataManager {
     }
 
     /**
+     * Obtiene una lista con los IDs internos de los discos que están actualmente conectados.
+     */
+    public List<Long> getConnectedDiscoIds() {
+        Map<String, Path> connectedMap = getConnectedDisks();
+        java.util.Set<String> connectedSerials = connectedMap.keySet();
+        return getAllRegisteredDisks().stream()
+                .filter(d -> connectedSerials.contains(d.getNumeroSerie()))
+                .map(Disco::getId)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Resuelve una ruta con notación de puntos (ej. "juegos.blood.bowl").
+     * Para cada segmento, busca el tag existente o lo crea como tag de usuario.
+     * @param dotPath La ruta con notación de puntos.
+     * @return Lista de Tags desde la raíz hasta la hoja, o lista vacía si hay error.
+     */
+    public List<Tag> resolveDotNotation(String dotPath) {
+        if (dotPath == null || dotPath.isBlank()) return Collections.emptyList();
+
+        String[] segments = dotPath.split("\\.");
+        Long parentId = null;
+        List<Tag> path = new ArrayList<>();
+
+        for (String segment : segments) {
+            String trimmed = segment.trim();
+            if (trimmed.isEmpty()) continue;
+
+            Optional<Tag> existing = tagDAO.findTagByNameAndParent(trimmed, parentId);
+            Tag current;
+            if (existing.isPresent()) {
+                current = existing.get();
+            } else {
+                current = tagDAO.addTag(trimmed, parentId, 0).orElse(null);
+            }
+
+            if (current == null) {
+                logger.error("No se pudo resolver el segmento '{}' de la ruta '{}'", trimmed, dotPath);
+                return Collections.emptyList();
+            }
+            path.add(current);
+            parentId = current.getId();
+        }
+
+        logger.debug("Ruta '{}' resuelta a {} tags: {}", dotPath, path.size(),
+                path.stream().map(Tag::getNombre).collect(Collectors.joining(" > ")));
+        return path;
+    } // ---FIN de metodo [resolveDotNotation]---
+
+    /**
+     * Filtra una lista de rutas de imágenes para dejar sólo aquellas
+     * cuya raíz coincida con alguna de las unidades conectadas.
+     */
+    public List<String> filterConnectedPaths(List<String> paths) {
+        if (paths == null || paths.isEmpty()) return Collections.emptyList();
+        
+        Map<String, Path> connectedMap = getConnectedDisks();
+        List<String> connectedRoots = connectedMap.values().stream()
+                .map(Path::toString)
+                .map(String::toUpperCase)
+                .collect(Collectors.toList());
+                
+        return paths.stream().filter(pathStr -> {
+            String upperPath = pathStr.toUpperCase();
+            for (String root : connectedRoots) {
+                if (upperPath.startsWith(root)) {
+                    return true;
+                }
+            }
+            return false;
+        }).collect(Collectors.toList());
+    }
+
+    /**
      * Busca la ruta de una imagen a partir de su nombre de archivo.
      * @param nombreArchivo El nombre de la imagen.
      * @return Un Optional con el path como String si existe, o vacío.
@@ -238,5 +359,69 @@ public class DataManager {
     public Optional<String> findPathByFileName(String nombreArchivo) {
         return imagenDAO.findPathByFileName(nombreArchivo);
     }
+
+    /**
+     * Mueve un tag a un nuevo padre, con validación completa (anti-bucle,
+     * unicidad en destino, protección de tags de sistema).
+     * @param tag       El tag a mover.
+     * @param newParent El nuevo tag padre (null = mover a la raíz).
+     * @return true si el movimiento fue exitoso.
+     */
+    public boolean moveTag(Tag tag, Tag newParent) {
+        if (tag == null) return false;
+        Long newParentId = (newParent != null) ? newParent.getId() : null;
+        logger.info("Moviendo tag '{}' (ID {}) al padre '{}' (ID {}).",
+                tag.getNombre(), tag.getId(),
+                (newParent != null ? newParent.getNombre() : "RAÍZ"),
+                newParentId);
+        return tagDAO.moveTag(tag.getId(), newParentId);
+    } // ---FIN de metodo [moveTag]---
+
+    /**
+     * Cuenta el número de imágenes afectadas por un tag y toda su jerarquía descendiente.
+     * @param tag El tag raíz de la búsqueda.
+     * @return El número de imágenes únicas afectadas.
+     */
+    public int getImageCountForTagRecursive(Tag tag) {
+        if (tag == null) return 0;
+        return tagDAO.getImageCountForTagRecursive(tag.getId());
+    } // ---FIN de metodo [getImageCountForTagRecursive]---
+
+    /**
+     * Elimina un tag y TODA su rama de descendientes junto con sus asociaciones de imágenes.
+     * @param tag El tag raíz de la rama a eliminar.
+     * @return true si la eliminación fue exitosa.
+     */
+    public boolean deleteTagBranch(Tag tag) {
+        if (tag == null) return false;
+        logger.info("Eliminando rama completa del tag '{}' (ID {}).", tag.getNombre(), tag.getId());
+        return tagDAO.deleteTagBranch(tag.getId());
+    } // ---FIN de metodo [deleteTagBranch]---
+
+    /**
+     * Construye la ruta completa de un tag en notación punto (ej. "fantasía.armas").
+     * Camina hacia arriba por la jerarquía de padres hasta llegar a la raíz.
+     * @param tag El tag del que se quiere obtener la ruta completa.
+     * @return La ruta completa como String, o el nombre del tag si es raíz.
+     */
+    public String buildFullPath(Tag tag) {
+        if (tag == null) return "";
+        Map<Long, Tag> tagById = new HashMap<>();
+        for (Tag t : tagDAO.getAllTags()) {
+            tagById.put(t.getId(), t);
+        }
+
+        StringBuilder sb = new StringBuilder(tag.getNombre());
+        Long parentId = tag.getParentId();
+        int safetyCounter = 0;
+        while (parentId != null && safetyCounter < 50) {
+            Tag parent = tagById.get(parentId);
+            if (parent == null) break;
+            sb.insert(0, parent.getNombre() + ".");
+            parentId = parent.getParentId();
+            safetyCounter++;
+        }
+        return sb.toString();
+    } // ---FIN de metodo [buildFullPath]---
 
 } // --- FIN de clase DataManager ---

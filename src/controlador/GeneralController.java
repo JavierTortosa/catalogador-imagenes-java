@@ -12,7 +12,6 @@ import javax.swing.Action;
 import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
 import javax.swing.JList;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
@@ -30,6 +29,7 @@ import controlador.managers.FilterManager;
 import controlador.managers.FolderNavigationManager;
 import controlador.managers.ImageListManager;
 import controlador.managers.InfobarStatusManager;
+import controlador.managers.MenuPopupManager;
 import controlador.managers.ToolbarManager;
 import controlador.managers.ViewManager;
 import controlador.managers.filter.FilterCriterion;
@@ -43,7 +43,6 @@ import controlador.services.NavigationService;
 import controlador.services.ProjectLifecycleService;
 import controlador.services.SearchSortService;
 import controlador.services.ZoomPanService;
-import controlador.managers.MenuPopupManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
@@ -237,6 +236,8 @@ public class GeneralController
     public ProjectController getProjectController() {
         return this.projectController;
     } // --- Fin del método getProjectController ---
+    
+    
 
     public void setStatusBarManager(InfobarStatusManager statusBarManager) {
         this.statusBarManager = Objects.requireNonNull(statusBarManager,

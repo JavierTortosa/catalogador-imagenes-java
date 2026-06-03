@@ -35,6 +35,9 @@ public class ListContext {
     private String seleccionListKey; // Última clave seleccionada en la lista "Selección Actual"
     private String descartesListKey;  // Última clave seleccionada en la lista "Descartes"
 
+    // Campos para persistencia del modo Datos (árbol de etiquetas)
+    private String datosSelectedTag; // Nombre del tag seleccionado en el árbol ("Biblioteca" = raíz)
+
     private DisplayMode displayMode;
     
     /**
@@ -129,6 +132,7 @@ public class ListContext {
         this.nombreListaActiva = otroContexto.getNombreListaActiva();
         this.seleccionListKey = otroContexto.getSeleccionListKey();
         this.descartesListKey = otroContexto.getDescartesListKey();
+        this.datosSelectedTag = otroContexto.getDatosSelectedTag();
         this.carpetaRaizContexto = otroContexto.getCarpetaRaizContexto();
         
         this.displayMode = otroContexto.getDisplayMode();
@@ -163,6 +167,9 @@ public class ListContext {
     
     public String getDescartesListKey() {return descartesListKey;} 
     public void setDescartesListKey(String descartesListKey) {this.descartesListKey = descartesListKey;}
+
+    public String getDatosSelectedTag() {return datosSelectedTag;}
+    public void setDatosSelectedTag(String datosSelectedTag) {this.datosSelectedTag = datosSelectedTag;}
 
     public Path getCarpetaRaizContexto() {return this.carpetaRaizContexto;}
     public void setCarpetaRaizContexto(Path carpetaRaiz) {this.carpetaRaizContexto = carpetaRaiz;}

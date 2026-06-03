@@ -11,15 +11,14 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
-import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -134,13 +133,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
 
         String configKey = "interfaz.menu.vista.fondo_a_cuadros.seleccionado";
         configuration.setString(configKey, String.valueOf(activar));
-
-        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
-        if (displayPanel != null) {
-            displayPanel.setCheckeredBackground(activar);
-        } else {
-            logger.error("ERROR [ViewManager]: No se pudo encontrar 'panel.display.imagen' en el registro.");
-        }
+        forEachVisualizerDisplayPanel(panel -> panel.setCheckeredBackground(activar));
     } // --- Fin del método setCheckeredBackgroundEnabled ---
 
     /**
@@ -153,10 +146,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
     public void setSessionBackgroundColor(java.awt.Color color) {
         if (registry == null)
             return;
-        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
-        if (displayPanel != null) {
-            displayPanel.setSolidBackgroundColor(color);
-        }
+        forEachVisualizerDisplayPanel(panel -> panel.setSolidBackgroundColor(color));
     } // --- Fin del método setSessionBackgroundColor ---
 
     /**
@@ -167,7 +157,10 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
     public void setSessionCheckeredBackground() {
         if (registry == null)
             return;
-        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
+        ImageDisplayPanel displayPanel = getActiveDisplayPanel();
+        if (displayPanel == null) {
+            displayPanel = registry.get("panel.display.imagen");
+        }
         if (displayPanel != null) {
             displayPanel.setCheckeredBackground(true);
         }
@@ -183,7 +176,10 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
             return;
 
         javax.swing.JFrame mainFrame = registry.get("frame.main");
-        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
+        ImageDisplayPanel displayPanel = getActiveDisplayPanel();
+        if (displayPanel == null) {
+            displayPanel = registry.get("panel.display.imagen");
+        }
 
         if (displayPanel == null || mainFrame == null) {
             logger.error(
@@ -374,10 +370,28 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
             if (panelVisorComp instanceof ImageDisplayPanel) {
                 ((ImageDisplayPanel) panelVisorComp).actualizarColorDeFondoPorTema(this.themeManager);
             }
+            Component panelVisorPolaroidComp = registry.get("panel.display.polaroid.image");
+            if (panelVisorPolaroidComp instanceof ImageDisplayPanel) {
+                ((ImageDisplayPanel) panelVisorPolaroidComp).actualizarColorDeFondoPorTema(this.themeManager);
+            }
 
             Component panelProyectoComp = registry.get("panel.proyecto.display");
             if (panelProyectoComp instanceof ImageDisplayPanel) {
                 ((ImageDisplayPanel) panelProyectoComp).actualizarColorDeFondoPorTema(this.themeManager);
+            }
+            Component panelProyectoPolaroidComp = registry.get("panel.proyecto.display.polaroid.image");
+            if (panelProyectoPolaroidComp instanceof ImageDisplayPanel) {
+                ((ImageDisplayPanel) panelProyectoPolaroidComp).actualizarColorDeFondoPorTema(this.themeManager);
+            }
+
+            Component panelDatosComp = registry.get("panel.datamode.display");
+            if (panelDatosComp instanceof ImageDisplayPanel) {
+                ((ImageDisplayPanel) panelDatosComp).actualizarColorDeFondoPorTema(this.themeManager);
+            }
+
+            Component panelDatosPolaroidComp = registry.get("panel.datamode.display.polaroid.image");
+            if (panelDatosPolaroidComp instanceof ImageDisplayPanel) {
+                ((ImageDisplayPanel) panelDatosPolaroidComp).actualizarColorDeFondoPorTema(this.themeManager);
             }
 
             Component panelCarruselComp = registry.get("panel.display.carousel");
@@ -434,22 +448,17 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
             return;
         }
 
-        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
-        if (displayPanel == null) {
-            logger.error("  ERROR: 'panel.display.imagen' no encontrado en el registro.");
-            return;
-        }
 
         String configKey = "interfaz.menu.vista.fondo_a_cuadros.seleccionado";
         boolean esCuadrosPorDefecto = configuration.getBoolean(configKey, false);
 
         if (esCuadrosPorDefecto) {
             logger.debug("  -> El defecto es fondo a cuadros. Aplicando.");
-            displayPanel.setCheckeredBackground(true);
+            forEachVisualizerDisplayPanel(panel -> panel.setCheckeredBackground(true));
         } else {
             Tema temaActual = themeManager.getTemaActual();
             logger.debug("  -> El defecto es color de tema. Aplicando color: " + temaActual.colorFondoSecundario());
-            displayPanel.setSolidBackgroundColor(temaActual.colorFondoSecundario());
+            forEachVisualizerDisplayPanel(panel -> panel.setSolidBackgroundColor(temaActual.colorFondoSecundario()));
         }
     } // --- Fin del método refrescarFondoAlPorDefecto ---
 
@@ -1571,17 +1580,20 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
 
         // 2. Determinar la clave del panel basándose en el modo de trabajo actual
         String panelKey;
+        boolean isPolaroid = (model.getCurrentDisplayMode() == VisorModel.DisplayMode.POLAROID);
         switch (model.getCurrentWorkMode()) {
             case VISUALIZADOR:
-                panelKey = "panel.display.imagen";
+                panelKey = isPolaroid ? "panel.display.polaroid.image" : "panel.display.imagen";
                 break;
             case PROYECTO:
-                panelKey = "panel.proyecto.display";
+                panelKey = isPolaroid ? "panel.proyecto.display.polaroid.image" : "panel.proyecto.display";
                 break;
             case CARROUSEL:
                 panelKey = "panel.display.carousel";
                 break;
             case DATOS:
+                panelKey = isPolaroid ? "panel.datamode.display.polaroid.image" : "panel.datamode.display";
+                break;
             case EDICION:
                 logger.warn("WARN [ViewManager.getActiveDisplayPanel]: El modo " + model.getCurrentWorkMode()
                         + " no tiene un ImageDisplayPanel asociado.");
@@ -1596,6 +1608,22 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
         return registry.get(panelKey);
 
     } // --- FIN del método getActiveDisplayPanel ---
+
+    private void forEachVisualizerDisplayPanel(Consumer<ImageDisplayPanel> action) {
+        if (registry == null || action == null) {
+            return;
+        }
+
+        ImageDisplayPanel singlePanel = registry.get("panel.display.imagen");
+        if (singlePanel != null) {
+            action.accept(singlePanel);
+        }
+
+        ImageDisplayPanel polaroidPanel = registry.get("panel.display.polaroid.image");
+        if (polaroidPanel != null) {
+            action.accept(polaroidPanel);
+        }
+    } // --- FIN del método forEachVisualizerDisplayPanel ---
 
     public void setToolbarManager(ToolbarManager toolbarManager) {
         this.toolbarManager = toolbarManager;

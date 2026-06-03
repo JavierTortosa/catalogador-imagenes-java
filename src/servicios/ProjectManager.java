@@ -770,27 +770,69 @@ public class ProjectManager implements IProjectManager {
     
 
     public void moverAdescartes(Path rutaAbsolutaImagen) {
-        if (rutaAbsolutaImagen == null) return;
-        String clave = rutaAbsolutaImagen.toString().replace("\\", "/");
-        if (this.currentProject.getSelectedImages().containsKey(clave)) {
-            this.currentProject.getSelectedImages().remove(clave);
-            if (!this.currentProject.getDiscardedImages().contains(clave)) {
-                this.currentProject.getDiscardedImages().add(clave);
+        moverVariosAdescartes(java.util.Collections.singletonList(rutaAbsolutaImagen));
+    } // --- Fin del método moverAdescartes ---
+
+    /**
+     * Mueve varias imágenes de la selección a descartes en una sola operación.
+     *
+     * @return número de imágenes movidas
+     */
+    public int moverVariosAdescartes(java.util.List<Path> rutasAbsolutas) {
+        if (rutasAbsolutas == null || rutasAbsolutas.isEmpty()) {
+            return 0;
+        }
+        int movidos = 0;
+        for (Path rutaAbsolutaImagen : rutasAbsolutas) {
+            if (rutaAbsolutaImagen == null) {
+                continue;
             }
+            String clave = rutaAbsolutaImagen.toString().replace("\\", "/");
+            if (this.currentProject.getSelectedImages().containsKey(clave)) {
+                this.currentProject.getSelectedImages().remove(clave);
+                if (!this.currentProject.getDiscardedImages().contains(clave)) {
+                    this.currentProject.getDiscardedImages().add(clave);
+                }
+                movidos++;
+            }
+        }
+        if (movidos > 0) {
             notificarModificacion();
         }
-    } // --- Fin del método moverAdescartes ---
+        return movidos;
+    } // --- Fin del método moverVariosAdescartes ---
 
     
     public void restaurarDeDescartes(Path rutaAbsolutaImagen) {
-        if (rutaAbsolutaImagen == null) return;
-        String clave = rutaAbsolutaImagen.toString().replace("\\", "/");
-        if (this.currentProject.getDiscardedImages().contains(clave)) {
-            this.currentProject.getDiscardedImages().remove(clave);
-            this.currentProject.getSelectedImages().putIfAbsent(clave, ""); // <--- CAMBIO: null por ""
+        restaurarVariosDeDescartes(java.util.Collections.singletonList(rutaAbsolutaImagen));
+    } // --- Fin del método restaurarDeDescartes ---
+
+    /**
+     * Restaura varias imágenes de descartes a la selección en una sola operación.
+     *
+     * @return número de imágenes restauradas
+     */
+    public int restaurarVariosDeDescartes(java.util.List<Path> rutasAbsolutas) {
+        if (rutasAbsolutas == null || rutasAbsolutas.isEmpty()) {
+            return 0;
+        }
+        int restaurados = 0;
+        for (Path rutaAbsolutaImagen : rutasAbsolutas) {
+            if (rutaAbsolutaImagen == null) {
+                continue;
+            }
+            String clave = rutaAbsolutaImagen.toString().replace("\\", "/");
+            if (this.currentProject.getDiscardedImages().contains(clave)) {
+                this.currentProject.getDiscardedImages().remove(clave);
+                this.currentProject.getSelectedImages().putIfAbsent(clave, "");
+                restaurados++;
+            }
+        }
+        if (restaurados > 0) {
             notificarModificacion();
         }
-    } // --- Fin del método restaurarDeDescartes ---
+        return restaurados;
+    } // --- Fin del método restaurarVariosDeDescartes ---
     
     
     public boolean estaEnDescartes(Path rutaAbsolutaImagen) {
@@ -801,14 +843,35 @@ public class ProjectManager implements IProjectManager {
     
     
     public void eliminarDeProyecto(Path rutaAbsolutaImagen) {
-        if (rutaAbsolutaImagen == null) return;
-        String clave = rutaAbsolutaImagen.toString().replace("\\", "/");
-        boolean removidoDeSeleccion = this.currentProject.getSelectedImages().remove(clave) != null;
-        boolean removidoDeDescartes = this.currentProject.getDiscardedImages().remove(clave);
-        if (removidoDeSeleccion || removidoDeDescartes) {
+        eliminarVariosDeProyecto(java.util.Collections.singletonList(rutaAbsolutaImagen));
+    } // --- Fin del método eliminarDeProyecto ---
+
+    /**
+     * Elimina varias imágenes del proyecto (selección o descartes) sin borrar archivos del disco.
+     *
+     * @return número de imágenes eliminadas del proyecto
+     */
+    public int eliminarVariosDeProyecto(java.util.List<Path> rutasAbsolutas) {
+        if (rutasAbsolutas == null || rutasAbsolutas.isEmpty()) {
+            return 0;
+        }
+        int eliminados = 0;
+        for (Path rutaAbsolutaImagen : rutasAbsolutas) {
+            if (rutaAbsolutaImagen == null) {
+                continue;
+            }
+            String clave = rutaAbsolutaImagen.toString().replace("\\", "/");
+            boolean removidoDeSeleccion = this.currentProject.getSelectedImages().remove(clave) != null;
+            boolean removidoDeDescartes = this.currentProject.getDiscardedImages().remove(clave);
+            if (removidoDeSeleccion || removidoDeDescartes) {
+                eliminados++;
+            }
+        }
+        if (eliminados > 0) {
             notificarModificacion();
         }
-    } // --- Fin del método eliminarDeProyecto ---
+        return eliminados;
+    } // --- Fin del método eliminarVariosDeProyecto ---
     
     
     public void setConfigManager(ConfigurationManager configManager) {

@@ -47,6 +47,9 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
     private JSplitPane splitPane;
     private JLabel lblTotalSize;
     
+    private PdfDetailsTablePanel pdfDetailsTablePanel;
+    private boolean pdfTableVisible = false;
+    
     private boolean highlightingListenerConfigured = false;
     
     
@@ -176,7 +179,24 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
         splitPane.setBorder(null);
         splitPane.setResizeWeight(1.0);
         
-        mainContentPanel.add(splitPane, BorderLayout.CENTER);
+        pdfDetailsTablePanel = new PdfDetailsTablePanel();
+        // Le damos una altura por defecto de 200 píxeles para que se vea bien al abrirse
+        pdfDetailsTablePanel.setPreferredSize(new java.awt.Dimension(0, 200)); 
+        pdfDetailsTablePanel.setVisible(false);
+        projectController.getRegistry().register("panel.exportacion.pdfdetalles.tabla", pdfDetailsTablePanel);
+        
+        // Enganchar el panel a la sincronización global del proyecto (lo que vimos antes)
+        pdfDetailsTablePanel.setOnDataChangedListener(() -> {
+            if (projectController != null) {
+                projectController.notificarCambioEnProyecto();
+            }
+        });
+        
+        JPanel centerContentPanel = new JPanel(new BorderLayout());
+        centerContentPanel.add(splitPane, BorderLayout.CENTER);
+        centerContentPanel.add(pdfDetailsTablePanel, BorderLayout.SOUTH);
+        
+        mainContentPanel.add(centerContentPanel, BorderLayout.CENTER);
 
         
         
@@ -457,9 +477,29 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
     } // ---FIN de metodo [toggleDetailsPanelVisibility]---
     
     
+    public void togglePdfDetailsTableVisibility() {
+    	
+        pdfTableVisible = !pdfTableVisible;
+        pdfDetailsTablePanel.setVisible(pdfTableVisible);
+        
+        if (pdfTableVisible) {
+            pdfDetailsTablePanel.setItems(tableModel.getCola());
+        }
+        
+        // Forzamos a Swing a recalcular los tamaños de los contenedores
+        SwingUtilities.invokeLater(() -> {
+            revalidate();
+            repaint();
+        });
+    }
+    
     public ExportDetailPanel getDetailPanel() {
         return this.detailPanel;
     } // ---FIN de metodo [getDetailPanel]---
+    
+    public PdfDetailsTablePanel getPdfDetailsTablePanel() {
+        return this.pdfDetailsTablePanel;
+    }
 
     public boolean isMoveOperationActive() {
         return btnMoveCopy != null && btnMoveCopy.isSelected();

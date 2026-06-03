@@ -71,7 +71,7 @@ public class GridDisplayPanel extends JPanel {
         add(toolbarContainer, BorderLayout.SOUTH);
         
         gridList = new JList<>();
-        gridList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        gridList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         gridList.setBackground(themeManager.getTemaActual().colorFondoSecundario());
         gridList.setSelectionBackground(new Color(0, 0, 0, 0));
         gridList.setSelectionForeground(new Color(0, 0, 0, 0));

@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
@@ -12,6 +13,7 @@ import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import controlador.commands.AppActionCommands;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import modelo.VisorModel.DisplayMode;
@@ -71,6 +73,10 @@ public class ToolbarManager implements ThemeChangeListener{
         this.managedToolbars = new ConcurrentHashMap<>();
         logger.debug("[ToolbarManager] Instancia creada con éxito.");
     } // --- Fin del método ToolbarManager (constructor) ---
+
+    public void setProjectController(controlador.ProjectController projectController) {
+        this.projectController = projectController;
+    }
 
     
     /**
@@ -162,7 +168,8 @@ public class ToolbarManager implements ThemeChangeListener{
                         toolbar.setOpaque(false);
                         
                         if ("zoom".equals(def.claveBarra())) {
-                            boolean debeSerVisible = (displayModeActual != DisplayMode.GRID) && isVisibleInConfig;
+                            boolean esModoDatos = (modoActual == WorkMode.DATOS);
+                            boolean debeSerVisible = ((displayModeActual != DisplayMode.GRID) || esModoDatos) && isVisibleInConfig;
                             toolbar.setVisible(debeSerVisible);
                             logger.debug("  -> Visibilidad condicional para 'zoom': " + debeSerVisible);
                         }
@@ -267,9 +274,48 @@ public class ToolbarManager implements ThemeChangeListener{
         this.backgroundControlManager = backgroundControlManager;
     } // --- Fin del método setBackgroundControlManager ---
     
-    public void setProjectController(controlador.ProjectController projectController) {
-        this.projectController = projectController;
-    } // --- Fin del método setProjectController ---
+    /**
+     * Sincroniza el estado de habilitación/deshabilitación de los botones de la toolbar
+     * basándose en el modo de visualización y la selección de imágenes.
+     * 
+     * @param actionMap El mapa de acciones de la aplicación.
+     * @param model El modelo de la aplicación.
+     */
+    public void sincronizarEstadoBotonesToolbar(Map<String, Action> actionMap, VisorModel model) {
+        if (actionMap == null || model == null) return;
 
+        DisplayMode displayMode = model.getCurrentDisplayMode();
+        boolean hasSelection = model.getSelectedImageKey() != null;
+
+        // 1. Botones Single y Polaroid: Solo activos si hay selección.
+        Action singleAction = actionMap.get(AppActionCommands.CMD_VISTA_SINGLE);
+        Action polaroidAction = actionMap.get(AppActionCommands.CMD_VISTA_POLAROID);
+        if (singleAction != null) singleAction.setEnabled(hasSelection);
+        if (polaroidAction != null) polaroidAction.setEnabled(hasSelection);
+
+        // 2. Botones de Zoom de Grid (Tamaño de miniatura): Solo activos en modo GRID.
+        Action gridZoomUp = actionMap.get(AppActionCommands.CMD_GRID_SIZE_UP_MINIATURA);
+        Action gridZoomDown = actionMap.get(AppActionCommands.CMD_GRID_SIZE_DOWN_MINIATURA);
+        boolean isGrid = (displayMode == DisplayMode.GRID);
+        if (gridZoomUp != null) gridZoomUp.setEnabled(isGrid);
+        if (gridZoomDown != null) gridZoomDown.setEnabled(isGrid);
+
+        // 3. Botones de Zoom de Toolbar (Modo/Porcentaje): Solo activos en SINGLE o POLAROID.
+        // Deshabilitamos todas las acciones cuya clave empiece con "cmd.zoom"
+        // para cubrir todos los botones de la barra de zoom (acercar, alejar, modos, etc.).
+        
+        boolean isNotGrid = (displayMode != DisplayMode.GRID);
+        
+        for (String cmd : actionMap.keySet()) {
+            if (cmd != null && cmd.startsWith("cmd.zoom")) {
+                Action action = actionMap.get(cmd);
+                if (action != null) {
+                    action.setEnabled(isNotGrid);
+                }
+            }
+        }
+        
+        logger.debug("[ToolbarManager] Sincronización de botones completada. Modo: {}, Selección: {}", displayMode, hasSelection);
+    } // --- Fin del método sincronizarEstadoBotonesToolbar ---
 } // --- FIN de la clase ToolbarManager ---
 

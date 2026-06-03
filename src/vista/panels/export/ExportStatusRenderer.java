@@ -24,7 +24,7 @@ public class ExportStatusRenderer extends DefaultTableCellRenderer {
         // El valor que llega es nuestro enum ExportStatus
         if (value instanceof ExportStatus) {
             ExportStatus status = (ExportStatus) value;
-            setText(status.toString()); // El texto será el nombre del enum
+            setText(status.getDisplay());
             
             // Establecer el color de fondo basado en el estado
             switch (status) {
@@ -46,7 +46,6 @@ public class ExportStatusRenderer extends DefaultTableCellRenderer {
                 case IGNORAR_COMPRIMIDO:
                     setBackground(new Color(210, 210, 210)); // Un gris neutro
                     setForeground(Color.BLACK);
-                    setText("SOLO IMAGEN"); // Un texto más descriptivo
                     break;
                 case COPIANDO:
                     setBackground(new Color(180, 200, 255)); // Azul claro

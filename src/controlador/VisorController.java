@@ -8,9 +8,6 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,7 +30,6 @@ import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -42,8 +38,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -55,7 +49,6 @@ import controlador.actions.tema.ToggleThemeAction;
 import controlador.commands.AppActionCommands;
 import controlador.factory.ActionFactory;
 import controlador.interfaces.IModoController;
-import controlador.managers.CarouselManager;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.DisplayModeManager;
 import controlador.managers.ImageListManager;
@@ -77,9 +70,7 @@ import servicios.db.DatabaseManager;
 import servicios.image.ThumbnailService;
 import vista.VisorView;
 import vista.config.ViewUIConfig;
-import vista.panels.GridDisplayPanel;
 import vista.panels.ImageDisplayPanel;
-import vista.renderers.MiniaturaListCellRenderer;
 import vista.theme.Tema;
 import vista.theme.ThemeChangeListener;
 import vista.theme.ThemeManager;
@@ -1545,22 +1536,39 @@ public class VisorController implements IModoController, ThemeChangeListener {
 	
 	public void solicitudAlternarMarcaDeImagenActual() {
 	    logger.debug("[Controller] Solicitud para alternar marca de imagen actual...");
-	    if (model == null || projectManager == null || view == null) { return; }
-	    
-	    String claveActual = model.getSelectedImageKey();
-	    if (claveActual == null || claveActual.isEmpty()) { return; }
+	    if (model == null || projectManager == null || view == null || registry == null) { return; }
 
-	    Path rutaAbsoluta = model.getRutaCompleta(claveActual);
-	    if (rutaAbsoluta == null) { return; }
+	    @SuppressWarnings("unchecked")
+		javax.swing.JList<String> listaNombres = registry.get("list.nombresArchivo");
+	    if (listaNombres == null) return;
 
-	    // 1. Modificar el modelo en memoria
-	    boolean estaAhoraMarcada = projectManager.alternarMarcaImagen(rutaAbsoluta);
-	    
-	    // 2. Notificar que ha habido un cambio. Esto hará que aparezca el *.
+	    java.util.List<String> clavesSeleccionadas = listaNombres.getSelectedValuesList();
+	    if (clavesSeleccionadas == null || clavesSeleccionadas.isEmpty()) return;
+
+	    boolean huboCambio = false;
+
+	    for (String clave : clavesSeleccionadas) {
+	        if (clave == null || clave.isEmpty()) continue;
+	        Path rutaAbsoluta = model.getRutaCompleta(clave);
+	        if (rutaAbsoluta == null) continue;
+	        projectManager.alternarMarcaImagen(rutaAbsoluta);
+	        huboCambio = true;
+	    }
+
+	    if (!huboCambio) return;
+
 	    projectManager.notificarModificacion();
 
-	    // 3. Actualizar la UI (botón y barra de estado)
-	    actualizarEstadoVisualBotonMarcarYBarraEstado(estaAhoraMarcada, rutaAbsoluta);
+	    String claveActual = model.getSelectedImageKey();
+	    boolean estaMarcada = false;
+	    Path rutaActual = null;
+	    if (claveActual != null && !claveActual.isEmpty()) {
+	        rutaActual = model.getRutaCompleta(claveActual);
+	        if (rutaActual != null) {
+	            estaMarcada = projectManager.estaMarcada(rutaActual);
+	        }
+	    }
+	    actualizarEstadoVisualBotonMarcarYBarraEstado(estaMarcada, rutaActual);
 	} // --- Fin del método solicitudAlternarMarcaDeImagenActual ---
      
 	

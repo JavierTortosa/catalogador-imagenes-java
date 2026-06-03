@@ -168,6 +168,7 @@ public interface AppActionCommands {
 	    public static final String CMD_EXPORT_ASSIGN_PANNEL			= "cmd.export.assign_pannel";
 	    
 	    public static final String CMD_EXPORT_DETALLES_SELECCION	= "cmd.export.detalles_seleccion";
+	    public static final String CMD_DETALLES_PDF_SELECCION		= "cmd.export.detalles_pdf_seleccion";
 	    
 	    public static final String CMD_EXPORT_ADD_ASSOCIATED_FILE	= "cmd.export.add_associated_file";
 	    public static final String CMD_EXPORT_DEL_ASSOCIATED_FILE	= "cmd.export.del_associated_file";

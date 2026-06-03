@@ -22,6 +22,7 @@ import javax.imageio.ImageIO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 public class PDFGeneratorService {
 
     private static final Logger logger = LoggerFactory.getLogger(PDFGeneratorService.class);
@@ -41,6 +42,7 @@ public class PDFGeneratorService {
     private static final float BOX_H = (PAGE_H - TOP - BOTTOM - (ROWS - 1) * GAP) / ROWS;
     private static final float PADDING = 6;
 
+    // Genera el PDF con los items de exportación en una cuadrícula 2x2, más las notas del proyecto al final
     public void crearPresupuesto(List<ExportItem> items, File destino, String notasProyecto) throws Exception {
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
@@ -76,16 +78,13 @@ public class PDFGeneratorService {
 
             doc.save(destino);
         }
-    }
-    
+    } // --- Fin del metodo: crearPresupuesto ---
 
+
+    // Dibuja la caja individual de cada item: código, imagen, piezas, LVL, PVP y nota
 	private void drawBox(PDPageContentStream cs, float x, float y, float w, float h, ExportItem item, PDDocument doc)
 			throws Exception
 	{
-
-		// ==========================================================
-		// Marco exterior
-		// ==========================================================
 		cs.setStrokingColor(0.65f, 0.65f, 0.65f);
 		cs.addRect(x, y, w, h);
 		cs.stroke();
@@ -96,16 +95,10 @@ public class PDFGeneratorService {
 
 		float padding = PADDING;
 
-		// ==========================================================
-		// Alturas de zonas
-		// ==========================================================
 		float codigoH = 20f;
 		float infoH = 35f;
 		float notaH = 12f;
 
-		// ==========================================================
-		// CÓDIGO CENTRADO ARRIBA
-		// ==========================================================
 		String codigo = "Código: " + valueOrDash(item.getCodigoCatalogo());
 
 		float codigoFontSize = 11f;
@@ -123,16 +116,9 @@ public class PDFGeneratorService {
 		showText(cs, codigo);
 		cs.endText();
 
-		// ==========================================================
-		// ZONA DE IMAGEN
-		// ==========================================================
 		float imgAreaX = x + padding;
 
-//		float imgAreaY = y + infoH + notaH + padding;
-
 		float imgAreaW = w - (padding * 2);
-
-//		float imgAreaH = h - codigoH - infoH - notaH - (padding * 2);
 		
 		float separatorY = y + infoH + notaH + 2;
 
@@ -141,12 +127,10 @@ public class PDFGeneratorService {
 
 		try
 		{
-
 			BufferedImage bi = ImageIO.read(item.getRutaImagen().toFile());
 
 			if (bi != null)
 			{
-
 				float scale = Math.min(imgAreaW / bi.getWidth(), imgAreaH / bi.getHeight());
 
 				float dw = bi.getWidth() * scale;
@@ -160,17 +144,10 @@ public class PDFGeneratorService {
 
 				cs.drawImage(pdImg, dx, dy, dw, dh);
 			}
-
 		} catch (Exception e)
 		{
-
 			logger.warn("Error cargando imagen para PDF: {}", item.getRutaImagen(), e);
 		}
-
-		// ==========================================================
-		// Línea separadora
-		// ==========================================================
-		//float separatorY = y + infoH + notaH + 2;
 
 		cs.setStrokingColor(0.85f, 0.85f, 0.85f);
 
@@ -179,148 +156,46 @@ public class PDFGeneratorService {
 
 		cs.stroke();
 
-		// ==========================================================
-		// DATOS INFERIORES
-		// ==========================================================
 		cs.setFont(normal, 9);
 		cs.setNonStrokingColor(0, 0, 0);
 
-		// Piezas
 		float piezasY = y + 24;
-
 		cs.beginText();
 		cs.newLineAtOffset(x + padding, piezasY);
-
 		showText(cs, "Piezas: " + (item.getPiezas() > 0 ? String.valueOf(item.getPiezas()) : "-"));
-
 		cs.endText();
 
-		// LVL izquierda
 		float lvlY = y + 12;
-
 		cs.beginText();
 		cs.newLineAtOffset(x + padding, lvlY);
-
 		showText(cs, ellipsizeToWidth("LVL: " + valueOrDash(item.getLvl()), normal, 9, w * 0.55f));
-
 		cs.endText();
 
-		// PVP derecha
 		String pvp = ellipsizeToWidth("PVP: " + valueOrDash(item.getPvp()), normal, 9, w * 0.42f);
-
 		float pvpWidth = normal.getStringWidth(pvp) / 1000f * 9;
-
 		float pvpX = x + w - padding - pvpWidth;
 
 		cs.beginText();
 		cs.newLineAtOffset(pvpX, lvlY);
-
 		showText(cs, pvp);
-
 		cs.endText();
 
-		// ==========================================================
-		// NOTA
-		// ==========================================================
 		String notas = item.getNotas();
-
 		if (notas != null && !notas.isBlank())
 		{
-
 			String truncated = ellipsizeToWidth(notas, italic, 7, w - padding * 2);
 
 			cs.beginText();
-
 			cs.setFont(italic, 7);
 			cs.setNonStrokingColor(new Color(110, 110, 110));
-
 			cs.newLineAtOffset(x + padding, y + 2);
-
 			showText(cs, truncated);
-
 			cs.endText();
 		}
-	}
+	} // --- Fin del metodo: drawBox ---
 
-//    private void drawBox(PDPageContentStream cs, float x, float y, float w, float h, ExportItem item, PDDocument doc) throws Exception {
-//        cs.setStrokingColor(0.6f, 0.6f, 0.6f);
-//        cs.addRect(x, y, w, h);
-//        cs.stroke();
-//
-//        float imgAreaW = (w - 3 * (PADDING-6)) * 0.5f;
-//        float imgAreaH = h - 2 * (PADDING);
-//        float ix = x + (PADDING);
-//        float iy = y + (h - imgAreaH) / 2;
-//
-//        try {
-//            BufferedImage bi = ImageIO.read(item.getRutaImagen().toFile());
-//            if (bi != null) {
-//                float scale = Math.min(imgAreaW / bi.getWidth(), imgAreaH / bi.getHeight());
-//                float dw = bi.getWidth() * scale;
-//                float dh = bi.getHeight() * scale;
-//                
-//                // Alineado de cada imagen
-//                
-////                float dx = ix + (imgAreaW - dw) / 2; //centrado
-//                float dx = ix;// Alineado izquierda
-//                
-//                float dy = iy + (imgAreaH - dh) / 2;
-//                PDImageXObject pdImg = LosslessFactory.createFromImage(doc, bi);
-//                cs.drawImage(pdImg, dx, dy, dw, dh);
-//            }
-//        } catch (Exception e) {
-//            logger.warn("Error cargando imagen para PDF: {}", item.getRutaImagen(), e);
-//        }
-//
-//        float tx = x + imgAreaW + 2 * PADDING;
-//        float textY = y + h - PADDING - 14;
-//
-//        cs.setFont(new PDType1Font(FontName.HELVETICA_BOLD), 10);
-//        cs.beginText();
-//        cs.setNonStrokingColor(0, 0, 0);
-//        cs.newLineAtOffset(tx, textY);
-//        cs.showText("Código: " + (item.getCodigoCatalogo() != null ? "\n"+item.getCodigoCatalogo() : "---"));
-//        cs.endText();
-//        textY -= 16;
-//
-//        cs.setFont(new PDType1Font(FontName.HELVETICA), 10);
-//        cs.beginText();
-//        cs.newLineAtOffset(tx, textY);
-//        cs.showText("Piezas: " + (item.getPiezas() > 0 ? String.valueOf(item.getPiezas()) : "—"));
-//        cs.endText();
-//        textY -= 16;
-//
-//        cs.beginText();
-//        cs.newLineAtOffset(tx, textY);
-//        cs.showText("LVL: " + (item.getLvl() != null && !item.getLvl().isEmpty() ? item.getLvl() : "—"));
-//        cs.endText();
-//        textY -= 16;
-//
-//        cs.beginText();
-//        cs.newLineAtOffset(tx, textY);
-//        cs.showText("PVP: " + (item.getPvp() != null && !item.getPvp().isEmpty() ? item.getPvp() : "—"));
-//        cs.endText();
-//
-//        String notas = item.getNotas();
-//        if (notas != null && !notas.isEmpty()) {
-//            textY -= 18;
-//            cs.setFont(new PDType1Font(FontName.HELVETICA_OBLIQUE), 8);
-//            cs.setNonStrokingColor(0.3f, 0.3f, 0.3f);
-//            cs.beginText();
-//            cs.newLineAtOffset(tx, textY);
-//            String truncated = notas.length() > 40 ? notas.substring(0, 40) + "..." : notas;
-//            cs.showText(truncated);
-//            cs.endText();
-//        }
-//    }
-    
-    private float getCenteredX(String text, PDFont font, float fontSize, float boxX, float boxW)
-            throws IOException {
 
-        float textWidth = font.getStringWidth(text) / 1000f * fontSize;
-        return boxX + (boxW - textWidth) / 2f;
-    }
-
+    // Dibuja las páginas de comentarios del proyecto al final del PDF
     private void drawProjectCommentPages(PDDocument doc, String comentario) throws IOException {
         PDFont titleFont = new PDType1Font(FontName.HELVETICA_BOLD);
         PDFont bodyFont = new PDType1Font(FontName.HELVETICA);
@@ -359,8 +234,10 @@ public class PDFGeneratorService {
         } finally {
             cs.close();
         }
-    }
+    } // --- Fin del metodo: drawProjectCommentPages ---
 
+
+    // Dibuja el encabezado de la página de comentarios (título y línea separadora)
     private float drawCommentPageHeader(PDPageContentStream cs, PDFont titleFont) throws IOException {
         cs.setFont(titleFont, 16);
         cs.setNonStrokingColor(0, 0, 0);
@@ -375,8 +252,10 @@ public class PDFGeneratorService {
         cs.stroke();
 
         return PAGE_H - 75;
-    }
+    } // --- Fin del metodo: drawCommentPageHeader ---
 
+
+    // Envuelve un texto largo en líneas que encajan dentro del ancho máximo disponible
     private List<String> wrapText(String text, PDFont font, float fontSize, float maxWidth) throws IOException {
         List<String> lines = new ArrayList<>();
         for (String paragraph : text.split("\\R", -1)) {
@@ -405,8 +284,10 @@ public class PDFGeneratorService {
             }
         }
         return lines;
-    }
+    } // --- Fin del metodo: wrapText ---
 
+
+    // Parte una palabra demasiado larga en fragmentos que quepan en el ancho disponible
     private void appendWrappedWord(List<String> lines, StringBuilder currentLine, String word, PDFont font,
             float fontSize, float maxWidth) throws IOException {
         StringBuilder chunk = new StringBuilder();
@@ -423,16 +304,22 @@ public class PDFGeneratorService {
             }
         }
         currentLine.append(chunk);
-    }
+    } // --- Fin del metodo: appendWrappedWord ---
 
+
+    // Retorna el valor o un guión si es nulo o vacío
     private String valueOrDash(String value) {
         return value != null && !value.isBlank() ? value.trim() : "-";
-    }
+    } // --- Fin del metodo: valueOrDash ---
 
+
+    // Escribe texto seguro en el PDF, escapando caracteres no soportados
     private void showText(PDPageContentStream cs, String text) throws IOException {
         cs.showText(safePdfText(text));
-    }
+    } // --- Fin del metodo: showText ---
 
+
+    // Recorta un texto con puntos suspensivos si excede el ancho máximo
     private String ellipsizeToWidth(String text, PDFont font, float fontSize, float maxWidth) throws IOException {
         String safe = safePdfText(text);
         if (textWidth(safe, font, fontSize) <= maxWidth) {
@@ -449,12 +336,16 @@ public class PDFGeneratorService {
             maxLength--;
         }
         return suffix;
-    }
+    } // --- Fin del metodo: ellipsizeToWidth ---
 
+
+    // Calcula el ancho en puntos de un texto con la fuente y tamaño dados
     private float textWidth(String text, PDFont font, float fontSize) throws IOException {
         return font.getStringWidth(text) / 1000f * fontSize;
-    }
+    } // --- Fin del metodo: textWidth ---
 
+
+    // Limpia y normaliza un texto eliminando caracteres que PDFBox no puede mostrar
     private String safePdfText(String text) {
         if (text == null) {
             return "";
@@ -484,5 +375,8 @@ public class PDFGeneratorService {
             }
         }
         return sb.toString();
-    }
-}
+    } // --- Fin del metodo: safePdfText ---
+
+
+} // --- Fin de la Clase PDFGeneratorService ---
+

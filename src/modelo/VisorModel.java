@@ -408,6 +408,10 @@ public class VisorModel {
         return this.proyectoListContext;
     }
 
+    public ListContext getDatosListContext() {
+        return this.datosListContext;
+    }
+
     public double getZoomFactor() {
         return getCurrentZoomContext().getZoomFactor();
     }

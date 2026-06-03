@@ -71,10 +71,24 @@ public interface IProjectManager {
     void moverAdescartes(Path rutaAbsolutaImagen);
 
     /**
+     * Mueve varias imágenes de la selección a descartes en una sola operación.
+     * @param rutasAbsolutas Lista de rutas a mover.
+     * @return número de imágenes movidas.
+     */
+    int moverVariosAdescartes(List<Path> rutasAbsolutas);
+
+    /**
      * Mueve una imagen de la lista de descartes de vuelta a la selección actual.
      * @param rutaAbsolutaImagen La ruta de la imagen a restaurar.
      */
     void restaurarDeDescartes(Path rutaAbsolutaImagen);
+
+    /**
+     * Restaura varias imágenes de descartes a la selección en una sola operación.
+     * @param rutasAbsolutas Lista de rutas a restaurar.
+     * @return número de imágenes restauradas.
+     */
+    int restaurarVariosDeDescartes(List<Path> rutasAbsolutas);
 
     /**
      * Comprueba si una imagen está actualmente en la lista de descartes.
@@ -122,6 +136,13 @@ public interface IProjectManager {
      * @param rutaAbsolutaImagen La ruta de la imagen a eliminar del proyecto.
      */
     void eliminarDeProyecto(Path rutaAbsolutaImagen);
+
+    /**
+     * Elimina varias imágenes del proyecto sin borrar archivos del disco.
+     * @param rutasAbsolutas Lista de rutas a eliminar del .prj.
+     * @return número de imágenes eliminadas del proyecto.
+     */
+    int eliminarVariosDeProyecto(List<Path> rutasAbsolutas);
     
     
     void vaciarDescartes();

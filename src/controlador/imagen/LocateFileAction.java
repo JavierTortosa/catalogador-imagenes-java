@@ -1,5 +1,3 @@
-// Archivo: controlador/imagen/LocateFileAction.java
-
 package controlador.imagen;
 
 import java.awt.Desktop;
@@ -42,7 +40,8 @@ public class LocateFileAction extends AbstractAction implements ContextSensitive
         updateEnabledState(this.modelRef);
     }
 
-    @Override
+    @SuppressWarnings("deprecation")
+	@Override
     public void actionPerformed(ActionEvent e) {
         if (modelRef == null || controllerRef == null) {
             System.err.println("ERROR [LocateFileAction]: Model o Controller nulos.");

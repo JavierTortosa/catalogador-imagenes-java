@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Modos de Vista</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <h1><img src="ICON_PLACEHOLDER_4007-imagen_unica_48x48.png" class="header-icon">Modos de Vista</h1>
+
+    <p>
+        Los <strong>Modos de Vista</strong> determinan cómo se muestran las imágenes en el área central de la aplicación. Son independientes del modo de trabajo (Visualizador, Proyecto, Datos...) y pueden cambiarse en cualquier momento desde la barra de herramientas <strong>"Vista"</strong> o desde el menú <strong>Vista → Modos de Visualización de Contenido</strong>.
+    </p>
+
+    <h2>Modos de Vista</h2>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_4007-imagen_unica_48x48.png"></td>
+            <td>
+                <strong>Vista Imagen Única (Single Image)</strong>
+                <p>Muestra la imagen seleccionada ocupando todo el área del visor. Es el modo por defecto y el más usado para inspeccionar imágenes en detalle. Compatible con todos los modos de zoom y paneo.</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_4002-grid_48x48.png"></td>
+            <td>
+                <strong>Vista de Cuadrícula (Grid)</strong>
+                <p>Muestra una parrilla de miniaturas de todos los archivos de la lista actual. Ideal para una vista general de la colección. Haz <strong>doble clic</strong> sobre cualquier miniatura para abrir una previsualización ampliada temporal.</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_4006-polaroid48x48.png"></td>
+            <td>
+                <strong>Vista Polaroid</strong>
+                <p>Variante de la vista de imagen única que añade un panel lateral derecho con la <strong>información detallada</strong> de la imagen: nombre, tipo, tamaño, fecha, ubicación, índice, dimensiones y etiquetas asignadas. Útil para consultar metadatos rápidamente mientras se visualiza la imagen.</p>
+            </td>
+        </tr>
+    </table>
+
+    <div class="tip-box">
+        <strong>Consejo:</strong> Los botones de modo de vista son de tipo <em>toggle</em> y se agrupan en la barra de herramientas "Vista". Solo uno puede estar activo a la vez.
+    </div>
+
+    <h2>Control de Tamaño de Miniaturas</h2>
+    <p>
+        Estos botones aparecen en la barra de herramientas <strong>"Zoom de Miniaturas"</strong> y también en el propio panel del grid. Afectan al tamaño de las miniaturas tanto en la barra inferior como en las celdas del grid, según el modo de vista activo.
+    </p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_50003-agrandar_miniatura_48x48.png"></td>
+            <td><strong>Agrandar Miniaturas:</strong> Aumenta el tamaño de las miniaturas (barra inferior o celdas del grid, según la vista activa).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_50004-reducir_miniatura_48x48.png"></td>
+            <td><strong>Reducir Miniaturas:</strong> Disminuye el tamaño de las miniaturas (barra inferior o celdas del grid, según la vista activa).</td>
+        </tr>
+    </table>
+    <p>También puedes usar <strong>Ctrl++</strong> y <strong>Ctrl+-</strong> en Modo Proyecto.</p>
+
+    <h2>Diálogo de Lista de Imágenes</h2>
+    <p>
+        El botón <strong><img src="ICON_PLACEHOLDER_4004-lista_48x48.png" style="width:20px;height:20px;vertical-align:middle;"> Vista Lista</strong> (o menú <strong>Vista → Mostrar Diálogo Lista de Imágenes...</strong>) abre un diálogo con la lista completa de todas las imágenes cargadas actualmente.
+    </p>
+    <p>Está pensado para consultar o exportar los nombres de archivo a un documento externo:</p>
+    <ul>
+        <li><strong>Mostrar Rutas Completas:</strong> Marca el checkbox para alternar entre solo el nombre del archivo o la ruta completa.</li>
+        <li><strong>Copiar Lista:</strong> Copia al portapapeles todo el contenido visible de la lista (nombres o rutas, según el checkbox).</li>
+    </ul>
+
+</body>
+</html>

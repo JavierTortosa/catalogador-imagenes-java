@@ -2,13 +2,11 @@ package vista.builders;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.Rectangle;
 import java.util.Map;
 import java.util.Objects;
 
@@ -45,6 +43,7 @@ import servicios.image.ThumbnailService;
 import vista.VisorView;
 import vista.panels.GridDisplayPanel;
 import vista.panels.ImageDisplayPanel;
+import vista.panels.PolaroidDisplayPanel;
 import vista.renderers.MiniaturaListCellRenderer;
 import vista.renderers.NombreArchivoRenderer;
 import vista.theme.ThemeManager;
@@ -447,7 +446,7 @@ public class ViewBuilder {
         mainFrame.setBorderListaArchivos(borderLista);
 
         JList<String> fileList = new JList<>(model.getModeloLista());
-        fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        fileList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         fileList.setCellRenderer(new NombreArchivoRenderer(themeManager, model));
         registry.register("list.nombresArchivo", fileList, "WHEEL_NAVIGABLE");
 
@@ -626,9 +625,31 @@ public class ViewBuilder {
         registry.register("list.grid", gridList, "WHEEL_NAVIGABLE");
         logger.debug("<<<<< DEBUG: 'GridDisplayPanel' y su 'list.grid' interna han sido registrados. >>>>>");
 
-        JPanel polaroidViewPanel = new JPanel();
-        polaroidViewPanel.add(new JLabel("Vista POLAROID en construcción..."));
+        PolaroidDisplayPanel polaroidViewPanel = new PolaroidDisplayPanel(this.themeManager, this.model);
+        ImageDisplayPanel polaroidImagePanel = polaroidViewPanel.getImagePanel();
+
+        if (this.actionMap != null && this.iconUtils != null) {
+            javax.swing.Action prevAction = this.actionMap.get(controlador.commands.AppActionCommands.CMD_NAV_ANTERIOR);
+            javax.swing.Action nextAction = this.actionMap
+                    .get(controlador.commands.AppActionCommands.CMD_NAV_SIGUIENTE);
+            javax.swing.Icon prevIcon = this.iconUtils.getScaledIcon("1002-anterior_48x48.png", 48, 48);
+            javax.swing.Icon nextIcon = this.iconUtils.getScaledIcon("1003-siguiente_48x48.png", 48, 48);
+            polaroidViewPanel.setNavigationActions(prevAction, nextAction, prevIcon, nextIcon);
+        }
+
+        polaroidImagePanel.setFocusable(true);
+        java.awt.event.MouseAdapter polaroidFocusRequester = new java.awt.event.MouseAdapter() {
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                polaroidImagePanel.requestFocusInWindow();
+            }
+        };
+        polaroidImagePanel.addMouseListener(polaroidFocusRequester);
+        polaroidImagePanel.getInternalLabel().addMouseListener(polaroidFocusRequester);
+
         registry.register("panel.display.polaroid", polaroidViewPanel);
+        registry.register("panel.display.polaroid.image", polaroidImagePanel);
+        registry.register("label.polaroid.imagen", polaroidViewPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
 
         // 5. Añadir todas las vistas al contenedor CardLayout con las claves correctas.
         displayModesContainer.add(singleImageViewPanel, "VISTA_SINGLE_IMAGE");

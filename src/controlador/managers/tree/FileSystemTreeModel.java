@@ -114,7 +114,12 @@ public class FileSystemTreeModel implements TreeModel {
      * Clase auxiliar para representar el nodo raíz virtual.
      */
     private static class FileNode extends File {
-        public FileNode(String pathname) {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
+		public FileNode(String pathname) {
             super(pathname);
         }
     } // --- Fin de la clase FileNode ---

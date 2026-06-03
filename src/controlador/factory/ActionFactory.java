@@ -73,6 +73,7 @@ import controlador.actions.projects.RemoveFromExportQueueAction;
 import controlador.actions.projects.RestoreFromDiscardsAction;
 import controlador.actions.projects.ToggleExportDetailsAction;
 import controlador.actions.projects.ToggleExportViewAction;
+import controlador.actions.projects.TogglePdfDetailsTableAction;
 import controlador.actions.projects.ToggleGridStateAction;
 import controlador.actions.projects.ToggleIgnoreCompressedAction;
 import controlador.actions.projects.ToggleMarkImageAction;
@@ -454,6 +455,7 @@ public class ActionFactory {
 
         actionMap.put(AppActionCommands.CMD_EXPORT_ASSIGN_PANNEL, createToggleExportViewAction());
         actionMap.put(AppActionCommands.CMD_EXPORT_DETALLES_SELECCION, createToggleExportDetailsAction());
+        actionMap.put(AppActionCommands.CMD_DETALLES_PDF_SELECCION, createTogglePdfDetailsTableAction());
 
         actionMap.put(AppActionCommands.CMD_EXPORT_ADD_ASSOCIATED_FILE, createAddAssociatedFileAction());
         actionMap.put(AppActionCommands.CMD_EXPORT_DEL_ASSOCIATED_FILE, createDeleteAssociatedFileAction());
@@ -1326,6 +1328,15 @@ public class ActionFactory {
         return action;
     } // ---FIN de metodo [createToggleExportDetailsAction]---
 
+    private Action createTogglePdfDetailsTableAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_DETALLES_PDF_SELECCION);
+        TogglePdfDetailsTableAction action = new TogglePdfDetailsTableAction(this.projectControllerRef);
+        if (icon != null) {
+            action.putValue(Action.SMALL_ICON, icon);
+        }
+        return action;
+    } // ---FIN de metodo [createTogglePdfDetailsTableAction]---
+
     /*
      * --- 4.11. Métodos Create para Actions Especiales ---
      */
@@ -1903,6 +1914,9 @@ public class ActionFactory {
                 estado = (estado + 1) % 3;
                 updateIcon(this);
                 logger.info("Orden cambiado a estado: " + estado);
+                // Notificar al DataController a través del callback registrado
+                java.util.function.Consumer<Integer> cb = sortCallback;
+                if (cb != null) cb.accept(estado);
             }
 
             private void updateIcon(javax.swing.Action action) {
@@ -1914,6 +1928,13 @@ public class ActionFactory {
         action.putValue(javax.swing.Action.SMALL_ICON, iconUtils.getScaledIcon("30004-orden_ascendente.png", 24, 24));
         action.putValue(javax.swing.Action.SHORT_DESCRIPTION, "Ordenar Tags");
         return action;
+    }
+
+    // Callback para que el DataController reciba los cambios de orden
+    private java.util.function.Consumer<Integer> sortCallback;
+
+    public void setSortCallback(java.util.function.Consumer<Integer> callback) {
+        this.sortCallback = callback;
     }
 
     private Action createTagFilterAction() {

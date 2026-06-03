@@ -62,6 +62,8 @@ public class MiniaturaListCellRenderer extends JPanel implements ListCellRendere
             int altoMiniaturaDeseado,
             boolean mostrarNombresConfig
     ) {
+    	
+    	
         this.servicioMiniaturas = Objects.requireNonNull(servicioMiniaturas);
         this.modeloVisor = Objects.requireNonNull(modeloVisor);
         this.projectManager = projectManager;

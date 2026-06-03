@@ -699,6 +699,15 @@ public class ImageListManager {
         logger.debug("[ImageListManager] setMostrarNombresMiniaturas completado.");
     }
 
+    private vista.panels.GridDisplayPanel getActiveGridPanel() {
+        if (model.getCurrentWorkMode() == modelo.VisorModel.WorkMode.PROYECTO) {
+            return registry.get("panel.display.grid.proyecto");
+        } else if (model.getCurrentWorkMode() == modelo.VisorModel.WorkMode.DATOS) {
+            return registry.get("panel.datamode.grid");
+        }
+        return registry.get("panel.display.grid");
+    }
+
     public void aumentarTamanoMiniaturas() {
         final int STEP = 10;
         final int MAX_SIZE = 300;
@@ -708,7 +717,7 @@ public class ImageListManager {
             int newWidth = Math.min(currentWidth + STEP, MAX_SIZE);
             configuration.setString(servicios.ConfigKeys.GRID_THUMBNAIL_WIDTH, String.valueOf(newWidth));
             configuration.setString(servicios.ConfigKeys.GRID_THUMBNAIL_HEIGHT, String.valueOf(newWidth));
-            vista.panels.GridDisplayPanel gridVisor = registry.get("panel.display.grid");
+            vista.panels.GridDisplayPanel gridVisor = getActiveGridPanel();
             if (gridVisor != null) gridVisor.setGridCellSize(newWidth, newWidth);
         } else {
             int currentNormWidth = configuration.getInt(servicios.ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, 70);
@@ -733,7 +742,7 @@ public class ImageListManager {
             int newWidth = Math.max(currentWidth - STEP, MIN_SIZE);
             configuration.setString(servicios.ConfigKeys.GRID_THUMBNAIL_WIDTH, String.valueOf(newWidth));
             configuration.setString(servicios.ConfigKeys.GRID_THUMBNAIL_HEIGHT, String.valueOf(newWidth));
-            vista.panels.GridDisplayPanel gridVisor = registry.get("panel.display.grid");
+            vista.panels.GridDisplayPanel gridVisor = getActiveGridPanel();
             if (gridVisor != null) gridVisor.setGridCellSize(newWidth, newWidth);
         } else {
             int currentNormWidth = configuration.getInt(servicios.ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, 70);

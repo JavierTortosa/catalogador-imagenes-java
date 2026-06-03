@@ -8,6 +8,7 @@ import java.awt.event.AWTEventListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -125,18 +126,22 @@ public class ThumbnailPreviewer {
                 }
             });
             
-            // 2. Listener para limpiar el Glass Pane cuando el diálogo se cierre
+            // 2. Listener para limpiar el Glass Pane y restaurar el foco cuando el diálogo se cierre
             previewDialog.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosed(WindowEvent e) {
                     if (owner instanceof JFrame) {
                         Component glassPane = ((JFrame) owner).getGlassPane();
-                        // Limpiamos sus listeners y lo hacemos invisible
                         glassPane.setVisible(false);
-                        for (MouseAdapter listener : glassPane.getListeners(MouseAdapter.class)) {
+                        for (MouseListener listener : glassPane.getListeners(MouseListener.class)) {
                              glassPane.removeMouseListener(listener);
                         }
                         logger.debug("Glass Pane limpiado y ocultado.");
+                    }
+                    // Restaurar el foco al componente que abrió la previsualización
+                    if (listContext != null) {
+                        listContext.requestFocusInWindow();
+                        SwingUtilities.invokeLater(() -> listContext.requestFocusInWindow());
                     }
                 }
             });
@@ -216,6 +221,7 @@ public class ThumbnailPreviewer {
                             MouseAdapter glassPaneListener = new MouseAdapter() {
                                 @Override
                                 public void mousePressed(MouseEvent e) {
+                                    e.consume();
                                     previewDialog.dispose();
                                 }
                             };

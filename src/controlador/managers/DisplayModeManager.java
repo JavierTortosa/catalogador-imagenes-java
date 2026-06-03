@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import controlador.ProjectController;
 import controlador.ProjectListCoordinator;
 import controlador.managers.interfaces.IListCoordinator;
+import controlador.managers.interfaces.IZoomManager;
 import controlador.utils.ComponentRegistry;
 import modelo.MasterListChangeListener;
 import modelo.MasterSelectionChangeListener;
@@ -24,6 +25,7 @@ import modelo.VisorModel.DisplayMode;
 import modelo.VisorModel.WorkMode; // <<< IMPORT NECESARIO
 import vista.theme.Tema;
 import vista.theme.ThemeChangeListener;
+import vista.panels.PolaroidDisplayPanel;
 
 public class DisplayModeManager implements ThemeChangeListener, MasterListChangeListener, MasterSelectionChangeListener {
 
@@ -40,6 +42,8 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
     private InfobarStatusManager infobarStatusManager;
     private ProjectController projectController; 
     private ProjectListCoordinator projectListCoordinator; 
+    private IZoomManager zoomManager;
+    private controlador.managers.ToolbarManager toolbarManager;
 
 
     
@@ -58,7 +62,7 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
         if (gridListVisualizador != null) {
             gridListVisualizador.addListSelectionListener(e -> {
                 if (!e.getValueIsAdjusting() && !isSyncingFromManager) {
-                    int selectedIndex = gridListVisualizador.getSelectedIndex();
+                    int selectedIndex = gridListVisualizador.getLeadSelectionIndex();
                     if (selectedIndex != -1 && listCoordinator != null && selectedIndex != listCoordinator.getOfficialSelectedIndex()) {
                         logger.debug("[DisplayModeManager] Selección del usuario en Grid-Visualizador. Índice: {}. Notificando a ListCoordinator.", selectedIndex);
                         listCoordinator.seleccionarImagenPorIndice(selectedIndex);
@@ -73,14 +77,14 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
         if (gridListProyecto != null) {
             gridListProyecto.addListSelectionListener(e -> {
                 if (!e.getValueIsAdjusting() && !isSyncingFromManager) {
-                    int selectedIndex = gridListProyecto.getSelectedIndex();
+                    int selectedIndex = gridListProyecto.getLeadSelectionIndex();
                     if (selectedIndex != -1 && projectListCoordinator != null && selectedIndex != projectListCoordinator.getOfficialSelectedIndex()) {
                         logger.debug("[DisplayModeManager] Selección del usuario en Grid-Proyecto. Índice: {}. Notificando a ProjectListCoordinator.", selectedIndex);
                         projectListCoordinator.seleccionarImagenPorIndice(selectedIndex);
                     }
                 }
             });
-            logger.debug(" -> Listener de selección añadido a 'list.grid.proyecto'.");
+            logger.debug(" -> Listener de selección añadido a 'list.grid.proyecto' (Proyecto).");
         }
 
         // Registrar este manager como oyente de cambios en la lista maestra
@@ -90,15 +94,23 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
     } // end of initializeListeners
 
     public void switchToDisplayMode(DisplayMode newMode) {
-        if (model.getCurrentDisplayMode() == newMode) {
-            return;
-        }
+        // Eliminamos el early return (if current == newMode return) para garantizar 
+        // que el CardLayout se actualice correctamente al cambiar de WorkMode,
+        // ya que cada WorkMode tiene su propio contenedor físico.
         
         logger.info("Cambiando a DisplayMode: {}", newMode);
         model.setCurrentDisplayMode(newMode);
         
+        if (model.getCurrentWorkMode() == WorkMode.EDICION) {
+            logger.info("El modo {} no soporta cambios de CardLayout de DisplayMode. Ignorando.", model.getCurrentWorkMode());
+            sincronizarBotonesDeModo();
+            return;
+        }
+        
         String containerKey = (model.getCurrentWorkMode() == WorkMode.PROYECTO) 
                             ? "container.displaymodes.proyecto" 
+                            : (model.getCurrentWorkMode() == WorkMode.DATOS)
+                            ? "container.displaymodes.datos"
                             : "container.displaymodes";
                             
         logger.debug("  -> Actuando sobre el contenedor CardLayout: {}", containerKey);
@@ -115,12 +127,47 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
         switch (newMode) {
             case SINGLE_IMAGE:
                 cardLayout.show(container, "VISTA_SINGLE_IMAGE");
+                if (model.getCurrentWorkMode() == WorkMode.DATOS && model.getSelectedImageKey() != null) {
+                    if (model.getCurrentImage() != null) {
+                        vista.panels.ImageDisplayPanel singlePanel = registry.get("panel.datamode.display");
+                        if (singlePanel != null) singlePanel.repaint();
+                        if (zoomManager != null) {
+                            zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());
+                        }
+                    } else {
+                        java.nio.file.Path ruta = model.getRutaCompleta(model.getSelectedImageKey());
+                        if (ruta != null && java.nio.file.Files.exists(ruta)) {
+                            javax.swing.SwingWorker<java.awt.image.BufferedImage, Void> worker = new javax.swing.SwingWorker<>() {
+                                @Override
+                                protected java.awt.image.BufferedImage doInBackground() throws Exception {
+                                    return javax.imageio.ImageIO.read(ruta.toFile());
+                                }
+                                @Override
+                                protected void done() {
+                                    try {
+                                        model.setCurrentImage(get());
+                                        vista.panels.ImageDisplayPanel singlePanel = registry.get("panel.datamode.display");
+                                        if (singlePanel != null) singlePanel.repaint();
+                                        if (zoomManager != null) {
+                                            zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());
+                                        }
+                                    } catch (Exception ex) {
+                                        logger.error("Error cargando imagen single al cambiar de modo", ex);
+                                    }
+                                }
+                            };
+                            worker.execute();
+                        }
+                    }
+                }
                 if (thumbnailBar != null) thumbnailBar.setVisible(true);
                 if (infobarStatusManager != null) infobarStatusManager.mostrarMensaje("Modo: Vista Individual");
                 break;
             case GRID:
                 if (model.getCurrentWorkMode() == WorkMode.PROYECTO && projectController != null) {
                     projectController.actualizarModeloPrincipalConListaDeProyectoActiva();
+                } else if (model.getCurrentWorkMode() == WorkMode.DATOS) {
+                    sincronizarSeleccionGrid();
                 } else {
                     poblarGridConModelo(model.getModeloLista());
                     sincronizarSeleccionGrid();
@@ -132,11 +179,40 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
             case POLAROID:
                 cardLayout.show(container, "VISTA_POLAROID");
                 if (thumbnailBar != null) thumbnailBar.setVisible(false);
-                if (infobarStatusManager != null) infobarStatusManager.mostrarMensaje("Modo: Polaroid (En desarrollo)");
+                
+                if (model.getCurrentWorkMode() == WorkMode.DATOS && model.getSelectedImageKey() != null && model.getCurrentImage() == null) {
+                    java.nio.file.Path ruta = model.getRutaCompleta(model.getSelectedImageKey());
+                    if (ruta != null && java.nio.file.Files.exists(ruta)) {
+                        javax.swing.SwingWorker<java.awt.image.BufferedImage, Void> worker = new javax.swing.SwingWorker<>() {
+                            @Override
+                            protected java.awt.image.BufferedImage doInBackground() throws Exception {
+                                return javax.imageio.ImageIO.read(ruta.toFile());
+                            }
+                            @Override
+                            protected void done() {
+                                try {
+                                    model.setCurrentImage(get());
+                                    actualizarPanelPolaroidActivo();
+                                    vista.panels.PolaroidDisplayPanel polaroidPanel = registry.get("panel.datamode.display.polaroid");
+                                    if (polaroidPanel != null) polaroidPanel.getImagePanel().repaint();
+                                } catch (Exception ex) {
+                                    logger.error("Error cargando imagen polaroid al cambiar de modo", ex);
+                                }
+                            }
+                        };
+                        worker.execute();
+                    }
+                }
+                
+                actualizarPanelPolaroidActivo();
+                if (infobarStatusManager != null) infobarStatusManager.mostrarMensaje("Modo: Vista Polaroid");
                 break;
         }
 
         sincronizarBotonesDeModo();
+        if (toolbarManager != null) {
+            toolbarManager.sincronizarEstadoBotonesToolbar(actionMap, model);
+        }
         container.revalidate();
         container.repaint();
     } // end of switchToDisplayMode
@@ -167,6 +243,16 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
                 int masterIndex = -1;
                 if (model.getCurrentWorkMode() == WorkMode.PROYECTO && projectListCoordinator != null) {
                     masterIndex = projectListCoordinator.getOfficialSelectedIndex();
+                } else if (model.getCurrentWorkMode() == WorkMode.DATOS) {
+                    String key = model.getSelectedImageKey();
+                    if (key != null) {
+                        for (int i = 0; i < gridList.getModel().getSize(); i++) {
+                            if (key.equals(gridList.getModel().getElementAt(i))) {
+                                masterIndex = i;
+                                break;
+                            }
+                        }
+                    }
                 } else if (listCoordinator != null) {
                     masterIndex = listCoordinator.getOfficialSelectedIndex();
                 }
@@ -214,45 +300,80 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
     
     @Override
     public void onMasterListChanged(DefaultListModel<String> newMasterList, Object source) {
-        // --- INICIO DE LA CORRECCIÓN ---
+        // El ProjectController es responsable de poblar el grid del proyecto.
         if (model != null && model.getCurrentWorkMode() == WorkMode.PROYECTO) {
-            // El ProjectController es responsable de poblar el grid del proyecto.
-            // Este manager no debe interferir.
             return;
         }
-        // --- FIN DE LA CORRECCIÓN ---
 
-        if (model.getCurrentDisplayMode() == DisplayMode.GRID) {
+        sincronizarBotonesDeModo();
+
+        DisplayMode currentDisplay = model.getCurrentDisplayMode();
+        
+        if (currentDisplay == DisplayMode.GRID) {
             logger.debug("[DisplayModeManager] Notificado de cambio en lista maestra. Repoblando la parrilla...");
             poblarGridConModelo(newMasterList);
             sincronizarSeleccionGrid();
+        } else if (currentDisplay == DisplayMode.POLAROID) {
+            // La lista ha cambiado, refrescamos el panel de info por si el idx/total ha cambiado
+            actualizarPanelPolaroidActivo();
         }
     } // end of onMasterListChanged
     
     @Override
     public void onMasterSelectionChanged(int newMasterIndex, Object source) {
-        // --- INICIO DE LA CORRECCIÓN ---
-        // Si estamos en modo Proyecto, este manager NO TIENE AUTORIDAD
-        // para cambiar nada basándose en la selección. El ProjectController manda.
+        // Si estamos en modo Proyecto, el ProjectController manda.
         if (model != null && model.getCurrentWorkMode() == WorkMode.PROYECTO) {
-            // Sincronizamos el grid del proyecto, pero NADA MÁS.
             sincronizarSeleccionGrid();
             return; 
         }
-        // --- FIN DE LA CORRECCIÓN ---
 
-        if (source != this && model.getCurrentDisplayMode() == DisplayMode.GRID) {
-            logger.debug("[DisplayModeManager] Notificado de cambio de selección maestra (desde {}). Sincronizando grid...", source != null ? source.getClass().getSimpleName() : "null");
-            sincronizarSeleccionGrid();
+        // Siempre que la selección cambie, refrescamos el estado de los botones de modo
+        // para habilitar/deshabilitar SINGLE_IMAGE/POLAROID en modo DATOS.
+        sincronizarBotonesDeModo();
+
+        DisplayMode currentDisplay = model.getCurrentDisplayMode();
+        
+        if (currentDisplay == DisplayMode.GRID) {
+            if (source != this) {
+                logger.debug("[DisplayModeManager] Notificado de cambio de selección maestra (desde {}). Sincronizando grid...", source != null ? source.getClass().getSimpleName() : "null");
+                sincronizarSeleccionGrid();
+            }
+        } else if (currentDisplay == DisplayMode.POLAROID) {
+            // La selección cambió estando en Polaroid (ej: navegando con teclado)
+            // → refrescamos el panel de metadatos e imagen
+            logger.debug("[DisplayModeManager] Selección cambiada en modo POLAROID. Actualizando panel.");
+            actualizarPanelPolaroidActivo();
         }
     } // end of onMasterSelectionChanged
     
     private JList<String> getActiveGridList() {
         if (model == null || registry == null) return null;
-        return (model.getCurrentWorkMode() == WorkMode.PROYECTO)
-             ? registry.get("list.grid.proyecto")
-             : registry.get("list.grid");
+        if (model.getCurrentWorkMode() == WorkMode.PROYECTO) return registry.get("list.grid.proyecto");
+        if (model.getCurrentWorkMode() == WorkMode.DATOS) return registry.get("list.datamode.grid");
+        return registry.get("list.grid");
     } // end of getActiveGridList
+
+    private void actualizarPanelPolaroidActivo() {
+        if (model == null || registry == null) return;
+
+        String panelKey;
+        switch (model.getCurrentWorkMode()) {
+            case PROYECTO:
+                panelKey = "panel.proyecto.display.polaroid";
+                break;
+            case DATOS:
+                panelKey = "panel.datamode.display.polaroid";
+                break;
+            default:
+                panelKey = "panel.display.polaroid";
+                break;
+        }
+
+        PolaroidDisplayPanel polaroidPanel = registry.get(panelKey);
+        if (polaroidPanel != null) {
+            polaroidPanel.actualizarInformacionDesdeModelo();
+        }
+    } // end of actualizarPanelPolaroidActivo
 
     // --- Setters para Inyección de Dependencias (RESTAURADOS Y COMPLETOS) ---
     public void setModel(VisorModel model) { this.model = model; }
@@ -262,6 +383,8 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
     public void setInfobarStatusManager(InfobarStatusManager infobarStatusManager) { this.infobarStatusManager = infobarStatusManager; }
     public void setProjectController(ProjectController projectController) { this.projectController = projectController; }
     public void setProjectListCoordinator(ProjectListCoordinator projectListCoordinator) { this.projectListCoordinator = projectListCoordinator; }
+    public void setZoomManager(IZoomManager zoomManager) { this.zoomManager = zoomManager; }
+    public void setToolbarManager(controlador.managers.ToolbarManager toolbarManager) { this.toolbarManager = toolbarManager; }
 
 
 } // end of class DisplayModeManager

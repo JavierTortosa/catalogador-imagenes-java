@@ -1,0 +1,127 @@
+Aquí tienes un plan de refactorización detallado para dividir esta clase. Te
+sugiero extraer la lógica en los siguientes Servicios (que puedes ubicar en un
+nuevo paquete controlador.services.proyecto):
+
+1. ProjectExportService
+
+Responsabilidad: Todo lo relacionado con la validación de archivos, detección de
+conflictos y el inicio del ExportWorker. Métodos a extraer de ProjectController:
+
+  - solicitarInicioExportacion(): Este método es gigante. Toda la fase de
+    "VALIDACIÓN PREVIA" y "DETECTAR CONFLICTOS DE SOBRESCRITURA" debe ir aquí.
+    El controlador solo debería hacer: exportService.exportar(cola, destino,
+    isMoveMode);
+  - Refactorización interna importante: Dentro de tu método
+    actualizarEstadoExportacionUI(), tienes un bloque enorme etiquetado como ---
+    LOGICA DE DETECCION DE CONFLICTOS MEJORADA ---. Eso no es UI. Esa lógica
+    matemática de buscar duplicados debe ir a este servicio, devolviendo un
+    objeto ExportStatusReport que el controlador use simplemente para pintar los
+    colores.
+
+2. PdfWorkflowService
+
+Responsabilidad: Orquestar el flujo de generación del catálogo PDF (asignar
+códigos, validar preflight, mostrar preview, guardar). Métodos a extraer:
+
+  - generarCatalogoPDF(): La lógica de formatear "C001", llamar al
+    PDFExportPreflightService, y configurar el JFileChooser.
+  - sincronizarDatosCatalogoConModelo(): Este método es puro manejo de datos y
+    pertenece a este servicio.
+
+3. ProjectFileManagementService
+
+Responsabilidad: Las operaciones CRUD (Crear, Leer, Actualizar, Borrar) sobre
+los archivos físicos y sus asociaciones en el proyecto. Métodos a extraer:
+
+  - solicitarAnadirArchivoAsociado()
+  - solicitarQuitarArchivoAsociado()
+  - solicitarAnadirArchivosAlProyecto()
+  - solicitarRelocalizacionImagen()
+  - solicitarLocalizarArchivoSeleccionado()
+  - solicitarEliminacionPermanente()
+
+4. ProjectIntegrityService (Auto-Heal & Limpieza)
+
+Responsabilidad: Mantener la coherencia entre lo que hay en el ProjectModel y lo
+que existe realmente en el disco duro. Métodos a extraer:
+
+  - autoRelocalizarImagenesHuerfanas(): Un método excelente, puramente de lógica
+    de negocio (accede a BD, comprueba Files.exists, actualiza mapas).
+  - solicitarLimpiarImagenesNoEncontradas()
+
+5. ProjectSyncService
+
+Responsabilidad: Estandarizar cómo se mueven los datos entre la Vista (JLists,
+Tablas) y el Modelo (ProjectModel). Métodos a extraer:
+
+  - sincronizarModeloConUI()
+  - sincronizarArchivosAsociadosConModelo()
+  - sincronizarDescripcionDesdeUI()
+  - actualizarModeloPrincipalConListaDeProyectoActiva()
+
+6. Delegar la UI al ProjectUIManager (Opciones de UI pura)
+
+El controlador no debería saber de colores, bordes, ni anchos de píxeles. Tienes
+métodos que ensucian la lógica de negocio con puras llamadas a SwingUtilities.
+Estos deberían ir a una clase helper o manager visual:
+
+  - ajustarPosicionDivisorDerecho()
+  - actualizarAparienciaListasPorFoco()
+  - actualizarContadoresDeTitulos()
+  - crearMenuContextualVisorManualmente() y
+    configurarContextMenuTablaExportacion(): La creación de menús contextuales
+    (JPopupMenu) idealmente debería estar encapsulada en una clase MenuFactory o
+    delegada a la Vista.
+
+Ejemplo visual del "Antes y Después"
+
+Mira cómo quedaría tu método generarCatalogoPDF() en el Controlador después de
+la refactorización:
+
+ANTES (Lo que tienes ahora): Un método de 60 líneas que hace validaciones,
+bucles for, instancia cuadros de diálogo, configura filtros de archivos de
+Windows y guarda datos.
+
+DESPUÉS (Con el Servicio creado):
+
+public void generarCatalogoPDF() {
+    ExportPanel exportPanel = registry.get("panel.proyecto.exportacion.completo");
+    List<ExportItem> seleccionados = obtenerItemsSeleccionados(exportPanel);
+
+    if (seleccionados.isEmpty()) {
+        mostrarAviso("Selecciona elementos en la tabla.");
+        return;
+    }
+
+    // 1. El servicio prepara los datos (códigos C001, etc.)
+    pdfWorkflowService.prepararCodigosCatalogo(seleccionados);
+
+    // 2. El controlador (como es su trabajo) gestiona el flujo de las pantallas (Views)
+    PDFPreviewDialog preview = new PDFPreviewDialog(view, seleccionados);
+    preview.setVisible(true);
+    
+    if (preview.isConfirmed()) {
+        File destino = solicitarDestinoGuardadoPDF(); // Llama al JFileChooser
+        if (destino != null) {
+            String notas = projectManager.getCurrentProject().getProjectDescription();
+            // 3. El servicio ejecuta la tarea final
+            pdfWorkflowService.ejecutarGeneracionPDF(seleccionados, destino, notas);
+            projectManager.notificarModificacion();
+        }
+    }
+}
+
+¿Cómo abordar esta refactorización sin romper el programa?
+
+No lo hagas todo de golpe. Usa el patrón "Estrangulador" (Strangler Fig):
+
+1.  Crea la clase ProjectIntegrityService.
+2.  Mueve autoRelocalizarImagenesHuerfanas() a ese servicio.
+3.  Inyecta ProjectIntegrityService en ProjectController.
+4.  Cambia la llamada en ProjectController a
+    this.integrityService.autoRelocalizarImagenesHuerfanas();.
+5.  Compila, prueba que todo funciona.
+6.  Pasa al siguiente servicio (por ejemplo, el de PDF).
+
+Este enfoque limpiará tu ProjectController dejándolo en menos de 500 líneas (su
+tamaño ideal), haciéndolo infinitamente más fácil de leer, mantener y depurar.

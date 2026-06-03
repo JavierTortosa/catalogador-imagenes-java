@@ -10,6 +10,7 @@ public class Tag {
     private long id;
     private String nombre;
     private Long parentId; // Usamos Long para permitir valores nulos.
+    private int readOnly;  // 0 = Creado por usuario, 1 = Automático
 
     // Constructor por defecto
     public Tag() {
@@ -17,14 +18,20 @@ public class Tag {
     
     // Constructor para conveniencia
     public Tag(long id, String nombre) {
-        this(id, nombre, null); // Llama al constructor más completo
+        this(id, nombre, null, 0); // Llama al constructor más completo con readOnly = 0
     } // ---FIN de constructor [Tag]---
     
-    // Constructor completo
+    // Constructor intermedio
     public Tag(long id, String nombre, Long parentId) {
+        this(id, nombre, parentId, 0); // Llama al constructor más completo con readOnly = 0
+    } // ---FIN de constructor [Tag]---
+
+    // Constructor completo
+    public Tag(long id, String nombre, Long parentId, int readOnly) {
         this.id = id;
         this.nombre = nombre;
         this.parentId = parentId;
+        this.readOnly = readOnly;
     } // ---FIN de constructor [Tag]---
 
     // --- Getters y Setters ---
@@ -52,6 +59,18 @@ public class Tag {
     public void setParentId(Long parentId) {
         this.parentId = parentId;
     } // ---FIN de metodo [setParentId]---
+
+    public int getReadOnly() {
+        return readOnly;
+    } // ---FIN de metodo [getReadOnly]---
+
+    public void setReadOnly(int readOnly) {
+        this.readOnly = readOnly;
+    } // ---FIN de metodo [setReadOnly]---
+
+    public boolean isReadOnly() {
+        return readOnly == 1;
+    } // ---FIN de metodo [isReadOnly]---
 
     // --- Métodos de utilidad ---
 

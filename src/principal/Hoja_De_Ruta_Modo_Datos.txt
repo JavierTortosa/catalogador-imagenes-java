@@ -1,0 +1,193 @@
+Aquí tienes el plan exhaustivo de arquitectura lógica para tu Módulo de
+Biblioteca (Modo Datos). Este esquema define el comportamiento, la interfaz y
+las reglas de negocio para mantener la integridad de tus 60k archivos.
+
+Plan de Arquitectura: Biblioteca del Gestor de Modelos 3D
+
+1. Naturaleza de los Nodos (Taxonomía)
+
+La biblioteca se compone de nodos híbridos. Todos residen en la misma tabla
+tags, pero se diferencian por su atributo es_protegido (booleano).
+
+  - Nodos de Sistema (es_protegido = true): Origen en carpetas físicas.
+    Inmutables en estructura. Representados con un icono de Candado.
+  - Nodos de Usuario (es_protegido = false): Taxonomía lógica. Editables (CRUD
+    completo). Representados con icono de Etiqueta.
+
+2. Visualización y Estados
+
+  - Color de texto:
+      - Negro/Blanco (según tema): Nodo disponible (unidad de disco conectada).
+      - Gris atenuado: Nodo no disponible (unidad desconectada / disco fuera).
+  - Jerarquía: El árbol refleja la estructura parent_id. Los nodos protegidos
+    son siempre raíces o ramas de alto nivel. Los nodos de usuario pueden ser
+    raíces o ramas profundas.
+  - Buscador Integrado (IntelliSense):
+      - Uso de . como delimitador jerárquico.
+      - [Nodo] > [Sub-nodo] navegable mediante autocompletado estilo IDE
+        (Eclipse/IntelliJ).
+
+3. Sistema CRUD y Edición (Reglas de Oro)
+
+Para evitar la ruptura de la base de datos, toda modificación se limita al
+segmento hoja (Z):
+
+A. Creación (IntelliSense)
+
+  - Se activa mediante un campo de texto con autocompletado.
+  - El usuario escribe x.y.z.
+  - Recursividad: Si x.y existe pero z no, el sistema crea z con parent_id =
+    y.id.
+  - Si x es protegido, permite crear el hijo y (si es de usuario) y el nieto z
+    (si es de usuario).
+
+B. Modificación (Nombre o Ubicación)
+
+  - Regla: Solo es editable el último nivel (z).
+  - Interfaz de Edición: Al pulsar [Editar], se abre un diálogo con:
+      - Campo de texto fijo: [Camino Protegido] (No editable).
+      - Campo de texto activo: [Segmento editable] (Permite renombrar z).
+  - Mover (Drag & Drop o Panel):
+      - Se permite mover solo el bloque hoja.
+      - Validación de seguridad: El nodo destino no puede ser descendiente del
+        origen (evitar bucles).
+      - Impacto: El sistema muestra una alerta: "Moviendo [z] afectará a [N]
+        imágenes. ¿Confirmar?".
+
+C. Borrado
+
+  - Nodos Protegidos: Botón deshabilitado. Menú contextual muestra "Eliminar" en
+    gris.
+  - Nodos de Usuario:
+      - Si tiene hijos: Pregunta de confirmación "¿Borrar rama completa o mover
+        hijos a la raíz?".
+      - Acción técnica: DELETE FROM tags (Cascada gestionada por la BD).
+
+4. Menú Contextual (Popup Menu)
+
+| Acción            | Nodo Sistema (Protegido)         | Nodo Usuario (Editable)         |
+| :---------------- | :------------------------------- | :------------------------------ |
+| **Nuevo Tag**     | Permitido (crea hijo de usuario) | Permitido                       |
+| **Editar Nombre** | Deshabilitado                    | Habilitado (solo segmento hoja) |
+| **Mover**         | Deshabilitado                    | Habilitado (solo bloque hoja)   |
+| **Borrar**        | Deshabilitado                    | Habilitado                      |
+| **Detalles**      | Visible (Ruta disco/Estado)      | Visible (Etiqueta/Metadata)     |
+
+5. Algoritmo de Búsqueda y Navegación
+
+  - Selección simple: SELECT * FROM imagenes WHERE id IN (SELECT imagen_id FROM
+    imagen_tags WHERE tag_id = X)
+  - Selección con herencia: Para obtener imágenes de un nodo con hijos, se usa
+    una CTE (Common Table Expression) recursiva en SQLite:
+    WITH RECURSIVE CteTags AS (
+        SELECT id FROM tags WHERE id = :target_id
+        UNION ALL
+        SELECT t.id FROM tags t JOIN CteTags ct ON t.parent_id = ct.id
+    )
+    SELECT * FROM imagenes WHERE id IN (SELECT imagen_id FROM imagen_tags WHERE tag_id IN CteTags)
+
+6. Integración del Flujo de Trabajo
+
+1.  Navegación: El árbol es el mapa. Al hacer clic, el visor se actualiza
+    mediante la consulta recursiva.
+2.  Edición: Se realiza vía teclado (IntelliSense) o vía botones de acción
+    rápida.
+3.  Seguridad: El booleano es_protegido es el guardián. Cualquier intento de
+    violar la estructura protegida se bloquea antes de enviar el comando a la
+    base de datos, lanzando un JOptionPane informativo.
+
+Este plan garantiza que, independientemente de si tienes 10 tags o 10,000, la
+interfaz sea siempre predecible, rápida y segura para tus 60k modelos.
+
+
+===================================================================================================================================
+
+¡Es la magia de una buena arquitectura! Cuando separas las responsabilidades
+(Navegación vs. Gestión), el código deja de ser un nudo gordiano y se convierte
+en una serie de pasos lógicos.
+
+Aquí tienes el Plan Maestro de Gestión y Asignación (Modo Datos) para tus notas:
+
+Plan Maestro: Panel de Gestión y Asignación (Modo Datos)
+
+1. Filosofía del Sistema
+
+  - Biblioteca (Árbol): Solo para Navegación. Es "Read-Only" desde el punto de
+    vista operativo.
+  - Panel de Tags (Inferior): El "Cuartel General" para Operaciones CRUD. Es el
+    único lugar donde se modifica la Base de Datos.
+
+2. Estructura del Panel de Tags
+
+Se divide en dos áreas funcionales:
+
+A. Gestión de Taxonomía (Botones de Base de Datos)
+
+  - [+ Crear]: Abre el asistente de creación inteligente (x.y.z).
+  - [✎ Modificar]: Abre el asistente de edición limitada al último segmento
+    (hoja).
+  - [- Borrar]: Ejecuta el borrado del segmento hoja seleccionado.
+  - Nota: Estos botones afectan a la tabla tags. Si el nodo es es_protegido =
+    true, el sistema bloquea la acción.
+
+B. Asignación de Etiquetas (Operativo para Imágenes)
+
+  - Selector de Acción: Botón [Asignar Tag]. Solo se habilita si hay imágenes
+    seleccionadas en el Grid.
+  - Configuración de Inserción:
+      - Checkbox [X] "Herencia Jerárquica":
+          - Activado: Inserta en la BD el tag escrito + todos sus padres (ej: x,
+            y y z).
+          - Desactivado: Inserta solo el tag de nivel hoja (ej: z).
+  - Buscador Inteligente: Campo de texto con IntelliSense (autocomplete) que
+    sugiere rutas basándose en la estructura existente.
+
+3. Flujo de Trabajo (El "Workflow" del usuario)
+
+1.  Selección: El usuario selecciona 1 o N imágenes en el Grid del Visor.
+2.  Activación: El botón [Asignar Tag] se ilumina.
+3.  Configuración: El usuario marca si quiere herencia y escribe la ruta (o
+    autocompleta).
+4.  Confirmación: Al pulsar [OK], aparece un Popup de Confirmación:
+      - Detalle: "Vas a asignar [ruta] a [N] imágenes. ¿Continuar?".
+5.  Ejecución:
+      - Se realiza una Transacción SQL (Atomicity) para evitar errores de red o
+        BD.
+      - Feedback: La Status Bar muestra: "Tarea finalizada con éxito: Asignado
+        [tag] a [N] imágenes" en color verde (éxito) o naranja/rojo (error de
+        permisos).
+
+4. Reglas de Integridad y Seguridad
+
+  - Protección de Sistema: Los nodos con es_protegido = true nunca son editables
+    en los botones de "Gestión".
+  - Modificación Segura: La edición de nombres y movimientos solo permite tocar
+    el último segmento (hoja). Esto protege la ruta física del sistema y la
+    estabilidad del árbol.
+  - Integridad SQL:
+      - Se utiliza UNIQUE(parent_id, nombre) en la tabla tags.
+      - Se utiliza BEGIN TRANSACTION para todas las asignaciones masivas de
+        tags.
+
+5. Visualización Visual
+
+  - Árbol: Limpio, solo para navegar, con iconos (Candado para sistema, Etiqueta
+    para usuario).
+  - Panel de Tags: El centro de la actividad. Botones claros, campo de texto
+    prominente con soporte de autocompletado y un indicador de estado en la
+    Status Bar que mantiene al usuario informado de cada cambio.
+
+Resumen para el programador: El sistema ahora es Modular. Si mañana decides
+cambiar cómo se visualiza el árbol, no rompes la lógica de asignación. Si
+decides cambiar la lógica de asignación, no tocas la estructura de la base de
+datos. ¡Estás listo para codificar!
+
+
+
+30102-Add-Square.png -> añadir
+30103-Subtract-Square.png -> borrar
+30104-Pencil-Square.png -> editar
+
+30105-Layout-Square.png -> quitar asignado
+30106-Check-Square-2.png -> asignar
+

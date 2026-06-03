@@ -11,8 +11,17 @@
 
     <h1>Guía del Panel de Exportación</h1>
     <p>
-        El Panel de Exportación es la herramienta para recopilar y organizar las imágenes de tu "Selección Actual" junto con sus <strong>archivos comprimidos asociados</strong> (<code>.zip</code>, <code>.rar</code>, etc.) para copiarlos a una carpeta de destino.
+        El Panel de Exportación es la herramienta para recopilar y organizar las imágenes de tu "Selección Actual" junto con sus <strong>archivos comprimidos asociados</strong> (<code>.zip</code>, <code>.rar</code>, etc.) para copiarlos a una carpeta de destino o generar un catálogo PDF.
     </p>
+    
+    <h2>Cómo abrir el Panel de Exportación</h2>
+    <p>Estando en el <strong>Modo Proyecto</strong>, puedes abrirlo de cualquiera de estas formas:</p>
+    <ul>
+        <li>Menú <strong>Proyecto → Panel de Control de Asignaciones</strong></li>
+        <li>Botón <strong><img src="ICON_PLACEHOLDER_21005-iniciar_exportación.png" style="width:24px;height:24px;vertical-align:middle;margin:0 4px;"> Panel de Control de Asignaciones</strong> en la barra de herramientas principal (junto a Guardar/Eliminar proyecto).</li>
+        <li>Botón <strong><img src="ICON_PLACEHOLDER_21005-iniciar_exportación.png" style="width:20px;height:20px;vertical-align:middle;margin:0 4px;"></strong> en la barra inferior del grid de proyecto.</li>
+    </ul>
+    <p>El panel se abre como una vista dividida: la tabla de exportación aparece a la izquierda y el grid de proyecto se reduce a la derecha. Para cerrarlo, pulsa el mismo botón de nuevo (es un botón de tipo <em>toggle</em>).</p>
 
     <h2>Anatomía del Panel</h2>
     <p>El panel se divide en tres áreas funcionales:</p>
@@ -33,6 +42,10 @@
                 <td>Permite seleccionar o deseleccionar un ítem para incluirlo en la exportación. Puedes marcar/desmarcar todos haciendo clic en la cabecera de la columna.</td>
             </tr>
             <tr>
+                <td><strong>Código</strong></td>
+                <td>Código de catálogo para el PDF (<code>C001</code>, <code>C002</code>...). Solo se usa al generar el catálogo PDF; no afecta a la copia de archivos.</td>
+            </tr>
+            <tr>
                 <td><strong>Imagen</strong></td>
                 <td>Muestra el nombre del archivo de la imagen.</td>
             </tr>
@@ -43,6 +56,10 @@
             <tr>
                 <td><strong>Archivos Asignados</strong></td>
                 <td>Lista los nombres de los archivos comprimidos que se copiarán. Si hay más de un archivo asignado, aparecerá un icono especial <strong><img src="ICON_PLACEHOLDER_21006-items_exportar_48x48.png" style="width:16px; height:16px; vertical-align:middle;"></strong> que te invita a abrir el Panel de Detalles.</td>
+            </tr>
+            <tr>
+                <td><strong>Tamaño</strong></td>
+                <td>Peso total estimado de la imagen más todos los archivos comprimidos asociados. Se muestra en formato legible (KB, MB, GB).</td>
             </tr>
         </tbody>
     </table>
@@ -108,6 +125,11 @@
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_21005-iniciar_exportación.png"></td>
             <td><strong>Iniciar Exportación:</strong> Comienza la copia. Solo se activa cuando hay una carpeta de destino y todos los ítems marcados están listos.</td>
         </tr>
+		
+		<tr>
+			<td class="icon-cell"><img src="ICON_PLACEHOLDER_21013-File-Pdf.png"></td>
+			<td><strong>Exportar a PDF</strong> Te permite crear un catálogo visual profesional en formato PDF con las imágenes seleccionadas, ideal para presentar a clientes.</td>
+		</tr>
     </table>
 
     <!-- SECCIÓN: ESTADOS -->
@@ -122,27 +144,65 @@
         </thead>
         <tbody>
             <tr>
-                <td><img src="ICON_PLACEHOLDER_status-ok.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px"><strong>ENCONTRADO_OK</strong></td>
+                <td><img src="ICON_PLACEHOLDER_status-ok.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px"><strong>OK</strong></td>
                 <td>¡Perfecto! La aplicación ha encontrado el archivo asociado. No se requiere acción.</td>
             </tr>
             <tr>
-                <td><img src="ICON_PLACEHOLDER_status-user.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px"><strong>ASIGNADO_MANUAL</strong></td>
+                <td><img src="ICON_PLACEHOLDER_status-user.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px"><strong>MANUAL</strong></td>
                 <td>Has asignado manualmente un archivo. El ítem está listo.</td>
             </tr>
             <tr>
-                <td><img src="ICON_PLACEHOLDER_status-ignore.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px"><strong>IGNORAR_COMPRIMIDO</strong></td>
+                <td><img src="ICON_PLACEHOLDER_status-ignore.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px"><strong>ZIP IGNORE</strong></td>
                 <td>Has decidido exportar esta imagen sin archivo comprimido. El ítem está listo.</td>
             </tr>
             <tr>
-                <td><img src="ICON_PLACEHOLDER_status-warning.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px"><strong>NO_ENCONTRADO</strong></td>
+                <td><img src="ICON_PLACEHOLDER_status-warning.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px"><strong>NO ZIP</strong></td>
                 <td>No se encontró archivo asociado. Debes <strong>asignarlo manualmente</strong> o <strong>ignorarlo</strong>.</td>
             </tr>
             <tr>
-                <td><img src="ICON_PLACEHOLDER_status-error.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px"><strong>IMAGEN_NO_ENCONTRADA</strong></td>
+                <td><img src="ICON_PLACEHOLDER_status-error.png" style="width:20px;height:20px;vertical-align:middle;margin-right:6px"><strong>IMG. PERDIDA</strong></td>
                 <td><strong>¡Error Crítico!</strong> El archivo de la imagen no se encuentra. Usa "Relocalizar Imagen".</td>
             </tr>
         </tbody>
     </table>
+    
+    <!-- SECCIÓN: CATÁLOGO PDF -->
+    <h2>Generación de Catálogo PDF</h2>
+    
+    <h3>Datos por imagen</h3>
+    <p>
+        Cada imagen del catálogo puede incluir los siguientes campos editables. Se configuran desde el <strong>Panel de Detalles</strong> (selecciona una fila en la tabla) o desde la <strong>Vista Previa</strong> antes de generar:
+    </p>
+    <table class="help-table">
+        <thead>
+            <tr><th>Campo</th><th>Descripción</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><strong>Código</strong></td><td>Identificador único autoasignado (<code>C001</code>, <code>C002</code>...). Se genera automáticamente al preparar el PDF.</td></tr>
+            <tr><td><strong>Piezas</strong></td><td>Número de piezas que componen el modelo.</td></tr>
+            <tr><td><strong>LVL</strong></td><td>Nivel de dificultad de pintado (ej. Fácil, Medio, Difícil).</td></tr>
+            <tr><td><strong>PVP</strong></td><td>Precio de venta al público de la figura.</td></tr>
+            <tr><td><strong>Notas</strong></td><td>Observaciones adicionales sobre la imagen.</td></tr>
+        </tbody>
+    </table>
+    <p>Todos estos datos se guardan automáticamente en el archivo <code>.prj</code> del proyecto.</p>
+    
+    <h3>Flujo de trabajo</h3>
+    <ol>
+        <li>Revisa la tabla de exportación y marca con el checkbox las imágenes que quieres incluir.</li>
+        <li>Rellena los campos (Piezas, LVL, PVP, Notas) desde el Panel de Detalles o desde la Vista Previa.</li>
+        <li>Pulsa <strong>Exportar a PDF</strong>.</li>
+        <li>Se abre la <strong>Vista Previa</strong> donde puedes revisar todas las imágenes, modificar los campos sobre la marcha, o quitar imágenes que no quieras.</li>
+        <li>Confirma y elige dónde guardar el archivo <code>.pdf</code>.</li>
+    </ol>
+    
+    <h3>Estructura del PDF</h3>
+    <ul>
+        <li>Hasta <strong>4 imágenes por página</strong> organizadas en una cuadrícula de 2×2.</li>
+        <li>Cada imagen se muestra dentro de un recuadro con su foto y los datos asociados (Código, Piezas, LVL, PVP, Notas).</li>
+        <li>Si el proyecto tiene una <strong>descripción</strong> rellena, se añade una última página con las notas del proyecto.</li>
+    </ul>
+
 </div>
 
 </body>

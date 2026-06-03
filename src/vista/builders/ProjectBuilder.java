@@ -31,6 +31,7 @@ import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import vista.panels.GridDisplayPanel;
 import vista.panels.ImageDisplayPanel;
+import vista.panels.PolaroidDisplayPanel;
 import vista.panels.export.ExportPanel;
 import vista.panels.export.ProjectMetadataPanel;
 import vista.renderers.ProjectListCellRenderer;
@@ -156,7 +157,7 @@ public class ProjectBuilder implements ThemeChangeListener {
 
         JList<String> projectFileList = new JList<>();
         projectFileList.setName("list.proyecto.nombres");
-        projectFileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        projectFileList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         // --- INICIO DE LA MODIFICACIÓN ---
         projectFileList.setCellRenderer(new ProjectListCellRenderer());
         // --- FIN DE LA MODIFICACIÓN ---
@@ -191,7 +192,7 @@ public class ProjectBuilder implements ThemeChangeListener {
 
         JList<String> descartesList = new JList<>();
         descartesList.setName("list.proyecto.descartes");
-        descartesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        descartesList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         // --- INICIO DE LA MODIFICACIÓN ---
         descartesList.setCellRenderer(new ProjectListCellRenderer());
         // --- FIN DE LA MODIFICACIÓN ---
@@ -280,11 +281,11 @@ public class ProjectBuilder implements ThemeChangeListener {
             }
 
             private void showProjectContextMenu(java.awt.event.MouseEvent e) {
-                // Si el clic es en una JList, seleccionamos el item bajo el cursor
+                // Si el clic es en una JList, seleccionamos el item bajo el cursor solo si no está ya en la selección
                 if (e.getComponent() instanceof JList) {
                     JList<?> list = (JList<?>) e.getComponent();
                     int row = list.locationToIndex(e.getPoint());
-                    if (row != -1 && list.getSelectedIndex() != row) {
+                    if (row != -1 && !list.isSelectedIndex(row)) {
                         list.setSelectedIndex(row);
                     }
                 }
@@ -336,9 +337,45 @@ public class ProjectBuilder implements ThemeChangeListener {
         // --- LA CLAVE: AÑADIMOS EL MISMO LISTENER AL GRID ---
         gridList.addMouseListener(sharedContextMenuListener);
 
+        // --- Visor Polaroid ---
+        PolaroidDisplayPanel polaroidViewPanel = new PolaroidDisplayPanel(this.themeManager, this.model);
+        ImageDisplayPanel polaroidImagePanel = polaroidViewPanel.getImagePanel();
+
+        if (this.generalController != null && this.generalController.getVisorController() != null) {
+            javax.swing.Action prevAction = this.generalController.getVisorController().getActionMap()
+                    .get(AppActionCommands.CMD_NAV_ANTERIOR);
+            javax.swing.Action nextAction = this.generalController.getVisorController().getActionMap()
+                    .get(AppActionCommands.CMD_NAV_SIGUIENTE);
+            IconUtils iconUtils = this.generalController.getVisorController().getIconUtils();
+
+            if (iconUtils != null) {
+                javax.swing.Icon prevIcon = iconUtils.getScaledIcon("1002-anterior_48x48.png", 48, 48);
+                javax.swing.Icon nextIcon = iconUtils.getScaledIcon("1003-siguiente_48x48.png", 48, 48);
+                polaroidViewPanel.setNavigationActions(prevAction, nextAction, prevIcon, nextIcon);
+            }
+        }
+
+        polaroidImagePanel.setFocusable(true);
+        java.awt.event.MouseAdapter polaroidFocusRequester = new java.awt.event.MouseAdapter() {
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                polaroidImagePanel.requestFocusInWindow();
+            }
+        };
+        polaroidImagePanel.addMouseListener(polaroidFocusRequester);
+        polaroidImagePanel.getInternalLabel().addMouseListener(polaroidFocusRequester);
+
+        polaroidImagePanel.addMouseListener(sharedContextMenuListener);
+        polaroidImagePanel.getInternalLabel().addMouseListener(sharedContextMenuListener);
+
+        registry.register("panel.proyecto.display.polaroid", polaroidViewPanel);
+        registry.register("panel.proyecto.display.polaroid.image", polaroidImagePanel);
+        registry.register("label.proyecto.polaroid.imagen", polaroidViewPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
+
         // Ensamblaje final
         displayModesContainer.add(singleImageViewPanel, "VISTA_SINGLE_IMAGE");
         displayModesContainer.add(gridViewPanel, "VISTA_GRID");
+        displayModesContainer.add(polaroidViewPanel, "VISTA_POLAROID");
 
         return displayModesContainer;
     } // --- FIN de metodo createDisplayModesContainer ---
@@ -450,8 +487,9 @@ public class ProjectBuilder implements ThemeChangeListener {
                 if (component instanceof JList) {
                     JList<?> list = (JList<?>) component;
                     int row = list.locationToIndex(e.getPoint());
-                    if (row != -1)
+                    if (row != -1 && !list.isSelectedIndex(row)) {
                         list.setSelectedIndex(row);
+                    }
                 } else if (component instanceof JTable) {
                     JTable table = (JTable) component;
                     int row = table.rowAtPoint(e.getPoint());

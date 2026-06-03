@@ -6,12 +6,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class CheckHeaderRenderer extends JCheckBox implements TableCellRenderer {
 
-	private static final Logger logger = LoggerFactory.getLogger(CheckHeaderRenderer.class);
     private static final long serialVersionUID = 1L;
 
     public CheckHeaderRenderer() {

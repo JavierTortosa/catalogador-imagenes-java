@@ -118,7 +118,7 @@ public class MenuPopupManager {
                 public void mousePressed(MouseEvent e) {
                     if (e.isPopupTrigger()) {
                         int index = gridList.locationToIndex(e.getPoint());
-                        if (index != -1 && gridList.getSelectedIndex() != index) {
+                        if (index != -1 && !gridList.isSelectedIndex(index)) {
                             gridList.setSelectedIndex(index);
                         }
                         popupMenuGrid.show(e.getComponent(), e.getX(), e.getY());
@@ -129,7 +129,7 @@ public class MenuPopupManager {
                 public void mouseReleased(MouseEvent e) {
                     if (e.isPopupTrigger()) {
                         int index = gridList.locationToIndex(e.getPoint());
-                        if (index != -1 && gridList.getSelectedIndex() != index) {
+                        if (index != -1 && !gridList.isSelectedIndex(index)) {
                             gridList.setSelectedIndex(index);
                         }
                         popupMenuGrid.show(e.getComponent(), e.getX(), e.getY());

@@ -3,6 +3,7 @@ package servicios.db;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -108,6 +109,67 @@ public class DatabaseManager {
         } catch (SQLException e) {
             logger.error("Error al aplicar migración de robustez técnica.", e);
         }
+
+        // --- MIGRACIÓN 4: Añadir read_only a la tabla de tags ---
+        try (Statement stmt = connection.createStatement()) {
+            logger.debug("Verificando si se necesita la columna 'read_only' en 'tags'...");
+            try { 
+                stmt.execute("ALTER TABLE tags ADD COLUMN read_only INTEGER DEFAULT 0;"); 
+                logger.info("Migración aplicada: columna 'read_only' añadida a 'tags'.");
+            } catch (SQLException e) {
+                if (e.getMessage().contains("duplicate column name")) {
+                    logger.debug("La columna 'read_only' ya existe en 'tags'.");
+                } else {
+                    throw e;
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error al aplicar migración de 'read_only' en 'tags'.", e);
+        }
+
+        // --- MIGRACIÓN 5: Refactorización de UNIQUE constraint en 'tags' ---
+        try (Statement stmt = connection.createStatement()) {
+            // Check if the old unique constraint on 'nombre' exists by trying to add a duplicate name with different parent
+            // A simpler way: just recreate the table if it doesn't have UNIQUE(parent_id, nombre). 
+            // We can determine this by checking the sql used to create the table from sqlite_master.
+            ResultSet rs = stmt.executeQuery("SELECT sql FROM sqlite_master WHERE type='table' AND name='tags'");
+            if (rs.next()) {
+                String sql = rs.getString("sql");
+                if (sql != null && sql.contains("nombre TEXT NOT NULL UNIQUE")) {
+                    logger.info("Iniciando migración 5: Refactorizando tabla 'tags' para UNIQUE(parent_id, nombre)...");
+                    stmt.execute("PRAGMA foreign_keys = OFF;");
+                    stmt.execute("BEGIN TRANSACTION;");
+                    
+                    stmt.execute("CREATE TABLE tags_new (" +
+                                 "  id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                                 "  nombre TEXT NOT NULL," +
+                                 "  parent_id INTEGER REFERENCES tags_new(id)," +
+                                 "  read_only INTEGER DEFAULT 0," +
+                                 "  UNIQUE(parent_id, nombre)" +
+                                 ");");
+                    
+                    stmt.execute("INSERT INTO tags_new (id, nombre, parent_id, read_only) SELECT id, nombre, parent_id, read_only FROM tags;");
+                    stmt.execute("DROP TABLE tags;");
+                    stmt.execute("ALTER TABLE tags_new RENAME TO tags;");
+                    
+                    stmt.execute("COMMIT;");
+                    stmt.execute("PRAGMA foreign_keys = ON;");
+                    
+                    // Recreate indices since table was dropped
+                    stmt.execute("CREATE INDEX IF NOT EXISTS idx_tags_parent_id ON tags(parent_id);");
+                    
+                    logger.info("Migración 5 aplicada con éxito.");
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error al aplicar migración 5 (UNIQUE constraint en 'tags').", e);
+            try (Statement rollbackStmt = connection.createStatement()) {
+                rollbackStmt.execute("ROLLBACK;");
+                rollbackStmt.execute("PRAGMA foreign_keys = ON;");
+            } catch (SQLException ex) {
+                logger.error("Error al hacer rollback de migración 5.", ex);
+            }
+        }
     } // ---FIN de metodo [upgradeSchema]---
     
 
@@ -205,8 +267,10 @@ public class DatabaseManager {
 
         String sqlCreateTableTags = "CREATE TABLE IF NOT EXISTS tags (" +
                                     "  id INTEGER PRIMARY KEY AUTOINCREMENT," +
-                                    "  nombre TEXT NOT NULL UNIQUE," +
-                                    "  parent_id INTEGER REFERENCES tags(id)" + 
+                                    "  nombre TEXT NOT NULL," +
+                                    "  parent_id INTEGER REFERENCES tags(id)," + 
+                                    "  read_only INTEGER DEFAULT 0," +
+                                    "  UNIQUE(parent_id, nombre)" +
                                     ");";
 
         String sqlCreateTableImagenTags = "CREATE TABLE IF NOT EXISTS imagen_tags (" +

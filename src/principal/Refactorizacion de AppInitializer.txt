@@ -1,0 +1,90 @@
+Esta clase, AppInitializer, es el "Cerebro Operativo" de la aplicación. Desde el
+punto de vista de diseño, es un "God Object" necesario, pero con un problema de
+explosión de dependencias.
+
+Aquí mi diagnóstico como diseñador:
+
+1. El diagnóstico: "El Dios de la Configuración"
+
+AppInitializer sufre de lo que llamamos "Constructor Injection Hell". Mira sus
+campos: tienes 40+ atributos. Esto ocurre porque estás intentando centralizar la
+creación de todo el sistema en una sola clase.
+
+  - Lo positivo: Has encapsulado la creación del sistema, lo cual es mucho mejor
+    que tener todo este código mezclado en main() o en VisorController. La
+    separación en instantiate, wire e initialize es muy profesional.
+  - Lo negativo: Esta clase sabe demasiado. Conoce qué builders existen, qué
+    gestores de estado hay, cómo se inicializa la BD, cómo se construyen las
+    toolbars, etc. Si añades un nuevo componente al sistema, esta clase es la
+    única que puede "nacerlo".
+
+2. ¿Qué acciones tomar? (Diseño de Arquitectura)
+
+Para mejorar esto, no necesitas cambiar la lógica, necesitas cambiar cómo
+delegas la construcción:
+
+A. Agrupa los Builders (El patrón "Assembly")
+
+Tienes ProjectBuilder, DataBuilder, ViewBuilder, ToolbarBuilder, MenuBarBuilder.
+
+  - Acción: Crea una clase UIAssembler. Esta clase recibirá el Registry y el
+    ThemeManager y, internamente, instanciará y llamará a todos los Builders.
+    Así, AppInitializer solo llamará a uiAssembler.buildAll(registry).
+
+B. Implementa un "Modulo de Servicios"
+
+Tienes una lista interminable de Managers (EditionManager,
+FileOperationsManager, Infobar...).
+
+  - Acción: Crea un ServicesRegistry o ManagerFactory. En lugar de tener todos
+    estos campos en AppInitializer, ten un solo campo ServicesContainer que los
+    contenga todos.
+  - ¿Por qué? Porque AppInitializer debería ser una fachada que delega. Ahora
+    mismo, AppInitializer es un "almacén" de referencias.
+
+C. Inversión de Control (Inyección de dependencias real)
+
+Tu método wireDependencies() es un monstruo de 150 líneas.
+
+  - Acción: Si puedes, utiliza un framework ligero de DI (como Google Guice) o,
+    si prefieres mantenerlo manual, usa el Patrón Builder para la configuración
+    de los objetos. Por ejemplo, en lugar de 10 setters para el
+    GeneralController, el GeneralController debería recibir un objeto
+    ConfigurationPackage que contenga todo lo que necesita.
+
+3. El mayor peligro: El orden de inicialización
+
+Veo que en initializeApplication haces cosas como
+controller.setStatusBarManager(this.statusBarManager).
+
+  - El riesgo: Si alguien cambia el orden de las líneas en wireDependencies, la
+    aplicación explotará con NullPointerException en ejecución.
+  - Sugerencia: Define "interfaces de inicialización". Por ejemplo, todos los
+    controladores deberían implementar una interfaz Initializable que sea
+    llamada en cascada.
+
+Mi veredicto como Diseñador:
+
+Esta clase es un mal necesario. A diferencia de VisorController o
+GeneralController, que no deberían ser God Classes, el AppInitializer sí suele
+ser una clase pesada por definición. Su único trabajo es ensamblar el sistema.
+
+¿Está bien?
+
+  - Arquitectónicamente: Es el lugar correcto para tener este caos (la basura se
+    guarda en el cuarto de limpieza, no en la sala de estar).
+  - Mantenibilidad: El código es limpio y legible. Has hecho un gran trabajo
+    dividiendo el proceso en 3 fases (instantiate, wire, initialize).
+
+Mi recomendación: No intentes que esta clase sea "pequeña", intenta que sea
+"invisible".
+
+1.  Mueve los Builders a una clase de fachada de construcción.
+2.  Mueve la inicialización de servicios (BD, Config, etc.) a una clase
+    SystemBootstrap.
+3.  Mantén el AppInitializer como el "Director de Orquesta" que llama a esos
+    especialistas.
+
+Conclusión: Has pasado de "espagueti" en los controladores a una "inyección
+centralizada". Estás en el camino correcto hacia una arquitectura de Dependency
+Injection. ¡Vas muy bien!

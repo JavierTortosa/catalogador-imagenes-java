@@ -124,12 +124,14 @@ public class AppModeService {
         
         // --- 1. LÓGICA DE HABILITACIÓN/DESHABILITACIÓN (Enabled/Disabled) ---
         boolean subcarpetasHabilitado = (modoActual == WorkMode.VISUALIZADOR || modoActual == WorkMode.CARROUSEL);
-
+        boolean abrirCarpetaHabilitado = (modoActual != WorkMode.PROYECTO && modoActual != WorkMode.DATOS);
+        
         // 2. Obtenemos todas las acciones relacionadas con esta funcionalidad.
         Action subfolderAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
         Action soloCarpetaAction = actionMap.get(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA);
         Action conSubcarpetasAction = actionMap.get(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS);
-
+        Action abrirCarpetaAction = actionMap.get(AppActionCommands.CMD_ARCHIVO_ABRIR);
+        
         // 3. Aplicamos la misma regla a TODAS las acciones.
         if (subfolderAction != null) {
             subfolderAction.setEnabled(subcarpetasHabilitado);
@@ -140,17 +142,19 @@ public class AppModeService {
         if (conSubcarpetasAction != null) {
             conSubcarpetasAction.setEnabled(subcarpetasHabilitado);
         }
-
+        if (abrirCarpetaAction != null) {
+            abrirCarpetaAction.setEnabled(abrirCarpetaHabilitado);
+        }
+        
         // --- 2. LÓGICA DE SELECCIÓN (Selected/Deselected) para Toggles ---
-
+        
         if (configAppManager != null) {
             // Sincronizar el toggle de subcarpetas
             if (subfolderAction != null) {
-
                 // Leemos el estado del contexto de lista ACTUALMENTE ACTIVO en el modelo.
                 // model.isMostrarSoloCarpetaActual() ya es inteligente y devuelve el del
                 // contexto correcto.
-
+                
                 // log [DEBUG-SYNC] Modo:
                 logger.debug("  [DEBUG-SYNC] Modo: " + modoActual
                         + ", Valor de isMostrarSoloCarpetaActual() en modelo: " + model.isMostrarSoloCarpetaActual());
@@ -160,7 +164,7 @@ public class AppModeService {
                 subfolderAction.putValue(Action.SELECTED_KEY, estadoModeloSubcarpetas);
                 configAppManager.actualizarAspectoBotonToggle(subfolderAction, estadoModeloSubcarpetas);
             }
-
+            
             // Sincronizar el toggle de proporciones
             Action proporcionesAction = actionMap.get(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
             if (proporcionesAction != null) {
@@ -171,13 +175,18 @@ public class AppModeService {
                 configAppManager.actualizarAspectoBotonToggle(proporcionesAction, estadoModeloProporciones);
             }
         }
-
+        
         // --- 3. ACTUALIZACIÓN DE OTROS COMPONENTES ---
 
         if (this.statusBarManager != null) {
             this.statusBarManager.actualizar();
         }
 
+        // Sincronizar botones de la toolbar con el nuevo modo
+        if (this.toolbarManager != null) {
+            this.toolbarManager.sincronizarEstadoBotonesToolbar(actionMap, this.model);
+        }
+        
         logger.debug("  [GeneralController] Estado de la UI actualizado.");
     } // --- Fin del método actualizarUiParaModo ---
 
@@ -319,6 +328,14 @@ public class AppModeService {
                             "Saliendo del modo VISUALIZADOR con cambios en proyecto temporal. Guardando en archivo temporal...");
                     visorController.getProjectManager().guardarAArchivo(); // Esto guardará en "seleccion_temporal.prj"
                 }
+            }
+        }
+
+        // --- LÓGICA DE GUARDADO AL SALIR DEL MODO DATOS ---
+        if (modoQueSeAbandona == WorkMode.DATOS) {
+            if (dataController != null) {
+                dataController.guardarContexto();
+                logger.debug("    -> Modo Datos: Contexto (árbol y grid) guardado en el modelo.");
             }
         }
 

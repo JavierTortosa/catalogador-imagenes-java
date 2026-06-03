@@ -230,7 +230,7 @@ public class AppInitializer {
         this.dataManager = new DataManager();
         this.dataController = new DataController(this.model, this.registry, this.dataManager);
         this.dataBuilder = new DataBuilder(this.registry, this.model, this.themeManager, this.iconUtils,
-                this.gridThumbnailService);
+                this.gridThumbnailService, this.configuration);
 
         // UI Builders y Servicios de UI
         UIDefinitionService uiDefSvc = new UIDefinitionService();
@@ -548,6 +548,8 @@ public class AppInitializer {
                 this.toolbarBuilder.setActionMap(this.actionMap);
                 this.appModeService.setActionMap(this.actionMap);
                 this.viewBuilder.setActionMap(this.actionMap);
+                this.dataBuilder.setActionMap(this.actionMap);
+                this.dataBuilder.setDataController(this.dataController);
                 this.configAppManager.setActionMap(this.actionMap);
                 this.viewManager.setActionMap(this.actionMap);
                 this.controller.setActionMap(this.actionMap);
@@ -594,6 +596,8 @@ public class AppInitializer {
                 this.displayModeManager.setModel(this.model);
                 this.displayModeManager.setRegistry(this.registry);
                 this.displayModeManager.setActionMap(this.actionMap);
+                this.displayModeManager.setZoomManager(this.zoomManager);
+                this.displayModeManager.setToolbarManager(this.toolbarManager);
                 this.displayModeManager.initializeListeners();
 
                 this.listCoordinator.addMasterSelectionChangeListener(this.displayModeManager);
@@ -678,7 +682,7 @@ public class AppInitializer {
                 this.globalInputManager.initialize();
                 this.generalController.initialize();
                 this.dataController.initialize();
-
+                this.actionFactory.setSortCallback(this.dataController::ordenarListaPlana);
                 instalarPreviewers();
                 configurarCierreVentana();
 

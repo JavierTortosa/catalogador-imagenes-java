@@ -2,6 +2,7 @@ package vista.dialogos;
 
 import java.awt.BorderLayout;
 import java.net.URL;
+
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
@@ -13,13 +14,11 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import vista.builders.HelpBuilder;
-import vista.config.ToolbarButtonDefinition;
-import vista.config.ToolbarComponentDefinition;
-import vista.config.ToolbarDefinition;
-import vista.config.UIDefinitionService;
 
 public class HelpDialog extends JDialog {
 
@@ -64,10 +63,14 @@ public class HelpDialog extends JDialog {
 
         top.add(new DefaultMutableTreeNode(new HelpPageInfo("Bienvenida", "index.html")));
 
+        DefaultMutableTreeNode conceptosFolder = new DefaultMutableTreeNode(new HelpPageInfo("Conceptos Generales", "conceptos_modos_vista.html"));
+        conceptosFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Modos de Vista", "conceptos_modos_vista.html")));
+        conceptosFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Sistema de Zoom", "conceptos_zoom.html")));
+        top.add(conceptosFolder);
+
         DefaultMutableTreeNode visualizadorFolder = new DefaultMutableTreeNode(new HelpPageInfo("Modo Visualizador", "visualizador.html"));
         visualizadorFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Panel de Navegación", "visualizador_panel_izquierdo.html")));
         visualizadorFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Área Principal y Vistas", "visualizador_area_principal.html")));
-        visualizadorFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Sistema de Zoom", "visualizador_zoom.html")));
         visualizadorFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Barras de Información", "visualizador_barras_info.html")));
         top.add(visualizadorFolder);
         
