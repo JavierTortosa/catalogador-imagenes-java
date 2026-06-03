@@ -9,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -46,12 +45,14 @@ import controlador.utils.ComponentRegistry;
 import controlador.utils.DesktopUtils;
 import controlador.services.proyecto.ExportPreflightReport;
 import controlador.services.proyecto.ExportStatusReport;
+import controlador.services.proyecto.PdfWorkflowService;
 import controlador.services.proyecto.ProjectExportService;
+import controlador.services.proyecto.ProjectFileManagementService;
+import controlador.services.proyecto.ProjectIntegrityService;
 import controlador.worker.ExportWorker;
 import modelo.ListContext;
 import modelo.VisorModel;
 import modelo.export.pdf.PDFExportPreflightService;
-import modelo.export.pdf.PDFGeneratorService;
 import modelo.proyecto.ExportItem;
 import vista.dialogos.PDFExportPreflightDialog;
 import vista.dialogos.PDFPreviewDialog;
@@ -88,6 +89,9 @@ public class ProjectController implements IModoController {
     private IProjectManager projectManager;
     private IZoomManager zoomManager;
     private ProjectExportService exportService;
+    private PdfWorkflowService pdfWorkflowService;
+    private ProjectFileManagementService fileManagementService;
+    private ProjectIntegrityService integrityService;
 
     private Map<String, Action> actionMap;
     private Map<String, ExportItem> exportItemMap = new HashMap<>();
@@ -97,6 +101,7 @@ public class ProjectController implements IModoController {
         logger.debug("[ProjectController] Instancia creada.");
         this.exportQueueManager = new ExportQueueManager();
         this.exportService = new ProjectExportService();
+        this.pdfWorkflowService = new PdfWorkflowService();
     } // --- Fin del método ProjectController (constructor) ---
 
     void configurarListeners() {
@@ -1194,19 +1199,12 @@ public class ProjectController implements IModoController {
         int result = fileChooser.showOpenDialog(getView());
 
         if (result == JFileChooser.APPROVE_OPTION) {
-            File[] selectedFiles = fileChooser.getSelectedFiles();
-
-            for (File file : selectedFiles) {
-                selectedItem.addRutaArchivoAsociado(file.toPath());
-                projectManager.addAssociatedFile(selectedItem.getRutaImagen(), file.toPath());
+            for (File file : fileChooser.getSelectedFiles()) {
+                fileManagementService.addAssociatedFile(selectedItem, file.toPath());
             }
 
-            selectedItem.setEstadoArchivoComprimido(ExportStatus.ASIGNADO_MANUAL);
-
-            // Notificar a toda la UI para que se refresque
             tableModel.fireTableRowsUpdated(selectedRow, selectedRow);
             actualizarEstadoExportacionUI();
-
             notificarCambioEnProyecto();
 
             ExportPanel exportPanel = getRegistry().get("panel.proyecto.exportacion.completo");
@@ -1246,25 +1244,14 @@ public class ProjectController implements IModoController {
         ExportItem selectedItem = model.getItemAt(selectedRow);
 
         if (selectedItem != null) {
-            selectedItem.getRutasArchivosAsociados().remove(archivoSeleccionado);
-            projectManager.removeAssociatedFile(selectedItem.getRutaImagen(), archivoSeleccionado);
+            fileManagementService.removeAssociatedFile(selectedItem, archivoSeleccionado);
 
-            // Si ya no quedan archivos asignados manualmente, pero el buscador automático
-            // sí encontró candidatos,
-            // volvemos al estado de "encontrado ok". Si no, a "no encontrado".
             if (selectedItem.getRutasArchivosAsociados().isEmpty()) {
-                if (selectedItem.getCandidatosArchivo() != null && !selectedItem.getCandidatosArchivo().isEmpty()) {
-                    selectedItem.setRutasArchivosAsociados(new ArrayList<>(selectedItem.getCandidatosArchivo()));
-                    selectedItem.setEstadoArchivoComprimido(ExportStatus.ENCONTRADO_OK);
-                } else {
-                    selectedItem.setEstadoArchivoComprimido(ExportStatus.NO_ENCONTRADO);
-                }
-
                 notificarCambioEnProyecto();
             }
 
             model.fireTableRowsUpdated(selectedRow, selectedRow);
-            detailPanel.updateDetails(selectedItem); // Actualiza la lista de detalles
+            detailPanel.updateDetails(selectedItem);
             actualizarEstadoExportacionUI();
         }
     } // --- Fin del metodo: solicitarQuitarArchivoAsociado ---
@@ -1311,7 +1298,6 @@ public class ProjectController implements IModoController {
         fileChooser.setDialogTitle("Añadir archivos al proyecto");
         fileChooser.setMultiSelectionEnabled(true);
 
-        // Filtro para imágenes y archivos comunes de impresión 3D como ejemplo
         javax.swing.filechooser.FileNameExtensionFilter filter = new javax.swing.filechooser.FileNameExtensionFilter(
                 "Todos los archivos soportados", "jpg", "jpeg", "png", "gif", "bmp", "stl", "obj", "3mf", "zip", "rar", "7z");
         fileChooser.setFileFilter(filter);
@@ -1321,16 +1307,16 @@ public class ProjectController implements IModoController {
             File[] selectedFiles = fileChooser.getSelectedFiles();
             if (selectedFiles != null && selectedFiles.length > 0) {
                 logger.info("[ProjectController] Añadiendo {} archivos al proyecto...", selectedFiles.length);
-                
-                for (File file : selectedFiles) {
-                    projectManager.marcarImagen(file.toPath());
-                }
 
-                // Refrescar datos y vista
+                List<Path> rutas = new ArrayList<>();
+                for (File file : selectedFiles) {
+                    rutas.add(file.toPath());
+                }
+                fileManagementService.addFilesToProject(rutas);
+
                 prepararDatosProyecto();
                 refrescarVistaProyectoCompleta();
-                
-                // Si solo se añadió uno, lo seleccionamos
+
                 if (selectedFiles.length == 1) {
                     String clave = selectedFiles[0].toPath().toString().replace("\\", "/");
                     if (projectListCoordinator != null) {
@@ -1495,26 +1481,19 @@ public class ProjectController implements IModoController {
                 .filter(ExportItem::isSeleccionadoParaExportar)
                 .collect(Collectors.toList());
 
-        if (seleccionados.isEmpty()) {
+        if (seleccionados.isEmpty())
+        {
             JOptionPane.showMessageDialog(null, "Selecciona elementos en la tabla.");
             return;
         }
 
-        int numDigitos = String.valueOf(seleccionados.size()).length();
-        if (numDigitos < 3) numDigitos = 3;
-        String formato = "C%0" + numDigitos + "d";
-        for (int i = 0; i < seleccionados.size(); i++) {
-            seleccionados.get(i).setCodigoCatalogo(String.format(formato, i + 1));
-        }
+        pdfWorkflowService.asignarCodigosCatalogo(seleccionados);
 
-        // Mostrar vista previa interactiva
         PDFPreviewDialog preview = new PDFPreviewDialog(view, seleccionados);
         preview.setVisible(true);
         if (!preview.isConfirmed()) return;
-        // Después del preview la lista puede haber cambiado, actualizar los códigos
-        for (int i = 0; i < seleccionados.size(); i++) {
-            seleccionados.get(i).setCodigoCatalogo(String.format(formato, i + 1));
-        }
+
+        pdfWorkflowService.asignarCodigosCatalogo(seleccionados);
 
         if (seleccionados.isEmpty()) return;
 
@@ -1522,26 +1501,30 @@ public class ProjectController implements IModoController {
                 .map(ExportItem::getRutaImagen)
                 .collect(Collectors.toList());
 
-        PDFExportPreflightService preflightService = new PDFExportPreflightService();
-        PDFExportPreflightService.PreflightResult result = preflightService.checkPreflight(paths);
+        PDFExportPreflightService.PreflightResult result = pdfWorkflowService.ejecutarPreflight(seleccionados);
 
-        if (!result.isSuccess) {
+        if (!result.isSuccess)
+        {
             PDFExportPreflightDialog dialog = new PDFExportPreflightDialog(view, paths, result.warnings);
             dialog.setVisible(true);
             if (!dialog.isGenerateConfirmed()) return;
         }
 
         JFileChooser chooser = new JFileChooser();
-        javax.swing.filechooser.FileNameExtensionFilter pdfFilter = new javax.swing.filechooser.FileNameExtensionFilter("Archivos PDF (*.pdf)", "pdf");
+        javax.swing.filechooser.FileNameExtensionFilter pdfFilter =
+                new javax.swing.filechooser.FileNameExtensionFilter("Archivos PDF (*.pdf)", "pdf");
         chooser.setFileFilter(pdfFilter);
         chooser.setAcceptAllFileFilterUsed(false);
 
-        if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+        if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION)
+        {
             File destino = chooser.getSelectedFile();
-            if (!destino.getName().toLowerCase().endsWith(".pdf")) {
+            if (!destino.getName().toLowerCase().endsWith(".pdf"))
+            {
                 destino = new File(destino.getAbsolutePath() + ".pdf");
             }
-            if (destino.exists()) {
+            if (destino.exists())
+            {
                 int resp = JOptionPane.showConfirmDialog(null,
                         "El archivo ya existe. ¿Deseas sobrescribirlo?",
                         "Confirmar sobrescritura",
@@ -1549,48 +1532,28 @@ public class ProjectController implements IModoController {
                         JOptionPane.WARNING_MESSAGE);
                 if (resp != JOptionPane.YES_OPTION) return;
             }
-            try {
+            try
+            {
                 sincronizarDescripcionDesdeUI();
                 String notasProyecto = projectManager != null && projectManager.getCurrentProject() != null
                         ? projectManager.getCurrentProject().getProjectDescription()
                         : null;
-                new PDFGeneratorService().crearPresupuesto(seleccionados, destino, notasProyecto);
-                if (sincronizarDatosCatalogoConModelo(seleccionados)) {
+                pdfWorkflowService.generarPDF(seleccionados, destino.toPath(), notasProyecto);
+                ProjectModel modeloActual = projectManager != null ? projectManager.getCurrentProject() : null;
+                if (pdfWorkflowService.sincronizarDatosCatalogoConModelo(seleccionados, modeloActual))
+                {
                     projectManager.notificarModificacion();
                 }
                 JOptionPane.showMessageDialog(null, "PDF Creado con éxito.");
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(null, "Error al generar el PDF:\n" + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Error al generar el PDF:\n" + e.getMessage(),
+                        "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-    }
-
-
-    private boolean sincronizarDatosCatalogoConModelo(List<ExportItem> items) {
-        if (projectManager == null) return false;
-        ProjectModel modeloActual = projectManager.getCurrentProject();
-        if (modeloActual == null) return false;
-        Map<String, modelo.proyecto.ExportConfig> exportConfigsMap = modeloActual.getExportConfigs();
-        boolean modificado = false;
-        for (ExportItem item : items) {
-            String claveImagen = item.getRutaImagen().toString().replace("\\", "/");
-            modelo.proyecto.ExportConfig config = exportConfigsMap.computeIfAbsent(claveImagen, k -> new modelo.proyecto.ExportConfig());
-            if (!Objects.equals(config.getCodigoCatalogo(), item.getCodigoCatalogo())
-                    || config.getPiezas() != item.getPiezas()
-                    || !Objects.equals(config.getLvl(), item.getLvl())
-                    || !Objects.equals(config.getPvp(), item.getPvp())
-                    || !Objects.equals(config.getNotas(), item.getNotas())) {
-                modificado = true;
-            }
-            config.setCodigoCatalogo(item.getCodigoCatalogo());
-            config.setPiezas(item.getPiezas());
-            config.setLvl(item.getLvl());
-            config.setPvp(item.getPvp());
-            config.setNotas(item.getNotas());
-        }
-        return modificado;
-    }
+    } // --- Fin del metodo: generarCatalogoPDF ---
 
 
     public void solicitarAbrirUbicacionImagen() {
@@ -2091,7 +2054,7 @@ public class ProjectController implements IModoController {
 
         if (confirm == JOptionPane.YES_OPTION) {
             int indiceAncla = obtenerIndiceAnclaDeLista(listaDescartesUI);
-            int eliminados = projectManager.eliminarVariosDeProyecto(rutasAEliminar);
+            int eliminados = fileManagementService.eliminarDelProyecto(rutasAEliminar);
             if (eliminados > 0) {
                 logger.debug("  [ProjectController] {} imagen(es) eliminada(s) del proyecto.", eliminados);
                 refrescarListasDeProyecto();
@@ -2334,41 +2297,10 @@ public class ProjectController implements IModoController {
             Path nuevaRuta = fileChooser.getSelectedFile().toPath();
             Path oldPath = item.getRutaImagen();
 
-            // Reemplazar en la cola de exportación
-            ExportItem newItem = new ExportItem(nuevaRuta);
-            exportQueueManager.buscarArchivoComprimidoAsociado(newItem);
-            exportQueueManager.getColaDeExportacion().set(filaSeleccionada, newItem);
+            fileManagementService.relocalizarImagenEnCola(item, nuevaRuta, filaSeleccionada);
+            fileManagementService.migrarClaveEnModelo(projectManager.getCurrentProject(), oldPath, nuevaRuta);
+            projectManager.notificarModificacion();
 
-            // Reemplazar en el modelo del proyecto
-            ProjectModel projectModel = projectManager.getCurrentProject();
-            if (projectModel != null) {
-                String oldKey = oldPath.toString();
-                String newKey = nuevaRuta.toString();
-
-                // 1. Imagen seleccionada
-                if (projectModel.getSelectedImages().containsKey(oldKey)) {
-                    String tag = projectModel.getSelectedImages().remove(oldKey);
-                    projectModel.getSelectedImages().put(newKey, tag);
-                }
-
-                // 2. Imagen descartada
-                int discIdx = projectModel.getDiscardedImages().indexOf(oldKey);
-                if (discIdx != -1) {
-                    projectModel.getDiscardedImages().set(discIdx, newKey);
-                }
-
-                // 3. Configuración de exportación
-                String oldClaveExport = oldKey.replace("\\", "/");
-                String newClaveExport = newKey.replace("\\", "/");
-                if (projectModel.getExportConfigs().containsKey(oldClaveExport)) {
-                    modelo.proyecto.ExportConfig cfg = projectModel.getExportConfigs().remove(oldClaveExport);
-                    projectModel.getExportConfigs().put(newClaveExport, cfg);
-                }
-
-                projectManager.notificarModificacion();
-            }
-
-            // Refrescar toda la vista de proyecto
             refrescarVistaProyectoCompleta();
             logger.info("Imagen relocalizada manualmente con éxito de: {} -> {}", oldPath, nuevaRuta);
         }
@@ -2400,128 +2332,23 @@ public class ProjectController implements IModoController {
     } // --- Fin del metodo: solicitarMoverSeleccionadoAdescartes ---
 
 
-    // Busca de forma proactiva imágenes en el proyecto que no existan en su ruta física guardada
     public void autoRelocalizarImagenesHuerfanas() {
-        if (projectManager == null || projectManager.getCurrentProject() == null || generalController == null) {
-            return;
-        }
+        if (generalController == null) return;
+        DataManager dm = generalController.getDataController() != null
+                ? generalController.getDataController().getDataManager() : null;
+        if (dm == null) return;
+        integrityService.autoRelocalizarImagenesHuerfanas(dm);
+    } // --- Fin del metodo: autoRelocalizarImagenesHuerfanas ---
 
-        DataController dataCtrl = generalController.getDataController();
-        if (dataCtrl == null || dataCtrl.getDataManager() == null) {
-            return;
-        }
-
-        DataManager dm = dataCtrl.getDataManager();
-        ProjectModel modeloActual = projectManager.getCurrentProject();
-
-        boolean huboCambios = false;
-
-        // 1. Analizar imágenes seleccionadas en el proyecto
-        Map<String, String> seleccionadas = new HashMap<>(modeloActual.getSelectedImages());
-        Map<String, String> nuevasSeleccionadas = new LinkedHashMap<>();
-
-        for (Map.Entry<String, String> entry : seleccionadas.entrySet()) {
-            String pathStr = entry.getKey();
-            String etiqueta = entry.getValue();
-            Path path = Path.of(pathStr);
-
-            if (!Files.exists(path)) {
-                // El archivo ya no existe físicamente en el path original. Busquemos en la BD si se relocalizó.
-                String filename = path.getFileName().toString();
-                java.util.Optional<String> nuevoPathOpt = dm.findPathByFileName(filename);
-
-                if (nuevoPathOpt.isPresent()) {
-                    String nuevoPathStr = nuevoPathOpt.get();
-                    if (Files.exists(Path.of(nuevoPathStr))) {
-                        logger.info("¡AUTO-HEAL! Imagen relocalizada automáticamente en el proyecto de: {} -> {}", pathStr, nuevoPathStr);
-                        nuevasSeleccionadas.put(nuevoPathStr, etiqueta);
-                        huboCambios = true;
-
-                        // También migramos la configuración de exportación
-                        String claveVieja = pathStr.replace("\\", "/");
-                        String claveNueva = nuevoPathStr.replace("\\", "/");
-                        if (modeloActual.getExportConfigs().containsKey(claveVieja)) {
-                            modeloActual.getExportConfigs().put(claveNueva, modeloActual.getExportConfigs().remove(claveVieja));
-                        }
-                        continue;
-                    }
-                }
-            }
-            nuevasSeleccionadas.put(pathStr, etiqueta);
-        }
-
-        if (huboCambios) {
-            modeloActual.setSelectedImages(nuevasSeleccionadas);
-        }
-
-        // 2. Analizar imágenes descartadas en el proyecto
-        List<String> descartadas = new ArrayList<>(modeloActual.getDiscardedImages());
-        List<String> nuevasDescartadas = new ArrayList<>();
-        boolean huboCambiosDescartadas = false;
-
-        for (String pathStr : descartadas) {
-            Path path = Path.of(pathStr);
-
-            if (!Files.exists(path)) {
-                String filename = path.getFileName().toString();
-                java.util.Optional<String> nuevoPathOpt = dm.findPathByFileName(filename);
-
-                if (nuevoPathOpt.isPresent()) {
-                    String nuevoPathStr = nuevoPathOpt.get();
-                    if (Files.exists(Path.of(nuevoPathStr))) {
-                        logger.info("¡AUTO-HEAL! Imagen descartada relocalizada automáticamente en el proyecto de: {} -> {}", pathStr, nuevoPathStr);
-                        nuevasDescartadas.add(nuevoPathStr);
-                        huboCambiosDescartadas = true;
-
-                        // También migramos la configuración de exportación si la tuviera
-                        String claveVieja = pathStr.replace("\\", "/");
-                        String claveNueva = nuevoPathStr.replace("\\", "/");
-                        if (modeloActual.getExportConfigs().containsKey(claveVieja)) {
-                            modeloActual.getExportConfigs().put(claveNueva, modeloActual.getExportConfigs().remove(claveVieja));
-                        }
-                        continue;
-                    }
-                }
-            }
-            nuevasDescartadas.add(pathStr);
-        }
-
-        if (huboCambiosDescartadas) {
-            modeloActual.setDiscardedImages(nuevasDescartadas);
-            huboCambios = true;
-        }
-
-        if (huboCambios) {
-            logger.info("Auto-relocalización de imágenes huérfanas completada con éxito.");
-            projectManager.notificarModificacion();
-        }
-    }
-
-    // Elimina permanentemente del proyecto todas las imágenes seleccionadas o descartadas
     public void solicitarLimpiarImagenesNoEncontradas() {
         if (projectManager == null || projectManager.getCurrentProject() == null) {
             return;
         }
 
-        ProjectModel modeloActual = projectManager.getCurrentProject();
-        List<String> aQuitarSeleccionadas = new ArrayList<>();
-        List<String> aQuitarDescartadas = new ArrayList<>();
+        ProjectIntegrityService.OrphanReport report = integrityService.identificarHuerfanos();
 
-        // 1. Identificar seleccionadas no encontradas
-        for (String pathStr : modeloActual.getSelectedImages().keySet()) {
-            if (!Files.exists(Path.of(pathStr))) {
-                aQuitarSeleccionadas.add(pathStr);
-            }
-        }
-
-        // 2. Identificar descartadas no encontradas
-        for (String pathStr : modeloActual.getDiscardedImages()) {
-            if (!Files.exists(Path.of(pathStr))) {
-                aQuitarDescartadas.add(pathStr);
-            }
-        }
-
-        if (aQuitarSeleccionadas.isEmpty() && aQuitarDescartadas.isEmpty()) {
+        if (report.isEmpty())
+        {
             JOptionPane.showMessageDialog(view,
                     "No se encontraron imágenes huérfanas en el proyecto.",
                     "Limpieza de Proyecto",
@@ -2529,41 +2356,27 @@ public class ProjectController implements IModoController {
             return;
         }
 
-        // Confirmar con el usuario
-        int total = aQuitarSeleccionadas.size() + aQuitarDescartadas.size();
         int confirm = JOptionPane.showConfirmDialog(view,
-                "Se han detectado " + total + " imágenes en el proyecto que ya no existen en disco.\n" +
-                "¿Desea eliminarlas permanentemente del proyecto?\n\n" +
-                "Nota: Esta acción no borrará ningún archivo de su disco duro, solo limpiará el proyecto.",
+                "Se han detectado " + report.getTotal()
+                        + " imágenes en el proyecto que ya no existen en disco.\n"
+                        + "¿Desea eliminarlas permanentemente del proyecto?\n\n"
+                        + "Nota: Esta acción no borrará ningún archivo de su disco duro, solo limpiará el proyecto.",
                 "Confirmar Limpieza de Huérfanos",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE);
 
-        if (confirm == JOptionPane.YES_OPTION) {
-            // Quitar de seleccionadas
-            for (String pathStr : aQuitarSeleccionadas) {
-                modeloActual.getSelectedImages().remove(pathStr);
-                // Limpiar export config
-                String claveExport = pathStr.replace("\\", "/");
-                modeloActual.getExportConfigs().remove(claveExport);
-            }
-
-            // Quitar de descartadas
-            modeloActual.getDiscardedImages().removeAll(aQuitarDescartadas);
-            for (String pathStr : aQuitarDescartadas) {
-                String claveExport = pathStr.replace("\\", "/");
-                modeloActual.getExportConfigs().remove(claveExport);
-            }
-
+        if (confirm == JOptionPane.YES_OPTION)
+        {
+            integrityService.limpiarHuerfanos(report);
             projectManager.notificarModificacion();
             refrescarVistaProyectoCompleta();
 
             JOptionPane.showMessageDialog(view,
-                    "Se han limpiado " + total + " imágenes huérfanas del proyecto con éxito.",
+                    "Se han limpiado " + report.getTotal() + " imágenes huérfanas del proyecto con éxito.",
                     "Limpieza Completada",
                     JOptionPane.INFORMATION_MESSAGE);
         }
-    }
+    } // --- Fin del metodo: solicitarLimpiarImagenesNoEncontradas ---
 
 
     public void navegarTablaExportacionConRueda(java.awt.event.MouseWheelEvent e) {
@@ -2633,7 +2446,6 @@ public class ProjectController implements IModoController {
             return;
 
         if (Files.exists(rutaAbsoluta)) {
-            // El archivo existe, comportamiento normal
             try {
                 DesktopUtils.openAndSelectFile(rutaAbsoluta);
             } catch (Exception e) {
@@ -2642,7 +2454,6 @@ public class ProjectController implements IModoController {
                         JOptionPane.ERROR_MESSAGE);
             }
         } else {
-            // El archivo NO existe, ofrecemos relocalizarlo
             int opcion = JOptionPane.showConfirmDialog(view,
                     "El archivo '" + rutaAbsoluta.getFileName() + "' ya no está disponible.\n" +
                             "¿Deseas relocalizarlo seleccionando el nuevo archivo o nombre?",
@@ -2651,7 +2462,6 @@ public class ProjectController implements IModoController {
                     JOptionPane.WARNING_MESSAGE);
 
             if (opcion == JOptionPane.YES_OPTION) {
-                // 1. Mostrar selector de archivos para actualizar la ruta
                 JFileChooser fileChooser = new JFileChooser();
                 fileChooser.setDialogTitle("Relocalizar Imagen: " + rutaAbsoluta.getFileName());
 
@@ -2668,17 +2478,11 @@ public class ProjectController implements IModoController {
                 if (result == JFileChooser.APPROVE_OPTION) {
                     Path nuevaRuta = fileChooser.getSelectedFile().toPath();
 
-                    // Actualizar en el gestor de proyecto (migra metadatos)
-                    projectManager.relocalizarImagen(rutaAbsoluta, nuevaRuta);
+                    fileManagementService.relocalizarImagen(rutaAbsoluta, nuevaRuta);
 
-                    // REFUERZO: Asegurar que el contexto del modelo se actualice con la nueva ruta
-                    // antes de refrescar la vista.
                     prepararDatosProyecto();
-
-                    // Refrescar toda la vista del proyecto
                     refrescarVistaProyectoCompleta();
 
-                    // Intentar seleccionar la nueva imagen en la lista
                     String nuevaClave = nuevaRuta.toString().replace("\\", "/");
                     if (projectListCoordinator != null) {
                         projectListCoordinator.seleccionarImagenPorClave(nuevaClave);
@@ -2942,6 +2746,8 @@ public class ProjectController implements IModoController {
 
     public void setProjectManager(IProjectManager projectManager) {
         this.projectManager = Objects.requireNonNull(projectManager);
+        this.fileManagementService = new ProjectFileManagementService(this.projectManager, this.exportQueueManager);
+        this.integrityService = new ProjectIntegrityService(this.projectManager);
     }
 
 
