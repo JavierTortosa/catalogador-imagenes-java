@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -109,7 +108,7 @@ public class ArchiveAnalysisService {
     }
 
     private String get7zExePath() {
-        return Paths.get(System.getProperty("user.dir"), "lib", "bin", "7z", "7z.exe").toString();
+        return ExternalToolsManager.get7zPath();
     }
 
     private boolean isModelFile(String p) {
