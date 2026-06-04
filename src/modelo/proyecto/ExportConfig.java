@@ -43,6 +43,12 @@ public class ExportConfig {
     /** Número de piezas que componen el modelo */
     private int piezas;
 
+    /** Número de piezas con soporte */
+    private int piezasConSoporte;
+
+    /** Número de piezas sin soporte */
+    private int piezasSinSoporte;
+
     /** Nivel de dificultad de pintado (ej. "Fácil", "Medio", "Difícil") */
     private String lvl;
 
@@ -51,6 +57,15 @@ public class ExportConfig {
 
     /** Notas u observaciones sobre este item */
     private String notas;
+
+    /** Indica si el archivo comprimido contiene archivos .lys (licify) */
+    private Boolean hasLychee;
+
+    /** Indica si el archivo comprimido contiene archivos .ctb (chitubox) */
+    private Boolean hasChitubox;
+
+    /** Tamaño total del contenido comprimido en MB */
+    private Double totalSizeMb;
 
     /**
      * La lista de rutas (como String) a los archivos asociados (.zip, .stl, etc.)
@@ -102,12 +117,23 @@ public class ExportConfig {
 
     public int getPiezas() { return piezas; }
     public void setPiezas(int piezas) { this.piezas = piezas; }
+    public int getPiezasConSoporte() { return piezasConSoporte; }
+    public void setPiezasConSoporte(int piezasConSoporte) { this.piezasConSoporte = piezasConSoporte; }
+    public int getPiezasSinSoporte() { return piezasSinSoporte; }
+    public void setPiezasSinSoporte(int piezasSinSoporte) { this.piezasSinSoporte = piezasSinSoporte; }
     public String getLvl() { return lvl; }
     public void setLvl(String lvl) { this.lvl = lvl; }
     public String getPvp() { return pvp; }
     public void setPvp(String pvp) { this.pvp = pvp; }
     public String getNotas() { return notas; }
     public void setNotas(String notas) { this.notas = notas; }
+
+    public Boolean getHasLychee() { return hasLychee; }
+    public void setHasLychee(Boolean hasLychee) { this.hasLychee = hasLychee; }
+    public Boolean getHasChitubox() { return hasChitubox; }
+    public void setHasChitubox(Boolean hasChitubox) { this.hasChitubox = hasChitubox; }
+    public Double getTotalSizeMb() { return totalSizeMb; }
+    public void setTotalSizeMb(Double totalSizeMb) { this.totalSizeMb = totalSizeMb; }
 
     public List<String> getAssociatedFiles() {
         // Garantiza que nunca devolvemos null, crucial para la deserialización desde JSON antiguos.
@@ -123,7 +149,7 @@ public class ExportConfig {
     
     @Override
     public int hashCode() {
-        return Objects.hash(associatedFiles, codigoCatalogo, exportEnabled, ignoreCompressed, lvl, notas, piezas, pvp, status);
+        return Objects.hash(associatedFiles, codigoCatalogo, exportEnabled, hasChitubox, hasLychee, ignoreCompressed, lvl, notas, piezas, piezasConSoporte, piezasSinSoporte, pvp, status, totalSizeMb);
     } // ---FIN de metodo hashCode---
 
     @Override
@@ -134,12 +160,17 @@ public class ExportConfig {
         return exportEnabled == other.exportEnabled && 
                ignoreCompressed == other.ignoreCompressed && 
                piezas == other.piezas &&
+               piezasConSoporte == other.piezasConSoporte &&
+               piezasSinSoporte == other.piezasSinSoporte &&
                status == other.status &&
                Objects.equals(associatedFiles, other.associatedFiles) &&
                Objects.equals(codigoCatalogo, other.codigoCatalogo) &&
+               Objects.equals(hasChitubox, other.hasChitubox) &&
+               Objects.equals(hasLychee, other.hasLychee) &&
                Objects.equals(lvl, other.lvl) &&
                Objects.equals(notas, other.notas) &&
-               Objects.equals(pvp, other.pvp);
+               Objects.equals(pvp, other.pvp) &&
+               Objects.equals(totalSizeMb, other.totalSizeMb);
     } // ---FIN de metodo equals---
 
 } // --- FIN de clase ExportConfig ---

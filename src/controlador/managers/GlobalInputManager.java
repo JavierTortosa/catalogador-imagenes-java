@@ -356,6 +356,7 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
         }
         
         if (command != null) {
+            if (e.getComponent() instanceof javax.swing.text.JTextComponent) return false;
             Action action = actionMap.get(command);
             if (action != null && action.isEnabled()) {
                 action.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, command));

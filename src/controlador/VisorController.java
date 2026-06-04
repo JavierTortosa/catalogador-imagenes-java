@@ -1538,8 +1538,7 @@ public class VisorController implements IModoController, ThemeChangeListener {
 	    logger.debug("[Controller] Solicitud para alternar marca de imagen actual...");
 	    if (model == null || projectManager == null || view == null || registry == null) { return; }
 
-	    @SuppressWarnings("unchecked")
-		javax.swing.JList<String> listaNombres = registry.get("list.nombresArchivo");
+	    javax.swing.JList<String> listaNombres = registry.get("list.nombresArchivo");
 	    if (listaNombres == null) return;
 
 	    java.util.List<String> clavesSeleccionadas = listaNombres.getSelectedValuesList();

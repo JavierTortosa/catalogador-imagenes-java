@@ -9,12 +9,15 @@ import javax.swing.ImageIcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import modelo.datos.ArchiveMetadata;
+
 public class ExportItem {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ExportItem.class);
 
     private final Path rutaImagen;
     private ImageIcon miniatura;
+    private ArchiveMetadata metadata;
 
     // --- INICIO DE LA MODIFICACIÓN ---
     // El campo `rutaArchivoComprimido` se reemplaza por una lista.
@@ -27,9 +30,14 @@ public class ExportItem {
     private boolean tieneConflictoDeNombre = false;
     private String codigoCatalogo;
     private int piezas;
+    private int piezasConSoporte;
+    private int piezasSinSoporte;
     private String lvl;
     private String pvp;
     private String notas;
+    private Boolean lycheeOverride;
+    private Boolean chituboxOverride;
+    private Double totalSizeOverride;
     private long imageSize = -1; // -1 indica que no ha sido calculado
     private long associatedFilesSize = -1; // -1 indica que no ha sido calculado
 
@@ -156,13 +164,43 @@ public class ExportItem {
     public void setCodigoCatalogo(String codigoCatalogo) { this.codigoCatalogo = codigoCatalogo; }
     public int getPiezas() { return piezas; }
     public void setPiezas(int piezas) { this.piezas = piezas; }
+    public int getPiezasConSoporte() { return piezasConSoporte; }
+    public void setPiezasConSoporte(int piezasConSoporte) { this.piezasConSoporte = piezasConSoporte; }
+    public int getPiezasSinSoporte() { return piezasSinSoporte; }
+    public void setPiezasSinSoporte(int piezasSinSoporte) { this.piezasSinSoporte = piezasSinSoporte; }
     public String getLvl() { return lvl; }
     public void setLvl(String lvl) { this.lvl = lvl; }
     public String getPvp() { return pvp; }
     public void setPvp(String pvp) { this.pvp = pvp; }
     public String getNotas() { return notas; }
     public void setNotas(String notas) { this.notas = notas; }
+    public ArchiveMetadata getMetadata() { return metadata; }
+    public void setMetadata(ArchiveMetadata metadata) { this.metadata = metadata; }
 
+    public boolean hasLychee() {
+        if (lycheeOverride != null) return lycheeOverride;
+        return metadata != null && metadata.hasLychee;
+    }
+    public void setHasLychee(boolean value) { this.lycheeOverride = value; }
+
+    public boolean hasChitubox() {
+        if (chituboxOverride != null) return chituboxOverride;
+        return metadata != null && metadata.hasChitubox;
+    }
+    public void setHasChitubox(boolean value) { this.chituboxOverride = value; }
+
+    public double getTotalSizeMb() {
+        if (totalSizeOverride != null) return totalSizeOverride;
+        return metadata != null ? metadata.totalSizeMb : 0;
+    }
+    public void setTotalSizeMb(double value) { this.totalSizeOverride = value; }
+
+    public Boolean getLycheeOverride() { return lycheeOverride; }
+    public void setLycheeOverride(Boolean lycheeOverride) { this.lycheeOverride = lycheeOverride; }
+    public Boolean getChituboxOverride() { return chituboxOverride; }
+    public void setChituboxOverride(Boolean chituboxOverride) { this.chituboxOverride = chituboxOverride; }
+    public Double getTotalSizeOverride() { return totalSizeOverride; }
+    public void setTotalSizeOverride(Double totalSizeOverride) { this.totalSizeOverride = totalSizeOverride; }
 
 } // --- FIN de clase [ExportItem]---
 

@@ -324,6 +324,9 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
         // Si estamos en modo Proyecto, el ProjectController manda.
         if (model != null && model.getCurrentWorkMode() == WorkMode.PROYECTO) {
             sincronizarSeleccionGrid();
+            if (model.getCurrentDisplayMode() == DisplayMode.POLAROID) {
+                actualizarPanelPolaroidActivo();
+            }
             return; 
         }
 

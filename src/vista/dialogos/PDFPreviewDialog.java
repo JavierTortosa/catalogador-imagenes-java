@@ -10,6 +10,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 public class PDFPreviewDialog extends JDialog {
 
@@ -18,13 +19,20 @@ public class PDFPreviewDialog extends JDialog {
     private final JLabel infoLabel;
     private boolean confirmed = false;
 
+    private final Map<String, ImageIcon> thumbnailCache;
+
     private static final int THUMB_W = 140;
     private static final int THUMB_H = 105;
     private static final int ITEMS_PER_PAGE = 4;
 
     public PDFPreviewDialog(JFrame owner, List<ExportItem> items) {
+        this(owner, items, null);
+    }
+
+    public PDFPreviewDialog(JFrame owner, List<ExportItem> items, Map<String, ImageIcon> thumbnailCache) {
         super(owner, "Vista previa del catálogo PDF", true);
         this.items = items;
+        this.thumbnailCache = thumbnailCache;
 
         setLayout(new BorderLayout(10, 10));
 
@@ -99,6 +107,11 @@ public class PDFPreviewDialog extends JDialog {
         private final JTextField lvlField;
         private final JTextField pvpField;
         private final JTextField notasField;
+        private final JTextField archivosConSoporteField;
+        private final JTextField archivosSinSoporteField;
+        private final JCheckBox lycheeCheck;
+        private final JCheckBox chituboxCheck;
+        private final JTextField sizeField;
         private final ExportItem item;
 
         ItemCard(ExportItem item) {
@@ -107,7 +120,7 @@ public class PDFPreviewDialog extends JDialog {
             setBorder(BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(Color.LIGHT_GRAY),
                     BorderFactory.createEmptyBorder(8, 8, 8, 8)));
-            setMaximumSize(new Dimension(Integer.MAX_VALUE, THUMB_H + 30));
+            setMaximumSize(new Dimension(Integer.MAX_VALUE, THUMB_H + 70));
 
             // Imagen
             ImageIcon icon = loadThumbnail(item.getRutaImagen().toFile(), THUMB_W, THUMB_H);
@@ -115,30 +128,57 @@ public class PDFPreviewDialog extends JDialog {
             thumbLabel.setPreferredSize(new Dimension(THUMB_W + 10, THUMB_H));
             add(thumbLabel, BorderLayout.WEST);
 
-            // Campos
-            JPanel fieldsPanel = new JPanel(new GridLayout(0, 4, 8, 4));
-            fieldsPanel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
+            // Panel derecho: Código + Notas arriba + datos abajo
+            JPanel rightPanel = new JPanel(new BorderLayout(4, 4));
+            rightPanel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 0));
 
-            fieldsPanel.add(new JLabel("Código:"));
+            // Cabecera: Código (izquierda, bold) + Notas (rellena el resto)
+            JPanel topPanel = new JPanel(new BorderLayout(8, 0));
             JLabel codeLabel = new JLabel(item.getCodigoCatalogo() != null ? item.getCodigoCatalogo() : "---");
             codeLabel.setFont(codeLabel.getFont().deriveFont(Font.BOLD, 12f));
-            fieldsPanel.add(codeLabel);
-
-            fieldsPanel.add(new JLabel("Piezas:"));
-            piezasField = new JTextField(item.getPiezas() > 0 ? String.valueOf(item.getPiezas()) : "");
-            fieldsPanel.add(piezasField);
-
-            fieldsPanel.add(new JLabel("LVL:"));
-            lvlField = new JTextField(item.getLvl() != null ? item.getLvl() : "");
-            fieldsPanel.add(lvlField);
-
-            fieldsPanel.add(new JLabel("PVP:"));
-            pvpField = new JTextField(item.getPvp() != null ? item.getPvp() : "");
-            fieldsPanel.add(pvpField);
-
-            fieldsPanel.add(new JLabel("Notas:"));
+            codeLabel.setPreferredSize(new Dimension(60, 26));
+            topPanel.add(codeLabel, BorderLayout.WEST);
             notasField = new JTextField(item.getNotas() != null ? item.getNotas() : "");
-            fieldsPanel.add(notasField);
+            topPanel.add(notasField, BorderLayout.CENTER);
+            rightPanel.add(topPanel, BorderLayout.NORTH);
+
+            // Grid de datos: 3 filas x 6 columnas (label, value, label, value, label, value)
+            JPanel dataGrid = new JPanel(new GridLayout(3, 6, 8, 4));
+
+            // Fila 1: Piezas C/S | Lychee | Tamaño Total
+            dataGrid.add(new JLabel("Piezas C/S:"));
+            archivosConSoporteField = new JTextField(item.getPiezasConSoporte() > 0 ? String.valueOf(item.getPiezasConSoporte()) : "");
+            dataGrid.add(archivosConSoporteField);
+            dataGrid.add(new JLabel("Lychee:"));
+            lycheeCheck = new JCheckBox("", item.hasLychee());
+            dataGrid.add(lycheeCheck);
+            dataGrid.add(new JLabel("Tamaño:"));
+            sizeField = new JTextField(String.format("%.1f", item.getTotalSizeMb()));
+            dataGrid.add(sizeField);
+
+            // Fila 2: Piezas S/S | Chitubox | (vacío)
+            dataGrid.add(new JLabel("Piezas S/S:"));
+            archivosSinSoporteField = new JTextField(item.getPiezasSinSoporte() > 0 ? String.valueOf(item.getPiezasSinSoporte()) : "");
+            dataGrid.add(archivosSinSoporteField);
+            dataGrid.add(new JLabel("Chitubox:"));
+            chituboxCheck = new JCheckBox("", item.hasChitubox());
+            dataGrid.add(chituboxCheck);
+            dataGrid.add(new JLabel(""));
+            dataGrid.add(new JLabel(""));
+
+            // Fila 3: Piezas | LVL | PVP
+            dataGrid.add(new JLabel("Piezas:"));
+            piezasField = new JTextField(item.getPiezas() > 0 ? String.valueOf(item.getPiezas()) : "");
+            dataGrid.add(piezasField);
+            dataGrid.add(new JLabel("LVL:"));
+            lvlField = new JTextField(item.getLvl() != null ? item.getLvl() : "");
+            dataGrid.add(lvlField);
+            dataGrid.add(new JLabel("PVP:"));
+            pvpField = new JTextField(item.getPvp() != null ? item.getPvp() : "");
+            dataGrid.add(pvpField);
+
+            rightPanel.add(dataGrid, BorderLayout.CENTER);
+            add(rightPanel, BorderLayout.CENTER);
 
             DocumentListener dl = new DocumentListener() {
                 public void insertUpdate(DocumentEvent e) { saveFields(); }
@@ -149,8 +189,12 @@ public class PDFPreviewDialog extends JDialog {
             lvlField.getDocument().addDocumentListener(dl);
             pvpField.getDocument().addDocumentListener(dl);
             notasField.getDocument().addDocumentListener(dl);
+            archivosConSoporteField.getDocument().addDocumentListener(dl);
+            archivosSinSoporteField.getDocument().addDocumentListener(dl);
+            sizeField.getDocument().addDocumentListener(dl);
 
-            add(fieldsPanel, BorderLayout.CENTER);
+            lycheeCheck.addActionListener(e -> saveFields());
+            chituboxCheck.addActionListener(e -> saveFields());
 
             // Botón quitar
             JButton removeBtn = new JButton("✕");
@@ -173,6 +217,20 @@ public class PDFPreviewDialog extends JDialog {
                 item.setPiezas(piezasField.getText().isEmpty() ? 0 : Integer.parseInt(piezasField.getText()));
             } catch (NumberFormatException e) {
             }
+            try {
+                item.setPiezasConSoporte(archivosConSoporteField.getText().isEmpty() ? 0 : Integer.parseInt(archivosConSoporteField.getText()));
+            } catch (NumberFormatException e) {
+            }
+            try {
+                item.setPiezasSinSoporte(archivosSinSoporteField.getText().isEmpty() ? 0 : Integer.parseInt(archivosSinSoporteField.getText()));
+            } catch (NumberFormatException e) {
+            }
+            item.setHasLychee(lycheeCheck.isSelected());
+            item.setHasChitubox(chituboxCheck.isSelected());
+            try {
+                item.setTotalSizeMb(Double.parseDouble(sizeField.getText().trim()));
+            } catch (NumberFormatException e) {
+            }
             item.setLvl(lvlField.getText());
             item.setPvp(pvpField.getText());
             item.setNotas(notasField.getText());
@@ -180,6 +238,10 @@ public class PDFPreviewDialog extends JDialog {
     }
 
     private ImageIcon loadThumbnail(File file, int maxW, int maxH) {
+        if (thumbnailCache != null) {
+            ImageIcon cached = thumbnailCache.get(file.getAbsolutePath());
+            if (cached != null) return cached;
+        }
         try {
             BufferedImage bi = ImageIO.read(file);
             if (bi == null) return createPlaceholder(maxW, maxH, "S/V");

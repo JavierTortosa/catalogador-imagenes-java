@@ -72,9 +72,14 @@ public class ExportQueueManager {
                         itemNuevo.setCodigoCatalogo(config.getCodigoCatalogo());
                     }
                     itemNuevo.setPiezas(config.getPiezas());
+                    itemNuevo.setPiezasConSoporte(config.getPiezasConSoporte());
+                    itemNuevo.setPiezasSinSoporte(config.getPiezasSinSoporte());
                     if (config.getLvl() != null) itemNuevo.setLvl(config.getLvl());
                     if (config.getPvp() != null) itemNuevo.setPvp(config.getPvp());
                     if (config.getNotas() != null) itemNuevo.setNotas(config.getNotas());
+                    if (config.getHasLychee() != null) itemNuevo.setHasLychee(config.getHasLychee());
+                    if (config.getHasChitubox() != null) itemNuevo.setHasChitubox(config.getHasChitubox());
+                    if (config.getTotalSizeMb() != null) itemNuevo.setTotalSizeMb(config.getTotalSizeMb());
 
                     List<String> rutasGuardadasStr = config.getAssociatedFiles();
                     if (rutasGuardadasStr != null && !rutasGuardadasStr.isEmpty()) {

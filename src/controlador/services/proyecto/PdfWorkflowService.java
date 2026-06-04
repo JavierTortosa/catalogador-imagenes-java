@@ -62,6 +62,8 @@ public class PdfWorkflowService
             ExportConfig config = exportConfigsMap.computeIfAbsent(claveImagen, k -> new ExportConfig());
             if (!Objects.equals(config.getCodigoCatalogo(), item.getCodigoCatalogo())
                     || config.getPiezas() != item.getPiezas()
+                    || config.getPiezasConSoporte() != item.getPiezasConSoporte()
+                    || config.getPiezasSinSoporte() != item.getPiezasSinSoporte()
                     || !Objects.equals(config.getLvl(), item.getLvl())
                     || !Objects.equals(config.getPvp(), item.getPvp())
                     || !Objects.equals(config.getNotas(), item.getNotas()))
@@ -70,6 +72,8 @@ public class PdfWorkflowService
             }
             config.setCodigoCatalogo(item.getCodigoCatalogo());
             config.setPiezas(item.getPiezas());
+            config.setPiezasConSoporte(item.getPiezasConSoporte());
+            config.setPiezasSinSoporte(item.getPiezasSinSoporte());
             config.setLvl(item.getLvl());
             config.setPvp(item.getPvp());
             config.setNotas(item.getNotas());

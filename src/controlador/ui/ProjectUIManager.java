@@ -3,9 +3,11 @@ package controlador.ui;
 import java.awt.Color;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.Action;
+import javax.swing.DefaultListModel;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JList;
@@ -13,6 +15,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
@@ -27,6 +30,7 @@ import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import vista.panels.GridDisplayPanel;
 import vista.panels.export.ExportPanel;
+import vista.panels.export.ProjectMetadataPanel;
 import vista.theme.Tema;
 
 public class ProjectUIManager {
@@ -224,7 +228,7 @@ public class ProjectUIManager {
     } // --- Fin del metodo: configurarContextMenuTablaExportacion ---
 
 
-    private JTable getTablaExportacionDesdeRegistro() {
+    public JTable getTablaExportacionDesdeRegistro() {
         if (registry == null)
             return null;
 
@@ -241,6 +245,7 @@ public class ProjectUIManager {
     } // --- Fin del metodo: getTablaExportacionDesdeRegistro ---
 
 
+    // Crea un MouseListener que muestra un menú contextual en un JComponent
     private MouseAdapter createContextMenuListener(JComponent component, VisorModel model, Object... menuItems) {
         return new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
@@ -296,5 +301,130 @@ public class ProjectUIManager {
             }
         };
     } // --- Fin del metodo: createContextMenuListener ---
+
+    // Rellena la JList de Selección con los elementos proporcionados
+    public void poblarListaSeleccion(List<String> items) {
+        JList<String> list = (registry != null) ? registry.get("list.proyecto.nombres") : null;
+        if (list == null)
+            return;
+        DefaultListModel<String> model = new DefaultListModel<>();
+        for (String item : items) {
+            model.addElement(item);
+        }
+        list.setModel(model);
+        logger.debug("[ProjectUIManager] Lista de selección poblada con {} elementos.", items.size());
+    } // --- Fin del metodo: poblarListaSeleccion ---
+
+
+    // Rellena la JList de Descartes y actualiza el título de la pestaña correspondiente
+    public void poblarListaDescartes(List<String> items) {
+        JList<String> list = (registry != null) ? registry.get("list.proyecto.descartes") : null;
+        if (list == null)
+            return;
+        DefaultListModel<String> model = new DefaultListModel<>();
+        for (String item : items) {
+            model.addElement(item);
+        }
+        list.setModel(model);
+        actualizarTituloTabDescartes(items.size());
+        logger.debug("[ProjectUIManager] Lista de descartes poblada con {} elementos.", items.size());
+    } // --- Fin del metodo: poblarListaDescartes ---
+
+
+    // Actualiza el título de la pestaña de Descartes en el JTabbedPane de herramientas
+    private void actualizarTituloTabDescartes(int count) {
+        if (registry == null)
+            return;
+        JTabbedPane pane = registry.get("tabbedpane.proyecto.herramientas");
+        if (pane != null) {
+            for (int i = 0; i < pane.getTabCount(); i++) {
+                String t = pane.getTitleAt(i);
+                if ("Descartes".equals(t) || t.startsWith("Descartes:")) {
+                    pane.setTitleAt(i, "Descartes: " + count);
+                    break;
+                }
+            }
+        }
+    } // --- Fin del metodo: actualizarTituloTabDescartes ---
+
+
+    // Limpia los modelos de las JLists de Selección y Descartes y resetea el título de la pestaña
+    public void limpiarListasProyecto() {
+        if (registry == null)
+            return;
+        JList<String> listaSeleccion = registry.get("list.proyecto.nombres");
+        if (listaSeleccion != null) {
+            if (listaSeleccion.getModel() instanceof DefaultListModel) {
+                ((DefaultListModel<String>) listaSeleccion.getModel()).clear();
+            } else {
+                listaSeleccion.setModel(new DefaultListModel<>());
+            }
+        }
+        JList<String> listaDescartes = registry.get("list.proyecto.descartes");
+        if (listaDescartes != null) {
+            if (listaDescartes.getModel() instanceof DefaultListModel) {
+                ((DefaultListModel<String>) listaDescartes.getModel()).clear();
+            } else {
+                listaDescartes.setModel(new DefaultListModel<>());
+            }
+        }
+        actualizarTituloTabDescartes(0);
+        logger.debug("[ProjectUIManager] Listas del proyecto limpiadas.");
+    } // --- Fin del metodo: limpiarListasProyecto ---
+
+
+    // Resetea el layout del panel derecho: oculta herramientas, reposiciona divisor y resetea botón toggle
+    public void resetLayoutProyecto(Map<String, Action> actionMap) {
+        if (registry == null)
+            return;
+        JSplitPane rightSplit = registry.get("splitpane.proyecto.right");
+        JPanel toolsPanel = registry.get("panel.proyecto.herramientas.container");
+        if (rightSplit != null && toolsPanel != null) {
+            toolsPanel.setVisible(false);
+            rightSplit.setDividerLocation(1.0);
+            rightSplit.setDividerSize(0);
+        }
+        if (actionMap != null) {
+            Action toggleAction = actionMap.get(AppActionCommands.CMD_EXPORT_ASSIGN_PANNEL);
+            if (toggleAction != null) {
+                toggleAction.putValue(Action.SELECTED_KEY, false);
+            }
+        }
+        logger.debug("[ProjectUIManager] Layout del panel derecho reseteado.");
+    } // --- Fin del metodo: resetLayoutProyecto ---
+
+
+    // Selecciona y asegura visibilidad del índice indicado en el grid del proyecto
+    public void sincronizarSeleccionGrid(int indiceSeleccionado) {
+        if (registry == null)
+            return;
+        JList<String> gridList = registry.get("list.grid.proyecto");
+        if (gridList == null)
+            return;
+        SwingUtilities.invokeLater(() -> {
+            if (indiceSeleccionado >= 0 && indiceSeleccionado < gridList.getModel().getSize()) {
+                if (gridList.getSelectedIndex() != indiceSeleccionado) {
+                    gridList.setSelectedIndex(indiceSeleccionado);
+                }
+                gridList.ensureIndexIsVisible(indiceSeleccionado);
+            } else {
+                gridList.clearSelection();
+            }
+        });
+    } // --- Fin del metodo: sincronizarSeleccionGrid ---
+
+
+    // Actualiza los campos de nombre y descripción en el panel de propiedades del proyecto
+    public void actualizarPanelPropiedades(String name, String description) {
+        if (registry == null)
+            return;
+        ProjectMetadataPanel propsPanel = registry.get("panel.proyecto.propiedades");
+        if (propsPanel != null) {
+            propsPanel.getProjectNameLabel().setText(name);
+            propsPanel.getProjectDescriptionArea().setText(description);
+            logger.debug("[ProjectUIManager] Panel de propiedades actualizado.");
+        }
+    } // --- Fin del metodo: actualizarPanelPropiedades ---
+
 
 } // --- FIN de la clase ProjectUIManager ---

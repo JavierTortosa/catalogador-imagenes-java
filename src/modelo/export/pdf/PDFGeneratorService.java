@@ -81,7 +81,7 @@ public class PDFGeneratorService {
     } // --- Fin del metodo: crearPresupuesto ---
 
 
-    // Dibuja la caja individual de cada item: código, imagen, piezas, LVL, PVP y nota
+    // Dibuja la caja individual de cada item: código, imagen, y datos de archivos
 	private void drawBox(PDPageContentStream cs, float x, float y, float w, float h, ExportItem item, PDDocument doc)
 			throws Exception
 	{
@@ -94,21 +94,17 @@ public class PDFGeneratorService {
 		PDFont italic = new PDType1Font(FontName.HELVETICA_OBLIQUE);
 
 		float padding = PADDING;
+		float fontSize = 8;
 
 		float codigoH = 20f;
-		float infoH = 35f;
-		float notaH = 12f;
+		float infoH = 48f;
 
 		String codigo = "Código: " + valueOrDash(item.getCodigoCatalogo());
-
 		float codigoFontSize = 11f;
-
 		codigo = ellipsizeToWidth(codigo, bold, codigoFontSize, w - padding * 2);
 		float codigoWidth = bold.getStringWidth(codigo) / 1000f * codigoFontSize;
-
 		float codigoX = x + (w - codigoWidth) / 2f;
 		float codigoY = y + h - 16;
-
 		cs.beginText();
 		cs.setFont(bold, codigoFontSize);
 		cs.setNonStrokingColor(0, 0, 0);
@@ -116,32 +112,24 @@ public class PDFGeneratorService {
 		showText(cs, codigo);
 		cs.endText();
 
-		float imgAreaX = x + padding;
-
-		float imgAreaW = w - (padding * 2);
-		
-		float separatorY = y + infoH + notaH + 2;
-
+		float infoY = y + 2;
+		float separatorY = infoY + infoH;
 		float imgAreaY = separatorY + 4;
 		float imgAreaH = (y + h - codigoH - 4) - imgAreaY;
+		float imgAreaX = x + padding;
+		float imgAreaW = w - (padding * 2);
 
 		try
 		{
 			BufferedImage bi = ImageIO.read(item.getRutaImagen().toFile());
-
 			if (bi != null)
 			{
 				float scale = Math.min(imgAreaW / bi.getWidth(), imgAreaH / bi.getHeight());
-
 				float dw = bi.getWidth() * scale;
 				float dh = bi.getHeight() * scale;
-
 				float dx = imgAreaX + (imgAreaW - dw) / 2f;
-
 				float dy = imgAreaY + (imgAreaH - dh) / 2f;
-
 				PDImageXObject pdImg = LosslessFactory.createFromImage(doc, bi);
-
 				cs.drawImage(pdImg, dx, dy, dw, dh);
 			}
 		} catch (Exception e)
@@ -150,49 +138,67 @@ public class PDFGeneratorService {
 		}
 
 		cs.setStrokingColor(0.85f, 0.85f, 0.85f);
-
 		cs.moveTo(x + padding, separatorY);
 		cs.lineTo(x + w - padding, separatorY);
-
 		cs.stroke();
-
-		cs.setFont(normal, 9);
+		cs.setFont(normal, fontSize);
 		cs.setNonStrokingColor(0, 0, 0);
 
-		float piezasY = y + 24;
-		cs.beginText();
-		cs.newLineAtOffset(x + padding, piezasY);
-		showText(cs, "Piezas: " + (item.getPiezas() > 0 ? String.valueOf(item.getPiezas()) : "-"));
-		cs.endText();
+		// Sección de datos: Notas + 3 filas con 3 columnas cada una
+		int piezasCS = item.getPiezasConSoporte();
+		int piezasSS = item.getPiezasSinSoporte();
+		int totalPiezas = item.getPiezas() > 0 ? item.getPiezas() : 0;
+		boolean hasLychee = item.hasLychee();
+		boolean hasChitubox = item.hasChitubox();
+		String totalSizeStr = String.format("%.1f MB", item.getTotalSizeMb());
 
-		float lvlY = y + 12;
-		cs.beginText();
-		cs.newLineAtOffset(x + padding, lvlY);
-		showText(cs, ellipsizeToWidth("LVL: " + valueOrDash(item.getLvl()), normal, 9, w * 0.55f));
-		cs.endText();
+		float colW = (w - padding * 2) / 3f;
+		float rowH = 11f;
+		float baseY = infoY + 2;
 
-		String pvp = ellipsizeToWidth("PVP: " + valueOrDash(item.getPvp()), normal, 9, w * 0.42f);
-		float pvpWidth = normal.getStringWidth(pvp) / 1000f * 9;
-		float pvpX = x + w - padding - pvpWidth;
-
-		cs.beginText();
-		cs.newLineAtOffset(pvpX, lvlY);
-		showText(cs, pvp);
-		cs.endText();
-
+		// Notas (primera línea, itálica, ancho completo)
 		String notas = item.getNotas();
 		if (notas != null && !notas.isBlank())
 		{
-			String truncated = ellipsizeToWidth(notas, italic, 7, w - padding * 2);
-
+			notas = ellipsizeToWidth(notas, italic, 7, w - padding * 2);
 			cs.beginText();
 			cs.setFont(italic, 7);
 			cs.setNonStrokingColor(new Color(110, 110, 110));
-			cs.newLineAtOffset(x + padding, y + 2);
-			showText(cs, truncated);
+			cs.newLineAtOffset(x + padding, baseY + rowH * 3 + 2);
+			showText(cs, notas);
 			cs.endText();
 		}
+
+		// Fila 1: Piezas  C/S | Lychee | Tamaño Total
+		float row1Y = baseY + rowH * 2;
+		drawInfoCell(cs, normal, "Piezas C/S: " + (piezasCS > 0 ? String.valueOf(piezasCS) : "-"), x + padding, colW, row1Y);
+		String lycheeStr = "Lychee: " + (hasLychee ? "[x]" : "[ ]");
+		drawInfoCell(cs, normal, lycheeStr, x + padding + colW, colW, row1Y);
+		drawInfoCell(cs, normal, "Tamaño: " + totalSizeStr, x + padding + colW * 2, colW, row1Y);
+
+		// Fila 2: Piezas  S/S | Chitubox | (vacío)
+		float row2Y = baseY + rowH;
+		drawInfoCell(cs, normal, "Piezas S/S: " + (piezasSS > 0 ? String.valueOf(piezasSS) : "-"), x + padding, colW, row2Y);
+		String chituboxStr = "Chitubox: " + (hasChitubox ? "[x]" : "[ ]");
+		drawInfoCell(cs, normal, chituboxStr, x + padding + colW, colW, row2Y);
+
+		// Fila 3: Piezas  Totales | LVL | PVP
+		float row3Y = baseY;
+		drawInfoCell(cs, normal, "Piezas: " + (totalPiezas > 0 ? String.valueOf(totalPiezas) : "-"), x + padding, colW, row3Y);
+		drawInfoCell(cs, normal, "LVL: " + valueOrDash(item.getLvl()), x + padding + colW, colW, row3Y);
+		drawInfoCell(cs, normal, "PVP: " + valueOrDash(item.getPvp()), x + padding + colW * 2, colW, row3Y);
 	} // --- Fin del metodo: drawBox ---
+
+
+	private void drawInfoCell(PDPageContentStream cs, PDFont font, String text, float colX, float colW, float y) throws IOException {
+		String truncated = ellipsizeToWidth(text, font, 8, colW - 2);
+		cs.beginText();
+		cs.setFont(font, 8);
+		cs.setNonStrokingColor(0, 0, 0);
+		cs.newLineAtOffset(colX + 1, y);
+		showText(cs, truncated);
+		cs.endText();
+	}
 
 
     // Dibuja las páginas de comentarios del proyecto al final del PDF

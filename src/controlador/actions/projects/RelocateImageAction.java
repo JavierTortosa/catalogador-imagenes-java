@@ -32,7 +32,8 @@ public class RelocateImageAction extends AbstractAction implements ContextSensit
         boolean shouldBeEnabled = false;
         if (tablaExportacion != null && tablaExportacion.getSelectedRow() != -1) {
             ExportTableModel tableModel = (ExportTableModel) tablaExportacion.getModel();
-            ExportItem selectedItem = tableModel.getItemAt(tablaExportacion.getSelectedRow());
+            int modelRow = tablaExportacion.convertRowIndexToModel(tablaExportacion.getSelectedRow());
+            ExportItem selectedItem = tableModel.getItemAt(modelRow);
             if (selectedItem != null) {
                 // Habilitar solo si la imagen original no se encontró
                 shouldBeEnabled = (selectedItem.getEstadoArchivoComprimido() == ExportStatus.IMAGEN_NO_ENCONTRADA);

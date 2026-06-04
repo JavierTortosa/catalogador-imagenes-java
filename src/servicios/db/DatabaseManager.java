@@ -280,7 +280,7 @@ public class DatabaseManager {
                                           "  FOREIGN KEY(tag_id) REFERENCES tags(id) ON DELETE CASCADE," +
                                           "  PRIMARY KEY (imagen_id, tag_id)" +
                                           ");";
-
+        
         try (Statement stmt = connection.createStatement()) {
             logger.debug("Ejecutando sentencias de creación de tablas...");
             stmt.execute(sqlCreateTableDiscos); // Añadimos discos primero por las FK
@@ -290,6 +290,25 @@ public class DatabaseManager {
             logger.info("Estructura de la base de datos verificada/creada con éxito.");
         } catch (SQLException e) {
             logger.error("Error al crear las tablas de la base de datos.", e);
+        }
+        
+        String sqlCreateTableArchivesMetadata = "CREATE TABLE IF NOT EXISTS archives_metadata (" +
+                "  archive_path TEXT PRIMARY KEY," + // Ruta completa del rar/zip
+                "  stl_count INTEGER," +
+                "  supported_stl_count INTEGER," +
+                "  unsupported_stl_count INTEGER," +
+                "  is_multipart INTEGER," + // 0 o 1
+                "  has_lychee INTEGER," +    // 0 o 1
+                "  has_chitubox INTEGER," +  // 0 o 1
+                "  total_size_mb REAL," +
+                "  analysis_date INTEGER" +
+                ");";
+
+        try (Statement stmt = connection.createStatement()) {
+        	stmt.execute(sqlCreateTableArchivesMetadata);
+        	logger.info("Tabla archives_metadata verificada/creada.");
+        } catch (SQLException e) {
+        	logger.error("Error al crear tabla archives_metadata", e);
         }
         
         // Llamamos al método de actualización para asegurar la compatibilidad hacia atrás

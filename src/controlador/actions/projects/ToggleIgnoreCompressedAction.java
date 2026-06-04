@@ -32,7 +32,8 @@ public class ToggleIgnoreCompressedAction extends AbstractAction implements Cont
         boolean shouldBeEnabled = false;
         if (tablaExportacion != null && tablaExportacion.getSelectedRow() != -1) {
             ExportTableModel tableModel = (ExportTableModel) tablaExportacion.getModel();
-            ExportItem selectedItem = tableModel.getItemAt(tablaExportacion.getSelectedRow());
+            int modelRow = tablaExportacion.convertRowIndexToModel(tablaExportacion.getSelectedRow());
+            ExportItem selectedItem = tableModel.getItemAt(modelRow);
             if (selectedItem != null) {
                 ExportStatus status = selectedItem.getEstadoArchivoComprimido();
                 // Habilitar si el estado es NO_ENCONTRADO o si YA ESTÁ IGNORADO (para poder revertirlo)

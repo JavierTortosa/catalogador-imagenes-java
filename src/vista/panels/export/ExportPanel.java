@@ -20,6 +20,7 @@ import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableRowSorter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,10 +148,25 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
         
         tablaExportacion.getTableHeader().addMouseListener(new HeaderMouseListener(tablaExportacion));
         
+        TableRowSorter<ExportTableModel> sorter = new TableRowSorter<>(tableModel);
+        sorter.setComparator(3, (ExportItem a, ExportItem b) -> {
+            String sA = a.tieneConflictoDeNombre() ? modelo.proyecto.ExportStatus.NOMBRE_DUPLICADO.getDisplay()
+                    : a.getEstadoArchivoComprimido().getDisplay();
+            String sB = b.tieneConflictoDeNombre() ? modelo.proyecto.ExportStatus.NOMBRE_DUPLICADO.getDisplay()
+                    : b.getEstadoArchivoComprimido().getDisplay();
+            return sA.compareTo(sB);
+        });
+        sorter.setComparator(5, (String a, String b) -> Long.compare(parseFileSize(a), parseFileSize(b)));
+        sorter.setSortable(0, false);
+        sorter.setSortable(1, false);
+        sorter.setSortable(4, false);
+        tablaExportacion.setRowSorter(sorter);
+        
         tablaExportacion.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int selectedRow = tablaExportacion.getSelectedRow();
-                ExportItem selectedItem = (selectedRow != -1) ? tableModel.getItemAt(selectedRow) : null;
+                int modelRow = selectedRow != -1 ? tablaExportacion.convertRowIndexToModel(selectedRow) : -1;
+                ExportItem selectedItem = (modelRow != -1) ? tableModel.getItemAt(modelRow) : null;
                 if (projectController != null) {
                     projectController.mostrarImagenDeExportacion(selectedItem != null ? selectedItem.getRutaImagen() : null);
                 }
@@ -189,6 +205,14 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
         pdfDetailsTablePanel.setOnDataChangedListener(() -> {
             if (projectController != null) {
                 projectController.notificarCambioEnProyecto();
+            }
+        });
+
+        // Al seleccionar una fila en la tabla de detalles PDF, mostrar esa imagen en el visor
+        pdfDetailsTablePanel.setOnSelectionChangedListener(exportItem -> {
+            if (projectController != null) {
+                projectController.mostrarImagenDeExportacion(
+                        exportItem != null ? exportItem.getRutaImagen() : null);
             }
         });
         
@@ -309,7 +333,8 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
         tablaExportacion.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int selectedRow = tablaExportacion.getSelectedRow();
-                ExportItem selectedItem = (selectedRow != -1) ? tableModel.getItemAt(selectedRow) : null;
+                int modelRow = selectedRow != -1 ? tablaExportacion.convertRowIndexToModel(selectedRow) : -1;
+                ExportItem selectedItem = (modelRow != -1) ? tableModel.getItemAt(modelRow) : null;
                 
                 boolean shouldHighlight = (selectedItem != null 
                                            && selectedItem.getRutasArchivosAsociados() != null 
@@ -500,6 +525,16 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
     public PdfDetailsTablePanel getPdfDetailsTablePanel() {
         return this.pdfDetailsTablePanel;
     }
+    
+    public boolean isPdfDetailsTableVisible() {
+        return this.pdfTableVisible;
+    }
+
+    public void stopExportTableEditing() {
+        if (tablaExportacion != null && tablaExportacion.isEditing()) {
+            tablaExportacion.getCellEditor().stopCellEditing();
+        }
+    }
 
     public boolean isMoveOperationActive() {
         return btnMoveCopy != null && btnMoveCopy.isSelected();
@@ -527,6 +562,25 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
         SwingUtilities.invokeLater(() -> {
             actualizarIconos();
         });
+    }
+
+    private long parseFileSize(String size) {
+        if (size == null || size.isEmpty() || "0 B".equals(size))
+            return 0;
+        try {
+            String[] parts = size.split(" ");
+            double value = Double.parseDouble(parts[0]);
+            String unit = parts.length > 1 ? parts[1] : "B";
+            switch (unit) {
+                case "B":  return (long) value;
+                case "KB": return (long) (value * 1024);
+                case "MB": return (long) (value * 1024 * 1024);
+                case "GB": return (long) (value * 1024 * 1024 * 1024);
+                default:   return (long) value;
+            }
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
 } // --- FIN de clase [ExportPanel]---

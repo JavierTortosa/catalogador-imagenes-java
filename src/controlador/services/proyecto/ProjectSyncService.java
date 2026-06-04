@@ -77,9 +77,14 @@ public class ProjectSyncService
 
             config.setCodigoCatalogo(item.getCodigoCatalogo());
             config.setPiezas(item.getPiezas());
+            config.setPiezasConSoporte(item.getPiezasConSoporte());
+            config.setPiezasSinSoporte(item.getPiezasSinSoporte());
             config.setLvl(item.getLvl());
             config.setPvp(item.getPvp());
             config.setNotas(item.getNotas());
+            config.setHasLychee(item.getLycheeOverride());
+            config.setHasChitubox(item.getChituboxOverride());
+            config.setTotalSizeMb(item.getTotalSizeOverride());
 
             String claveImagen = item.getRutaImagen().toString().replace("\\", "/");
             exportConfigsMap.put(claveImagen, config);
