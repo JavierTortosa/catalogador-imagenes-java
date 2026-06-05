@@ -66,6 +66,9 @@
     <p class="note">
         <strong>Nota:</strong> Puedes hacer clic derecho sobre una fila de la tabla para acceder a un menú contextual con acciones rápidas.
     </p>
+    <p class="note">
+        <strong>Ordenamiento:</strong> Haz clic en el encabezado de cualquier columna (Código, Estado, Tamaño, etc.) para ordenar la tabla ascendentemente. Vuelve a hacer clic para orden descendente.
+    </p>
 
     <h3>2. El Panel de Detalles</h3>
     <p>
@@ -171,28 +174,52 @@
     
     <h3>Datos por imagen</h3>
     <p>
-        Cada imagen del catálogo puede incluir los siguientes campos editables. Se configuran desde el <strong>Panel de Detalles</strong> (selecciona una fila en la tabla) o desde la <strong>Vista Previa</strong> antes de generar:
+        Cada imagen del catálogo puede incluir los siguientes campos editables. Se configuran desde la <strong>Tabla de Detalles PDF</strong> (botón <strong>Detalles PDF</strong> en la barra de acciones) o desde la <strong>Vista Previa</strong> antes de generar:
     </p>
     <table class="help-table">
         <thead>
             <tr><th>Campo</th><th>Descripción</th></tr>
         </thead>
         <tbody>
-            <tr><td><strong>Código</strong></td><td>Identificador único autoasignado (<code>C001</code>, <code>C002</code>...). Se genera automáticamente al preparar el PDF.</td></tr>
-            <tr><td><strong>Piezas</strong></td><td>Número de piezas que componen el modelo.</td></tr>
+            <tr><td><strong>Código</strong></td><td>Identificador único (<code>C001</code>, <code>C002</code>...). Se genera automáticamente si está vacío.</td></tr>
+            <tr><td><strong>Piezas C/S</strong></td><td>Número de piezas con soporte. Se auto-puebla desde el análisis del archivo comprimido si no lo has modificado.</td></tr>
+            <tr><td><strong>Piezas S/S</strong></td><td>Número de piezas sin soporte. Se auto-puebla desde el análisis si no lo has modificado.</td></tr>
+            <tr><td><strong>Piezas</strong></td><td>Número total de piezas que componen el modelo. Se auto-puebla desde el análisis si no lo has modificado.</td></tr>
+            <tr><td><strong>Lychee</strong></td><td>Indica si el archivo contiene formato Lychee (<code>.lys</code>). Checkbox editable manualmente.</td></tr>
+            <tr><td><strong>Chitubox</strong></td><td>Indica si el archivo contiene formato Chitubox (<code>.ctb</code>). Checkbox editable manualmente.</td></tr>
+            <tr><td><strong>Tamaño Total</strong></td><td>Tamaño total del contenido comprimido en MB. Se puede editar manualmente si el valor automático no es correcto.</td></tr>
             <tr><td><strong>LVL</strong></td><td>Nivel de dificultad de pintado (ej. Fácil, Medio, Difícil).</td></tr>
             <tr><td><strong>PVP</strong></td><td>Precio de venta al público de la figura.</td></tr>
             <tr><td><strong>Notas</strong></td><td>Observaciones adicionales sobre la imagen.</td></tr>
         </tbody>
     </table>
-    <p>Todos estos datos se guardan automáticamente en el archivo <code>.prj</code> del proyecto.</p>
+    <p class="note">
+        <strong>Importante:</strong> Los valores de Piezas C/S, Piezas S/S y Piezas se auto-pueblan desde el análisis del archivo comprimido (usando 7z) solo la primera vez. Si los modificas manualmente, el análisis posterior no los sobreescribirá. Todos los datos se guardan en el archivo <code>.prj</code> del proyecto.
+    </p>
     
+    <h3>Análisis de archivos comprimidos</h3>
+    <p>
+        Al pulsar <strong>Detalles PDF</strong> o <strong>Exportar a PDF</strong>, la aplicación analiza automáticamente los archivos comprimidos (<code>.zip</code>, <code>.rar</code>, <code>.7z</code>) para extraer:
+    </p>
+    <ul>
+        <li>Recuento de archivos <code>.stl</code>, <code>.obj</code>, <code>.3mf</code> (piezas totales, con soporte y sin soporte)</li>
+        <li>Detección de archivos <code>.lys</code> (Lychee) y <code>.ctb</code> (Chitubox)</li>
+        <li>Tamaño total del contenido comprimido</li>
+    </ul>
+    <p>
+        El análisis también revisa <strong>archivos anidados</strong> (por ejemplo, un <code>.rar</code> que contiene otros <code>.rar</code> o <code>.zip</code> dentro), explorándolos recursivamente para contar todas las piezas.
+    </p>
+    <p>
+        Durante el análisis, se muestra una <strong>barra de progreso</strong> que permite cancelar la operación si es necesario. Los resultados se almacenan en una caché local (SQLite) para evitar re-analizar el mismo archivo.
+    </p>
+
     <h3>Flujo de trabajo</h3>
     <ol>
         <li>Revisa la tabla de exportación y marca con el checkbox las imágenes que quieres incluir.</li>
-        <li>Rellena los campos (Piezas, LVL, PVP, Notas) desde el Panel de Detalles o desde la Vista Previa.</li>
+        <li>Pulsa <strong>Detalles PDF</strong> para abrir la tabla de detalles, donde se hará el análisis automático de los archivos comprimidos.</li>
+        <li>Rellena o ajusta los campos (Piezas C/S, Piezas S/S, Lychee, Chitubox, LVL, PVP, Notas, etc.) desde la <strong>Tabla de Detalles PDF</strong>.</li>
         <li>Pulsa <strong>Exportar a PDF</strong>.</li>
-        <li>Se abre la <strong>Vista Previa</strong> donde puedes revisar todas las imágenes, modificar los campos sobre la marcha, o quitar imágenes que no quieras.</li>
+        <li>Se abre la <strong>Vista Previa</strong> donde puedes revisar todas las imágenes, modificar los campos sobre la marcha (incluyendo checkboxes Lychee/Chitubox y Tamaño), o quitar imágenes que no quieras.</li>
         <li>Confirma y elige dónde guardar el archivo <code>.pdf</code>.</li>
     </ol>
     

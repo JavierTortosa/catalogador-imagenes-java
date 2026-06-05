@@ -43,3 +43,50 @@ ul {
 li {
     margin-bottom: 8px; /* Espacio entre elementos de la lista */
 }
+
+p.note {
+    background-color: #E3F2FD;
+    border-left: 4px solid #1565C0;
+    padding: 8px 12px;
+    margin: 12px 0;
+    font-size: 0.9em;
+    border-radius: 3px;
+}
+
+table.help-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+}
+
+table.help-table th, table.help-table td {
+    border: 1px solid #B0BEC5;
+    padding: 6px 10px;
+    text-align: left;
+}
+
+table.help-table th {
+    background-color: #CFD8DC;
+    font-weight: bold;
+}
+
+table.controls-table {
+    border-collapse: collapse;
+    margin: 8px 0;
+}
+
+table.controls-table td {
+    padding: 6px 8px;
+    vertical-align: middle;
+}
+
+table.controls-table td.icon-cell {
+    width: 40px;
+    text-align: center;
+}
+
+table.controls-table td.icon-cell img {
+    width: 24px;
+    height: 24px;
+    vertical-align: middle;
+}

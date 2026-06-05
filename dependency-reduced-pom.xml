@@ -19,6 +19,10 @@
           <exclude>**/*.java</exclude>
         </excludes>
       </resource>
+      <resource>
+        <targetPath>bin/7z</targetPath>
+        <directory>lib/bin/7z</directory>
+      </resource>
     </resources>
     <plugins>
       <plugin>

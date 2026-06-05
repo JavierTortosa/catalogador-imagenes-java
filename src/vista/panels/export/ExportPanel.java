@@ -158,7 +158,6 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
         });
         sorter.setComparator(5, (String a, String b) -> Long.compare(parseFileSize(a), parseFileSize(b)));
         sorter.setSortable(0, false);
-        sorter.setSortable(1, false);
         sorter.setSortable(4, false);
         tablaExportacion.setRowSorter(sorter);
         
