@@ -112,11 +112,16 @@ public class ExportItem {
      */
     public long getImageSize() {
         if (imageSize == -1) {
-            try {
-                imageSize = java.nio.file.Files.size(rutaImagen);
-            } catch (java.io.IOException e) {
-                logger.warn("No se pudo calcular el tamaño del archivo de imagen: {}", rutaImagen, e);
+            if (!java.nio.file.Files.exists(rutaImagen)) {
+                logger.debug("Archivo de imagen no encontrado (no se calculará su tamaño): {}", rutaImagen);
                 imageSize = 0;
+            } else {
+                try {
+                    imageSize = java.nio.file.Files.size(rutaImagen);
+                } catch (java.io.IOException e) {
+                    logger.debug("No se pudo leer el tamaño del archivo de imagen: {}", rutaImagen);
+                    imageSize = 0;
+                }
             }
         }
         return imageSize;

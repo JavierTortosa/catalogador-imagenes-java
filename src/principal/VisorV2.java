@@ -46,7 +46,7 @@ public class VisorV2 {
 
     // GENERAL
     // FIXME cuando el programa arranca y no encuentra la carpeta de inicio que tiene en el config debe mostrar la pantalla de presentacion
-    
+    // FIXME cada vez que entramos en un modo tenemos que cargar los punteros de imagen seleccionada en todos los paneles, tipo de vision y tipo de zoom y cuando salimos de cualquier modo tenemos que guardar esta misma informacion
     
     // VISUALIZADOR
     // TODO HACER SALTO DE CARPETA. Cuando estamos viendo una carpeta que vemos que no nos cuadra, poder saltar todas las imagenes de esa carpeta

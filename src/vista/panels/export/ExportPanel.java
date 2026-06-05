@@ -39,6 +39,7 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
     private JTable tablaExportacion;
     private JTextField txtCarpetaDestino;
     private JLabel lblResumen;
+    private JLabel lblPdfStatus;
     private ProjectController projectController;
     private ExportTableModel tableModel;
     
@@ -258,8 +259,13 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
 
         // 2. El label de resumen (ahora en el SUR)
         // Al ponerlo en SOUTH, ocupará todo el ancho inferior sin afectar al panel central.
+        JPanel infoPanel = new JPanel(new BorderLayout());
         this.lblResumen = new JLabel("Cargue la selección para ver el estado.");
-        southPanel.add(this.lblResumen, BorderLayout.SOUTH);
+        infoPanel.add(this.lblResumen, BorderLayout.NORTH);
+        this.lblPdfStatus = new JLabel(" ");
+        this.lblPdfStatus.setFont(this.lblPdfStatus.getFont().deriveFont(java.awt.Font.ITALIC, 10f));
+        infoPanel.add(this.lblPdfStatus, BorderLayout.SOUTH);
+        southPanel.add(infoPanel, BorderLayout.SOUTH);
         
         // 3. El panel del Este con el tamaño total y botón de Mover/Copiar
         JPanel eastPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 0));
@@ -374,7 +380,8 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
         
         long totalSize = 0;
         for (ExportItem item : tableModel.getCola()) {
-            if (item.isSeleccionadoParaExportar()) {
+            if (item.isSeleccionadoParaExportar()
+                    && item.getEstadoArchivoComprimido() != modelo.proyecto.ExportStatus.IMAGEN_NO_ENCONTRADA) {
                 totalSize += item.getTotalSize();
             }
         }
@@ -422,7 +429,8 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
         repaint();
     } // ---FIN de metodo [setActionsToolbar]---
 
-    public void actualizarEstadoControles(boolean puedeExportar, String mensajeResumen) {
+    public void actualizarEstadoControles(boolean puedeExportar, String mensajeResumen,
+                                           boolean puedeExportarPDF, String mensajePDF) {
     	
     	logger.debug("Actualizando controles de exportación con mensaje: {}", mensajeResumen);
     	
@@ -433,6 +441,13 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
         Action iniciarExportAction = projectController.getActionMap().get(AppActionCommands.CMD_INICIAR_EXPORTACION);
         if (iniciarExportAction != null) {
             iniciarExportAction.setEnabled(puedeExportar);
+        }
+        Action exportarPdfAction = projectController.getActionMap().get(AppActionCommands.CMD_EXPORTAR_PDF);
+        if (exportarPdfAction != null) {
+            exportarPdfAction.setEnabled(puedeExportarPDF);
+        }
+        if (lblPdfStatus != null) {
+            lblPdfStatus.setText("    " + mensajePDF);
         }
     } // ---FIN de metodo [actualizarEstadoControles]---
 

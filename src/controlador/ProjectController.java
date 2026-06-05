@@ -1084,7 +1084,20 @@ public class ProjectController implements IModoController {
         actualizarTooltipAccion(AppActionCommands.CMD_EXPORT_REFRESH,
                 "Vuelve a escanear el disco para actualizar el estado de los archivos");
 
-        exportPanel.actualizarEstadoControles(puedeExportar, mensajeResumen);
+        boolean puedeExportarPDF = todosLosSeleccionadosEstanListos && seleccionados > 0 && !hayConflictos;
+        String mensajePDF;
+        if (hayConflictos) {
+            mensajePDF = "No se puede generar PDF: hay conflictos de nombres.";
+        } else if (!todosLosSeleccionadosEstanListos && seleccionados > 0) {
+            mensajePDF = "No se puede generar PDF: hay imágenes con errores.";
+        } else if (seleccionados == 0 && totalItems > 0) {
+            mensajePDF = "Para generar PDF, seleccione al menos una imagen.";
+        } else if (seleccionados == 0) {
+            mensajePDF = "";
+        } else {
+            mensajePDF = "PDF listo para generar.";
+        }
+        exportPanel.actualizarEstadoControles(puedeExportar, mensajeResumen, puedeExportarPDF, mensajePDF);
 
         JTable tablaUI = getTablaExportacionDesdeRegistro();
         if (tablaUI != null) {

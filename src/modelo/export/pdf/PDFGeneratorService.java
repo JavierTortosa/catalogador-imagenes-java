@@ -134,7 +134,7 @@ public class PDFGeneratorService {
 			}
 		} catch (Exception e)
 		{
-			logger.warn("Error cargando imagen para PDF: {}", item.getRutaImagen(), e);
+			logger.debug("No se pudo incluir la imagen en el PDF (probablemente no existe): {}", item.getRutaImagen());
 		}
 
 		cs.setStrokingColor(0.85f, 0.85f, 0.85f);
