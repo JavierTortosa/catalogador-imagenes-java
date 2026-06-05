@@ -547,6 +547,10 @@ public class ProjectController implements IModoController {
             return;
         }
 
+        // Resetear estado interno para forzar restauración completa al re-entrar
+        this.currentViewState = null;
+        model.getProyectoListContext().setSelectedImageKey(null);
+
         boolean hayDatosParaMostrar = prepararDatosProyecto();
 
         if (hayDatosParaMostrar) {

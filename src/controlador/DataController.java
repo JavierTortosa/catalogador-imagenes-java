@@ -5,6 +5,7 @@ import java.awt.event.MouseEvent;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +21,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.tree.TreePath;
 
 import org.slf4j.Logger;
@@ -30,19 +30,16 @@ import controlador.managers.DataManager;
 import controlador.managers.InfobarStatusManager;
 import controlador.managers.interfaces.IProjectManager;
 import controlador.utils.ComponentRegistry;
-import modelo.VisorModel;
 import modelo.ListContext;
+import modelo.VisorModel;
+import modelo.datos.Disco;
 import modelo.datos.Tag;
 import servicios.db.TagDAO;
 import vista.components.TagIntelliSenseField;
-import vista.panels.GridDisplayPanel;
-import vista.panels.TagManagementPanel;
-import vista.tree.TagTreeModel;
-import vista.tree.TagTreeCellRenderer;
 import vista.panels.DriveListPanel;
-import vista.dialogos.TagSelectionDialog;
-import modelo.datos.Disco;
-import java.util.Collections;
+import vista.panels.TagManagementPanel;
+import vista.tree.TagTreeCellRenderer;
+import vista.tree.TagTreeModel;
 
 /**
  * Controlador para la lógica y la interacción del "Modo Datos".
@@ -128,10 +125,16 @@ public class DataController {
         refreshAvailableTags();
         refreshIntelliSense(); // <-- Carga/actualiza el autocompletado
         
-        // Seleccionamos la raíz ("Biblioteca") por defecto
+        // Restaurar la etiqueta guardada o seleccionar "Biblioteca" por defecto
         JTree allTagsTree = registry.get("tree.datamode.alltags");
         if (allTagsTree != null) {
-            allTagsTree.setSelectionRow(0);
+            String savedTag = model != null ? model.getDatosListContext().getDatosSelectedTag() : null;
+            if (savedTag != null && !"Biblioteca".equals(savedTag)) {
+                selectTagNode(allTagsTree, savedTag);
+            }
+            if (allTagsTree.getSelectionCount() == 0) {
+                allTagsTree.setSelectionRow(0);
+            }
         }
         
         TagManagementPanel tagPanel = registry.get("panel.datamode.tagmanagement");
@@ -165,6 +168,30 @@ public class DataController {
             ctx.setSelectedImageKey(selectedKey);
         }
     } // ---FIN de metodo [guardarContexto]---
+
+    private void selectTagNode(JTree tree, String tagName) {
+        javax.swing.tree.TreeModel model = tree.getModel();
+        if (model == null || model.getRoot() == null) return;
+        buscarYSeleccionarNodo(tree, model.getRoot(), tagName);
+    }
+
+    private boolean buscarYSeleccionarNodo(JTree tree, Object node, String tagName) {
+        if (node instanceof javax.swing.tree.DefaultMutableTreeNode) {
+            javax.swing.tree.DefaultMutableTreeNode treeNode = (javax.swing.tree.DefaultMutableTreeNode) node;
+            Object userObj = treeNode.getUserObject();
+            String nodeName = userObj != null ? userObj.toString() : "";
+            if (tagName.equals(nodeName)) {
+                javax.swing.tree.TreePath path = new javax.swing.tree.TreePath(treeNode.getPath());
+                tree.setSelectionPath(path);
+                tree.scrollPathToVisible(path);
+                return true;
+            }
+            for (int i = 0; i < treeNode.getChildCount(); i++) {
+                if (buscarYSeleccionarNodo(tree, treeNode.getChildAt(i), tagName)) return true;
+            }
+        }
+        return false;
+    }
 
     private void initializeTagTree() {
         JTree allTagsTree = registry.get("tree.datamode.alltags");
