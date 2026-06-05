@@ -269,6 +269,70 @@ public class ImagenDAO {
 
 
     /**
+     * Obtiene todas las imágenes de la base de datos como objetos ImagenInfo.
+     * @return Una lista de ImagenInfo.
+     */
+    public List<ImagenInfo> getAllImagenes() {
+        List<ImagenInfo> imagenes = new ArrayList<>();
+        String sql = "SELECT * FROM imagenes ORDER BY nombre_archivo ASC";
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                imagenes.add(mapResultSetToImagenInfo(rs));
+            }
+        } catch (SQLException e) {
+            logger.error("Error al obtener todas las imagenes.", e);
+        }
+        return imagenes;
+    }
+
+    /**
+     * Borra un lote de imágenes de la base de datos por sus IDs.
+     * @param ids Lista de IDs de las imágenes a borrar.
+     * @return Número de imágenes eliminadas.
+     */
+    public int deleteImagenes(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) return 0;
+        int count = 0;
+        String sql = "DELETE FROM imagenes WHERE id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            connection.setAutoCommit(false);
+            for (Long id : ids) {
+                pstmt.setLong(1, id);
+                pstmt.addBatch();
+            }
+            int[] results = pstmt.executeBatch();
+            connection.commit();
+            for (int r : results) {
+                if (r > 0) count++;
+            }
+            logger.debug("{} imágenes eliminadas de la BD en lote.", count);
+        } catch (SQLException e) {
+            logger.error("Error al eliminar lote de imágenes", e);
+            try { connection.rollback(); } catch (SQLException ex) {}
+        } finally {
+            try { connection.setAutoCommit(true); } catch (SQLException ex) {}
+        }
+        return count;
+    }
+
+    /**
+     * Asocia un archivo de recurso (como un .zip o .stl) a una imagen.
+     */
+    public boolean assignResourceToImage(long imagenId, String archivePath) {
+        String sql = "INSERT OR IGNORE INTO resource_associations(imagen_id, archive_path) VALUES(?,?)";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, imagenId);
+            pstmt.setString(2, archivePath);
+            pstmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            logger.error("Error al asignar recurso {} a imagen {}", archivePath, imagenId, e);
+        }
+        return false;
+    }
+
+    /**
      * Método de ayuda para mapear una fila de un ResultSet a un objeto ImagenInfo.
      * @param rs El ResultSet posicionado en la fila correcta.
      * @return Un objeto ImagenInfo poblado.

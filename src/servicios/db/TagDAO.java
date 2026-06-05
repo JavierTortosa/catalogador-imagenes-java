@@ -776,4 +776,61 @@ public class TagDAO {
         return 0;
     } // ---FIN de metodo [getDirectChildCount]---
 
+    /**
+     * Obtiene los tags que no están asociados a ninguna imagen y no tienen hijos.
+     */
+    public List<Tag> getUnusedTags() {
+        List<Tag> unusedTags = new ArrayList<>();
+        String sql = "SELECT t.* FROM tags t " +
+                     "LEFT JOIN imagen_tags it ON t.id = it.tag_id " +
+                     "LEFT JOIN tags children ON t.id = children.parent_id " +
+                     "WHERE it.tag_id IS NULL AND children.id IS NULL";
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                unusedTags.add(mapResultSetToTag(rs));
+            }
+        } catch (SQLException e) {
+            logger.error("Error al obtener tags sin uso.", e);
+        }
+        return unusedTags;
+    } // ---FIN de metodo [getUnusedTags]---
+
+    /**
+     * Fusiona dos tags: mueve las asociaciones de sourceId a targetId y elimina sourceId.
+     */
+    public boolean mergeTags(long sourceId, long targetId) {
+        if (sourceId == targetId) return false;
+        try {
+            connection.setAutoCommit(false);
+            
+            // 1. Mover asociaciones ignorando duplicados (INSERT OR IGNORE)
+            String sqlMoveAssoc = "INSERT OR IGNORE INTO imagen_tags (imagen_id, tag_id) " +
+                                  "SELECT imagen_id, ? FROM imagen_tags WHERE tag_id = ?";
+            try (PreparedStatement pstmt = connection.prepareStatement(sqlMoveAssoc)) {
+                pstmt.setLong(1, targetId);
+                pstmt.setLong(2, sourceId);
+                pstmt.executeUpdate();
+            }
+            
+            // 2. Eliminar el tag original (sus asociaciones y el tag en sí)
+            boolean ok = deleteTagBranch(sourceId);
+            
+            if (ok) {
+                connection.commit();
+                logger.info("Tag {} fusionado dentro del Tag {}.", sourceId, targetId);
+                return true;
+            } else {
+                connection.rollback();
+                return false;
+            }
+        } catch (SQLException e) {
+            try { connection.rollback(); } catch (SQLException ex) {}
+            logger.error("Error al fusionar tags", e);
+            return false;
+        } finally {
+            try { connection.setAutoCommit(true); } catch (SQLException ex) {}
+        }
+    } // ---FIN de metodo [mergeTags]---
+
 } // --- FIN de clase TagDAO ---

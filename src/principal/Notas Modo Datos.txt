@@ -476,7 +476,31 @@ Objetivo: Enriquecer el modelo de datos y la UI de filtrado para explotar todo e
 
 RESULTADO ESPERADO: El usuario puede realizar búsquedas complejas y potentes en toda su colección, como "muéstrame todos los 'elfos' que no sean 'elfos oscuros', añadidos en los últimos 30 días".
 
+=================================================================================
+FASE 4: EVOLUCIÓN DEL MODO PROYECTO (LA ZONA DE PREPARACIÓN)
+=================================================================================
+Objetivo: Transformar el Modo Proyecto en la herramienta principal para preparar conjuntos de imágenes antes de su ingesta o exportación.
 
+4.1. INTEGRACIÓN CON LA COLECCIÓN:
+    - Permitir que el Modo Proyecto cargue imágenes tanto del Explorador (archivos físicos) como de la Biblioteca (resultados de búsqueda).
+    
+4.2. INGESTA EN LOTE DESDE EL PROYECTO:
+    - Implementar una acción masiva "Añadir Proyecto a la Colección", que asigne automáticamente los tags definidos en el proyecto a todas las imágenes durante la ingesta.
+
+=================================================================================
+FASE 5: INTERFAZ DE ADMINISTRACIÓN (EL MODO DATOS)
+=================================================================================
+Objetivo: Implementar el panel de control avanzado para la gestión directa de la base de datos de la Colección.
+
+5.1. ÁRBOL DE TAGS GLOBAL:
+    - Integrar un `JTree` para visualizar y reorganizar jerárquicamente todos los tags de la Colección.
+    
+5.2. MANTENIMIENTO DE LA BASE DE DATOS:
+    - Desarrollar herramientas para buscar imágenes "huérfanas" (registradas en la BD pero borradas del disco).
+    - Opción para eliminar tags sin uso o fusionar tags duplicados.
+
+5.3. VINCULACIÓN DE ARCHIVOS ASOCIADOS:
+    - Interfaz para revisar y corregir manualmente las asociaciones entre imágenes y modelos 3D (`.zip`, `.stl`).
 
 --------------------------------------------------------------------------------------------------------------------------------------------------
 --- FIN HOJA DE RUTA MODO DATOS: HOJA DE RUTA TÉCNICA V3.0: EL GESTOR DE COLECCIONES ---

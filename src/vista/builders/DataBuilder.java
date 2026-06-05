@@ -120,6 +120,20 @@ public class DataBuilder {
         registry.register("textfield.datamode.tags.filter", filterField);
         tagToolbar.addSeparator();
         
+        // Botón Mantenimiento BD
+        JButton btnMantenimiento = new JButton(iconUtils.getScaledIcon("7005-settings_48x48.png", 24, 24)); // Usamos un icono genérico por ahora
+        if (btnMantenimiento.getIcon() == null) btnMantenimiento.setText("Mantenimiento");
+        btnMantenimiento.setToolTipText("Mantenimiento de Base de Datos");
+        if (actionMap != null && actionMap.containsKey(AppActionCommands.CMD_DATOS_MANTENIMIENTO_BD)) {
+            btnMantenimiento.addActionListener(actionMap.get(AppActionCommands.CMD_DATOS_MANTENIMIENTO_BD));
+        } else {
+            // Fallback si no está en el actionMap
+            btnMantenimiento.setActionCommand(AppActionCommands.CMD_DATOS_MANTENIMIENTO_BD);
+            registry.register("btn.datamode.mantenimiento", btnMantenimiento);
+        }
+        tagToolbar.add(btnMantenimiento);
+        tagToolbar.addSeparator();
+        
         // --- Árbol ---
         JTree allTagsTree = new JTree();
         allTagsTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);

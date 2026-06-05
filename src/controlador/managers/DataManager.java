@@ -52,6 +52,14 @@ public class DataManager {
     } // ---FIN de metodo [getTagDAO]---
 
     /**
+     * Obtiene la instancia de ImagenDAO para operaciones directas de CRUD.
+     * @return La instancia de ImagenDAO.
+     */
+    public ImagenDAO getImagenDAO() {
+        return imagenDAO;
+    } // ---FIN de metodo [getImagenDAO]---
+
+    /**
      * Obtiene una lista de todos los tags existentes en la base de datos,
      * ordenados alfabéticamente.
      * @return Una lista de objetos Tag.

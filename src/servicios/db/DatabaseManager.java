@@ -314,6 +314,19 @@ public class DatabaseManager {
         // Llamamos al método de actualización para asegurar la compatibilidad hacia atrás
         upgradeSchema();
         
+        String sqlCreateTableResourceAssociations = "CREATE TABLE IF NOT EXISTS resource_associations (" +
+                "  imagen_id INTEGER NOT NULL REFERENCES imagenes(id) ON DELETE CASCADE," +
+                "  archive_path TEXT NOT NULL REFERENCES archives_metadata(archive_path) ON DELETE CASCADE," +
+                "  PRIMARY KEY (imagen_id, archive_path)" +
+                ");";
+
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(sqlCreateTableResourceAssociations);
+            logger.info("Tabla resource_associations verificada/creada.");
+        } catch (SQLException e) {
+            logger.error("Error al crear tabla resource_associations", e);
+        }
+        
     } // ---FIN de metodo [initializeDatabase]---
     
     

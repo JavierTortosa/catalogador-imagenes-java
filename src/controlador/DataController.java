@@ -107,9 +107,28 @@ public class DataController {
         setupListeners();
         setupTagCRUDButtons();
         setupImageTagCRUDButtons();
+        setupMaintenanceDialog();
         
         isInitialized = true;
     } // ---FIN de metodo [initialize]---
+    
+    private void setupMaintenanceDialog() {
+        javax.swing.JButton btn = registry.get("btn.datamode.mantenimiento");
+        if (btn != null) {
+            btn.addActionListener(e -> {
+                java.awt.Frame mainFrame = null;
+                java.awt.Component topComp = btn.getTopLevelAncestor();
+                if (topComp instanceof java.awt.Frame) mainFrame = (java.awt.Frame) topComp;
+                
+                vista.dialogos.DatabaseMaintenanceDialog dialog = new vista.dialogos.DatabaseMaintenanceDialog(mainFrame, dataManager);
+                dialog.setVisible(true);
+                
+                if (dialog.isDbChanged()) {
+                    afterTagStructureChanged();
+                }
+            });
+        }
+    }
     
     /**
      * Activa el modo datos. Se llama cada vez que el usuario cambia a esta vista.
@@ -117,6 +136,9 @@ public class DataController {
      */
     public void activate() {
         logger.debug("Activando el Modo Datos...");
+        
+        // Guardar la clave seleccionada antes de que activate() la modifique
+        String savedImageKey = model != null ? model.getDatosListContext().getSelectedImageKey() : null;
         
         // Recargamos el árbol cada vez que entramos en este modo.
         initializeTagTree();
@@ -141,6 +163,28 @@ public class DataController {
         if (tagPanel != null) {
             tagPanel.clearPanel();
         }
+        
+        // Restaurar la seleccion del grid DESPUES de que loadAllImages/loadImagesForTag
+        // (invocados desde el TreeSelectionListener) hayan reemplazado el modelo.
+        SwingUtilities.invokeLater(() -> {
+            JList<String> gridList = registry.get("list.datamode.grid");
+            if (gridList == null) return;
+            String keyRestore = model != null ? model.getDatosListContext().getSelectedImageKey() : null;
+            if (keyRestore == null) keyRestore = savedImageKey;
+            if (keyRestore != null) {
+                for (int i = 0; i < gridList.getModel().getSize(); i++) {
+                    if (keyRestore.equals(gridList.getModel().getElementAt(i))) {
+                        gridList.setSelectedIndex(i);
+                        gridList.ensureIndexIsVisible(i);
+                        return;
+                    }
+                }
+            }
+            // Sin clave guardada o no encontrada: seleccionar el primer elemento
+            if (gridList.getModel().getSize() > 0) {
+                gridList.setSelectedIndex(0);
+            }
+        });
     } // ---FIN de metodo [activate]---
 
     public void guardarContexto() {
@@ -474,6 +518,31 @@ public class DataController {
             }
         });
         popup.add(addTagItem);
+        
+        // 3. Opción "Vincular Archivo 3D..."
+        JMenuItem linkFileItem = new JMenuItem("Vincular Archivo 3D...");
+        linkFileItem.addActionListener(actionEvent -> {
+            java.awt.Frame mainFrame = (visorController != null) ? visorController.getView() : null;
+            vista.dialogos.FileAssociationDialog dialog = new vista.dialogos.FileAssociationDialog(mainFrame);
+            dialog.setVisible(true);
+            String selectedPath = dialog.getSelectedPath();
+            if (selectedPath != null && !selectedPath.isEmpty()) {
+                int count = 0;
+                for (Path p : selectedPaths) {
+                    java.util.Optional<modelo.datos.ImagenInfo> imgOpt = dataManager.getImagenDAO().findImagenByPath(p);
+                    if (imgOpt.isPresent()) {
+                        boolean ok = dataManager.getImagenDAO().assignResourceToImage(imgOpt.get().getId(), selectedPath);
+                        if (ok) count++;
+                    }
+                }
+                String mensaje = "Archivo vinculado a " + count + " imagen(es).";
+                logger.info(mensaje);
+                if (statusBarManager != null) {
+                    statusBarManager.mostrarMensajeTemporal(mensaje, 3000);
+                }
+            }
+        });
+        popup.add(linkFileItem);
         
         popup.show(gridList, e.getX(), e.getY());
     } // ---FIN de metodo [showGridContextMenu]---
