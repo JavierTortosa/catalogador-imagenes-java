@@ -561,12 +561,26 @@ public class ProjectController implements IModoController {
             String focoGuardado = model.getProyectoListContext().getNombreListaActiva();
             cambiarFocoListaActiva(focoGuardado != null ? focoGuardado : "seleccion");
 
-            String claveInicial = determinarClaveASeleccionar(model.getProyectoListContext());
-            if (claveInicial != null) {
-                projectListCoordinator.seleccionarImagenPorClave(claveInicial);
-            } else {
-                projectListCoordinator.seleccionarImagenPorIndice(-1);
-            }
+            // Re-seleccionar en la JList después de que los invokeLater pendientes hayan
+            // procesado el nuevo modelo del grid (que puede borrar la selección visual)
+            SwingUtilities.invokeLater(() -> {
+                String claveRestaurada = model.getProyectoListContext().getSelectedImageKey();
+                if (claveRestaurada != null) {
+                    JList<String> listaUI = "descartes".equals(model.getProyectoListContext().getNombreListaActiva())
+                            ? registry.get("list.proyecto.descartes")
+                            : registry.get("list.proyecto.nombres");
+                    if (listaUI != null && listaUI.getModel() instanceof javax.swing.ListModel) {
+                        javax.swing.ListModel<String> lm = listaUI.getModel();
+                        for (int i = 0; i < lm.getSize(); i++) {
+                            if (claveRestaurada.equals(lm.getElementAt(i))) {
+                                listaUI.setSelectedIndex(i);
+                                listaUI.ensureIndexIsVisible(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
 
             ajustarLayoutProyectoUI();
 
