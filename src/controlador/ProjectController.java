@@ -260,14 +260,10 @@ public class ProjectController implements IModoController {
             model.getProyectoListContext().setNombreListaActiva("seleccion");
         }
         actualizarModeloPrincipalConListaDeProyectoActiva();
+        
+        // La restauración de la selección se delega al método que activa la vista o al coordinador
+        // para evitar conflictos de sincronización durante la carga inicial.
 
-        // Restaurar la selección previa de la lista activa
-        String claveGuardada = "descartes".equals(model.getProyectoListContext().getNombreListaActiva())
-                ? model.getProyectoListContext().getDescartesListKey()
-                : model.getProyectoListContext().getSeleccionListKey();
-        if (claveGuardada != null && projectListCoordinator != null) {
-            projectListCoordinator.seleccionarImagenPorClave(claveGuardada);
-        }
 
         // --- Lógica específica para el estado de EXPORTACIÓN ---
         if (newState == ProjectViewState.VIEW_EXPORT) {
@@ -549,47 +545,35 @@ public class ProjectController implements IModoController {
 
         // Resetear estado interno para forzar restauración completa al re-entrar
         this.currentViewState = null;
-        model.getProyectoListContext().setSelectedImageKey(null);
 
         boolean hayDatosParaMostrar = prepararDatosProyecto();
 
-        if (hayDatosParaMostrar) {
-            logger.debug("   -> Hay imágenes en el proyecto. Poblando la vista...");
+        SwingUtilities.invokeLater(() -> {
+            if (hayDatosParaMostrar) {
+                logger.debug("   -> Hay imágenes en el proyecto. Poblando la vista...");
 
-            poblarListasSeleccionYDescartes();
+                poblarListasSeleccionYDescartes();
 
-            String focoGuardado = model.getProyectoListContext().getNombreListaActiva();
-            cambiarFocoListaActiva(focoGuardado != null ? focoGuardado : "seleccion");
+                String focoGuardado = model.getProyectoListContext().getNombreListaActiva();
+                cambiarFocoListaActiva(focoGuardado != null ? focoGuardado : "seleccion");
 
-            // Re-seleccionar en la JList después de que los invokeLater pendientes hayan
-            // procesado el nuevo modelo del grid (que puede borrar la selección visual)
-            SwingUtilities.invokeLater(() -> {
-                String claveRestaurada = model.getProyectoListContext().getSelectedImageKey();
+                // Re-seleccionar en la JList y actualizar visor usando el coordinador
+                String claveRestaurada = determinarClaveASeleccionar(model.getProyectoListContext());
                 if (claveRestaurada != null) {
-                    JList<String> listaUI = "descartes".equals(model.getProyectoListContext().getNombreListaActiva())
-                            ? registry.get("list.proyecto.descartes")
-                            : registry.get("list.proyecto.nombres");
-                    if (listaUI != null && listaUI.getModel() instanceof javax.swing.ListModel) {
-                        javax.swing.ListModel<String> lm = listaUI.getModel();
-                        for (int i = 0; i < lm.getSize(); i++) {
-                            if (claveRestaurada.equals(lm.getElementAt(i))) {
-                                listaUI.setSelectedIndex(i);
-                                listaUI.ensureIndexIsVisible(i);
-                                break;
-                            }
-                        }
-                    }
+                    // Forzamos la actualización del visor limpiando la clave actual antes de seleccionar
+                    model.getProyectoListContext().setSelectedImageKey(null);
+                    projectListCoordinator.seleccionarImagenPorClave(claveRestaurada);
                 }
-            });
 
-            ajustarLayoutProyectoUI();
+                ajustarLayoutProyectoUI();
 
-        } else {
-            logger.debug("   -> No hay imágenes en el proyecto. Limpiando la vista...");
-            limpiarVistaProyecto();
-        }
+            } else {
+                logger.debug("   -> No hay imágenes en el proyecto. Limpiando la vista...");
+                limpiarVistaProyecto();
+            }
 
-        resetProjectViewLayout();
+            resetProjectViewLayout();
+        });
 
     } // --- Fin del metodo: activarVistaProyecto ---
 
@@ -628,10 +612,8 @@ public class ProjectController implements IModoController {
             claveParaMostrar = proyectoContext.getSeleccionListKey();
         }
 
-        // Si después de buscar la clave guardada, sigue siendo nula o no está en la
-        // lista actual...
-        if (claveParaMostrar == null || !proyectoContext.getModeloLista().contains(claveParaMostrar)) {
-
+        // Si después de buscar la clave guardada, sigue siendo nula...
+        if (claveParaMostrar == null) {
             // ...intentamos seleccionar la primera de la lista activa.
             JList<String> listaActivaUI = "descartes".equals(focoActual)
                     ? registry.get("list.proyecto.descartes")

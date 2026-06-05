@@ -86,7 +86,7 @@ public class ListContext {
         this.modeloLista = (nuevoModelo != null) ? nuevoModelo : new DefaultListModel<>();
         this.rutaCompletaMap = (nuevoMapaRutas != null) ? nuevoMapaRutas : new HashMap<>();
         
-        if (oldSelectedKey != null && this.modeloLista.contains(oldSelectedKey)) {
+        if (oldSelectedKey != null && java.util.Collections.list(this.modeloLista.elements()).contains(oldSelectedKey)) {
             this.selectedImageKey = oldSelectedKey;
             logger.debug("### DEBUG CONTEXT: ListContext@" + Integer.toHexString(hashCode()) + ": Restored old selectedKey: '" + oldSelectedKey + "'");
         } else {
@@ -97,6 +97,16 @@ public class ListContext {
         logger.debug("### DEBUG CONTEXT: ListContext@" + Integer.toHexString(hashCode()) + 
                            " actualizado. Nuevo tamaño: " + this.modeloLista.getSize());
     } // --- Fin del método actualizarContextoCompleto ---
+
+    /**
+     * Comprueba si una clave existe en el modelo de lista actual.
+     * @param key La clave a buscar.
+     * @return true si existe, false en caso contrario.
+     */
+    public boolean contains(String key) {
+        if (key == null || modeloLista == null) return false;
+        return java.util.Collections.list(modeloLista.elements()).contains(key);
+    }
     
     
     /**

@@ -1,6 +1,7 @@
 package controlador;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -333,7 +334,7 @@ public class ProjectListCoordinator extends AbstractListCoordinator  {
         int indiceEnSeleccion = -1;
         if (listaSeleccion != null) {
             DefaultListModel<String> modeloSeleccion = (DefaultListModel<String>) listaSeleccion.getModel();
-            indiceEnSeleccion = modeloSeleccion.indexOf(clave);
+            indiceEnSeleccion = Collections.list(modeloSeleccion.elements()).indexOf(clave);
         }
 
         if (indiceEnSeleccion != -1) {
@@ -344,7 +345,7 @@ public class ProjectListCoordinator extends AbstractListCoordinator  {
         int indiceEnDescartes = -1;
         if (listaDescartes != null) {
             DefaultListModel<String> modeloDescartes = (DefaultListModel<String>) listaDescartes.getModel();
-            indiceEnDescartes = modeloDescartes.indexOf(clave);
+            indiceEnDescartes = Collections.list(modeloDescartes.elements()).indexOf(clave);
         }
 
         if (indiceEnDescartes != -1) {
@@ -404,14 +405,18 @@ public class ProjectListCoordinator extends AbstractListCoordinator  {
 
     private void aplicarClaveAlVisor(JList<String> lista, String claveSeleccionada, int indice) {
         model.getProyectoListContext().setSelectedImageKey(claveSeleccionada);
-        if ("list.proyecto.nombres".equals(lista.getName())) {
+        
+        // Identificar en qué lista estamos y guardar su clave específica
+        if (lista == registry.get("list.proyecto.nombres")) {
             model.getProyectoListContext().setSeleccionListKey(claveSeleccionada);
-        } else {
+        } else if (lista == registry.get("list.proyecto.descartes")) {
             model.getProyectoListContext().setDescartesListKey(claveSeleccionada);
         }
 
-        int indiceEnModeloUnificado = model.getProyectoListContext().getModeloLista().indexOf(claveSeleccionada);
-        controller.actualizarImagenPrincipal(indiceEnModeloUnificado);
+        // NOTA: El índice que recibimos es el índice en la JList activa.
+        // Como en Modo Proyecto el MasterList del VisorModel coincide siempre con la JList activa,
+        // pasamos el índice directamente.
+        controller.actualizarImagenPrincipal(indice);
 
         if (projectController != null) {
             projectController.sincronizarSeleccionEnTablaExportacion();
@@ -420,6 +425,7 @@ public class ProjectListCoordinator extends AbstractListCoordinator  {
         fireMasterSelectionChanged(indice, lista.getName());
         forzarActualizacionEstadoAcciones();
     } // --- Fin del método aplicarClaveAlVisor ---
+
     
 
     
