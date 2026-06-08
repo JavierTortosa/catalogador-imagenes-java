@@ -145,7 +145,13 @@ public class SearchSortService {
         filterManager.setLiveFilterActive(false);
 
         FilterSource source = filterManager.getFiltroActivoSource();
-        filterManager.addFilter(new FilterCriterion(text, source, FilterCriterion.FilterType.CONTAINS));
+        String[] terms = text.split(",");
+        for (String term : terms) {
+            String trimmed = term.trim();
+            if (!trimmed.isEmpty()) {
+                filterManager.addFilter(new FilterCriterion(trimmed, source, FilterCriterion.FilterType.CONTAINS));
+            }
+        }
 
         filterManager.gestionarFiltroPersistente();
 

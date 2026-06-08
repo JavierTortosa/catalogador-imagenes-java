@@ -164,6 +164,22 @@ public class GeneralController
 
             searchSortService.configurePlaceholderText(searchField);
 
+            // --- HINT en statusbar al enfocar el campo de búsqueda ---
+            searchField.addFocusListener(new java.awt.event.FocusAdapter() {
+                @Override
+                public void focusGained(java.awt.event.FocusEvent e) {
+                    if (statusBarManager != null) {
+                        statusBarManager.mostrarMensaje("Buscar: usa ',' para filtrar por varios textos (ej: \"desktop, phone\")");
+                    }
+                }
+                @Override
+                public void focusLost(java.awt.event.FocusEvent e) {
+                    if (statusBarManager != null) {
+                        statusBarManager.mostrarMensaje("");
+                    }
+                }
+            });
+
             sincronizarEstadoControlesTornado();
 
             fileList.addListSelectionListener(e -> {
@@ -1288,11 +1304,23 @@ public class GeneralController
 
         // 3. Si el usuario pulsó "Aceptar" (el resultado no es null)...
         if (newCriterion != null) {
-            // ...y el valor no está vacío...
-            if (newCriterion.getValue() != null && !newCriterion.getValue().isBlank()) {
-                // ...lo añadimos al manager y refrescamos.
-                filterManager.addFilter(newCriterion);
-                filterManager.gestionarFiltroPersistente();
+            String valor = newCriterion.getValue();
+            if (valor != null && !valor.isBlank()) {
+                String[] terms = valor.split(",");
+                boolean added = false;
+                for (String term : terms) {
+                    String trimmed = term.trim();
+                    if (!trimmed.isEmpty()) {
+                        FilterCriterion c = new FilterCriterion(trimmed, newCriterion.getSource(), newCriterion.getType());
+                        c.setSourceType(newCriterion.getSourceType());
+                        c.setLogic(newCriterion.getLogic());
+                        filterManager.addFilter(c);
+                        added = true;
+                    }
+                }
+                if (added) {
+                    filterManager.gestionarFiltroPersistente();
+                }
             }
         }
     } // ---FIN de metodo solicitarAnadirFiltro---

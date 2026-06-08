@@ -51,7 +51,7 @@ public class FilterManager {
 	// --- Estado para FILTRO EN VIVO / TORNADO (Movido desde GeneralController) ---
 	private DefaultListModel<String> masterModelSinFinito; // Anteriormente 'masterModelSinFiltro' en GeneralController
 	private int indiceSeleccionadoAntesDeFiltrar = -1;
-	private FilterCriterion tornadoCriterion;
+	private final List<FilterCriterion> tornadoCriteria = new ArrayList<>();
 	private FilterSource filtroActivoSource = FilterSource.FILENAME;    
 	private javax.swing.SwingWorker<DefaultListModel<String>, Void> liveFilterWorker;
 	private InfobarStatusManager statusBarManager;
@@ -574,14 +574,22 @@ public class FilterManager {
                 }
 
                 // La lógica de negocio para determinar qué filtrar permanece igual
-                if (tornadoCriterion != null) {
-                    removeFilter(tornadoCriterion);
-                    tornadoCriterion = null;
+                // Eliminar criterios tornado anteriores
+                for (FilterCriterion tc : tornadoCriteria) {
+                    removeFilter(tc);
                 }
+                tornadoCriteria.clear();
 
                 if (!searchText.isBlank()) {
-                    tornadoCriterion = new FilterCriterion(searchText, FilterSource.FILENAME, FilterType.CONTAINS);
-                    addFilter(tornadoCriterion);
+                    String[] terms = searchText.split(",");
+                    for (String term : terms) {
+                        String trimmed = term.trim();
+                        if (!trimmed.isEmpty()) {
+                            FilterCriterion fc = new FilterCriterion(trimmed, FilterSource.FILENAME, FilterType.CONTAINS);
+                            tornadoCriteria.add(fc);
+                            addFilter(fc);
+                        }
+                    }
                 }
 
                 // La parte pesada: aplicar los filtros a la lista maestra de ~12,000 elementos
@@ -644,10 +652,10 @@ public class FilterManager {
         if (this.masterModelSinFinito == null) return;
         Objects.requireNonNull(visorController, "VisorController no ha sido inyectado en FilterManager");
 
-        if (this.tornadoCriterion != null) {
-            removeFilter(this.tornadoCriterion);
-            this.tornadoCriterion = null;
+        for (FilterCriterion tc : tornadoCriteria) {
+            removeFilter(tc);
         }
+        tornadoCriteria.clear();
 
         DefaultListModel<String> modeloEnUso = model.getModeloLista();
         modeloEnUso.clear();
