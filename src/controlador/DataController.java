@@ -473,8 +473,9 @@ public class DataController {
             panel.add(new javax.swing.JLabel("Escribe el nombre de la nueva etiqueta para asignar a las imágenes seleccionadas:"), java.awt.BorderLayout.NORTH);
             
             JPanel inputPanel = new JPanel(new java.awt.BorderLayout(5, 0));
-            javax.swing.JTextField txtTag = new javax.swing.JTextField();
+            TagIntelliSenseField txtTag = new TagIntelliSenseField();
             txtTag.setColumns(20);
+            txtTag.refreshTags(dataManager.getAllTags());
             JButton btnBrowseLocal = new JButton("...");
             btnBrowseLocal.setToolTipText("Buscar etiqueta existente en la biblioteca...");
             

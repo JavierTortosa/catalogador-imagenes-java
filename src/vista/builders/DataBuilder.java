@@ -323,7 +323,7 @@ public class DataBuilder {
         
         TagIntelliSenseField intelliSenseField = new TagIntelliSenseField();
         intelliSenseField.setColumns(15);
-        intelliSenseField.setToolTipText("Escribe la ruta de la etiqueta (ej. Juegos.Blood Bowl)...");
+        intelliSenseField.setToolTipText("<html>Escribe . para explorar jerarquia, o pon el nombre directamente.<br>Tab = autocompletar &middot; Enter = confirmar</html>");
         registry.register("textfield.datamode.tag.intellisense", intelliSenseField);
         assignmentPanel.add(intelliSenseField);
         

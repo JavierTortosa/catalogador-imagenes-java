@@ -25,6 +25,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
 import controlador.managers.filter.FilterCriterion;
+import modelo.datos.Tag;
+import vista.components.TagIntelliSenseField;
 
 /**
  * Diálogo modal para crear o editar un FilterCriterion.
@@ -34,7 +36,10 @@ public class FilterDialog extends JDialog {
 
     // Componentes de la UI
     private javax.swing.JToggleButton btnTypeTexto, btnTypeCarpeta, btnTypeTag;
+    private JPanel txtValorPanel;
     private JTextField txtValor;
+    private TagIntelliSenseField tagField;
+    private javax.swing.JCheckBox chkRutaCompleta;
     private JButton btnBrowse;
     private JRadioButton rbLogicAdd, rbLogicNot;
     
@@ -83,9 +88,14 @@ public class FilterDialog extends JDialog {
         gbc.gridwidth = 1;
         mainPanel.add(new JLabel("Valor:"), gbc);
 
+        txtValorPanel = new JPanel(new java.awt.BorderLayout());
         txtValor = new JTextField(30);
+        tagField = new TagIntelliSenseField();
+        tagField.setColumns(30);
+        // Inicialmente mostrar el JTextField plano (modo TEXTO)
+        txtValorPanel.add(txtValor, java.awt.BorderLayout.CENTER);
         gbc.gridx = 1;
-        mainPanel.add(txtValor, gbc);
+        mainPanel.add(txtValorPanel, gbc);
         
         btnBrowse = new JButton("...");
         btnBrowse.setVisible(false); // Inicialmente oculto
@@ -112,6 +122,13 @@ public class FilterDialog extends JDialog {
         gbc.gridwidth = 2;
         mainPanel.add(logicPanel, gbc);
 
+        // --- Fila 4: Checkbox de ruta completa (solo visible en modo etiqueta) ---
+        chkRutaCompleta = new javax.swing.JCheckBox("Incluir ruta completa (todos los ancestros)", false);
+        chkRutaCompleta.setToolTipText("Añade un filtro por cada tag de la ruta, no solo el último.");
+        chkRutaCompleta.setVisible(false);
+        gbc.gridy = 3;
+        mainPanel.add(chkRutaCompleta, gbc);
+
         // --- Panel de Botones (Aceptar/Cancelar) ---
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton btnAceptar = new JButton("Aceptar");
@@ -126,8 +143,21 @@ public class FilterDialog extends JDialog {
 
         // --- LÓGICA DE EVENTOS ---
 
-        // Mostrar/ocultar el botón "..." si se selecciona tipo Carpeta o Etiqueta
-        ActionListener typeListener = e -> btnBrowse.setVisible(btnTypeCarpeta.isSelected() || btnTypeTag.isSelected());
+        // Mostrar/ocultar el botón "..." si se selecciona tipo Carpeta o Etiqueta,
+        // y cambiar el campo de valor segun el tipo
+        ActionListener typeListener = e -> {
+            btnBrowse.setVisible(btnTypeCarpeta.isSelected() || btnTypeTag.isSelected());
+            txtValorPanel.removeAll();
+            if (btnTypeTag.isSelected()) {
+                tagField.refreshTags(new servicios.db.TagDAO().getAllTags());
+                txtValorPanel.add(tagField, java.awt.BorderLayout.CENTER);
+            } else {
+                txtValorPanel.add(txtValor, java.awt.BorderLayout.CENTER);
+            }
+            txtValorPanel.revalidate();
+            txtValorPanel.repaint();
+            chkRutaCompleta.setVisible(btnTypeTag.isSelected());
+        };
         btnTypeTexto.addActionListener(typeListener);
         btnTypeCarpeta.addActionListener(typeListener);
         btnTypeTag.addActionListener(typeListener);
@@ -146,14 +176,14 @@ public class FilterDialog extends JDialog {
                 TagSelectionDialog dialog = new TagSelectionDialog(this, iconUtils);
                 String selectedTag = dialog.showDialog();
                 if (selectedTag != null) {
-                    txtValor.setText(selectedTag);
+                    tagField.setText("." + selectedTag);
                 }
             }
         });
 
         // Acción del botón Aceptar
         btnAceptar.addActionListener(e -> {
-            String valor = txtValor.getText();
+            String valor = btnTypeTag.isSelected() ? tagField.getText() : txtValor.getText();
 
             // --- INICIO DE LA VALIDACIÓN ---
 
@@ -168,18 +198,33 @@ public class FilterDialog extends JDialog {
                 return; // Detiene la ejecución y NO cierra el diálogo.
             }
 
-            // Regla 1.5: Si el tipo es "Etiqueta", el valor debe existir en la base de datos.
+            // Regla 1.5: Si el tipo es "Etiqueta", el valor debe ser un tag valido.
             if (btnTypeTag.isSelected()) {
-                servicios.db.TagDAO tagDAO = new servicios.db.TagDAO();
-                String normalizado = valor.trim().toLowerCase();
-                if (tagDAO.findTagByName(normalizado).isEmpty()) {
+                // Resolver la ruta a un tag final
+                Tag resolved = tagField.resolveCurrentTag();
+                if (resolved == null) {
                     javax.swing.JOptionPane.showMessageDialog(
                         this,
-                        "La etiqueta '" + valor + "' no existe en la base de datos.\nUtiliza el botón '...' para seleccionar una existente.",
+                        "La ruta de etiqueta '" + valor + "' no es válida.\nUsa el autocompletado con '.' para navegar o selecciona con '...'.",
                         "Etiqueta Inexistente",
                         javax.swing.JOptionPane.WARNING_MESSAGE
                     );
-                    return; // Detiene la ejecución y NO cierra el diálogo.
+                    return;
+                }
+                if (chkRutaCompleta.isSelected()) {
+                    // Incluir toda la ruta: "trofeos,blood bowl"
+                    String raw = tagField.getText().trim();
+                    if (raw.startsWith(".")) raw = raw.substring(1);
+                    String[] segments = raw.split("\\.");
+                    java.util.ArrayList<String> names = new java.util.ArrayList<>();
+                    for (String seg : segments) {
+                        String s = seg.trim();
+                        if (!s.isEmpty()) names.add(s);
+                    }
+                    valor = String.join(",", names);
+                } else {
+                    // Solo el tag final
+                    valor = resolved.getNombre();
                 }
             }
 

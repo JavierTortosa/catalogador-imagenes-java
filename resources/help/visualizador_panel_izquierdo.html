@@ -71,8 +71,8 @@
     </p>
     <table class="controls-table">
         <tr>
-            <td class="icon-cell"><img src="ICON_PLACEHOLDER_40007-filter_file_48x48.png"> / <img src="ICON_PLACEHOLDER_40008-filter_folder_48x48.png"></td>
-            <td><strong>Fuente del Filtro:</strong> Elige si el texto que escribas se buscará en el <strong>nombre del archivo</strong> o en la <strong>ruta de la carpeta</strong>.</td>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_40007-filter_file_48x48.png"> / <img src="ICON_PLACEHOLDER_40008-filter_folder_48x48.png"> / <img src="ICON_PLACEHOLDER_40009-filter_tag_48x48.png"></td>
+            <td><strong>Fuente del Filtro:</strong> Elige si el texto se buscará en el <strong>nombre del archivo</strong>, en la <strong>ruta de la carpeta</strong> o en las <strong>etiquetas (tags)</strong> de la base de datos.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_40002-filter_positive_48x48.png"> / <img src="ICON_PLACEHOLDER_40003-filter_negative_48x48.png"></td>
@@ -87,6 +87,28 @@
             <td><strong>Limpiar Todos:</strong> Elimina todas las reglas de filtro activas y vuelve a mostrar la lista completa de archivos.</td>
         </tr>
     </table>
+
+    <h3>Navegación Jerárquica de Etiquetas con "."</h3>
+    <p>
+        Cuando añades un filtro de tipo <strong>"Etiqueta"</strong> o trabajas con el campo de asignación de etiquetas en el <strong>Modo Datos</strong>, puedes usar el <strong>punto (.)</strong> para navegar por la jerarquía de etiquetas de forma rápida:
+    </p>
+    <ul>
+        <li><strong>"."</strong> &mdash; Muestra todas las etiquetas raíz (padres).</li>
+        <li><strong>".texto"</strong> &mdash; Muestra todas las etiquetas que <strong>empiecen por</strong> "texto", estén donde estén en la jerarquía.</li>
+        <li><strong>".padre."</strong> &mdash; Muestra todos los <strong>hijos directos</strong> de "padre".</li>
+        <li><strong>".padre.pre"</strong> &mdash; Muestra los hijos de "padre" que empiecen por "pre".</li>
+        <li><strong>"texto"</strong> (sin punto) &mdash; Búsqueda plana: muestra todas las etiquetas que empiecen por "texto".</li>
+    </ul>
+    <p>
+        <strong>Teclas:</strong>
+        <kbd>Tab</kbd> = seleccionar la etiqueta resaltada y cerrar el panel.
+        <kbd>.</kbd> = seleccionar la etiqueta y <strong>bajar un nivel</strong> (abre automáticamente el "." final).
+        <kbd>↑</kbd> <kbd>↓</kbd> = navegar por la lista de sugerencias.
+        <kbd>Enter</kbd> = confirmar el contenido del campo (no selecciona del panel).
+    </p>
+    <p>
+        <strong>Checkbox "Incluir ruta completa":</strong> Al añadir un filtro de etiqueta, activa esta opción para que se cree <strong>un filtro por cada ancestro</strong> de la ruta. Por ejemplo, <code>".trofeos.blood bowl"</code> generará dos filtros: "trofeos" y "blood bowl". Si está desactivado, solo se filtra por la etiqueta final ("blood bowl").
+    </p>
 
     <div style="background-color: #f0f7ff; border-left: 5px solid #0078d7; padding: 10px; margin-top: 15px;">
         <strong>Consejo Pro:</strong> Puedes añadir filtros de carpeta rápidamente haciendo clic derecho sobre la ruta de la imagen o de la carpeta en las barras de información del visor.
