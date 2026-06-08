@@ -16,6 +16,8 @@
     <p>
         Muestra una lista con los nombres de archivo de las imágenes en la carpeta actual. La barra de herramientas superior te permite navegar y filtrar esta lista.
     </p>
+
+    <h3>Barra de Herramientas</h3>
     <table class="controls-table">
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_30001-carpeta_raiz.png"></td>
@@ -35,13 +37,24 @@
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_40001-filter_48x48.png"></td>
-            <td><strong>Filtro "Tornado" (Filtro en Vivo):</strong> Cuando está activo, el campo de texto filtra la lista de archivos en tiempo real mientras escribes. Es una forma muy rápida de encontrar algo. Si está desactivado, el campo de texto sirve para buscar la siguiente coincidencia al pulsar Enter.</td>
+            <td><strong>Filtro "Tornado" (Filtro en Vivo):</strong> Cuando está activo, el campo de texto filtra la lista de archivos en tiempo real mientras escribes. Si está desactivado, el campo de texto sirve para buscar la siguiente coincidencia al pulsar Enter.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_40011-cambio_de_filtro_48x48.png"></td>
-            <td><strong>Hacer Filtro Persistente:</strong> Toma el texto del filtro "Tornado" y lo añade como un filtro permanente en la pestaña "Filtros". Útil cuando un filtro rápido te resulta muy útil y quieres guardarlo.</td>
+            <td><strong>Hacer Filtro Persistente (+):</strong> Toma el texto del filtro y lo añade como filtro permanente en la pestaña "Filtros". Si hay varios términos separados por coma, se crea una regla por cada uno.</td>
         </tr>
     </table>
+	
+	<h3>Campo de Búsqueda / Filtro Rápido</h3>
+	    <p>
+	        El campo de texto con el placeholder <em>"Texto a buscar..."</em> te permite localizar imágenes de forma rápida. Su comportamiento cambia según el estado del botón "Tornado":
+	    </p>
+	    <ul>
+	        <li><strong>Con Tornado APAGADO</strong> &mdash; Pulsa <kbd>Enter</kbd> para buscar la siguiente imagen que contenga el texto escrito, a partir de la selección actual. Cada vez que pulses <kbd>Enter</kbd> saltará a la siguiente coincidencia.</li>
+	        <li><strong>Con Tornado ENCENDIDO</strong> &mdash; La lista se filtra en vivo mientras escribes, mostrando solo las imágenes cuyo nombre contenga el texto. El filtro se aplica con una pequeña demora (300 ms) para no relentizar la interfaz.</li>
+	        <li><strong>Búsqueda múltiple:</strong> Usa una <strong>coma ( , )</strong> para separar varios términos. Por ejemplo, <code>"desktop, phone"</code> mostrará las imágenes que contengan <em>ambas</em> palabras.</li>
+	        <li><strong>Persistir filtro:</strong> El botón <strong>"+"</strong> (Hacer Filtro Persistente) toma el texto del campo y lo añade como una o varias reglas de filtro permanente en la pestaña <strong>"Filtros"</strong>. Si escribiste varios términos separados por coma, se creará una regla por cada uno.</li>
+	    </ul>
 
     <h2>Pestaña Carpetas</h2>
     <p>
