@@ -179,6 +179,7 @@ public class VisorController implements IModoController, ThemeChangeListener {
     void cargarEstadoInicialInternal() {
         logger.debug("  [Load Initial State Internal] Cargando estado inicial...");
 
+        
         // --- SECCIÓN 1: LÓGICA DE RECUPERACIÓN DE PROYECTO ---
         String ultimoProyecto = configuration.getString(ConfigKeys.PROYECTOS_ULTIMO_PROYECTO_ABIERTO, "");
         boolean debeCargarProyecto = false;

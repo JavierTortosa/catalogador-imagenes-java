@@ -40,8 +40,6 @@ public class VisorV2 {
             logger.debug("VisorController instanciado. La inicialización de la UI ha sido programada en el EDT.");
         });
 
-        
-        
     }
 
     // GENERAL
