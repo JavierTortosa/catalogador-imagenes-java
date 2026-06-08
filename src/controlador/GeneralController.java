@@ -164,12 +164,19 @@ public class GeneralController
 
             searchSortService.configurePlaceholderText(searchField);
 
+            // Tooltip informativo del campo de búsqueda
+            searchField.setToolTipText("<html><b>Busqueda rapida (Tornado):</b><br>"
+                    + "• Con filtro tornado <b>APAGADO</b>: pulsa Enter para buscar la cadena desde la seleccion actual<br>"
+                    + "• Con filtro tornado <b>ENCENDIDO</b>: filtra en vivo los nombres que contienen el texto<br>"
+                    + "• El boton <b>'+'</b> (a la derecha) convierte el texto en filtros permanentes<br>"
+                    + "• Usa <b>','</b> para filtrar por varios textos a la vez (ej: \"desktop, phone\")</html>");
+
             // --- HINT en statusbar al enfocar el campo de búsqueda ---
             searchField.addFocusListener(new java.awt.event.FocusAdapter() {
                 @Override
                 public void focusGained(java.awt.event.FocusEvent e) {
                     if (statusBarManager != null) {
-                        statusBarManager.mostrarAyuda("usa ',' para filtrar por varios textos (ej: \"desktop, phone\")");
+                        statusBarManager.mostrarAyuda("Enter: busca texto desde seleccion | Tornado ON: filtra en vivo | + : anade filtros permanentes");
                     }
                 }
                 @Override
