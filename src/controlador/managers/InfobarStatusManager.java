@@ -103,6 +103,19 @@ public class InfobarStatusManager implements ThemeChangeListener {
     }// --- Fin del método mostrarMensaje ---
 
     /**
+     * Muestra un mensaje de ayuda en la etiqueta central de la barra de estado.
+     * No interfiere con los mensajes de estado normales ni con la ruta.
+     * @param mensaje El texto de ayuda a mostrar (vacío o null para limpiar).
+     */
+    public void mostrarAyuda(String mensaje) {
+        if (registry == null) return;
+        JLabel ayudaLabel = registry.get("label.estado.ayuda");
+        if (ayudaLabel != null) {
+            ayudaLabel.setText((mensaje != null && !mensaje.isEmpty()) ? " " + mensaje + " " : " ");
+        }
+    } // --- Fin del método mostrarAyuda ---
+
+    /**
      * Muestra un mensaje en la etiqueta de estado durante un tiempo determinado
      * y luego lo borra automáticamente.
      *

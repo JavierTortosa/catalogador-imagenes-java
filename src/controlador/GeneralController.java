@@ -169,13 +169,13 @@ public class GeneralController
                 @Override
                 public void focusGained(java.awt.event.FocusEvent e) {
                     if (statusBarManager != null) {
-                        statusBarManager.mostrarMensaje("Buscar: usa ',' para filtrar por varios textos (ej: \"desktop, phone\")");
+                        statusBarManager.mostrarAyuda("usa ',' para filtrar por varios textos (ej: \"desktop, phone\")");
                     }
                 }
                 @Override
                 public void focusLost(java.awt.event.FocusEvent e) {
                     if (statusBarManager != null) {
-                        statusBarManager.mostrarMensaje("");
+                        statusBarManager.mostrarAyuda(null);
                     }
                 }
             });

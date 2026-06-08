@@ -718,12 +718,28 @@ public class ViewBuilder {
         carpetaRaizTextField.setForeground(UIManager.getColor("Label.foreground"));
         registry.register("textfield.estado.carpetaRaiz", carpetaRaizTextField);
 
-        // Contenedor para la etiqueta de ruta (para que ocupe el espacio central sobrante)
-        JPanel panelRuta = new JPanel(new BorderLayout());
+        // Contenedor para la etiqueta de ruta y ayuda
+        JPanel panelRuta = new JPanel(new GridBagLayout());
         panelRuta.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
         panelRuta.setOpaque(false);
-        panelRuta.add(carpetaRaizTextField, BorderLayout.CENTER);
         
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 0.6;
+        gbc.gridx = 0;
+        panelRuta.add(carpetaRaizTextField, gbc);
+
+        // Etiqueta de ayuda para el usuario (hints, sugerencias)
+        JLabel ayudaLabel = new JLabel(" ");
+        ayudaLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        ayudaLabel.setFont(ayudaLabel.getFont().deriveFont(java.awt.Font.ITALIC));
+        ayudaLabel.setForeground(UIManager.getColor("Label.disabledForeground"));
+        registry.register("label.estado.ayuda", ayudaLabel);
+
+        gbc.weightx = 0.4;
+        gbc.gridx = 1;
+        panelRuta.add(ayudaLabel, gbc);
+
         bottomStatusBar.add(panelRuta, BorderLayout.CENTER);
 
         // 3. Componente Derecho: Un contenedor que a su vez tendrá los controles y los
