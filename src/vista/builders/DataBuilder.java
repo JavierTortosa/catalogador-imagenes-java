@@ -5,6 +5,7 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -206,12 +207,14 @@ public class DataBuilder {
                     label.setText(tag.getNombre() + " (" + avail + "/" + total + ")");
                     if (!isSelected) {
                         if (tag.isReadOnly()) {
-                            if (avail == 0 && total > 0) label.setForeground(Color.GRAY);
-                        } else {
+                            label.setFont(label.getFont().deriveFont(Font.PLAIN));
                             Color accent = UIManager.getColor("Component.accentColor");
                             if (accent == null) accent = new Color(50, 150, 255);
                             if (avail == 0 && total > 0) accent = accent.darker();
                             label.setForeground(accent);
+                        } else {
+                            label.setFont(label.getFont().deriveFont(Font.ITALIC));
+                            label.setForeground(UIManager.getColor("Label.foreground"));
                         }
                     }
                 }

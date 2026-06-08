@@ -484,6 +484,8 @@ public class ConfigurationManager
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE, "10");
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_PANTALLA_COMPLETA, "false");
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_ZOOM_AL_CURSOR_ACTIVADO, "true");
+	    defaults.put(ConfigKeys.INDEXACION_EXCLUIR_CARPETAS, "ARCHIVOS 3D");
+	    defaults.put(ConfigKeys.INDEXACION_OMITIR_DIRECTORIOS, "__MACOSX");
 
 //	    defaults.put(ConfigKeys.WINDOW_X, "-1");
 //	    defaults.put(ConfigKeys.WINDOW_Y, "-1");
@@ -639,6 +641,7 @@ public class ConfigurationManager
         
         comments.put("comportamiento.display", "# === Comportamiento de Visualización ===");
         comments.put("comportamiento.zoom", "# === Comportamiento del Zoom ===");
+        comments.put("comportamiento.indexacion", "# === Comportamiento de Indexación ===");
 
         // --- Subgrupos Nivel 2 (Dentro de interfaz.boton) ---
         comments.put("interfaz.boton.movimiento", "# === Botones de Movimiento ==="); // Nota: Uso "===" para diferenciar nivel

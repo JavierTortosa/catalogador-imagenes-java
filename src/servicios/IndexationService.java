@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,16 +30,42 @@ public class IndexationService {
     private final TagDAO tagDAO;
     private final DiscoDAO discoDAO;
     private final VolumeService volumeService;
+    private final ConfigurationManager configManager;
+    private final Set<String> excludedFolders;
 
     /**
      * Constructor que inicializa los DAO necesarios para la operación.
      */
     public IndexationService() {
+        this(ConfigurationManager.getInstance());
+    }
+
+    /**
+     * Constructor que acepta un ConfigurationManager explícito.
+     */
+    public IndexationService(ConfigurationManager configManager) {
         this.imagenDAO = new ImagenDAO();
         this.tagDAO = new TagDAO();
         this.discoDAO = new DiscoDAO();
         this.volumeService = new VolumeService();
+        this.configManager = configManager;
+        this.excludedFolders = parseExcludedFolders();
     } // ---FIN de constructor [IndexationService]---
+
+    private Set<String> parseExcludedFolders() {
+        String raw = configManager.getString(ConfigKeys.INDEXACION_EXCLUIR_CARPETAS, "ARCHIVOS 3D");
+        if (raw == null || raw.isBlank()) {
+            return java.util.Collections.emptySet();
+        }
+        Set<String> folders = new HashSet<>();
+        for (String part : raw.split(",")) {
+            String trimmed = part.trim();
+            if (!trimmed.isEmpty()) {
+                folders.add(trimmed.toLowerCase());
+            }
+        }
+        return folders;
+    }
 
     /**
      * Procesa e indexa una única imagen.
@@ -129,13 +157,13 @@ public class IndexationService {
                 for (int i = 0; i < parentPath.getNameCount(); i++) {
                     String tagName = parentPath.getName(i).toString().trim();
 
-                    // Omitir la carpeta principal que no aporta información selectiva
-                    if ("ARCHIVOS 3D".equalsIgnoreCase(tagName)) {
+                    // Omitir carpetas configuradas como excluidas (ej. "ARCHIVOS 3D")
+                    if (excludedFolders.contains(tagName.toLowerCase())) {
                         continue;
                     }
 
-                    // Añadimos el tag a la BD, especificando su padre
-                    Optional<Tag> tagOpt = tagDAO.addTag(tagName, currentParentId);
+                    // Añadimos el tag a la BD como readOnly=1 (tag de sistema), especificando su padre
+                    Optional<Tag> tagOpt = tagDAO.addTag(tagName, currentParentId, 1);
 
                     if (tagOpt.isPresent()) {
                         Tag tag = tagOpt.get();

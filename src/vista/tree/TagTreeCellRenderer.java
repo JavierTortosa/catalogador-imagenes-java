@@ -1,6 +1,7 @@
 package vista.tree;
 
 import java.awt.Component;
+import java.awt.Font;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.JTree;
@@ -63,15 +64,14 @@ public class TagTreeCellRenderer extends DefaultTreeCellRenderer {
             
             if (!sel) {
                 if (tag.isReadOnly()) {
-                    setForeground(getTextNonSelectionColor());
-                    if (available == 0 && total > 0) {
-                        setForeground(java.awt.Color.GRAY);
-                    }
-                } else {
+                    setFont(getFont().deriveFont(Font.PLAIN));
                     java.awt.Color accent = javax.swing.UIManager.getColor("Component.accentColor");
                     if (accent == null) accent = new java.awt.Color(50, 150, 255);
                     if (available == 0 && total > 0) accent = accent.darker();
                     setForeground(accent);
+                } else {
+                    setFont(getFont().deriveFont(Font.ITALIC));
+                    setForeground(javax.swing.UIManager.getColor("Label.foreground"));
                 }
             }
         } else if (value instanceof String && value.equals("Biblioteca")) {

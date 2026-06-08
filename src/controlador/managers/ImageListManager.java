@@ -5,8 +5,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
@@ -27,6 +29,8 @@ import controlador.worker.BuscadorArchivosWorker;
 import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
 import modelo.datos.ImagenInfo;
+import servicios.ConfigurationManager;
+import servicios.ConfigKeys;
 import servicios.db.ImagenDAO;
 import servicios.db.TagDAO;
 import servicios.image.ThumbnailService;
@@ -37,6 +41,27 @@ import vista.dialogos.TaskProgressDialog;
 public class ImageListManager {
 
     private static final Logger logger = LoggerFactory.getLogger(ImageListManager.class);
+    private static final Set<String> DIRECTORIOS_OMITIR = inicializarDirectoriosOmitir();
+
+    private static Set<String> inicializarDirectoriosOmitir() {
+        Set<String> dirs = new HashSet<>();
+        String raw = ConfigurationManager.getInstance().getString(ConfigKeys.INDEXACION_OMITIR_DIRECTORIOS, "__MACOSX");
+        if (raw != null && !raw.isBlank()) {
+            for (String part : raw.split(",")) {
+                dirs.add(part.trim().toLowerCase());
+            }
+        }
+        return dirs;
+    }
+
+    private static boolean perteneceADirectorioOmitido(Path path) {
+        for (int i = 0; i < path.getNameCount(); i++) {
+            if (DIRECTORIOS_OMITIR.contains(path.getName(i).toString().toLowerCase())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     // --- Dependencias ---
     private FilterManager filterManager;
@@ -353,10 +378,15 @@ public class ImageListManager {
          if (nombreArchivoPath == null) {
              return false;
          }
-         String nombreArchivo = nombreArchivoPath.toString();
+          String nombreArchivo = nombreArchivoPath.toString();
+
+         // Omitir archivos dentro de directorios problemáticos (ej. __MACOSX)
+         if (perteneceADirectorioOmitido(path)) {
+              return false;
+         }
 
          try {
-              if (!Files.isRegularFile(path) || Files.isHidden(path)) {
+               if (!Files.isRegularFile(path) || Files.isHidden(path)) {
                    return false;
               }
          } catch (IOException e) {

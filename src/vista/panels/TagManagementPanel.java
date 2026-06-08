@@ -3,6 +3,7 @@ package vista.panels;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -124,6 +125,17 @@ public class TagManagementPanel extends JPanel {
             }
 
             JLabel nameLabel = new JLabel(value.getNombre());
+            if (!isSelected) {
+                if (value.isReadOnly()) {
+                    nameLabel.setFont(nameLabel.getFont().deriveFont(Font.PLAIN));
+                    Color accent = javax.swing.UIManager.getColor("Component.accentColor");
+                    if (accent == null) accent = new Color(50, 150, 255);
+                    nameLabel.setForeground(accent);
+                } else {
+                    nameLabel.setFont(nameLabel.getFont().deriveFont(Font.ITALIC));
+                    nameLabel.setForeground(javax.swing.UIManager.getColor("Label.foreground"));
+                }
+            }
             tagPanel.add(nameLabel, BorderLayout.CENTER);
 
             // Botón de borrado rápido (opcional, ya que tenemos el botón en la toolbar)

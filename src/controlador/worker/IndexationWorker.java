@@ -5,6 +5,7 @@ import java.util.List;
 import javax.swing.SwingWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import servicios.ConfigurationManager;
 import servicios.IndexationService;
 import vista.dialogos.TaskProgressDialog;
 
@@ -25,7 +26,7 @@ public class IndexationWorker extends SwingWorker<Void, Integer> {
         this.filesToIndex = filesToIndex;
         this.rootPath = rootPath;
         this.progressDialog = progressDialog;
-        this.indexationService = new IndexationService(); // Instancia el servicio de lógica
+        this.indexationService = new IndexationService(ConfigurationManager.getInstance());
     } // ---FIN de constructor [IndexationWorker]---
 
     @Override
