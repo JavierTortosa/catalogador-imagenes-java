@@ -5,6 +5,7 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -85,62 +87,76 @@ public class DataBuilder {
 
     /**
      * Construye y ensambla el panel principal para el Modo Datos.
+     * Layout de 3 columnas: [TAGS/RAMAS] | [IMÁGENES + UNIDADES] | [VISOR + ASIGNACIÓN]
      * @return El JPanel completamente configurado para ser añadido al CardLayout principal.
      */
     public JPanel buildDataModePanel() {
         JPanel dataModePanel = new JPanel(new BorderLayout());
         
-        // --- 1. Panel Izquierdo (CON JTREE, BARRA Y BOTONES CRUD) ---
+        // ═══════════════════════════════════════════════════════════════
+        // 1. COLUMNA IZQUIERDA - TAGS/RAMAS
+        // ═══════════════════════════════════════════════════════════════
         JPanel leftPanel = new JPanel(new BorderLayout());
         TitledBorder allTagsBorder = BorderFactory.createTitledBorder("Biblioteca de Etiquetas");
         leftPanel.setBorder(allTagsBorder);
         
+        // --- Toolbar izquierda: vista, orden, filtro, mantenimiento, CRUD, IntelliSense ---
         JToolBar tagToolbar = new JToolBar();
         tagToolbar.setFloatable(false);
         
-        // Botones vista (lista/árbol)
+        // Vista lista
         JButton btnVistaLista = new JButton(iconUtils.getScaledIcon("30100-Vector.png", 24, 24));
         btnVistaLista.setToolTipText("Vista por lista");
         btnVistaLista.addActionListener(actionMap.get(AppActionCommands.CMD_DATOS_TAGS_VISTA_LISTA));
+        tagToolbar.add(btnVistaLista);
         
+        // Vista árbol
         JButton btnVistaArbol = new JButton(iconUtils.getScaledIcon("30101-Hierarchy.png", 24, 24));
         btnVistaArbol.setToolTipText("Vista por árbol");
         btnVistaArbol.addActionListener(actionMap.get(AppActionCommands.CMD_DATOS_TAGS_VISTA_ARBOL));
-        
-        tagToolbar.add(btnVistaLista);
         tagToolbar.add(btnVistaArbol);
         tagToolbar.addSeparator();
         
-        // Botón orden
+        // Orden
         tagToolbar.add(new JButton(actionMap.get(AppActionCommands.CMD_DATOS_TAGS_ORDENAR)));
         tagToolbar.addSeparator();
         
-        // Textbox filtro
-        JTextField filterField = new JTextField(10);
-        filterField.setToolTipText("Filtrar etiquetas...");
-        tagToolbar.add(filterField);
-        registry.register("textfield.datamode.tags.filter", filterField);
-        tagToolbar.addSeparator();
-        
-        // Botón Mantenimiento BD
-        JButton btnMantenimiento = new JButton(iconUtils.getScaledIcon("7005-settings_48x48.png", 24, 24)); // Usamos un icono genérico por ahora
+        // Mantenimiento BD
+        JButton btnMantenimiento = new JButton(iconUtils.getScaledIcon("7005-settings_48x48.png", 24, 24));
         if (btnMantenimiento.getIcon() == null) btnMantenimiento.setText("Mantenimiento");
         btnMantenimiento.setToolTipText("Mantenimiento de Base de Datos");
         if (actionMap != null && actionMap.containsKey(AppActionCommands.CMD_DATOS_MANTENIMIENTO_BD)) {
             btnMantenimiento.addActionListener(actionMap.get(AppActionCommands.CMD_DATOS_MANTENIMIENTO_BD));
         } else {
-            // Fallback si no está en el actionMap
             btnMantenimiento.setActionCommand(AppActionCommands.CMD_DATOS_MANTENIMIENTO_BD);
             registry.register("btn.datamode.mantenimiento", btnMantenimiento);
         }
         tagToolbar.add(btnMantenimiento);
         tagToolbar.addSeparator();
         
-        // --- Árbol ---
-        JTree allTagsTree = new JTree();
+        // --- Botones CRUD (movidos de la toolbar derecha) ---
+        JButton btnCreateTag = new JButton(iconUtils.getScaledIcon("30102-Add-Square.png", 24, 24));
+        btnCreateTag.setToolTipText("Crear nueva etiqueta (x.y.z)");
+        registry.register("btn.datamode.tag.create", btnCreateTag);
+        tagToolbar.add(btnCreateTag);
+        
+        JButton btnEditTag = new JButton(iconUtils.getScaledIcon("30104-Pencil-Square.png", 24, 24));
+        btnEditTag.setToolTipText("Modificar etiqueta seleccionada");
+        registry.register("btn.datamode.tag.edit", btnEditTag);
+        tagToolbar.add(btnEditTag);
+        
+        JButton btnDeleteTag = new JButton(iconUtils.getScaledIcon("30103-Subtract-Square.png", 24, 24));
+        btnDeleteTag.setToolTipText("Borrar etiqueta seleccionada");
+        registry.register("btn.datamode.tag.delete", btnDeleteTag);
+        tagToolbar.add(btnDeleteTag);
+        
+        tagToolbar.addSeparator();
+        
+        // --- Árbol de tags (modelo vacío; se puebla en DataController.initializeTagTree) ---
+        JTree allTagsTree = new JTree(new javax.swing.tree.DefaultTreeModel(
+            new javax.swing.tree.DefaultMutableTreeNode("Cargando...")));
         allTagsTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         
-        // --- Menú Contextual para el Árbol ---
         PopupMenuBuilder popupBuilder = new PopupMenuBuilder(themeManager, configManager);
         List<MenuItemDefinition> treeMenuDefs = new ArrayList<>();
         treeMenuDefs.add(new MenuItemDefinition(AppActionCommands.CMD_DATOS_TAG_NUEVO, MenuItemType.ITEM, "Nuevo "));
@@ -170,7 +186,6 @@ public class DataBuilder {
                             if (node.getUserObject() instanceof modelo.datos.Tag) {
                                 modelo.datos.Tag tag = (modelo.datos.Tag) node.getUserObject();
                                 boolean isReadOnly = tag.isReadOnly();
-                                
                                 for (java.awt.Component comp : treePopup.getComponents()) {
                                     if (comp instanceof javax.swing.JMenuItem) {
                                         javax.swing.JMenuItem item = (javax.swing.JMenuItem) comp;
@@ -222,18 +237,16 @@ public class DataBuilder {
                 return label;
             }
         });
-        // Registramos la lista plana para que DataController pueda usarla y poblarla
         registry.register("list.datamode.alltags.flat", flatTagList);
         
         JScrollPane flatListScrollPane = new JScrollPane(flatTagList);
         
-        // Contenedor con CardLayout para alternar entre árbol y lista
+        // CardLayout para alternar entre árbol y lista
         JPanel treeListContainer = new JPanel(new CardLayout());
         treeListContainer.add(allTagsScrollPane, "TREE");
         treeListContainer.add(flatListScrollPane, "LIST");
         registry.register("panel.datamode.treelist.container", treeListContainer);
         
-        // Toggle de vista botones
         btnVistaLista.addActionListener(e -> {
             CardLayout cl = (CardLayout) treeListContainer.getLayout();
             cl.show(treeListContainer, "LIST");
@@ -245,25 +258,87 @@ public class DataBuilder {
             if (dataController != null) dataController.onTagViewSwitched(true);
         });
         
-        // Contenedor del árbol/botones
+        // IntelliSense unificado: se coloca debajo del toolbar, centrado al ancho de los botones
+        TagIntelliSenseField unifiedIntelliSense = new TagIntelliSenseField();
+        unifiedIntelliSense.setToolTipText("<html><b>Filtro + comando de etiquetas</b><br>" +
+            "• Escribe texto para filtrar la lista de etiquetas<br>" +
+            "• Escribe <b>.</b> para explorar/navegar la jerarquía<br>" +
+            "• Si el texto coincide con un tag: pulsa [E] o [-] para editar/borrar<br>" +
+            "• Si el texto NO coincide: pulsa [+] para crear una nueva etiqueta<br>" +
+            "• Tab = autocompletar &middot; Enter = confirmar</html>");
+        registry.register("textfield.datamode.tag.intellisense.create", unifiedIntelliSense);
+
+        // Header vertical: toolbar + IntelliSense centrado
+        JPanel leftHeader = new JPanel();
+        leftHeader.setLayout(new BoxLayout(leftHeader, BoxLayout.Y_AXIS));
+        leftHeader.add(tagToolbar);
+
+        int toolbarWidth = Math.max(tagToolbar.getPreferredSize().width, 200);
+        unifiedIntelliSense.setPreferredSize(new Dimension(toolbarWidth, unifiedIntelliSense.getPreferredSize().height));
+        unifiedIntelliSense.setMinimumSize(new Dimension(Math.min(toolbarWidth, 200), 20));
+        JPanel intelliSenseRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 2));
+        intelliSenseRow.add(unifiedIntelliSense);
+        leftHeader.add(intelliSenseRow);
+
+        // Árbol + header
         JPanel treeWithButtonsPanel = new JPanel(new BorderLayout());
-        treeWithButtonsPanel.add(tagToolbar, BorderLayout.NORTH);
+        treeWithButtonsPanel.add(leftHeader, BorderLayout.NORTH);
         treeWithButtonsPanel.add(treeListContainer, BorderLayout.CENTER);
+
+        // Anclar el ancho de la columna izquierda al ancho del toolbar
+        leftPanel.setPreferredSize(new Dimension(toolbarWidth + 10, 400));
+        leftPanel.add(treeWithButtonsPanel, BorderLayout.CENTER);
         
-        // --- 1.2. Panel de Discos ---
+        // ═══════════════════════════════════════════════════════════════
+        // 2. COLUMNA CENTRAL - IMÁGENES + UNIDADES
+        // ═══════════════════════════════════════════════════════════════
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        
+        // --- Barra Tornado ---
+        JToolBar tornadobar = new JToolBar();
+        tornadobar.setFloatable(false);
+        
+        JTextField tornadoField = new JTextField(20);
+        tornadoField.setToolTipText("<html><b>Búsqueda rápida (Tornado):</b><br>" +
+            "• Con filtro tornado <b>APAGADO</b>: pulsa Enter para buscar la cadena desde la selección actual<br>" +
+            "• Con filtro tornado <b>ENCENDIDO</b>: filtra en vivo los nombres que contienen el texto</html>");
+        registry.register("textfield.datamode.tornado", tornadoField);
+        tornadobar.add(tornadoField);
+        
+        JToggleButton btnTornado = new JToggleButton(iconUtils.getScaledIcon("40001-filter_48x48.png", 24, 24));
+        btnTornado.setToolTipText("Activar/desactivar filtro en vivo");
+        btnTornado.setSelected(false);
+        registry.register("toggle.datamode.tornado", btnTornado);
+        tornadobar.add(btnTornado);
+        
+        centerPanel.add(tornadobar, BorderLayout.NORTH);
+        
+        // --- Lista de nombres de imágenes ---
+        DefaultListModel<String> fileNameModel = new DefaultListModel<>();
+        JList<String> fileNameList = new JList<>(fileNameModel);
+        fileNameList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        JScrollPane fileNameScroll = new JScrollPane(fileNameList);
+        TitledBorder imgBorder = BorderFactory.createTitledBorder("Imágenes");
+        fileNameScroll.setBorder(imgBorder);
+        registry.register("list.datamode.filenames", fileNameList);
+        
+        // --- Unidades (movido de columna izquierda) ---
         DriveListPanel driveListPanel = new DriveListPanel();
         driveListPanel.setPreferredSize(new Dimension(100, 200));
         
-        JSplitPane leftSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, treeWithButtonsPanel, driveListPanel);
-        leftSplitPane.setResizeWeight(0.6);
-        leftSplitPane.setBorder(null);
+        JSplitPane centerSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, fileNameScroll, driveListPanel);
+        centerSplitPane.setResizeWeight(0.7);
+        centerSplitPane.setBorder(null);
         
-        leftPanel.add(leftSplitPane, BorderLayout.CENTER);
+        centerPanel.add(centerSplitPane, BorderLayout.CENTER);
         
-        // --- 2. Panel Derecho ---
-
+        // ═══════════════════════════════════════════════════════════════
+        // 3. COLUMNA DERECHA - VISOR + ASIGNACIÓN TAGS
+        // ═══════════════════════════════════════════════════════════════
+        JPanel rightPanel = new JPanel(new BorderLayout());
+        
         // --- Contenedor DisplayModes ---
-        JPanel displayModesContainer = new JPanel(new java.awt.CardLayout());
+        JPanel displayModesContainer = new JPanel(new CardLayout());
         registry.register("container.displaymodes.datos", displayModesContainer);
         
         // Visor Single
@@ -279,12 +354,8 @@ public class DataBuilder {
         registry.register("panel.datamode.display.polaroid.image", polaroidImagePanel);
         registry.register("label.datamode.polaroid.imagen", polaroidViewPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
 
-        // ¡LA SOLUCIÓN A LA COLISIÓN!
-        // Creamos un ComponentRegistry falso y temporal que se "tragará" los registros del constructor.
         ComponentRegistry fakeRegistry = new ComponentRegistry();
         ThumbnailPreviewer gridPreviewer = new ThumbnailPreviewer(null, model, themeManager, null, fakeRegistry);
-        
-        // Le pasamos el registry falso para que no contamine el nuestro.
         GridDisplayPanel gridDisplayPanel = new GridDisplayPanel(model, gridThumbnailService, themeManager, iconUtils, gridPreviewer, fakeRegistry);
         
         TitledBorder gridBorder = BorderFactory.createTitledBorder("Imágenes con la etiqueta seleccionada");
@@ -294,79 +365,80 @@ public class DataBuilder {
         displayModesContainer.add(gridDisplayPanel, "VISTA_GRID");
         displayModesContainer.add(polaroidViewPanel, "VISTA_POLAROID");
 
-        // --- TagManagementPanel con su propia estructura ---
+        // --- TagManagementPanel ---
         TagManagementPanel tagManagementPanel = new TagManagementPanel();
         tagManagementPanel.setPreferredSize(new Dimension(100, 150));
         
-        // Toolbar unificada de gestión de tags
-        JToolBar tagCRUDToolbar = new JToolBar();
-        tagCRUDToolbar.setFloatable(false);
+        // --- Toolbar de asignación (lado derecho, simplificada) ---
+        JToolBar assignToolbar = new JToolBar();
+        assignToolbar.setFloatable(false);
         
-        JButton btnCreateTag = new JButton(iconUtils.getScaledIcon("30102-Add-Square.png", 24, 24));
-        btnCreateTag.setToolTipText("Crear nueva etiqueta (x.y.z)");
-        registry.register("btn.datamode.tag.create", btnCreateTag);
-        tagCRUDToolbar.add(btnCreateTag);
+        // IntelliSense para asignar tags (mantiene clave antigua para compatibilidad)
+        TagIntelliSenseField assignIntelliSense = new TagIntelliSenseField();
+        assignIntelliSense.setColumns(15);
+        assignIntelliSense.setToolTipText("<html>Escribe . para explorar jerarquía, o pon el nombre directamente.<br>Tab = autocompletar &middot; Enter = confirmar</html>");
+        registry.register("textfield.datamode.tag.intellisense", assignIntelliSense);
+        assignToolbar.add(assignIntelliSense);
         
-        JButton btnEditTag = new JButton(iconUtils.getScaledIcon("30104-Pencil-Square.png", 24, 24));
-        btnEditTag.setToolTipText("Modificar etiqueta seleccionada");
-        registry.register("btn.datamode.tag.edit", btnEditTag);
-        tagCRUDToolbar.add(btnEditTag);
-        
-        JButton btnDeleteTag = new JButton(iconUtils.getScaledIcon("30103-Subtract-Square.png", 24, 24));
-        btnDeleteTag.setToolTipText("Borrar etiqueta seleccionada");
-        registry.register("btn.datamode.tag.delete", btnDeleteTag);
-        tagCRUDToolbar.add(btnDeleteTag);
-        
-        tagCRUDToolbar.addSeparator();
-        
-        TagIntelliSenseField intelliSenseField = new TagIntelliSenseField();
-        intelliSenseField.setColumns(15);
-        intelliSenseField.setToolTipText("<html>Escribe . para explorar jerarquia, o pon el nombre directamente.<br>Tab = autocompletar &middot; Enter = confirmar</html>");
-        registry.register("textfield.datamode.tag.intellisense", intelliSenseField);
-        tagCRUDToolbar.add(intelliSenseField);
-        
-        tagCRUDToolbar.addSeparator();
-        
-        JButton btnAssignTag = new JButton(iconUtils.getScaledIcon("30108-Text-Square.png", 24, 24));
-        btnAssignTag.setToolTipText("Asignar etiqueta a las imágenes seleccionadas");
+        // [+] = Asignar (crea y asigna)
+        JButton btnAssignTag = new JButton(iconUtils.getScaledIcon("30102-Add-Square.png", 24, 24));
+        btnAssignTag.setToolTipText("Crear y asignar etiqueta a las imágenes seleccionadas");
         btnAssignTag.setEnabled(false);
         registry.register("btn.datamode.tag.assign", btnAssignTag);
-        tagCRUDToolbar.add(btnAssignTag);
+        assignToolbar.add(btnAssignTag);
         
+        // [E] = Editar tag
+        JButton btnAssignEdit = new JButton(iconUtils.getScaledIcon("30104-Pencil-Square.png", 24, 24));
+        btnAssignEdit.setToolTipText("Modificar etiqueta seleccionada");
+        registry.register("btn.datamode.tag.edit.right", btnAssignEdit);
+        assignToolbar.add(btnAssignEdit);
+        
+        // [-] = Quitar tag asignado
         JButton btnRemoveAssignedTag = new JButton(iconUtils.getScaledIcon("30107-Delete-Square.png", 24, 24));
         btnRemoveAssignedTag.setToolTipText("Borrar etiqueta asignada de la imagen seleccionada");
         registry.register("btn.datamode.tag.removetag", btnRemoveAssignedTag);
-        tagCRUDToolbar.add(btnRemoveAssignedTag);
+        assignToolbar.add(btnRemoveAssignedTag);
         
+        // [V] = Herencia toggle
         JToggleButton btnHerencia = new JToggleButton(iconUtils.getScaledIcon("30106-Check-Square-2.png", 24, 24));
         btnHerencia.setSelectedIcon(iconUtils.getScaledIcon("30105-Layout-Square.png", 24, 24));
         btnHerencia.setToolTipText("Herencia jerárquica: asignar automáticamente tags padre al asignar un tag hijo");
         btnHerencia.setSelected(true);
         registry.register("toggle.datamode.tag.herencia", btnHerencia);
-        tagCRUDToolbar.add(btnHerencia);
+        assignToolbar.add(btnHerencia);
         
         JPanel tagMgmtPanelContainer = new JPanel(new BorderLayout());
-        
-        tagMgmtPanelContainer.add(tagCRUDToolbar, BorderLayout.NORTH);
+        tagMgmtPanelContainer.add(assignToolbar, BorderLayout.NORTH);
         tagMgmtPanelContainer.add(tagManagementPanel, BorderLayout.CENTER);
         
         JSplitPane rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, displayModesContainer, tagMgmtPanelContainer);
-        rightSplitPane.setResizeWeight(0.8);
+        rightSplitPane.setResizeWeight(0.7);
         rightSplitPane.setBorder(null);
-
-        JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightSplitPane);
-        mainSplitPane.setResizeWeight(0.2);
-        mainSplitPane.setBorder(null);
-
-        dataModePanel.add(mainSplitPane, BorderLayout.CENTER);
         
-        // --- 3. REGISTRO MANUAL Y CORRECTO ---
-        // Ahora nosotros registramos los componentes con las claves correctas y sin colisiones.
+        rightPanel.add(rightSplitPane, BorderLayout.CENTER);
+        
+        // ═══════════════════════════════════════════════════════════════
+        // 4. ENSAMBLADO FINAL - 3 COLUMNAS
+        // ═══════════════════════════════════════════════════════════════
+        // Split interno: centro | derecha
+        JSplitPane innerSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, centerPanel, rightPanel);
+        innerSplit.setResizeWeight(0.35);
+        innerSplit.setBorder(null);
+        
+        // Split externo: izquierda | innerSplit
+        JSplitPane outerSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, innerSplit);
+        outerSplitPane.setResizeWeight(0);
+        outerSplitPane.setBorder(null);
+        
+        dataModePanel.add(outerSplitPane, BorderLayout.CENTER);
+        
+        // ═══════════════════════════════════════════════════════════════
+        // 5. REGISTRO DE COMPONENTES
+        // ═══════════════════════════════════════════════════════════════
         registry.register("panel.workmode.datos", dataModePanel);
-        // ¡CAMBIO CRÍTICO! Registramos el JTree con una nueva clave.
         registry.register("tree.datamode.alltags", allTagsTree);
         registry.register("panel.datamode.grid", gridDisplayPanel);
-        registry.register("list.datamode.grid", gridDisplayPanel.getGridList(), "WHEEL_NAVIGABLE"); // <- Clave única
+        registry.register("list.datamode.grid", gridDisplayPanel.getGridList(), "WHEEL_NAVIGABLE");
         registry.register("panel.datamode.tagmanagement", tagManagementPanel);
         registry.register("panel.datamode.drives", driveListPanel);
         registry.register("list.datamode.drives", driveListPanel.getDriveList());
