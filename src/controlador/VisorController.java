@@ -795,14 +795,26 @@ public class VisorController implements IModoController, ThemeChangeListener {
         }
         
         // --- 4. PREPARACIÓN PARA LA CARGA ---
-        final String archivoSeleccionadoKey = model.getSelectedImageKey(); // La clave se hace final aquí
-        logger.debug("--> [actualizarImagenPrincipal] Iniciando carga para clave: '" + archivoSeleccionadoKey + "'");
+        final String archivoSeleccionadoKey = model.getSelectedImageKey();
+        logger.debug(" --> [actualizarImagenPrincipal] indice={}, clave='{}', modo={}",
+            indiceSeleccionado, archivoSeleccionadoKey, model.getCurrentWorkMode());
+        String ctxHash = Integer.toHexString(System.identityHashCode(model.getCurrentListContext()));
+        int mapSize = (model.getCurrentListContext().getRutaCompletaMap() != null)
+            ? model.getCurrentListContext().getRutaCompletaMap().size() : -1;
+        logger.debug("     Contexto {} (hash={}), mapa tamaño={}, modelSize={}",
+            ctxHash, ctxHash, mapSize, model.getModeloLista().getSize());
 
         if (cargaImagenPrincipalFuture != null && !cargaImagenPrincipalFuture.isDone()) {
             cargaImagenPrincipalFuture.cancel(true);
         }
-        final Path rutaCompleta = model.getRutaCompleta(archivoSeleccionadoKey); // La ruta también se hace final aquí
+        final Path rutaCompleta = model.getRutaCompleta(archivoSeleccionadoKey);
         if (rutaCompleta == null) {
+            logger.warn("     *** RUTA NO ENCONTRADA para clave='{}'. StackTrace:", archivoSeleccionadoKey);
+            StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+            for (int i = 2; i < Math.min(stack.length, 12); i++) {
+                logger.warn("       at {}.{}({}:{})", stack[i].getClassName(), stack[i].getMethodName(),
+                    stack[i].getFileName(), stack[i].getLineNumber());
+            }
             displayPanel.mostrarError("Ruta no encontrada para:\n" + archivoSeleccionadoKey, null);
             return;
         }
@@ -1446,6 +1458,7 @@ public class VisorController implements IModoController, ThemeChangeListener {
 	            logger.warn("Ruta de carpeta inicial inválida: {}", folderInit);
 	        }
 	    }
+	    logger.warn("[cargarVisorNormal] folderInit='{}', carpetaValida={}", folderInit, carpetaValida);
 
 	    if (carpetaValida) {
 	        // --- NUEVO: Usar la lógica unificada de carga y sincronización ---

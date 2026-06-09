@@ -1472,7 +1472,7 @@ public class DataController {
         if (gridList == null) return new ArrayList<>();
         List<String> selectedKeys = gridList.getSelectedValuesList();
         List<Path> paths = new ArrayList<>();
-        Map<String, Path> pathMap = model.getRutaCompletaMap();
+        Map<String, Path> pathMap = model.getDatosListContext().getRutaCompletaMap();
         
         for (String key : selectedKeys) {
             Path p = pathMap.get(key);
@@ -1539,8 +1539,8 @@ public class DataController {
             gridPathMap.put(key, path);
         }
         
-        model.getRutaCompletaMap().clear();
-        model.getRutaCompletaMap().putAll(gridPathMap);
+        model.getDatosListContext().getRutaCompletaMap().clear();
+        model.getDatosListContext().getRutaCompletaMap().putAll(gridPathMap);
 
         // Actualizar modelo maestro de la lista central
         masterFileListModel = fileNameModel;
@@ -1588,8 +1588,8 @@ public class DataController {
             gridPathMap.put(key, path);
         }
 
-        model.getRutaCompletaMap().clear();
-        model.getRutaCompletaMap().putAll(gridPathMap);
+        model.getDatosListContext().getRutaCompletaMap().clear();
+        model.getDatosListContext().getRutaCompletaMap().putAll(gridPathMap);
 
         masterFileListModel = fileNameModel;
 
@@ -1636,8 +1636,8 @@ public class DataController {
             gridPathMap.put(key, path);
         }
         
-        model.getRutaCompletaMap().clear();
-        model.getRutaCompletaMap().putAll(gridPathMap);
+        model.getDatosListContext().getRutaCompletaMap().clear();
+        model.getDatosListContext().getRutaCompletaMap().putAll(gridPathMap);
 
         masterFileListModel = fileNameModel;
 

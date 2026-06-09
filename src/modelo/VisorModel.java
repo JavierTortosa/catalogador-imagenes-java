@@ -168,7 +168,11 @@ public class VisorModel {
      */
     public void setMasterListAndNotify(DefaultListModel<String> nuevoModelo, Map<String, Path> nuevoMapaRutas,
             Object source) {
-        logger.debug("[Model] Estableciendo nueva lista maestra para el modo: " + this.currentWorkMode);
+        String ctxHash = Integer.toHexString(System.identityHashCode(getCurrentListContext()));
+        logger.warn("[Model] Estableciendo nueva lista maestra para modo={}, ctx={}, modeloSize={}, mapaSize={}",
+            this.currentWorkMode, ctxHash,
+            nuevoModelo != null ? nuevoModelo.getSize() : -1,
+            nuevoMapaRutas != null ? nuevoMapaRutas.size() : -1);
         ListContext currentContext = getCurrentListContext();
         if (currentContext != null) {
             currentContext.actualizarContextoCompleto(nuevoModelo, nuevoMapaRutas);

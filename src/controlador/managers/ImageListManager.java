@@ -132,6 +132,11 @@ public class ImageListManager {
             return;
         }
         logger.debug("-->>> INICIO ImageListManager.cargarListaImagenes (MODO LECTURA ESTRICTO) | Mantener Clave: {}", claveImagenAMantener);
+        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+        for (int i = 2; i < Math.min(stack.length, 8); i++) {
+            logger.debug("       at {}.{}({}:{})", stack[i].getClassName(), stack[i].getMethodName(),
+                stack[i].getFileName(), stack[i].getLineNumber());
+        }
 
         if (visorController.getConfigurationManager() == null || model == null || view == null || imagenDAO == null) {
             logger.error("ERROR [cargarListaImagenes BD]: Dependencias nulas.");
@@ -518,8 +523,13 @@ public class ImageListManager {
       * @param claveImagenAMantener La clave de la imagen a seleccionar.
       * @param alFinalizarConExito Runnable a ejecutar al final.
       */
-     private void recargarListaDesdeBDSinSincronizar(String claveImagenAMantener, Runnable alFinalizarConExito) {
-         logger.debug("-->>> INICIO ImageListManager.recargarListaDesdeBDSinSincronizar (SEGURO) | Clave: {}", claveImagenAMantener);
+      private void recargarListaDesdeBDSinSincronizar(String claveImagenAMantener, Runnable alFinalizarConExito) {
+          logger.warn("-->>> INICIO ImageListManager.recargarListaDesdeBDSinSincronizar (SEGURO) | Clave: {}", claveImagenAMantener);
+          StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+          for (int i = 2; i < Math.min(stack.length, 8); i++) {
+              logger.warn("       at {}.{}({}:{})", stack[i].getClassName(), stack[i].getMethodName(),
+                  stack[i].getFileName(), stack[i].getLineNumber());
+          }
 
          Path pathDeInicio = model.getCarpetaRaizActual();
          if (pathDeInicio == null || !Files.isDirectory(pathDeInicio)) {
