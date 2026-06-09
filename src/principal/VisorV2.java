@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.17.50";
+        version = "V2.17.30";
         
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -103,4 +103,33 @@ public class VisorV2 {
 	A est ultima propuesta, (stl->2D) habria que añadir la opcion de guardar la imagen. si he añadido el stl es porque no tengo la imagen y puede ser muuuy potente esta opcion.
     */
     
-    }
+    /*
+vamos a desgranar lo que tiene que hacer cada panel....
+
+escribiendo esto me he dado cuenta de que tenemos otro problema. si solo ponemos la lista de tags en formato arbol o lista, no tenemos acceso a las imagenes mas que a traves del visor central. asi que vamos a dividir este panel en 2. 
+en la parte de arriba vamos a poner un panel con la lista de tags/ramas y en la parte de abajo las imagenes que hay en el tag/rama que tenemos seleccionado
+
+el panel de la lista de tags:
+por un lado muestra la lista de tags sueltos (boton)
+por otro muestra la lista de arbol (boton y default)
+tenemos otro boton que es el orden (a-z, z-a y sin orden)
+luego tenemos el IntelliSenseField 
+
+las vistas y el orden estan claros. 
+cuando escribimos en el IntelliSenseField va filtrando lo que vamos escribiendo.
+si encuentra el tag/jerarquia, la selecciona. y aparecen 2 botones al lado del IntelliSenseField, renombrar y mover. 
+si no encuentra el tag/jerarquia, aparece un mensaje en el panel de arbol diciendo que no existe ese tag. por otro lado, junto al IntelliSenseField aparece un boton que nos indica si queremos crear ese tag
+
+en este panel tenemos un popup menu para: 
+crear
+mover
+renombrar
+----------
+borrar
+
+y solo estaran activas las opciones que esten disponibles en funcion de si es tag de sisstema o de usuario, etc
+
+en la parte de la lista podremos seleccionar grupos de imagenes
+*/
+     */
+}

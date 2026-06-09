@@ -38,8 +38,6 @@ public class DataManager {
     private List<Tag> allTagsCache = null;
     private boolean allTagsCacheValid = false;
 
-    private Map<String, Path> connectedDisksCache = null;
-
     public DataManager() {
         this.tagDAO = new TagDAO();
         this.imagenDAO = new ImagenDAO();
@@ -74,7 +72,7 @@ public class DataManager {
             logger.debug("getAllTags: consultando BD...");
             allTagsCache = tagDAO.getAllTags();
             allTagsCacheValid = true;
-            logger.debug("Se encontraron {} tags en total.", allTagsCache.size());
+            logger.info("Se encontraron {} tags en total.", allTagsCache.size());
         }
         return allTagsCache;
     } // ---FIN de metodo [getAllTags]---
@@ -229,24 +227,18 @@ public class DataManager {
      * @return Un mapa de NumeroSerie -> Path de la raíz.
      */
     public Map<String, Path> getConnectedDisks() {
-        if (connectedDisksCache == null) {
-            connectedDisksCache = new HashMap<>();
-            File[] roots = File.listRoots();
-            if (roots != null) {
-                for (File root : roots) {
-                    Path rootPath = root.toPath();
-                    volumeService.getVolumeSerialNumber(rootPath).ifPresent(serial -> {
-                        connectedDisksCache.put(serial, rootPath);
-                    });
-                }
+        Map<String, Path> connected = new HashMap<>();
+        File[] roots = File.listRoots();
+        if (roots != null) {
+            for (File root : roots) {
+                Path rootPath = root.toPath();
+                volumeService.getVolumeSerialNumber(rootPath).ifPresent(serial -> {
+                    connected.put(serial, rootPath);
+                });
             }
         }
-        return connectedDisksCache;
+        return connected;
     } // ---FIN de metodo [getConnectedDisks]---
-
-    public void invalidateConnectedDisksCache() {
-        connectedDisksCache = null;
-    }
 
     /**
      * Asegura que todos los discos conectados actualmente estén registrados en la base de datos.
