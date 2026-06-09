@@ -35,6 +35,9 @@ public class DataManager {
     private final DiscoDAO discoDAO;
     private final VolumeService volumeService;
 
+    private List<Tag> allTagsCache = null;
+    private boolean allTagsCacheValid = false;
+
     public DataManager() {
         this.tagDAO = new TagDAO();
         this.imagenDAO = new ImagenDAO();
@@ -65,11 +68,20 @@ public class DataManager {
      * @return Una lista de objetos Tag.
      */
     public List<Tag> getAllTags() {
-        logger.debug("Solicitando todos los tags de la base de datos...");
-        List<Tag> tags = tagDAO.getAllTags();
-        logger.info("Se encontraron {} tags en total.", tags.size());
-        return tags;
+        if (!allTagsCacheValid) {
+            logger.debug("getAllTags: consultando BD...");
+            allTagsCache = tagDAO.getAllTags();
+            allTagsCacheValid = true;
+            logger.info("Se encontraron {} tags en total.", allTagsCache.size());
+        }
+        return allTagsCache;
     } // ---FIN de metodo [getAllTags]---
+
+    public void invalidateTagCache() {
+        allTagsCacheValid = false;
+        allTagsCache = null;
+        logger.debug("Caché de tags invalidada.");
+    } // ---FIN de metodo [invalidateTagCache]---
 
     /**
      * Obtiene una lista de todas las rutas de imágenes asociadas a un tag específico
@@ -82,26 +94,20 @@ public class DataManager {
             logger.warn("Se solicitó buscar imágenes para un tag nulo. Devolviendo lista vacía.");
             return Collections.emptyList();
         }
-        
+
         logger.debug("Solicitando rutas de imágenes para el tag jerárquico: '{}' (ID: {})", tag.getNombre(), tag.getId());
 
-        // 1. Crear una lista que contendrá el tag padre y todos sus descendientes.
-        List<Tag> tagsToSearch = new ArrayList<>();
-        tagsToSearch.add(tag); // Añadir el propio tag seleccionado.
-        
-        // 2. Pedir al DAO todos los descendientes y añadirlos a la lista.
-        List<Tag> descendants = tagDAO.getAllDescendantTags(tag.getId());
-        tagsToSearch.addAll(descendants);
-        
-        // 3. Convertir la lista de objetos Tag a una lista de sus nombres.
-        List<String> tagNamesToSearch = tagsToSearch.stream()
-                                                    .map(Tag::getNombre)
-                                                    .collect(java.util.stream.Collectors.toList());
+        List<Long> tagIdsToSearch = new ArrayList<>();
+        tagIdsToSearch.add(tag.getId());
+        tagIdsToSearch.addAll(
+            tagDAO.getAllDescendantTags(tag.getId()).stream()
+                  .map(Tag::getId)
+                  .collect(Collectors.toList())
+        );
 
-        logger.info("Búsqueda jerárquica para '{}' incluye {} tags en total: {}", tag.getNombre(), tagNamesToSearch.size(), tagNamesToSearch);
-        
-        // 4. Usar el método DAO existente, que ya sabe buscar por una lista de nombres.
-        List<String> paths = tagDAO.findImagePathsByTagNames(tagNamesToSearch);
+        logger.info("Búsqueda jerárquica para '{}' incluye {} tags (IDs).", tag.getNombre(), tagIdsToSearch.size());
+
+        List<String> paths = tagDAO.findImagePathsByTagIds(tagIdsToSearch);
         logger.info("Se encontraron {} imágenes para la jerarquía del tag '{}'.", paths.size(), tag.getNombre());
         return paths;
     } // ---FIN de metodo [getImagePathsForTag]---
@@ -125,21 +131,19 @@ public class DataManager {
             return Collections.emptyList();
         }
 
-        // 2. Para cada tag encontrado, incluir también sus descendientes.
-        List<String> tagNamesToSearch = new ArrayList<>();
+        // 2. Para cada tag encontrado, incluir también sus descendientes (por ID).
+        List<Long> tagIdsToSearch = new ArrayList<>();
         for (Tag tag : allWithName) {
-            tagNamesToSearch.add(tag.getNombre());
-            List<Tag> descendants = tagDAO.getAllDescendantTags(tag.getId());
-            for (Tag d : descendants) {
-                tagNamesToSearch.add(d.getNombre());
-            }
+            tagIdsToSearch.add(tag.getId());
+            tagDAO.getAllDescendantTags(tag.getId())
+                  .forEach(d -> tagIdsToSearch.add(d.getId()));
         }
 
-        logger.info("Búsqueda por nombre '{}' encontró {} tags raíz, {} nombres totales a buscar.",
-                tagName, allWithName.size(), tagNamesToSearch.size());
+        logger.info("Búsqueda por nombre '{}' encontró {} tags raíz, {} IDs totales a buscar.",
+                tagName, allWithName.size(), tagIdsToSearch.size());
 
-        // 3. Buscar imágenes por todos esos nombres.
-        List<String> paths = tagDAO.findImagePathsByTagNames(tagNamesToSearch);
+        // 3. Buscar imágenes por todos esos IDs.
+        List<String> paths = tagDAO.findImagePathsByTagIds(tagIdsToSearch);
         logger.info("Se encontraron {} imágenes para el nombre de tag '{}'.", paths.size(), tagName);
         return paths;
     } // ---FIN de metodo [getImagePathsForTagName]---
@@ -303,7 +307,7 @@ public class DataManager {
      * @param dotPath La ruta con notación de puntos.
      * @return Lista de Tags desde la raíz hasta la hoja, o lista vacía si hay error.
      */
-    public List<Tag> resolveDotNotation(String dotPath) {
+    public List<Tag> createByDotNotation(String dotPath) {
         if (dotPath == null || dotPath.isBlank()) return Collections.emptyList();
 
         String[] segments = dotPath.split("\\.");
@@ -323,12 +327,60 @@ public class DataManager {
             }
 
             if (current == null) {
+                logger.error("No se pudo crear el segmento '{}' de la ruta '{}'", trimmed, dotPath);
+                return Collections.emptyList();
+            }
+            path.add(current);
+            parentId = current.getId();
+        }
+
+        invalidateTagCache();
+
+        logger.debug("Ruta '{}' creada: {} tags", dotPath, path.size());
+        return path;
+    } // ---FIN de metodo [createByDotNotation]---
+
+    public List<Tag> resolveDotNotation(String dotPath) {
+        if (dotPath == null || dotPath.isBlank()) return Collections.emptyList();
+
+        String[] segments = dotPath.split("\\.");
+        Long parentId = null;
+        List<Tag> path = new ArrayList<>();
+
+        for (String segment : segments) {
+            String trimmed = segment.trim();
+            if (trimmed.isEmpty()) continue;
+
+            Optional<Tag> existing = tagDAO.findTagByNameAndParent(trimmed, parentId);
+            Tag current;
+            if (existing.isPresent()) {
+                current = existing.get();
+            } else {
+                // No exact match under expected parent - check globally
+                List<Tag> globalMatches = tagDAO.findTagsByNameAll(trimmed);
+                if (globalMatches.isEmpty()) {
+                    // Doesn't exist anywhere - create new
+                    current = tagDAO.addTag(trimmed, parentId, 0).orElse(null);
+                } else if (globalMatches.size() == 1) {
+                    // Single global match - adopt it (the tag exists, just not under this parent)
+                    current = globalMatches.get(0);
+                } else {
+                    // Multiple global matches - caller must handle disambiguation
+                    logger.warn("Ambigüedad: el tag '{}' existe en {} ramas diferentes. Usa la ruta completa para desambiguar.",
+                            trimmed, globalMatches.size());
+                    return Collections.emptyList();
+                }
+            }
+
+            if (current == null) {
                 logger.error("No se pudo resolver el segmento '{}' de la ruta '{}'", trimmed, dotPath);
                 return Collections.emptyList();
             }
             path.add(current);
             parentId = current.getId();
         }
+
+        invalidateTagCache(); // Marcar caché como sucia (se recargará en el próximo getAllTags)
 
         logger.debug("Ruta '{}' resuelta a {} tags: {}", dotPath, path.size(),
                 path.stream().map(Tag::getNombre).collect(Collectors.joining(" > ")));
@@ -382,7 +434,9 @@ public class DataManager {
                 tag.getNombre(), tag.getId(),
                 (newParent != null ? newParent.getNombre() : "RAÍZ"),
                 newParentId);
-        return tagDAO.moveTag(tag.getId(), newParentId);
+        boolean ok = tagDAO.moveTag(tag.getId(), newParentId);
+        if (ok) invalidateTagCache();
+        return ok;
     } // ---FIN de metodo [moveTag]---
 
     /**
@@ -403,7 +457,9 @@ public class DataManager {
     public boolean deleteTagBranch(Tag tag) {
         if (tag == null) return false;
         logger.info("Eliminando rama completa del tag '{}' (ID {}).", tag.getNombre(), tag.getId());
-        return tagDAO.deleteTagBranch(tag.getId());
+        boolean ok = tagDAO.deleteTagBranch(tag.getId());
+        if (ok) invalidateTagCache();
+        return ok;
     } // ---FIN de metodo [deleteTagBranch]---
 
     /**
@@ -415,7 +471,7 @@ public class DataManager {
     public String buildFullPath(Tag tag) {
         if (tag == null) return "";
         Map<Long, Tag> tagById = new HashMap<>();
-        for (Tag t : tagDAO.getAllTags()) {
+        for (Tag t : getAllTags()) {
             tagById.put(t.getId(), t);
         }
 

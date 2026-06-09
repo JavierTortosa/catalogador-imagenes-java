@@ -24,6 +24,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
@@ -297,53 +298,56 @@ public class DataBuilder {
         TagManagementPanel tagManagementPanel = new TagManagementPanel();
         tagManagementPanel.setPreferredSize(new Dimension(100, 150));
         
-        // Área A: Gestión de Taxonomía (CRUD)
-        JToolBar taxonomyToolbar = new JToolBar();
-        taxonomyToolbar.setFloatable(false);
+        // Toolbar unificada de gestión de tags
+        JToolBar tagCRUDToolbar = new JToolBar();
+        tagCRUDToolbar.setFloatable(false);
         
-        JButton btnCreateTag = new JButton("Crear", iconUtils.getScaledIcon("30102-Add-Square.png", 24, 24));
+        JButton btnCreateTag = new JButton(iconUtils.getScaledIcon("30102-Add-Square.png", 24, 24));
         btnCreateTag.setToolTipText("Crear nueva etiqueta (x.y.z)");
         registry.register("btn.datamode.tag.create", btnCreateTag);
-        taxonomyToolbar.add(btnCreateTag);
+        tagCRUDToolbar.add(btnCreateTag);
         
-        JButton btnEditTag = new JButton("Modificar", iconUtils.getScaledIcon("30104-Pencil-Square.png", 24, 24));
+        JButton btnEditTag = new JButton(iconUtils.getScaledIcon("30104-Pencil-Square.png", 24, 24));
         btnEditTag.setToolTipText("Modificar etiqueta seleccionada");
         registry.register("btn.datamode.tag.edit", btnEditTag);
-        taxonomyToolbar.add(btnEditTag);
+        tagCRUDToolbar.add(btnEditTag);
         
-        JButton btnDeleteTag = new JButton("Borrar", iconUtils.getScaledIcon("30103-Subtract-Square.png", 24, 24));
+        JButton btnDeleteTag = new JButton(iconUtils.getScaledIcon("30103-Subtract-Square.png", 24, 24));
         btnDeleteTag.setToolTipText("Borrar etiqueta seleccionada");
         registry.register("btn.datamode.tag.delete", btnDeleteTag);
-        taxonomyToolbar.add(btnDeleteTag);
+        tagCRUDToolbar.add(btnDeleteTag);
         
-        // Área B: Asignación de Etiquetas a Imágenes
-        JPanel assignmentPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
-        
-        javax.swing.JCheckBox chkHerencia = new javax.swing.JCheckBox("Herencia Jerárquica", true);
-        chkHerencia.setToolTipText("Asignar la etiqueta y todas sus etiquetas padre superiores.");
-        registry.register("checkbox.datamode.tag.herencia", chkHerencia);
-        assignmentPanel.add(chkHerencia);
+        tagCRUDToolbar.addSeparator();
         
         TagIntelliSenseField intelliSenseField = new TagIntelliSenseField();
         intelliSenseField.setColumns(15);
         intelliSenseField.setToolTipText("<html>Escribe . para explorar jerarquia, o pon el nombre directamente.<br>Tab = autocompletar &middot; Enter = confirmar</html>");
         registry.register("textfield.datamode.tag.intellisense", intelliSenseField);
-        assignmentPanel.add(intelliSenseField);
+        tagCRUDToolbar.add(intelliSenseField);
         
-        JButton btnAssignTag = new JButton("Asignar Tag");
+        tagCRUDToolbar.addSeparator();
+        
+        JButton btnAssignTag = new JButton(iconUtils.getScaledIcon("30108-Text-Square.png", 24, 24));
         btnAssignTag.setToolTipText("Asignar etiqueta a las imágenes seleccionadas");
-        btnAssignTag.setEnabled(false); // Por defecto deshabilitado hasta seleccionar imágenes
+        btnAssignTag.setEnabled(false);
         registry.register("btn.datamode.tag.assign", btnAssignTag);
-        assignmentPanel.add(btnAssignTag);
+        tagCRUDToolbar.add(btnAssignTag);
+        
+        JButton btnRemoveAssignedTag = new JButton(iconUtils.getScaledIcon("30107-Delete-Square.png", 24, 24));
+        btnRemoveAssignedTag.setToolTipText("Borrar etiqueta asignada de la imagen seleccionada");
+        registry.register("btn.datamode.tag.removetag", btnRemoveAssignedTag);
+        tagCRUDToolbar.add(btnRemoveAssignedTag);
+        
+        JToggleButton btnHerencia = new JToggleButton(iconUtils.getScaledIcon("30106-Check-Square-2.png", 24, 24));
+        btnHerencia.setSelectedIcon(iconUtils.getScaledIcon("30105-Layout-Square.png", 24, 24));
+        btnHerencia.setToolTipText("Herencia jerárquica: asignar automáticamente tags padre al asignar un tag hijo");
+        btnHerencia.setSelected(true);
+        registry.register("toggle.datamode.tag.herencia", btnHerencia);
+        tagCRUDToolbar.add(btnHerencia);
         
         JPanel tagMgmtPanelContainer = new JPanel(new BorderLayout());
         
-        // Contenedor para las dos áreas (Arriba la toolbar CRUD, luego la asignación)
-        JPanel topToolbars = new JPanel(new java.awt.GridLayout(2, 1));
-        topToolbars.add(taxonomyToolbar);
-        topToolbars.add(assignmentPanel);
-        
-        tagMgmtPanelContainer.add(topToolbars, BorderLayout.NORTH);
+        tagMgmtPanelContainer.add(tagCRUDToolbar, BorderLayout.NORTH);
         tagMgmtPanelContainer.add(tagManagementPanel, BorderLayout.CENTER);
         
         JSplitPane rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, displayModesContainer, tagMgmtPanelContainer);

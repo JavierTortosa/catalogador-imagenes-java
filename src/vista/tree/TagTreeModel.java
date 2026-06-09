@@ -1,7 +1,8 @@
 package vista.tree;
 
 import java.util.List;
-
+import javax.swing.event.EventListenerList;
+import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
@@ -16,12 +17,34 @@ import servicios.db.TagDAO;
 public class TagTreeModel implements TreeModel {
 
     private final TagDAO tagDAO;
-    private final String rootNode = "Biblioteca"; // Un objeto simple para la raíz del árbol.
-    private List<Tag> rootTagsCache; // Caché para los tags de primer nivel.
+    private final String rootNode = "Biblioteca";
+    private List<Tag> rootTagsCache;
+    private final EventListenerList listenerList = new EventListenerList();
 
     public TagTreeModel(TagDAO tagDAO) {
         this.tagDAO = tagDAO;
-    } // ---FIN de constructor [TagTreeModel]---
+    }
+
+    public void clearCache() {
+        rootTagsCache = null;
+    }
+
+    public void fireTreeStructureChanged() {
+        TreeModelEvent e = new TreeModelEvent(this, new TreePath(getRoot()));
+        for (TreeModelListener l : listenerList.getListeners(TreeModelListener.class)) {
+            l.treeStructureChanged(e);
+        }
+    }
+
+    @Override
+    public void addTreeModelListener(TreeModelListener l) {
+        listenerList.add(TreeModelListener.class, l);
+    }
+
+    @Override
+    public void removeTreeModelListener(TreeModelListener l) {
+        listenerList.remove(TreeModelListener.class, l);
+    }
 
     @Override
     public Object getRoot() {
@@ -88,17 +111,6 @@ public class TagTreeModel implements TreeModel {
 
     @Override
     public void valueForPathChanged(TreePath path, Object newValue) {
-        // No se implementa para un modelo de solo lectura.
-    } // ---FIN de metodo [valueForPathChanged]---
-
-    @Override
-    public void addTreeModelListener(TreeModelListener l) {
-        // No se implementa, ya que el modelo no cambia dinámicamente por ahora.
-    } // ---FIN de metodo [addTreeModelListener]---
-
-    @Override
-    public void removeTreeModelListener(TreeModelListener l) {
-        // No se implementa.
-    } // ---FIN de metodo [removeTreeModelListener]---
+    }
 
 } // --- FIN de clase TagTreeModel ---

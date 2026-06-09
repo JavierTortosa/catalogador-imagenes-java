@@ -32,12 +32,10 @@ public class TagTreeCellRenderer extends DefaultTreeCellRenderer {
         countCache.clear();
     }
     
-    public void precomputeCounts(java.util.List<Tag> allTags) {
+    public void setCountCache(java.util.Map<Long, int[]> counts) {
         countCache.clear();
-        for (Tag tag : allTags) {
-            int total = tagDAO.getImageCountForTagRecursive(tag.getId());
-            int available = tagDAO.getAvailableImageCountForTagRecursive(tag.getId(), connectedDiscoIds);
-            countCache.put(tag.getId(), new int[]{available, total});
+        if (counts != null) {
+            countCache.putAll(counts);
         }
     }
 

@@ -6,7 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -166,6 +168,47 @@ public class TagDAO {
         }
         return tags;
     } // ---FIN de metodo [findTagsByNameAll]---
+    
+    /**
+     * Busca un tag por su ID.
+     * @param id El ID del tag.
+     * @return Un Optional con el Tag si se encuentra.
+     */
+    public Optional<Tag> findTagById(long id) {
+        String sql = "SELECT * FROM tags WHERE id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, id);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return Optional.of(mapResultSetToTag(rs));
+            }
+        } catch (SQLException e) {
+            logger.error("Error al buscar tag por ID: " + e.getMessage(), e);
+        }
+        return Optional.empty();
+    } // ---FIN de metodo [findTagById]---
+    
+    /**
+     * Obtiene la ruta completa de un tag como cadena (ej. "juegos > blood bowl").
+     * Camina hacia arriba por la jerarquía de padres hasta la raíz.
+     * @param tagId El ID del tag.
+     * @return La ruta completa en formato "padre > hijo", o el nombre del tag si es raíz.
+     */
+    public String getTagFullPath(long tagId) {
+        StringBuilder sb = new StringBuilder();
+        Long currentId = tagId;
+        while (currentId != null) {
+            Optional<Tag> tagOpt = findTagById(currentId);
+            if (tagOpt.isEmpty()) break;
+            Tag tag = tagOpt.get();
+            if (sb.length() > 0) {
+                sb.insert(0, " > ");
+            }
+            sb.insert(0, tag.getNombre());
+            currentId = tag.getParentId();
+        }
+        return sb.toString();
+    } // ---FIN de metodo [getTagFullPath]---
 
     /**
      * Obtiene todos los tags de la base de datos.
@@ -377,8 +420,36 @@ public class TagDAO {
         logger.debug("Búsqueda por tags {} devolvió {} resultados.", tagNames, imagePaths.size());
         return imagePaths;
     } // ---FIN de metodo [findImagePathsByTagNames]---
-    
-    
+
+    public List<String> findImagePathsByTagIds(List<Long> tagIds) {
+        List<String> imagePaths = new ArrayList<>();
+        if (tagIds == null || tagIds.isEmpty()) {
+            return imagePaths;
+        }
+
+        String placeholders = tagIds.stream().map(id -> "?").collect(Collectors.joining(","));
+
+        String sql = "SELECT DISTINCT i.ruta_completa " +
+                     "FROM imagenes i " +
+                     "JOIN imagen_tags it ON i.id = it.imagen_id " +
+                     "WHERE it.tag_id IN (" + placeholders + ")";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            for (int i = 0; i < tagIds.size(); i++) {
+                pstmt.setLong(i + 1, tagIds.get(i));
+            }
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                imagePaths.add(rs.getString("ruta_completa"));
+            }
+        } catch (SQLException e) {
+            logger.error("Error al buscar imágenes por IDs de tags.", e);
+        }
+
+        logger.debug("Búsqueda por IDs de tags devolvió {} resultados.", imagePaths.size());
+        return imagePaths;
+    } // ---FIN de metodo [findImagePathsByTagIds]---
+
     /**
      * Obtiene una lista de todos los tags descendientes (hijos, nietos, etc.) de un tag padre,
      * utilizando una consulta CTE recursiva en la base de datos para máxima eficiencia.
@@ -832,5 +903,82 @@ public class TagDAO {
             try { connection.setAutoCommit(true); } catch (SQLException ex) {}
         }
     } // ---FIN de metodo [mergeTags]---
+
+    /**
+     * Calcula los conteos de imágenes (total y disponibles) para TODOS los tags
+     * usando 2 consultas SQL masivas en lugar de N×2 consultas individuales.
+     * @param connectedDiscoIds Lista de IDs de discos conectados (puede ser null o vacío).
+     * @return Mapa de tag_id → int[]{available, total}
+     */
+    public Map<Long, int[]> computeAllTagCountsBulk(List<Long> connectedDiscoIds) {
+        Map<Long, int[]> result = new HashMap<>();
+
+        // Consulta 1: Total de imágenes por tag (incluyendo descendientes)
+        String totalSql = "WITH RECURSIVE tag_tree AS ("
+            + "SELECT id AS ancestor_id, id AS descendant_id FROM tags "
+            + "UNION ALL "
+            + "SELECT tt.ancestor_id, t.id FROM tags t "
+            + "JOIN tag_tree tt ON t.parent_id = tt.descendant_id"
+            + ") SELECT tt.ancestor_id, COUNT(DISTINCT it.imagen_id) "
+            + "FROM tag_tree tt "
+            + "LEFT JOIN imagen_tags it ON it.tag_id = tt.descendant_id "
+            + "GROUP BY tt.ancestor_id";
+
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(totalSql)) {
+            while (rs.next()) {
+                long tagId = rs.getLong(1);
+                int total = rs.getInt(2);
+                result.put(tagId, new int[]{0, total});
+            }
+        } catch (SQLException e) {
+            logger.error("Error en computeAllTagCountsBulk (total): " + e.getMessage(), e);
+            return result;
+        }
+
+        if (connectedDiscoIds == null || connectedDiscoIds.isEmpty()) {
+            // Sin filtro de discos: available = total
+            for (Map.Entry<Long, int[]> entry : result.entrySet()) {
+                entry.getValue()[0] = entry.getValue()[1];
+            }
+            return result;
+        }
+
+        // Consulta 2: Imágenes disponibles (solo discos conectados) por tag
+        String discoPlaceholders = connectedDiscoIds.stream()
+            .map(id -> "?").collect(Collectors.joining(","));
+
+        String availSql = "WITH RECURSIVE tag_tree AS ("
+            + "SELECT id AS ancestor_id, id AS descendant_id FROM tags "
+            + "UNION ALL "
+            + "SELECT tt.ancestor_id, t.id FROM tags t "
+            + "JOIN tag_tree tt ON t.parent_id = tt.descendant_id"
+            + ") SELECT tt.ancestor_id, COUNT(DISTINCT it.imagen_id) "
+            + "FROM tag_tree tt "
+            + "JOIN imagen_tags it ON it.tag_id = tt.descendant_id "
+            + "JOIN imagenes i ON i.id = it.imagen_id "
+            + "WHERE i.disco_id IN (" + discoPlaceholders + ") "
+            + "GROUP BY tt.ancestor_id";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(availSql)) {
+            for (int i = 0; i < connectedDiscoIds.size(); i++) {
+                pstmt.setLong(i + 1, connectedDiscoIds.get(i));
+            }
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                long tagId = rs.getLong(1);
+                int available = rs.getInt(2);
+                int[] counts = result.get(tagId);
+                if (counts != null) {
+                    counts[0] = available;
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error en computeAllTagCountsBulk (available): " + e.getMessage(), e);
+        }
+
+        logger.debug("computeAllTagCountsBulk: {} tags procesados en 2 consultas SQL.", result.size());
+        return result;
+    } // ---FIN de metodo [computeAllTagCountsBulk]---
 
 } // --- FIN de clase TagDAO ---
