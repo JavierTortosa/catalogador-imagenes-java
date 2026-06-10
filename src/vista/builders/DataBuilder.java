@@ -271,6 +271,7 @@ public class DataBuilder {
         // Header vertical: toolbar + IntelliSense centrado
         JPanel leftHeader = new JPanel();
         leftHeader.setLayout(new BoxLayout(leftHeader, BoxLayout.Y_AXIS));
+        leftHeader.setBorder(BorderFactory.createTitledBorder("Gestión de Etiquetas"));
         leftHeader.add(tagToolbar);
 
         int toolbarWidth = Math.max(tagToolbar.getPreferredSize().width, 200);
@@ -295,6 +296,8 @@ public class DataBuilder {
         JPanel centerPanel = new JPanel(new BorderLayout());
         
         // --- Barra Tornado ---
+        JPanel tornadoPanel = new JPanel(new BorderLayout());
+        tornadoPanel.setBorder(BorderFactory.createTitledBorder("Filtro de Archivos"));
         JToolBar tornadobar = new JToolBar();
         tornadobar.setFloatable(false);
         
@@ -311,7 +314,8 @@ public class DataBuilder {
         registry.register("toggle.datamode.tornado", btnTornado);
         tornadobar.add(btnTornado);
         
-        centerPanel.add(tornadobar, BorderLayout.NORTH);
+        tornadoPanel.add(tornadobar, BorderLayout.CENTER);
+        centerPanel.add(tornadoPanel, BorderLayout.NORTH);
         
         // --- Lista de nombres de imágenes ---
         DefaultListModel<String> fileNameModel = new DefaultListModel<>();
@@ -370,6 +374,8 @@ public class DataBuilder {
         tagManagementPanel.setPreferredSize(new Dimension(100, 150));
         
         // --- Toolbar de asignación (lado derecho, simplificada) ---
+        JPanel assignPanel = new JPanel(new BorderLayout());
+        assignPanel.setBorder(BorderFactory.createTitledBorder("Asignación de Etiquetas"));
         JToolBar assignToolbar = new JToolBar();
         assignToolbar.setFloatable(false);
         
@@ -407,8 +413,10 @@ public class DataBuilder {
         registry.register("toggle.datamode.tag.herencia", btnHerencia);
         assignToolbar.add(btnHerencia);
         
+        assignPanel.add(assignToolbar, BorderLayout.CENTER);
+        
         JPanel tagMgmtPanelContainer = new JPanel(new BorderLayout());
-        tagMgmtPanelContainer.add(assignToolbar, BorderLayout.NORTH);
+        tagMgmtPanelContainer.add(assignPanel, BorderLayout.NORTH);
         tagMgmtPanelContainer.add(tagManagementPanel, BorderLayout.CENTER);
         
         JSplitPane rightSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, displayModesContainer, tagMgmtPanelContainer);

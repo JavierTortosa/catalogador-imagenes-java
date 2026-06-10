@@ -46,7 +46,18 @@ public class ArchiveAnalysisService {
                     try { totalBytes += Long.parseLong(line.substring(7).trim()); } catch (Exception e) {}
                 }
             }
-            p.waitFor();
+            if (!p.waitFor(60, java.util.concurrent.TimeUnit.SECONDS)) {
+                logger.warn("Timeout leyendo metadata de {}. Matando proceso.", archivePath);
+                p.destroyForcibly();
+            }
+        } catch (InterruptedException e) {
+            logger.warn("Interrupción leyendo metadata de {}. Matando proceso.", archivePath);
+            // No podemos llamar a p.destroy() aquí porque p podría ser nulo si pb.start() falló
+            // pero si llegamos aquí, p ya ha sido creado.
+            // El problema es que p no está definido fuera del try.
+            // Vamos a refactorizar un poco para asegurar la destrucción.
+            Thread.currentThread().interrupt();
+            return;
         } catch (Exception e) {
             logger.error("Error ejecutando 7z para: " + archivePath, e);
             return;
@@ -83,17 +94,31 @@ public class ArchiveAnalysisService {
     }
 
     private Path extractToTemp(Path archivePath, String internalPath, Path tempDir) {
+        Process p = null;
         try {
             String exePath = get7zExePath();
             ProcessBuilder pb = new ProcessBuilder(exePath, "x", archivePath.toString(),
                     "-o" + tempDir.toString(), internalPath, "-y");
-            Process p = pb.start();
-            p.waitFor();
+            p = pb.start();
+            
+            // Esperar con un timeout razonable (ej. 2 minutos) para evitar bloqueos infinitos
+            if (!p.waitFor(120, java.util.concurrent.TimeUnit.SECONDS)) {
+                logger.warn("Timeout esperando la extracción de {}. Forzando cierre.", internalPath);
+                p.destroyForcibly();
+                return null;
+            }
+            
             // Devolver la ruta al archivo extraído
             Path nested = tempDir.resolve(internalPath);
             return nested;
+        } catch (InterruptedException e) {
+            logger.warn("Interrupción durante la extracción de {}. Matando proceso.", internalPath);
+            if (p != null) p.destroyForcibly();
+            Thread.currentThread().interrupt(); // Restaurar el estado de interrupción
+            return null;
         } catch (Exception e) {
-            logger.error("Error extrayendo {} de {}", internalPath, archivePath, e);
+            logger.error("Error extrayendo {} de {}: {}", internalPath, archivePath, e.getMessage());
+            if (p != null) p.destroyForcibly();
             return null;
         }
     }

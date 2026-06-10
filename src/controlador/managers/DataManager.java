@@ -166,6 +166,38 @@ public class DataManager {
     } // ---FIN de metodo [getTagsForImage]---
 
     /**
+     * Añade un tag (usando notación de puntos) a una lista de imágenes.
+     * Crea la jerarquía de tags si no existe.
+     * @param imagePaths Lista de rutas de imágenes.
+     * @param dotPath Ruta del tag en notación de puntos (ej. "fantasía.armas").
+     */
+    public void assignDotNotationTagToImages(List<Path> imagePaths, String dotPath) {
+        if (imagePaths == null || imagePaths.isEmpty() || dotPath == null || dotPath.isBlank()) return;
+
+        // 1. Resolver/Crear la jerarquía de tags
+        List<Tag> path = createByDotNotation(dotPath);
+        if (path.isEmpty()) {
+            logger.error("No se pudo resolver/crear el tag con ruta: {}", dotPath);
+            return;
+        }
+
+        // 2. Tomar el último tag de la lista (la "hoja")
+        Tag leafTag = path.get(path.size() - 1);
+        
+        logger.info("Asignando etiqueta '{}' (ID {}) a {} imágenes.", leafTag.getNombre(), leafTag.getId(), imagePaths.size());
+
+        // 3. Asignar el tag hoja a las imágenes
+        for (Path imagePath : imagePaths) {
+            Optional<ImagenInfo> imgOpt = imagenDAO.findImagenByPath(imagePath);
+            if (imgOpt.isPresent()) {
+                tagDAO.assignTagToImage(imgOpt.get().getId(), leafTag.getId());
+            } else {
+                logger.warn("No se pudo añadir tag a la imagen porque no está indexada: {}", imagePath);
+            }
+        }
+    } // ---FIN de metodo [assignDotNotationTagToImages]---
+
+    /**
      * Añade un tag (por nombre) a una lista de imágenes.
      * Si el tag no existe, lo crea.
      * @param imagePaths Lista de rutas de imágenes.

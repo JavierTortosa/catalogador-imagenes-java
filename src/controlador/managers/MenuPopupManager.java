@@ -1,11 +1,15 @@
 package controlador.managers;
 
 import java.awt.Component;
+import java.awt.Frame;
 import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.Action;
@@ -17,6 +21,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +48,7 @@ public class MenuPopupManager {
     private final GeneralController generalController;
     private final ActionFactory actionFactory;
     private final VisorModel model;
+    private final DataManager dataManager; // Nuevo
 
     // --- Menús contextuales ---
     private JPopupMenu popupMenuImagenPrincipal;
@@ -58,12 +64,13 @@ public class MenuPopupManager {
 
     public MenuPopupManager(Map<String, Action> actionMap, ComponentRegistry registry,
                             GeneralController generalController, ActionFactory actionFactory,
-                            VisorModel model) {
+                            VisorModel model, DataManager dataManager) { // Actualizado
         this.actionMap = actionMap;
         this.registry = registry;
         this.generalController = generalController;
         this.actionFactory = actionFactory;
         this.model = model;
+        this.dataManager = dataManager; // Nuevo
     }
 
     // ==================== CONFIGURACIÓN GENERAL ====================
@@ -80,9 +87,9 @@ public class MenuPopupManager {
         }
 
         // ==================== MENÚ VISUALIZADOR ====================
-        popupMenuImagenPrincipal = crearMenuContextualStandard();
-        popupMenuListaNombres = crearMenuContextualStandard();
-        popupMenuListaMiniaturas = crearMenuContextualStandard();
+        popupMenuImagenPrincipal = crearMenuContextualStandard(null);
+        popupMenuListaNombres = crearMenuContextualStandard(registry.get("list.nombresArchivo"));
+        popupMenuListaMiniaturas = crearMenuContextualStandard(registry.get("list.miniaturas"));
 
         // --- Imagen principal ---
         JLabel labelImagen = registry.get("label.imagenPrincipal");
@@ -111,7 +118,7 @@ public class MenuPopupManager {
         // ==================== MENÚ GRID ====================
         JList<String> gridList = registry.get("list.grid");
         if (gridList != null) {
-            popupMenuGrid = crearMenuContextualStandard();
+            popupMenuGrid = crearMenuContextualStandard(gridList);
 
             popupListenerGrid = new MouseAdapter() {
                 @Override
@@ -155,7 +162,7 @@ public class MenuPopupManager {
      * Crea y devuelve un JPopupMenu con el conjunto estándar de acciones
      * para el modo VISUALIZADOR.
      */
-    public JPopupMenu crearMenuContextualStandard() {
+    public JPopupMenu crearMenuContextualStandard(JList<String> listaFuente) {
         JPopupMenu menu = new JPopupMenu();
         if (actionMap == null) return menu;
 
@@ -167,12 +174,34 @@ public class MenuPopupManager {
 
         menu.addSeparator();
 
-        // 2. Acciones de Archivo/Ubicación
+        // 2. NUEVA OPCIÓN: Asignar Etiqueta
+        JMenuItem assignTagItem = new JMenuItem("Asignar Etiqueta...");
+        assignTagItem.addActionListener(e -> {
+            if (listaFuente == null) return;
+            List<String> selectedKeys = listaFuente.getSelectedValuesList();
+            List<Path> paths = new ArrayList<>();
+            Map<String, Path> rutaCompletaMap = model.getCurrentListContext().getRutaCompletaMap();
+            for (String key : selectedKeys) {
+                Path p = rutaCompletaMap.get(key);
+                if (p != null) paths.add(p);
+            }
+            if (!paths.isEmpty()) {
+                vista.dialogos.TagAssignmentDialog dialog = new vista.dialogos.TagAssignmentDialog(
+                    (Frame) SwingUtilities.getWindowAncestor(listaFuente), dataManager, paths);
+                dialog.setVisible(true);
+            } else {
+                JOptionPane.showMessageDialog(listaFuente, "Selecciona al menos una imagen.");
+            }
+        });
+        menu.add(assignTagItem);
+        menu.addSeparator();
+
+        // 3. Acciones de Archivo/Ubicación
         menu.add(new JMenuItem(actionMap.get(AppActionCommands.CMD_IMAGEN_LOCALIZAR)));
 
         menu.addSeparator();
 
-        // 3. Acciones de Zoom/Vista
+        // 4. Acciones de Zoom/Vista
         menu.add(new JCheckBoxMenuItem(actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE)));
         menu.add(new JMenuItem(actionMap.get(AppActionCommands.CMD_ZOOM_RESET)));
         menu.addSeparator();
@@ -180,7 +209,7 @@ public class MenuPopupManager {
         menu.add(new JCheckBoxMenuItem(actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS)));
 
         return menu;
-    }
+    } //--- Fin del metodo: crearMenuContextualStandard
 
     // ==================== MENÚ RUTAS ====================
 

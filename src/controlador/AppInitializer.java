@@ -558,7 +558,7 @@ public class AppInitializer {
                 this.searchSortService.setActionMap(this.actionMap);
                 this.searchSortService.setVisorController(this.controller);
                 this.menuPopupManager = new MenuPopupManager(this.actionMap, this.registry,
-                        this.generalController, this.actionFactory, this.model);
+                        this.generalController, this.actionFactory, this.model, this.dataManager);
 
                 // 3.3: ¡Paso clave! Crear la ventana principal (JFrame)
                 logger.debug("    -> Creando VisorView (JFrame)...");
