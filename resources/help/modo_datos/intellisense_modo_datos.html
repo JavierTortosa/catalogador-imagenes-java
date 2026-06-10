@@ -10,30 +10,70 @@
     <h1><img src="ICON_PLACEHOLDER_30003-bajar_carpeta.png" class="header-icon">Intellisense y Autocompletado</h1>
 
     <p>
-        Para acelerar tu flujo de trabajo y minimizar errores humanos, el Modo Datos integra un sistema de <strong>Intellisense</strong> inteligente.
+        Para acelerar tu flujo de trabajo y minimizar errores humanos, el Modo Datos integra un sistema de <strong>Intellisense</strong> inteligente con navegación por rutas jerárquicas.
     </p>
 
-    <h2>¿Qué es el Intellisense en este sistema?</h2>
+    <h2>Gramática de Búsqueda por Puntos</h2>
     <p>
-        El Intellisense es una funcionalidad de asistencia que "predice" lo que estás intentando escribir, basándose en el contexto de los datos que ya existen en tu proyecto o colección.
+        El campo de etiquetas interpreta el punto (<code>.</code>) como un operador de navegación sobre la jerarquía de etiquetas. Según cómo uses el punto, el comportamiento cambia:
     </p>
 
-    <h3>En el Sistema de Etiquetas (Tags)</h3>
-    <p>
-        Cuando estás asignando una etiqueta o buscando una existente, el sistema te ofrecerá sugerencias basadas en las etiquetas que ya has utilizado anteriormente.
-    </p>
+    <table border="1" cellpadding="6" style="border-collapse:collapse; width:100%;">
+        <thead>
+            <tr style="background:#f0f0f0;">
+                <th>Modo</th>
+                <th>Ejemplo</th>
+                <th>Qué hace</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>PLAIN</strong> (texto plano)</td>
+                <td><code>foto</code></td>
+                <td>Busca todas las etiquetas cuyo nombre empiece por "foto", en toda la base de datos.</td>
+            </tr>
+            <tr>
+                <td><strong>WILDCARD</strong> (punto inicial)</td>
+                <td><code>.escu</code></td>
+                <td>Busca cualquier etiqueta (en cualquier nivel) cuya <strong>ruta completa</strong> contenga "escu".</td>
+            </tr>
+            <tr>
+                <td><strong>PATH</strong> (navegación + prefijo)</td>
+                <td><code>armas.escu</code></td>
+                <td>Busca hijos de "armas" cuyo nombre empiece por "escu". El padre debe escribirse exactamente.</td>
+            </tr>
+            <tr>
+                <td><strong>DRILL_DOWN</strong> (punto final)</td>
+                <td><code>.armas.</code></td>
+                <td>Muestra todos los hijos directos de "armas" (útil para explorar la jerarquía).</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Ejemplos prácticos</h3>
     <ul>
-        <li><strong>Sugerencias en tiempo real:</strong> A medida que escribes, aparecerá una lista de coincidencias posibles.</li>
-        <li><strong>Prevención de Duplicados:</strong> Te ayuda a mantener la consistencia, evitando que crees etiquetas casi idénticas (ej: "Foto" vs "Fotos").</li>
+        <li>Escribe <code>retrato</code> → te aparecen todas las etiquetas que empiezan por "retrato".</li>
+        <li>Escribe <code>.paisaje</code> → encuentra etiquetas como "playa", "paisaje urbano", etc. en cualquier rama.</li>
+        <li>Escribe <code>lugares.pla</code> → busca todos los hijos de "lugares" que empiecen por "pla".</li>
+        <li>Escribe <code>.lugares.</code> → lista todos los hijos directos de "lugares" para explorar.</li>
     </ul>
 
-    <h3>En la Gestión de Archivos</h3>
+    <h2>Atajos de Teclado</h2>
+    <ul>
+        <li><strong>&uarr; / &darr;</strong> — Navegar por la lista de sugerencias.</li>
+        <li><strong>TAB</strong> — Aceptar la sugerencia seleccionada e insertar la ruta completa.</li>
+        <li><strong>Punto (.)</strong> — Si hay una sugerencia seleccionada, la inserta y añade un punto al final para continuar profundizando (drill-down automático).</li>
+        <li><strong>ENTER</strong> — Aceptar y cerrar la lista. Si la ruta escrita no existe, abre un diálogo de confirmación para crear la etiqueta nueva.</li>
+        <li><strong>ESC</strong> — Cerrar la lista de sugerencias sin seleccionar.</li>
+    </ul>
+
+    <h2>Flujo de Creación de Etiquetas</h2>
     <p>
-        Al realizar búsquedas o añadir archivos asociados, el sistema te asistirá con los nombres de archivos y rutas existentes, permitiéndote completar la información con solo un par de pulsaciones de tecla.
+        Si escribes una ruta que no existe y presionas <strong>ENTER</strong> (o pierdes el foco del campo), el sistema detecta automáticamente el último segmento como una nueva etiqueta. Se mostrará un diálogo de confirmación preguntando si deseas crearla bajo la etiqueta padre correspondiente. Si aceptas, la etiqueta se persiste en la base de datos y el campo se actualiza con la ruta completa.
     </p>
 
     <div class="tip-box">
-        <strong>Consejo de Uso:</strong> Utiliza las teclas de dirección (flechas) para navegar por las sugerencias y la tecla <strong>Enter</strong> para aceptar la que desees.
+        <strong>Consejo de Uso:</strong> Usa el modo DRILL_DOWN (<code>.raiz.</code>) para explorar la jerarquía completa de etiquetas antes de escribir. La tecla <strong>Punto</strong> sobre una sugerencia te permite profundizar sin soltar la navegación.
     </div>
 
     <hr>

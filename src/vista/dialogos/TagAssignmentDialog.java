@@ -13,7 +13,8 @@ import vista.components.TagIntelliSenseField;
  * Diálogo para asignar etiquetas (existentes o nuevas) a un conjunto de imágenes.
  */
 public class TagAssignmentDialog extends JDialog {
-    private TagIntelliSenseField tagField;
+    private static final long serialVersionUID = 1L;
+	private TagIntelliSenseField tagField;
     private DataManager dataManager;
     private List<Path> selectedPaths;
     private boolean confirmed = false;

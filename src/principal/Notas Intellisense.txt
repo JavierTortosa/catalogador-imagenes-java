@@ -1,0 +1,196 @@
+- INTELLISENSE -
+
+Pasar de un modelo de "sugerencia de texto" a un modelo de "resolución de rutas".
+
+Puntos fuertes y añadidos para que sea perfecto:
+
+1. Análisis de Modos
+
+Modo Plano (Imperativo / Ruta Directa):
+Comportamiento: El usuario dice "Quiero esto que está aquí".
+
+Input escudo: 
+Busca todos los escudo en cualquier parte, pero el desplegable DEBE mostrar la ruta completa (armas > escudo, objetos > escudo) para que el usuario no tenga que adivinar.
+
+Input armas.escudo: 
+Es una búsqueda restringida. Es mucho más rápido para el usuario si ya conoce la jerarquía.
+Ventaja: Elimina la ambigüedad de forma inmediata.
+
+Modo Wildcard (Versátil / Búsqueda Global):
+Comportamiento: El usuario dice "Busca en todo el bosque cualquier cosa que se llame esto".
+
+Input .escudo: 
+Es como un find . -name "*escudo*". 
+Es extremadamente útil cuando tienes miles de etiquetas y no quieres navegar por el árbol.
+
+Input .escudo. (El "Drill-down" masivo): 
+Si hay 5 etiquetas llamadas "escudo" en diferentes ramas, al poner el punto final, el desplegable te muestra los hijos de todas ellas. 
+Es una forma de "expandir" todas las coincidencias a la vez.
+
+
+2. ¿Qué me parece?
+
+Es un sistema de nivel profesional. Convierte el campo de texto en un "mini-shell" de datos. La distinción entre "estoy en una ruta" y "estoy buscando en el árbol" es muy clara gracias al uso del punto.
+
+
+3. ¿Qué falta o qué mejoraría? (Mis sugerencias)
+
+Para que esto funcione sin frustrar al usuario, yo añadiría tres reglas de oro:
+
+A. La "Regla de la Verdad" en el campo de texto (Full Path): 
+Cuando el usuario seleccione una opción del desplegable (ej. selecciona armas > escudo), el campo de texto no debe quedar solo con la palabra escudo, sino que debe escribirse la ruta completa: armas.escudo.
+
+Por qué: Si el campo solo dice escudo, el usuario pierde el contexto de lo que acaba de hacer y la próxima vez que quiera editarlo, volverá al modo plano ambigüo. Si el campo mantiene la ruta, la edición sigue siendo precisa.
+
+B. Formato Visual en el Desplegable: El desplegable no puede ser solo una lista de palabras. Debe usar un separador visual claro para la jerarquía, por ejemplo: armas ❯ escudo objetos ❯ escudo Esto permite que el ojo humano escanee la estructura mucho más rápido que si fuera texto plano.
+
+C. Manejo de la "Última Palabra" en Modo Plano: En el modo plano, si el usuario escribe armas.esc, el sistema debería entender que esc es el prefijo de la última parte de la ruta. Es decir, está buscando hijos de armas que empiecen por esc. Esto mantiene la consistencia con el modo jerárquico pero sin necesidad de empezar con un punto.
+
+
+Resumen de la lógica propuesta para la implementación:
+
+Input		Modo		Lógica de Búsqueda									Resultado en Desplegable								Resultado en Campo (tras seleccionar)
+----------- -----------	--------------------------------------------------	------------------------------------------------------	-------------------------------------
+
+escudo		Plano		Busca nombre == "escudo" en todo el árbol.			rama1 > escudo, rama2 > escudo							rama1.escudo
+armas.esc	Plano		Busca nombre.startsWith("esc") dentro de armas.		armas > escudo, armas > escudos							armas.escudo
+.escudo		Wildcard	Busca nombre == "escudo" en cualquier nivel.		rama1 > escudo, rama2 > escudo							rama1.escudo
+.escudo.	Wildcard	Busca hijos de cualquier tag que se llame escudo.	rama1 > escudo > hijos..., rama2 > escudo > hijos...	rama1.escudo.hijo
+
+
+
+RECTIFICACIONES
+---------------
+
+punto A. me parece muy correcto. hasta incluso a la hora de crear un nuevo tag hijo de escudo que no existe. 
+punto B. en lugar de > me gusta mucho el "." creo que es suficientemente indicativo
+punto C. con cada pulsacion el desplegable tiene que reaccionar con un filtrado. al poner "armas." automaticamente muestra el desplegable con todos los hijos de "armas". 
+al poner "armas.e" filtra el desplegable con todos los hijos de "armas que empiezan con e". 
+al poner "armas.es" filtra aun mas el desplegable mostranoo los hijos de "armas" que empiezan por "es" y asi....
+ 
+a la hora de crear un tag/rama, el usuario podria poner "armas.escudo.gotico" y que ese "gotico" no existiera. 
+aqui tendriamos que recibir un aviso de que ese "gotico" no existe a ver si lo queremos crear. y se crearia dentro de "armas.escudo" 
+
+
+
+ENFOQUE
+-------
+
+
+1. El . como Operador, no como Carácter
+En este diseño, el punto inicial no es parte del nombre de la etiqueta, es un operador de búsqueda.
+
+Input .armas.escudo.: 
+Es un comando que dice: "Busca todas las ocurrencias de la ruta armas.escudo en cualquier parte del árbol y muéstrame sus hijos".
+El "Switch" Automático: Al seleccionar una opción del desplegable (ej. fantasia.armas.escudo), el componente limpia el operador y deja el resultado puro en el campo (fantasia.armas.escudo). 
+El usuario ha pasado de "modo búsqueda" a "modo edición" sin hacer nada.
+
+2. La dualidad del punto: . (Inicio) vs . (Final)
+
+Este enfoque permite usar el punto de dos formas totalmente distintas según su posición, lo cual es extremadamente intuitivo para alguien con mentalidad técnica:
+
+Punto Inicial (.) = "Busca en todo el bosque": Activa el modo Wildcard. El sistema ignora dónde estás y busca coincidencias globales.
+Punto Final (.) = "Explora esta rama": Activa el modo Drill-down. Una vez que ya estás en una ruta (ej. armas.escudo.), el punto final le dice al sistema: "Ya sé dónde estoy, ahora enséame qué hay dentro".
+
+3. El flujo de "Descubrimiento y Creación" (El escenario perfecto)
+El flujo que describiste es la forma más rápida de trabajar en sistemas de datos complejos:
+
+Fase de Descubrimiento: No sé dónde está el tag "escudo". Escribo .escudo. 
+→
+→ El sistema me lanza todas las ramas posibles.
+Fase de Selección: Veo fantasia.armas.escudo 
+→
+→ Lo selecciono. El campo se llena automáticamente con esa ruta. Ya he "aterrizado" en la rama correcta.
+Fase de Extensión/Creación: Quiero añadir una sub-rama "circular". Simplemente sigo escribiendo: fantasia.armas.escudo.circular.
+Fase de Confirmación: Como "circular" no existe, el sistema me pregunta: "¿Quieres crear 'circular' dentro de 'fantasia.armas.escudo'?".
+
+Resumen de la nueva "Gramática" del componente:
+
+Input			Tipo de Operación				Acción del Sistema														Resultado en el Campo (tras selección)
+--------------	------------------------------	--------------------------------------------------------------------	--------------------------------------
+escudo			Búsqueda de Nombre				Busca etiquetas que se llamen "escudo" en cualquier parte.				rama.escudo
+.escudo			Búsqueda de Ruta (Wildcard)		Busca todas las rutas que contengan "escudo".							rama.escudo
+armas.			Exploración de Hijos			Muestra los hijos directos de "armas".									armas.hijo
+armas.e			Filtrado de Hijos				Muestra los hijos de "armas" que empiezan por "e".						armas.escudo
+.armas.escudo.	Exploración de Hijos Global		Busca todos los "escudo" que están bajo "armas" y muestra sus hijos.	rama.armas.escudo.hijo
+
+
+
+PLAN DE IMPLEMENTACIÓN: TAG GRAMMAR ENGINE
+------------------------------------------
+ 
+
+Fase 1: El Motor de Resolución (Core Logic)
+
+El corazón del componente dejará de ser un simple filtro de texto para convertirse en un analizador de rutas.
+
+Refactorización del Analizador de Input:
+
+Crear un método parseInput(String input) que clasifique el estado en:
+MODE_PLAIN: Sin puntos iniciales (ej. escudo).
+MODE_WILDCARD: Empieza con punto (ej. .escudo).
+MODE_PATH: Contiene puntos intermedios (ej. armas.esc).
+MODE_DRILL_DOWN: Termina con punto (ej. .armas.escudo.).
+
+Implementación de Algoritmos de Búsqueda:
+searchGlobal(prefix): Para el modo Wildcard. Devuelve una lista de objetos PathResult (que contienen tanto el nombre del tag como su ruta completa).
+searchInContext(path, prefix): Para el modo Path. Navega por la jerarquía hasta el último punto y busca hijos que coincidan con el prefijo.
+searchChildren(path): Para el modo Drill-down. Devuelve todos los hijos directos de la ruta especificada.
+
+Nuevo Modelo de Datos para el Popup:
+Sustituir DefaultListModel<String> por DefaultListModel<PathResult>.
+PathResult contendrá: displayName (ej: armas ❯ escudo) y fullPath (ej: armas.escudo).
+
+
+Fase 2: Interacción y UX (UI/Interaction)
+
+Mejorar la respuesta visual y el control mediante el teclado.
+
+Actualización del JPopupMenu:
+Configurar el renderizador de la JList para mostrar el displayName (con el separador visual ❯).
+Asegurar que el popup se posicione correctamente debajo del campo de texto.
+
+Reingeniería del KeyAdapter:
+TAB: Al seleccionar, insertar en el JTextField el fullPath del objeto seleccionado y cerrar el popup.
+
+PERIOD (.):
+Si se pulsa tras una selección, añadir el punto al final del fullPath y disparar una nueva búsqueda (activando el modo Drill-down).
+Evitar la duplicación de puntos mediante una validación de estado.
+ENTER: Ejecutar el proceso de "Resolución de Ruta" (Fase 3).
+
+Auto-conversión de Modo:
+Implementar la lógica para que, tras seleccionar una sugerencia, el campo pase automáticamente de MODE_WILDCARD a MODE_PLAIN (limpiando el punto inicial si lo había).
+
+
+Fase 3: Flujo de Creación de Estructura (The "Creation" Flow)
+
+Implementar la capacidad de crear tags "al vuelo" siguiendo la ruta.
+
+Detección de Ruta Incompleta:
+Al presionar ENTER o perder el foco (FocusLost), el componente analizará la ruta escrita.
+Si la ruta tiene segmentos que no existen (ej. armas.escudo.nuevo_tag), se marcará como una "Ruta de Creación Pendiente".
+
+Diálogo de Confirmación:
+Lanzar un JOptionPane preguntando: "El tag 'nuevo_tag' no existe en 'armas.escudo'. ¿Desea crearlo?".
+
+Persistencia Automática:
+Si el usuario acepta, llamar a TagDAO para insertar el nuevo registro con el parentId correspondiente al último segmento válido de la ruta.
+
+
+Fase 4: Documentación y Verificación
+
+Actualización de la Ayuda:
+Modificar intellisense_modo_datos.html para incluir la nueva "Guía de Comandos" (el uso de los puntos).
+
+Pruebas de Regresión:
+Verificar que el modo plano clásico sigue funcionando para usuarios que no conocen la nueva gramática.
+Validar que la creación de tags no rompe la integridad de la base de datos.
+
+
+***Riesgos y Mitigaciones
+
+Riesgo: La navegación por puntos puede volverse confusa si el usuario comete errores tipográficos.
+Mitigación: El autocompletado debe ser extremadamente sensible y reactivo, permitiendo corregir el error rápidamente con las flechas.
+
+Riesgo: La creación automática de tags puede causar desorden si el usuario presiona ENTER por accidente.
+Mitigación: La confirmación mediante diálogo es obligatoria para cualquier creación de nivel jerárquico.

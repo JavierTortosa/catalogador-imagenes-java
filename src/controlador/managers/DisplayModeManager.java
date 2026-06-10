@@ -194,7 +194,12 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
                                     model.setCurrentImage(get());
                                     actualizarPanelPolaroidActivo();
                                     vista.panels.PolaroidDisplayPanel polaroidPanel = registry.get("panel.datamode.display.polaroid");
-                                    if (polaroidPanel != null) polaroidPanel.getImagePanel().repaint();
+                                    if (polaroidPanel != null) {
+                                        polaroidPanel.getImagePanel().repaint();
+                                        if (zoomManager != null) {
+                                            zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());
+                                        }
+                                    }
                                 } catch (Exception ex) {
                                     logger.error("Error cargando imagen polaroid al cambiar de modo", ex);
                                 }
@@ -202,6 +207,10 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
                         };
                         worker.execute();
                     }
+                }
+                
+                if (model.getCurrentImage() != null && zoomManager != null) {
+                    zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());
                 }
                 
                 actualizarPanelPolaroidActivo();

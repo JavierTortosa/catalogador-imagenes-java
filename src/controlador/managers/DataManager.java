@@ -168,6 +168,7 @@ public class DataManager {
     /**
      * Añade un tag (usando notación de puntos) a una lista de imágenes.
      * Crea la jerarquía de tags si no existe.
+     * Asigna TODOS los tags de la ruta que la imagen aún no tenga.
      * @param imagePaths Lista de rutas de imágenes.
      * @param dotPath Ruta del tag en notación de puntos (ej. "fantasía.armas").
      */
@@ -181,18 +182,28 @@ public class DataManager {
             return;
         }
 
-        // 2. Tomar el último tag de la lista (la "hoja")
-        Tag leafTag = path.get(path.size() - 1);
-        
-        logger.info("Asignando etiqueta '{}' (ID {}) a {} imágenes.", leafTag.getNombre(), leafTag.getId(), imagePaths.size());
+        logger.info("Asignando ruta '{}' ({} tags en jerarquía) a {} imágenes.",
+                dotPath, path.size(), imagePaths.size());
 
-        // 3. Asignar el tag hoja a las imágenes
+        // 2. Asignar cada tag de la ruta que la imagen no tenga ya
         for (Path imagePath : imagePaths) {
             Optional<ImagenInfo> imgOpt = imagenDAO.findImagenByPath(imagePath);
-            if (imgOpt.isPresent()) {
-                tagDAO.assignTagToImage(imgOpt.get().getId(), leafTag.getId());
-            } else {
+            if (imgOpt.isEmpty()) {
                 logger.warn("No se pudo añadir tag a la imagen porque no está indexada: {}", imagePath);
+                continue;
+            }
+            Long imagenId = imgOpt.get().getId();
+
+            // Obtener los tags que la imagen ya tiene
+            List<Tag> existingTags = tagDAO.getTagsForImage(imagenId);
+
+            for (Tag tag : path) {
+                boolean alreadyAssigned = existingTags.stream()
+                        .anyMatch(t -> t.getId() == tag.getId());
+                if (!alreadyAssigned) {
+                    tagDAO.assignTagToImage(imagenId, tag.getId());
+                    logger.debug("Tag '{}' asignado a imagen {}.", tag.getNombre(), imagePath);
+                }
             }
         }
     } // ---FIN de metodo [assignDotNotationTagToImages]---
