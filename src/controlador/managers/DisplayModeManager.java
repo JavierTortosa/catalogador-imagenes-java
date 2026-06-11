@@ -128,36 +128,28 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
             case SINGLE_IMAGE:
                 cardLayout.show(container, "VISTA_SINGLE_IMAGE");
                 if (model.getCurrentWorkMode() == WorkMode.DATOS && model.getSelectedImageKey() != null) {
-                    if (model.getCurrentImage() != null) {
-                        vista.panels.ImageDisplayPanel singlePanel = registry.get("panel.datamode.display");
-                        if (singlePanel != null) singlePanel.repaint();
-                        if (zoomManager != null) {
-                            zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());
-                        }
-                    } else {
-                        java.nio.file.Path ruta = model.getRutaCompleta(model.getSelectedImageKey());
-                        if (ruta != null && java.nio.file.Files.exists(ruta)) {
-                            javax.swing.SwingWorker<java.awt.image.BufferedImage, Void> worker = new javax.swing.SwingWorker<>() {
-                                @Override
-                                protected java.awt.image.BufferedImage doInBackground() throws Exception {
-                                    return javax.imageio.ImageIO.read(ruta.toFile());
-                                }
-                                @Override
-                                protected void done() {
-                                    try {
-                                        model.setCurrentImage(get());
-                                        vista.panels.ImageDisplayPanel singlePanel = registry.get("panel.datamode.display");
-                                        if (singlePanel != null) singlePanel.repaint();
-                                        if (zoomManager != null) {
-                                            zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());
-                                        }
-                                    } catch (Exception ex) {
-                                        logger.error("Error cargando imagen single al cambiar de modo", ex);
+                    java.nio.file.Path ruta = model.getRutaCompleta(model.getSelectedImageKey());
+                    if (ruta != null && java.nio.file.Files.exists(ruta)) {
+                        javax.swing.SwingWorker<java.awt.image.BufferedImage, Void> worker = new javax.swing.SwingWorker<>() {
+                            @Override
+                            protected java.awt.image.BufferedImage doInBackground() throws Exception {
+                                return javax.imageio.ImageIO.read(ruta.toFile());
+                            }
+                            @Override
+                            protected void done() {
+                                try {
+                                    model.setCurrentImage(get());
+                                    vista.panels.ImageDisplayPanel singlePanel = registry.get("panel.datamode.display");
+                                    if (singlePanel != null) singlePanel.repaint();
+                                    if (zoomManager != null) {
+                                        zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());
                                     }
+                                } catch (Exception ex) {
+                                    logger.error("Error cargando imagen single al cambiar de modo", ex);
                                 }
-                            };
-                            worker.execute();
-                        }
+                            }
+                        };
+                        worker.execute();
                     }
                 }
                 if (thumbnailBar != null) thumbnailBar.setVisible(true);
@@ -180,7 +172,7 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
                 cardLayout.show(container, "VISTA_POLAROID");
                 if (thumbnailBar != null) thumbnailBar.setVisible(false);
                 
-                if (model.getCurrentWorkMode() == WorkMode.DATOS && model.getSelectedImageKey() != null && model.getCurrentImage() == null) {
+                if (model.getCurrentWorkMode() == WorkMode.DATOS && model.getSelectedImageKey() != null) {
                     java.nio.file.Path ruta = model.getRutaCompleta(model.getSelectedImageKey());
                     if (ruta != null && java.nio.file.Files.exists(ruta)) {
                         javax.swing.SwingWorker<java.awt.image.BufferedImage, Void> worker = new javax.swing.SwingWorker<>() {

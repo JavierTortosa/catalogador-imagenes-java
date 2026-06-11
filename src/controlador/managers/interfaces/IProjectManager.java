@@ -3,6 +3,7 @@ package controlador.managers.interfaces;
 import java.awt.Component;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 import modelo.proyecto.ProjectModel;
 import servicios.ProyectoIOException;
@@ -52,6 +53,13 @@ public interface IProjectManager {
     Path getCarpetaBaseProyectos();
 	
 	
+    /**
+     * Busca la ruta de una imagen en el proyecto por su nombre de archivo.
+     * @param nombreArchivo El nombre de archivo de la imagen.
+     * @return Un Optional con el Path encontrado, o vacío si no se encuentra.
+     */
+    Optional<Path> buscarPathPorNombre(String nombreArchivo);
+
     /**
      * Devuelve una lista de los Paths absolutos de todas las imágenes en la SELECCIÓN PRINCIPAL.
      * @return Una nueva lista de Paths (ordenada).

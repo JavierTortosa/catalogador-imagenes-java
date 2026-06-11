@@ -288,10 +288,13 @@ public class ToolbarManager implements ThemeChangeListener{
         boolean hasSelection = model.getSelectedImageKey() != null;
 
         // 1. Botones Single y Polaroid: Solo activos si hay selección.
-        Action singleAction = actionMap.get(AppActionCommands.CMD_VISTA_SINGLE);
-        Action polaroidAction = actionMap.get(AppActionCommands.CMD_VISTA_POLAROID);
-        if (singleAction != null) singleAction.setEnabled(hasSelection);
-        if (polaroidAction != null) polaroidAction.setEnabled(hasSelection);
+        // En modo PROYECTO siempre están activos.
+        if (model.getCurrentWorkMode() != WorkMode.PROYECTO) {
+            Action singleAction = actionMap.get(AppActionCommands.CMD_VISTA_SINGLE);
+            Action polaroidAction = actionMap.get(AppActionCommands.CMD_VISTA_POLAROID);
+            if (singleAction != null) singleAction.setEnabled(hasSelection);
+            if (polaroidAction != null) polaroidAction.setEnabled(hasSelection);
+        }
 
         // 2. Botones de Zoom de Grid (Tamaño de miniatura): Solo activos en modo GRID.
         Action gridZoomUp = actionMap.get(AppActionCommands.CMD_GRID_SIZE_UP_MINIATURA);

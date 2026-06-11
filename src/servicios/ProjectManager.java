@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.swing.JOptionPane;
@@ -548,6 +549,13 @@ public class ProjectManager implements IProjectManager {
 
     
     
+    public Optional<Path> buscarPathPorNombre(String nombreArchivo) {
+        return this.currentProject.getSelectedImages().keySet().stream()
+            .map(Paths::get)
+            .filter(p -> p.getFileName() != null && p.getFileName().toString().equals(nombreArchivo))
+            .findFirst();
+    } // ---FIN de metodo [buscarPathPorNombre]---
+
     public String getEtiqueta(Path rutaImagen) {
         if (rutaImagen == null) return null;
         String clave = rutaImagen.toString().replace("\\", "/");

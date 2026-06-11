@@ -433,15 +433,14 @@ public class AppModeService {
                         if (visorController.getActionFactory().getCarouselManager() != null)
                             visorController.getActionFactory().getCarouselManager().onCarouselModeChanged(true);
                         break;
-                    // --- INICIO DE LA MODIFICACIÓN ---
                     case DATOS:
                         if (dataController != null) {
+                            dataController.syncSelectionFromVisualizador();
                             dataController.activate();
                         } else {
                             logger.error("DataController es nulo. No se puede activar el Modo Datos.");
                         }
                         break;
-                    // --- FIN DE LA MODIFICACIÓN ---
                     case EDICION:
                         break;
                 }

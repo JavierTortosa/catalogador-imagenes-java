@@ -2,6 +2,11 @@ package vista.builders;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Component;
+import java.awt.Frame;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import javax.swing.Action;
@@ -9,6 +14,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -26,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import controlador.GeneralController;
 import controlador.ProjectController;
 import controlador.commands.AppActionCommands;
+import controlador.managers.DataManager;
 import controlador.managers.ToolbarManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
@@ -51,9 +58,15 @@ public class ProjectBuilder implements ThemeChangeListener {
     private final GeneralController generalController;
     private final ToolbarManager toolbarManager;
     private final ProjectController projectController;
+    private DataManager dataManager;
+
+    public void setDataManager(DataManager dataManager) {
+        this.dataManager = dataManager;
+    } // --- Fin del método setDataManager ---
 
     public ProjectBuilder(ComponentRegistry registry, VisorModel model, ThemeManager themeManager,
-            GeneralController generalController, ToolbarManager toolbarManager, ProjectController projectController) {
+                          GeneralController generalController, ToolbarManager toolbarManager,
+                          ProjectController projectController) {
 
         logger.info("[ProjectBuilder] Iniciando...");
 
@@ -169,11 +182,39 @@ public class ProjectBuilder implements ThemeChangeListener {
                 .get(AppActionCommands.CMD_PROYECTO_LOCALIZAR_ARCHIVO);
         Action anadirArchivosAction = generalController.getVisorController().getActionMap()
                 .get(AppActionCommands.CMD_PROYECTO_ANADIR_ARCHIVOS);
+        
+        JMenuItem assignTagItem = new JMenuItem("Asignar Etiqueta...");
+        assignTagItem.addActionListener(e -> {
+            List<String> selectedKeys = projectFileList.getSelectedValuesList();
+            logger.info("[ProjectBuilder] Asignar Etiqueta - Llaves seleccionadas: {}", selectedKeys);
+            List<Path> paths = new ArrayList<>();
+            for (String key : selectedKeys) {
+                logger.info("[ProjectBuilder] Buscando Path para clave: {}", key);
+                java.util.Optional<Path> p = generalController.getProjectController().getProjectManager().buscarPathPorNombre(java.nio.file.Paths.get(key).getFileName().toString());
+                if (p.isPresent()) {
+                    logger.info("[ProjectBuilder] Path encontrado: {}", p.get());
+                    paths.add(p.get());
+                } else {
+                    logger.warn("[ProjectBuilder] NO se encontró Path para la clave: {}", key);
+                }
+            }
+            if (!paths.isEmpty() && dataManager != null) {
+                logger.info("[ProjectBuilder] Abriendo TagAssignmentDialog con {} paths", paths.size());
+                vista.dialogos.TagAssignmentDialog dialog = new vista.dialogos.TagAssignmentDialog(
+                    (Frame) SwingUtilities.getWindowAncestor(projectFileList),
+                    dataManager, paths);
+                dialog.setVisible(true);
+            } else {
+                if (paths.isEmpty()) logger.warn("[ProjectBuilder] No se encontraron paths válidos para las llaves seleccionadas.");
+                if (dataManager == null) logger.warn("[ProjectBuilder] dataManager es NULL.");
+            }
+        });
 
         if (moveToDiscardsAction != null) {
             projectFileList.addMouseListener(createContextMenuListener(projectFileList,
                     moveToDiscardsAction, new JPopupMenu.Separator(), localizarAction,
-                    new JPopupMenu.Separator(), anadirArchivosAction));
+                    new JPopupMenu.Separator(), anadirArchivosAction,
+                    new JPopupMenu.Separator(), assignTagItem));
         }
 
         JScrollPane scrollPane = new JScrollPane(projectFileList);
@@ -502,6 +543,8 @@ public class ProjectBuilder implements ThemeChangeListener {
                         menu.add((Action) item);
                     else if (item instanceof JPopupMenu.Separator)
                         menu.addSeparator();
+                    else if (item instanceof Component)
+                        menu.add((Component) item);
                 }
                 if (menu.getComponentCount() > 0)
                     menu.show(e.getComponent(), e.getX(), e.getY());

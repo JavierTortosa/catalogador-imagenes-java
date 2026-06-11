@@ -826,6 +826,8 @@ public class GeneralController
             projectController.aplicarZoomConRueda(e);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CARROUSEL) {
             visorController.aplicarZoomConRueda(e);
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
+            visorController.aplicarZoomConRueda(e);
         }
 
         // log [GeneralController] Delegando aplicarZoomConRueda
@@ -843,6 +845,8 @@ public class GeneralController
             projectController.aplicarPan(deltaX, deltaY);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CARROUSEL) {
             visorController.aplicarPan(deltaX, deltaY);
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
+            visorController.aplicarPan(deltaX, deltaY);
         }
 
         // log [GeneralController] Delegando aplicarPan
@@ -859,6 +863,8 @@ public class GeneralController
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.iniciarPaneo(e);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CARROUSEL) {
+            visorController.iniciarPaneo(e);
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
             visorController.iniciarPaneo(e);
         }
 

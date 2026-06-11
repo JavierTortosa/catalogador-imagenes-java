@@ -12,7 +12,9 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.SwingConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1672,6 +1674,7 @@ public class ActionFactory {
         };
     } // ---FIN de metodo createRestoreDefaultConfigAction---
 
+    
     private Action createSetCustomZoomAction() {
         return new AbstractAction("Establecer Zoom %...") {
             private static final long serialVersionUID = 1L;
@@ -1703,6 +1706,8 @@ public class ActionFactory {
         };
     } // ---FIN de metodo createSetCustomZoomAction---
 
+   
+    
     private Action createShowVersionAction() {
         return new AbstractAction("Acerca de...") {
             private static final long serialVersionUID = 1L;
@@ -1712,11 +1717,28 @@ public class ActionFactory {
                 String version = (generalController != null && generalController.getVisorController() != null)
                         ? generalController.getVisorController().getVersion()
                         : "N/A";
-                String nombreApp = "Visor de Imágenes V2";
-                String autor = "(c) 2024 Javier Tortosa";
-                String mensaje = nombreApp + "\nVersión: " + version + "-MVC-SyncLists\n" + autor;
-                String tituloDialogo = "Acerca de " + nombreApp;
-                JOptionPane.showMessageDialog(view, mensaje, tituloDialogo, JOptionPane.INFORMATION_MESSAGE);
+
+                // Usamos formato HTML para asegurar centrado total independientemente de la fuente
+                String mensajeHtml = String.format(
+                    "<html><div style='text-align: center; width: 300px;'>" +
+                    "<h2 style='margin: 0;'>Visor de Imágenes V2</h2>" +
+                    "<p style='margin: 10px 0;'>Programa de ayuda a la búsqueda de imágenes,<br>" +
+                    "gestión de proyectos y control de archivos.</p>" +
+                    "<p style='margin: 5px 0;'><b>Versión:</b> %s-MVC-SyncLists</p>" +
+                    "<p style='margin-top: 10px;'><i>(c) 2024 Javier Tortosa</i></p>" +
+                    "</div></html>", 
+                    version
+                );
+
+                // Creamos el componente para inyectarlo en el JOptionPane
+                JLabel mensajeLabel = new JLabel(mensajeHtml, SwingConstants.CENTER);
+
+                JOptionPane.showMessageDialog(
+                    view, 
+                    mensajeLabel, 
+                    "Acerca de Visor de Imágenes V2", 
+                    JOptionPane.INFORMATION_MESSAGE
+                );
             }
         };
     } // ---FIN de metodo createShowVersionAction---

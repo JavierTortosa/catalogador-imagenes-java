@@ -28,6 +28,7 @@ import controlador.managers.BackgroundControlManager;
 import controlador.managers.CarouselManager;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.DataManager;
+import controlador.managers.DataManager;
 import controlador.managers.DisplayModeManager;
 import controlador.managers.EditionManager;
 import controlador.managers.FileOperationsManager;
@@ -243,8 +244,9 @@ public class AppInitializer {
 
         logger.info("Inicializando Controllador de Proyectos");
         // Usar la ÚNICA instancia de projectController
-        this.projectBuilder = new ProjectBuilder(this.registry, this.model, this.themeManager, this.generalController,
-                this.toolbarManager, this.projectController);
+                this.projectBuilder = new ProjectBuilder(this.registry, this.model, this.themeManager, this.generalController,
+                        this.toolbarManager, this.projectController);
+                this.projectBuilder.setDataManager(this.dataManager);
 
         logger.info("Inicializando Construccion del Visor");
         // Usar el projectBuilder del campo de la clase (this.projectBuilder) para el

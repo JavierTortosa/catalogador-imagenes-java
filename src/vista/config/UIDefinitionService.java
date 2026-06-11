@@ -577,9 +577,9 @@ public class UIDefinitionService {
                 "Guardar Configuración Actual", null));
         configSubItems.add(new MenuItemDefinition(AppActionCommands.CMD_CONFIG_CARGAR_INICIAL, MenuItemType.ITEM,
                 "Restaurar Configuración Inicial", null));
-        configSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));
-        configSubItems.add(new MenuItemDefinition(AppActionCommands.CMD_CONFIG_MOSTRAR_VERSION, MenuItemType.ITEM,
-                "Acerca de...", null));
+//        configSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));
+//        configSubItems.add(new MenuItemDefinition(AppActionCommands.CMD_CONFIG_MOSTRAR_VERSION, MenuItemType.ITEM,
+//                "Acerca de...", null));
 
         // 7.8. Añadir el menú "Configuración" a la barra de menú principal
         menuBarStructure.add(new MenuItemDefinition(null, MenuItemType.MAIN_MENU, "Configuración", configSubItems));
@@ -591,7 +591,12 @@ public class UIDefinitionService {
                 new MenuItemDefinition(null, // <-- AÑADIDO
                         MenuItemType.SEPARATOR, null, null),
                 new MenuItemDefinition(AppActionCommands.CMD_AYUDA_VER_ATAJOS,
-                        MenuItemType.ITEM, "Ver Atajos de Teclado...", null));
+                        MenuItemType.ITEM, "Ver Atajos de Teclado...", null),
+                new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
+        		new MenuItemDefinition(AppActionCommands.CMD_CONFIG_MOSTRAR_VERSION, 
+        				MenuItemType.ITEM, "Acerca de...", null)
+        		);
+        
         menuBarStructure.add(new MenuItemDefinition(null,
                 MenuItemType.MAIN_MENU, "Ayuda", ayudaSubItems));
 

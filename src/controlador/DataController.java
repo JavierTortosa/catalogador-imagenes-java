@@ -3,6 +3,8 @@ package controlador;
 import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -12,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.imageio.ImageIO;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JList;
@@ -24,12 +27,14 @@ import javax.swing.JToggleButton;
 import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.tree.TreePath;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.managers.DataManager;
+import controlador.managers.DisplayModeManager;
 import controlador.managers.InfobarStatusManager;
 import controlador.managers.interfaces.IProjectManager;
 import controlador.utils.ComponentRegistry;
@@ -40,6 +45,8 @@ import modelo.datos.Tag;
 import servicios.db.TagDAO;
 import vista.components.TagIntelliSenseField;
 import vista.panels.DriveListPanel;
+import vista.panels.ImageDisplayPanel;
+import vista.panels.PolaroidDisplayPanel;
 import vista.panels.TagManagementPanel;
 import vista.tree.TagTreeCellRenderer;
 import vista.tree.TagTreeModel;
@@ -71,6 +78,9 @@ public class DataController {
 
     // Flag para evitar refrescar IntelliSense repetidamente si los datos no han cambiado
     private boolean intelliSenseRefreshed = false;
+
+    // ID del tag del sistema (carpeta física) a seleccionar al sincronizar desde VISUALIZADOR
+    private Long pendingSyncTagId = null;
 
     public DataController(VisorModel model, ComponentRegistry registry, DataManager dataManager) {
         this.model = model;
@@ -195,9 +205,14 @@ public class DataController {
         // Restaurar la etiqueta guardada o seleccionar "Biblioteca" por defecto
         JTree allTagsTree = registry.get("tree.datamode.alltags");
         if (allTagsTree != null) {
-            String savedTag = model != null ? model.getDatosListContext().getDatosSelectedTag() : null;
-            if (savedTag != null && !"Biblioteca".equals(savedTag)) {
-                selectTagNode(allTagsTree, savedTag);
+            if (pendingSyncTagId != null) {
+                selectTagInTree(pendingSyncTagId);
+                pendingSyncTagId = null;
+            } else {
+                String savedTag = model != null ? model.getDatosListContext().getDatosSelectedTag() : null;
+                if (savedTag != null && !"Biblioteca".equals(savedTag)) {
+                    selectTagNode(allTagsTree, savedTag);
+                }
             }
             if (allTagsTree.getSelectionCount() == 0) {
                 allTagsTree.setSelectionRow(0);
@@ -231,6 +246,40 @@ public class DataController {
             }
         });
     } // ---FIN de metodo [activate]---
+
+    public void syncSelectionFromVisualizador() {
+        ListContext visCtx = model.getVisualizadorListContext();
+        if (visCtx == null) return;
+
+        String visKey = visCtx.getSelectedImageKey();
+        if (visKey == null) return;
+
+        Path visPath = visCtx.getRutaCompleta(visKey);
+        if (visPath != null) {
+            // Recorrer la jerarquía de carpetas para encontrar el tag del sistema más profundo
+            Path parentPath = visPath.toAbsolutePath().normalize().getParent();
+            if (parentPath != null) {
+                TagDAO tagDAO = dataManager.getTagDAO();
+                Long currentParentId = null;
+                Tag deepestTag = null;
+                for (int i = 0; i < parentPath.getNameCount(); i++) {
+                    String tagName = parentPath.getName(i).toString().trim();
+                    if (tagName.isEmpty()) continue;
+                    java.util.Optional<Tag> tagOpt = tagDAO.findTagByNameAndParent(tagName, currentParentId);
+                    if (tagOpt.isPresent() && tagOpt.get().isReadOnly()) {
+                        deepestTag = tagOpt.get();
+                        currentParentId = deepestTag.getId();
+                    } else {
+                        break;
+                    }
+                }
+                if (deepestTag != null) {
+                    pendingSyncTagId = deepestTag.getId();
+                }
+            }
+        }
+        model.getDatosListContext().setSelectedImageKey(visKey);
+    } // ---FIN de metodo [syncSelectionFromVisualizador]---
 
     public void guardarContexto() {
         if (model == null) return;
@@ -374,27 +423,29 @@ public class DataController {
     private void selectTagInTree(long tagId) {
         JTree tree = registry.get("tree.datamode.alltags");
         if (tree == null || tagTreeModel == null) return;
-        javax.swing.tree.TreePath path = findTreePathForTagId(tagId);
-        if (path != null) {
-            tree.setSelectionPath(path);
-            tree.scrollPathToVisible(path);
+        javax.swing.tree.TreeModel model = tree.getModel();
+        java.util.ArrayList<Object> path = new java.util.ArrayList<>();
+        javax.swing.tree.TreePath result = findNodePathInModel(model, model.getRoot(), tagId, path);
+        if (result != null) {
+            tree.setSelectionPath(result);
+            tree.scrollPathToVisible(result);
         }
     } // ---FIN de metodo [selectTagInTree]---
-
-    private javax.swing.tree.TreePath findTreePathForTagId(long tagId) {
-        JTree tree = registry.get("tree.datamode.alltags");
-        if (tree == null || tagTreeModel == null) return null;
-        for (int row = 0; row < tree.getRowCount(); row++) {
-            javax.swing.tree.TreePath path = tree.getPathForRow(row);
-            if (path != null) {
-                Object last = path.getLastPathComponent();
-                if (last instanceof Tag && ((Tag) last).getId() == tagId) {
-                    return path;
-                }
-            }
+    
+    private javax.swing.tree.TreePath findNodePathInModel(javax.swing.tree.TreeModel model, Object parent, long tagId, java.util.ArrayList<Object> pathAccum) {
+        pathAccum.add(parent);
+        if (parent instanceof Tag && ((Tag) parent).getId() == tagId) {
+            return new javax.swing.tree.TreePath(pathAccum.toArray());
         }
+        int childCount = model.getChildCount(parent);
+        for (int i = 0; i < childCount; i++) {
+            Object child = model.getChild(parent, i);
+            javax.swing.tree.TreePath found = findNodePathInModel(model, child, tagId, pathAccum);
+            if (found != null) return found;
+        }
+        pathAccum.remove(pathAccum.size() - 1);
         return null;
-    } // ---FIN de metodo [findTreePathForTagId]---
+    } // ---FIN de metodo [findNodePathInModel]---
 
     private void initializeFlatTagList() {
         JList<Tag> flatList = registry.get("list.datamode.alltags.flat");
@@ -501,6 +552,46 @@ public class DataController {
         });
     } // ---FIN de metodo [refreshDriveList]---
 
+    private void cargarImagenEnVisor() {
+        String selectedKey = model.getSelectedImageKey();
+        if (selectedKey == null || visorController == null) return;
+
+        Path ruta = model.getRutaCompleta(selectedKey);
+        if (ruta == null || !Files.exists(ruta)) return;
+
+        VisorModel.DisplayMode currentMode = model.getCurrentDisplayMode();
+
+        new SwingWorker<BufferedImage, Void>() {
+            @Override
+            protected BufferedImage doInBackground() throws Exception {
+                return ImageIO.read(ruta.toFile());
+            }
+            @Override
+            protected void done() {
+                try {
+                    model.setCurrentImage(get());
+
+                    if (currentMode == VisorModel.DisplayMode.POLAROID) {
+                        PolaroidDisplayPanel polaroidPanel = registry.get("panel.datamode.display.polaroid");
+                        if (polaroidPanel != null) {
+                            polaroidPanel.actualizarInformacionDesdeModelo();
+                            polaroidPanel.getImagePanel().repaint();
+                        }
+                    } else {
+                        ImageDisplayPanel singlePanel = registry.get("panel.datamode.display");
+                        if (singlePanel != null) singlePanel.repaint();
+                    }
+
+                    if (visorController.getZoomManager() != null) {
+                        visorController.getZoomManager().aplicarModoDeZoom(model.getCurrentZoomMode());
+                    }
+                } catch (Exception ex) {
+                    logger.error("Error cargando imagen en modo datos", ex);
+                }
+            }
+        }.execute();
+    } // ---FIN de metodo [cargarImagenEnVisor]---
+
     private void initializeFileNameList() {
         JList<String> fileNameList = registry.get("list.datamode.filenames");
         if (fileNameList == null) {
@@ -520,6 +611,7 @@ public class DataController {
                     }
                     if (selectedKey != null) {
                         model.setSelectedImageKey(selectedKey);
+                        cargarImagenEnVisor();
                         updateTagPanelSelection();
                         JList<String> gridList = registry.get("list.datamode.grid");
                         if (gridList != null) {
@@ -662,6 +754,7 @@ public class DataController {
                 try {
                     String selectedKey = gridList.getSelectedValue();
                     model.setSelectedImageKey(selectedKey);
+                    cargarImagenEnVisor();
                     updateTagPanelSelection();
                     JList<String> fileNameList = registry.get("list.datamode.filenames");
                     if (fileNameList != null && selectedKey != null) {
