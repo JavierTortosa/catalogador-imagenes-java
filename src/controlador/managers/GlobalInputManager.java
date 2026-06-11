@@ -170,6 +170,7 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
             Component etiquetaPolaroid = registry.get("label.polaroid.imagen");
             Component etiquetaPolaroidProyecto = registry.get("label.proyecto.polaroid.imagen");
             Component etiquetaPolaroidDatos = registry.get("label.datamode.polaroid.imagen");
+            Component etiquetaImagenDatos = registry.get("label.datamode.imagen");
             Component sourceComponent = e.getComponent();
 
             // Comprobamos si el componente que originó el evento es uno de nuestros JLabels.
@@ -177,6 +178,7 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
             boolean sobreLaImagen = (etiquetaImagenVisualizador != null && sourceComponent == etiquetaImagenVisualizador) ||
                                     (etiquetaImagenProyecto != null && sourceComponent == etiquetaImagenProyecto) ||
                                     (etiquetaImagenCarrusel != null && sourceComponent == etiquetaImagenCarrusel) ||
+                                    (etiquetaImagenDatos != null && sourceComponent == etiquetaImagenDatos) ||
                                     (etiquetaPolaroid != null && sourceComponent == etiquetaPolaroid) ||
                                     (etiquetaPolaroidProyecto != null && sourceComponent == etiquetaPolaroidProyecto) ||
                                     (etiquetaPolaroidDatos != null && sourceComponent == etiquetaPolaroidDatos);
@@ -329,6 +331,7 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
         Component etiquetaPolaroid = registry.get("label.polaroid.imagen");
         Component etiquetaPolaroidProyecto = registry.get("label.proyecto.polaroid.imagen");
         Component etiquetaPolaroidDatos = registry.get("label.datamode.polaroid.imagen");
+        Component etiquetaImagenDatos = registry.get("label.datamode.imagen");
 
         if (etiquetaVisor != null) {
             etiquetaVisor.addMouseListener(paneoMouseAdapter);
@@ -353,6 +356,10 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
         if (etiquetaPolaroidDatos != null) {
             etiquetaPolaroidDatos.addMouseListener(paneoMouseAdapter);
             etiquetaPolaroidDatos.addMouseMotionListener(paneoMouseMotionAdapter);
+        }
+        if (etiquetaImagenDatos != null) {
+            etiquetaImagenDatos.addMouseListener(paneoMouseAdapter);
+            etiquetaImagenDatos.addMouseMotionListener(paneoMouseMotionAdapter);
         }
 
         logger.debug("[GestorEntradaGlobal] Listeners configurados.");
