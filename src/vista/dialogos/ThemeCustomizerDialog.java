@@ -546,6 +546,12 @@ public class ThemeCustomizerDialog extends JDialog {
                     JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                 if (confirm == JOptionPane.YES_OPTION) {
                     if (selected.file.delete()) {
+                        String themeId = "custom_"
+                            + selected.file.getName()
+                                .replace(".properties", "")
+                                .toLowerCase()
+                                .replaceAll("\\s+", "_");
+                        themeManager.removeCustomTheme(themeId);
                         logger.info("Tema personalizado borrado: {}",
                             selected.file.getName());
                         JOptionPane.showMessageDialog(this,

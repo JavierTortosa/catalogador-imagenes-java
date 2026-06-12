@@ -362,6 +362,12 @@ public class ThemeManager {
     public Map<String, ThemeInfo> getAvailableThemes() {
         return new java.util.HashMap<>(TEMAS_DISPONIBLES);
     }
+
+    public void removeCustomTheme(String themeId) {
+        if (themeId != null) {
+            TEMAS_DISPONIBLES.remove(themeId);
+        }
+    }
     
     /**
      * Aplica personalizaciones de color en "vivo" al tema actual.
