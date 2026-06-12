@@ -89,11 +89,10 @@ public class HelpDialog extends JDialog {
         carruselFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Controles", "carrusel_controles.html")));
         top.add(carruselFolder);
         
-        DefaultMutableTreeNode uiRefFolder = new DefaultMutableTreeNode(new HelpPageInfo("Referencia de UI", "summary_ui.html"));
-        uiRefFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Barras de Herramientas", "toolbars_autogen.html")));
-        uiRefFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Barra de Menús", "menus_autogen.html")));
-        uiRefFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Personalizar Tema", "personalizar_tema.html")));
-        top.add(uiRefFolder);
+        DefaultMutableTreeNode configFolder = new DefaultMutableTreeNode(new HelpPageInfo("Configuración", "configuracion.html"));
+        configFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Configuración Avanzada", "configuracion.html")));
+        configFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Personalizar Tema", "personalizar_tema.html")));
+        top.add(configFolder);
 
         top.add(new DefaultMutableTreeNode(new HelpPageInfo("Atajos de Teclado", "atajos.html")));
 

@@ -11,10 +11,13 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -27,7 +30,9 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.ListSelectionModel;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -269,10 +274,15 @@ public class ThemeCustomizerDialog extends JDialog {
             dispose();
         });
 
+        JButton deleteButton = new JButton("Borrar Tema...");
+        deleteButton.putClientProperty("JButton.buttonType", "roundRect");
+        deleteButton.addActionListener(e -> deleteCustomTheme());
+
         JButton cancelButton = new JButton("Cancelar");
         cancelButton.addActionListener(e -> dispose());
 
         buttonPanel.add(saveButton);
+        buttonPanel.add(deleteButton);
         buttonPanel.add(applyButton);
         buttonPanel.add(cancelButton);
         add(buttonPanel, BorderLayout.SOUTH);
@@ -483,6 +493,76 @@ public class ThemeCustomizerDialog extends JDialog {
         refreshPreview();
     }
 
+    private void deleteCustomTheme() {
+        File customThemesDir = new File(".temas_personalizados");
+        if (!customThemesDir.exists() || !customThemesDir.isDirectory()) {
+            JOptionPane.showMessageDialog(this,
+                "No hay temas personalizados para borrar.",
+                "Informaci\u00F3n", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        File[] files = customThemesDir.listFiles(
+            (dir, name) -> name.toLowerCase().endsWith(".properties"));
+        if (files == null || files.length == 0) {
+            JOptionPane.showMessageDialog(this,
+                "No hay temas personalizados para borrar.",
+                "Informaci\u00F3n", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        DefaultListModel<FileEntry> model = new DefaultListModel<>();
+        for (File f : files) {
+            String displayName = f.getName().replace(".properties", "");
+            try (BufferedReader r = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(f),
+                        StandardCharsets.UTF_8))) {
+                String line = r.readLine();
+                if (line != null && line.startsWith("#=")) {
+                    displayName = line.substring(2).trim();
+                }
+            } catch (IOException e) {
+                logger.warn("No se pudo leer {} para obtener nombre", f.getName());
+            }
+            model.addElement(new FileEntry(displayName, f));
+        }
+
+        JList<FileEntry> list = new JList<>(model);
+        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane scroll = new JScrollPane(list);
+        scroll.setPreferredSize(new Dimension(300, 200));
+
+        int result = JOptionPane.showConfirmDialog(this, scroll,
+            "Selecciona un tema para borrar",
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+        if (result == JOptionPane.OK_OPTION) {
+            FileEntry selected = list.getSelectedValue();
+            if (selected != null) {
+                int confirm = JOptionPane.showConfirmDialog(this,
+                    "\u00bfEst\u00E1s seguro de borrar el tema \""
+                    + selected.name + "\"?\nEsta acci\u00F3n no se puede deshacer.",
+                    "Confirmar borrado",
+                    JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    if (selected.file.delete()) {
+                        logger.info("Tema personalizado borrado: {}",
+                            selected.file.getName());
+                        JOptionPane.showMessageDialog(this,
+                            "Tema \"" + selected.name + "\" borrado con \u00E9xito.",
+                            "Informaci\u00F3n", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        logger.error("No se pudo borrar: {}",
+                            selected.file.getAbsolutePath());
+                        JOptionPane.showMessageDialog(this,
+                            "No se pudo borrar el tema. Comprueba los permisos del archivo.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        }
+    }
+
     private void saveCustomTheme() {
         String newThemeName = customThemeNameField.getText().trim();
         if (newThemeName.isEmpty()) {
@@ -615,4 +695,10 @@ public class ThemeCustomizerDialog extends JDialog {
             }
         }
     }
+
+    private record FileEntry(String name, File file) {
+        @Override
+        public String toString() { return name; }
+    }
+
 }
