@@ -14,8 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -30,7 +28,6 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
@@ -45,8 +42,6 @@ import controlador.managers.DisplayModeManager;
 import controlador.managers.ExportQueueManager;
 import controlador.managers.interfaces.IProjectManager;
 import controlador.managers.interfaces.IZoomManager;
-import controlador.utils.ComponentRegistry;
-import controlador.utils.DesktopUtils;
 import controlador.services.proyecto.ExportPreflightReport;
 import controlador.services.proyecto.ExportStatusReport;
 import controlador.services.proyecto.PdfWorkflowService;
@@ -55,27 +50,28 @@ import controlador.services.proyecto.ProjectFileManagementService;
 import controlador.services.proyecto.ProjectIntegrityService;
 import controlador.services.proyecto.ProjectSyncService;
 import controlador.ui.ProjectUIManager;
+import controlador.utils.ComponentRegistry;
+import controlador.utils.DesktopUtils;
 import controlador.worker.ArchiveAnalysisWorker;
 import controlador.worker.ExportWorker;
 import modelo.ListContext;
 import modelo.VisorModel;
-import modelo.datos.ArchiveMetadata;
-import modelo.export.pdf.PDFExportPreflightService;
 import modelo.proyecto.ExportItem;
-import vista.dialogos.PDFExportPreflightDialog;
-import vista.dialogos.PDFPreviewDialog;
-import modelo.proyecto.ExportStatus;
 import modelo.proyecto.ProjectModel;
 import servicios.ArchiveAnalysisService;
-import servicios.db.ArchiveMetadataDAO;
 import vista.VisorView;
+import vista.dialogos.PDFPreviewDialog;
 import vista.dialogos.TaskProgressDialog;
-import vista.theme.Tema;
 import vista.panels.export.ExportDetailPanel;
 import vista.panels.export.ExportPanel;
-import vista.panels.export.PdfDetailsTablePanel;
 import vista.panels.export.ExportTableModel;
+import vista.theme.Tema;
 
+/**
+ * Controlador principal del modo PROYECTO.
+ * Orquesta la logica de seleccion/descartes, gestion de imagenes marcadas,
+ * configuracion de exportacion, y coordinacion de las vistas del proyecto.
+ */
 public class ProjectController implements IModoController {
 
     private static final Logger logger = LoggerFactory.getLogger(ProjectController.class);
@@ -1633,6 +1629,8 @@ public class ProjectController implements IModoController {
             }
         }
     }
+    
+    
     // Abre el explorador de archivos y selecciona la imagen activa de la tabla de exportacion
     public void solicitarAbrirUbicacionImagen() {
         if (exportQueueManager == null || registry == null)
@@ -2563,6 +2561,13 @@ public class ProjectController implements IModoController {
         this.registry = Objects.requireNonNull(registry);
         this.uiManager = new ProjectUIManager(this.registry);
     } // --- Fin del Metodo: setRegistry ---
+
+    // Inyecta el DataManager para operaciones de etiquetado desde el visor de proyecto
+    public void setDataManager(controlador.managers.DataManager dataManager) {
+        if (this.uiManager != null) {
+            this.uiManager.setDataManager(dataManager);
+        }
+    } // --- Fin del Metodo: setDataManager ---
 
 
     // Inyecta el IZoomManager para operaciones de zoom y paneo

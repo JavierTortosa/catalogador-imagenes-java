@@ -1,8 +1,11 @@
 package controlador.ui;
 
 import java.awt.Color;
+import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import controlador.ProjectViewState;
 import controlador.commands.AppActionCommands;
 import controlador.interfaces.ContextSensitiveAction;
+import controlador.managers.DataManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import vista.panels.GridDisplayPanel;
@@ -33,15 +37,28 @@ import vista.panels.export.ExportPanel;
 import vista.panels.export.ProjectMetadataPanel;
 import vista.theme.Tema;
 
+/**
+ * Gestiona la construccion y actualizacion de componentes de UI especificos
+ * del modo PROYECTO: menus contextuales, listas de seleccion/descartes,
+ * paneles de propiedades y layout del panel derecho.
+ */
 public class ProjectUIManager {
 
     private static final Logger logger = LoggerFactory.getLogger(ProjectUIManager.class);
 
     private ComponentRegistry registry;
+    private DataManager dataManager;
 
+    // Constructor: recibe el registro de componentes para acceder a las vistas
     public ProjectUIManager(ComponentRegistry registry) {
         this.registry = registry;
-    }
+    } // --- Fin del metodo ProjectUIManager (constructor) ---
+
+
+    // Inyecta el DataManager para permitir operaciones de asignacion de etiquetas
+    public void setDataManager(DataManager dataManager) {
+        this.dataManager = dataManager;
+    } // --- Fin del metodo setDataManager ---
 
     // Calcula y ajusta la posición del divisor del split pane derecho (vertical)
     public void ajustarPosicionDivisorDerecho() {
@@ -177,7 +194,31 @@ public class ProjectUIManager {
 
         menu.addSeparator();
 
-        // Paso 3: Acción global: Añadir archivos (SIEMPRE disponible al final)
+        // Paso 3: Asignar Etiqueta (solo si hay DataManager disponible)
+        if (dataManager != null) {
+            JMenuItem assignTagItem = new JMenuItem("Asignar Etiqueta...");
+            assignTagItem.addActionListener(e -> {
+                JList<String> gridList = registry.get("list.grid.proyecto");
+                if (gridList == null) return;
+                List<String> selectedKeys = gridList.getSelectedValuesList();
+                List<Path> paths = new ArrayList<>();
+                Map<String, Path> rutaMap = model.getCurrentListContext().getRutaCompletaMap();
+                if (rutaMap != null) {
+                    for (String key : selectedKeys) {
+                        Path p = rutaMap.get(key);
+                        if (p != null) paths.add(p);
+                    }
+                }
+                if (!paths.isEmpty()) {
+                    Frame frame = gridList != null ? (Frame) SwingUtilities.getWindowAncestor(gridList) : null;
+                    new vista.dialogos.TagAssignmentDialog(frame, dataManager, paths).setVisible(true);
+                }
+            });
+            menu.add(assignTagItem);
+            menu.addSeparator();
+        }
+
+        // Paso 4: Acción global: Añadir archivos (SIEMPRE disponible al final)
         menu.add(actionMap.get(AppActionCommands.CMD_PROYECTO_ANADIR_ARCHIVOS));
 
         return menu;

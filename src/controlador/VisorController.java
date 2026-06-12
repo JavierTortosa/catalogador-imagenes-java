@@ -130,6 +130,7 @@ public class VisorController implements IModoController, ThemeChangeListener {
     
     private ConfigApplicationManager configAppManager;
     private MenuPopupManager menuPopupManager;
+    private controlador.managers.TaggingManager taggingManager;
     
     private Map<String, AbstractButton> botonesPorNombre;
     
@@ -817,6 +818,10 @@ public class VisorController implements IModoController, ThemeChangeListener {
             }
             displayPanel.mostrarError("Ruta no encontrada para:\n" + archivoSeleccionadoKey, null);
             return;
+        }
+        if (taggingManager != null) {
+            taggingManager.setLastActiveImage(rutaCompleta, archivoSeleccionadoKey);
+            logger.debug("TaggingManager <<< path={}, key={}", rutaCompleta, archivoSeleccionadoKey);
         }
         displayPanel.mostrarCargando("Cargando: " + rutaCompleta.getFileName() + "...");
         
@@ -2109,6 +2114,7 @@ public class VisorController implements IModoController, ThemeChangeListener {
     public void setDisplayModeManager		(controlador.managers.DisplayModeManager displayModeManager) {this.displayModeManager = displayModeManager;}
     public void setGeneralController		(GeneralController generalController) {this.generalController = generalController;}
     public void setImageListManager			(ImageListManager imageListManager) { this.imageListManager = imageListManager; }
+    public void setTaggingManager			(controlador.managers.TaggingManager taggingManager) { this.taggingManager = taggingManager; }
     
 // ***************************************************************************************************** FIN GETTERS Y SETTERS
 // ***************************************************************************************************************************    

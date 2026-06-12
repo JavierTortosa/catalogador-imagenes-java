@@ -73,6 +73,12 @@ import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 import vista.util.ThumbnailPreviewer;
 
+/**
+ * Orquestador principal del arranque de la aplicación.
+ * Gestiona la instanciación, cableado e inicialización de todos los
+ * componentes (Modelo, Vista, Controladores, Servicios, Managers y Builders)
+ * en tres fases secuenciales.
+ */
 public class AppInitializer {
 
     private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
@@ -392,6 +398,7 @@ public class AppInitializer {
 
         projectController.setProjectManager(this.projectManagerService);
         projectController.setRegistry(this.registry);
+        projectController.setDataManager(this.dataManager);
         projectController.setZoomManager(this.zoomManager);
         projectController.setModel(this.model);
 
@@ -447,6 +454,11 @@ public class AppInitializer {
         this.appModeService.setConfiguration(this.configuration);
         this.appModeService.setRegistry(this.registry);
 
+        // --- TaggingManager (contexto compartido entre modos) ---
+        controlador.managers.TaggingManager taggingManager = new controlador.managers.TaggingManager();
+        this.controller.setTaggingManager(taggingManager);
+        this.dataController.setTaggingManager(taggingManager);
+        this.appModeService.setTaggingManager(taggingManager);
         
         // --- Cableado de componentes del Modo Datos ---
         this.viewBuilder.setDataBuilder(this.dataBuilder);
@@ -630,6 +642,10 @@ public class AppInitializer {
                 JList<String> miniaturasCarrusel = registry.get("list.miniaturas.carousel");
                 if (miniaturasCarrusel != null)
                     miniaturasCarrusel.setModel(this.controller.getModeloMiniaturasCarrusel());
+
+                if (this.listCoordinator != null) {
+                    this.listCoordinator.configurarSyncMultiSeleccion();
+                }
 
                 // 3.8: Configurar listeners y estado inicial
                 if (this.projectManagerService != null)

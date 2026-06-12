@@ -79,8 +79,11 @@ public class DataController {
     // Flag para evitar refrescar IntelliSense repetidamente si los datos no han cambiado
     private boolean intelliSenseRefreshed = false;
 
-    // ID del tag del sistema (carpeta física) a seleccionar al sincronizar desde VISUALIZADOR
-    private Long pendingSyncTagId = null;
+    private controlador.managers.TaggingManager taggingManager;
+
+    // Datos pendientes de sincronización desde VISUALIZADOR (entrante desde AppModeService)
+    private Path pendingSyncPath = null;
+    private String pendingSyncKey = null;
 
     public DataController(VisorModel model, ComponentRegistry registry, DataManager dataManager) {
         this.model = model;
@@ -114,6 +117,10 @@ public class DataController {
     public void setStatusBarManager(InfobarStatusManager statusBarManager) {
         this.statusBarManager = statusBarManager;
     } // ---FIN de metodo [setStatusBarManager]---
+
+    public void setTaggingManager(controlador.managers.TaggingManager taggingManager) {
+        this.taggingManager = taggingManager;
+    } // ---FIN de metodo [setTaggingManager]---
 
     /**
      * Inicializa el controlador. Carga los datos iniciales y configura los listeners.
@@ -202,12 +209,48 @@ public class DataController {
             intelliSenseRefreshed = true;
         }
         
-        // Restaurar la etiqueta guardada o seleccionar "Biblioteca" por defecto
+        // Sincronizar desde TaggingManager si hay datos pendientes de VISUALIZADOR
         JTree allTagsTree = registry.get("tree.datamode.alltags");
         if (allTagsTree != null) {
-            if (pendingSyncTagId != null) {
-                selectTagInTree(pendingSyncTagId);
-                pendingSyncTagId = null;
+            if (pendingSyncPath != null) {
+                logger.debug("Procesando pendingSyncPath: {}", pendingSyncPath);
+                TagDAO tagDAO = dataManager.getTagDAO();
+                java.util.List<Tag> imageTags = dataManager.getTagsForImage(pendingSyncPath);
+                Tag deepestSystemTag = null;
+                int maxDepth = -1;
+                for (Tag t : imageTags) {
+                    if (t.isReadOnly()) {
+                        int depth = 0;
+                        Long pid = t.getParentId();
+                        while (pid != null) {
+                            depth++;
+                            java.util.Optional<Tag> parentOpt = tagDAO.findTagById(pid);
+                            if (parentOpt.isPresent()) {
+                                pid = parentOpt.get().getParentId();
+                            } else {
+                                break;
+                            }
+                        }
+                        logger.debug("  tag '{}' (id={}): depth={}", t.getNombre(), t.getId(), depth);
+                        if (depth > maxDepth) {
+                            maxDepth = depth;
+                            deepestSystemTag = t;
+                        }
+                    }
+                }
+                if (deepestSystemTag != null) {
+                    logger.debug("Seleccionando tag del sistema más profundo: id={}, nombre={} (depth={})",
+                        deepestSystemTag.getId(), deepestSystemTag.getNombre(), maxDepth);
+                    final long tagId = deepestSystemTag.getId();
+                    SwingUtilities.invokeLater(() -> selectTagInTree(tagId));
+                } else {
+                    logger.debug("No se encontró ningún tag del sistema para la imagen: {}", pendingSyncPath);
+                }
+                if (pendingSyncKey != null) {
+                    model.getDatosListContext().setSelectedImageKey(pendingSyncKey);
+                }
+                pendingSyncPath = null;
+                pendingSyncKey = null;
             } else {
                 String savedTag = model != null ? model.getDatosListContext().getDatosSelectedTag() : null;
                 if (savedTag != null && !"Biblioteca".equals(savedTag)) {
@@ -247,39 +290,11 @@ public class DataController {
         });
     } // ---FIN de metodo [activate]---
 
-    public void syncSelectionFromVisualizador() {
-        ListContext visCtx = model.getVisualizadorListContext();
-        if (visCtx == null) return;
+    public void setPendingSyncFromVisualizador(Path path, String key) {
+        this.pendingSyncPath = path;
+        this.pendingSyncKey = key;
+    } // ---FIN de metodo [setPendingSyncFromVisualizador]---
 
-        String visKey = visCtx.getSelectedImageKey();
-        if (visKey == null) return;
-
-        Path visPath = visCtx.getRutaCompleta(visKey);
-        if (visPath != null) {
-            // Recorrer la jerarquía de carpetas para encontrar el tag del sistema más profundo
-            Path parentPath = visPath.toAbsolutePath().normalize().getParent();
-            if (parentPath != null) {
-                TagDAO tagDAO = dataManager.getTagDAO();
-                Long currentParentId = null;
-                Tag deepestTag = null;
-                for (int i = 0; i < parentPath.getNameCount(); i++) {
-                    String tagName = parentPath.getName(i).toString().trim();
-                    if (tagName.isEmpty()) continue;
-                    java.util.Optional<Tag> tagOpt = tagDAO.findTagByNameAndParent(tagName, currentParentId);
-                    if (tagOpt.isPresent() && tagOpt.get().isReadOnly()) {
-                        deepestTag = tagOpt.get();
-                        currentParentId = deepestTag.getId();
-                    } else {
-                        break;
-                    }
-                }
-                if (deepestTag != null) {
-                    pendingSyncTagId = deepestTag.getId();
-                }
-            }
-        }
-        model.getDatosListContext().setSelectedImageKey(visKey);
-    } // ---FIN de metodo [syncSelectionFromVisualizador]---
 
     public void guardarContexto() {
         if (model == null) return;
@@ -422,19 +437,27 @@ public class DataController {
 
     private void selectTagInTree(long tagId) {
         JTree tree = registry.get("tree.datamode.alltags");
-        if (tree == null || tagTreeModel == null) return;
+        if (tree == null || tagTreeModel == null) {
+            logger.debug("selectTagInTree({}): tree={}, model={}", tagId, tree, tagTreeModel);
+            return;
+        }
         javax.swing.tree.TreeModel model = tree.getModel();
         java.util.ArrayList<Object> path = new java.util.ArrayList<>();
         javax.swing.tree.TreePath result = findNodePathInModel(model, model.getRoot(), tagId, path);
         if (result != null) {
             tree.setSelectionPath(result);
+            tree.makeVisible(result);
             tree.scrollPathToVisible(result);
+            logger.debug("selectTagInTree({}): seleccionado y expandido: {}", tagId, result);
+        } else {
+            logger.debug("selectTagInTree({}): NO ENCONTRADO en el modelo", tagId);
         }
     } // ---FIN de metodo [selectTagInTree]---
     
     private javax.swing.tree.TreePath findNodePathInModel(javax.swing.tree.TreeModel model, Object parent, long tagId, java.util.ArrayList<Object> pathAccum) {
         pathAccum.add(parent);
         if (parent instanceof Tag && ((Tag) parent).getId() == tagId) {
+            logger.debug("findNodePathInModel: ENCONTRADO tagId={} en nodo '{}'", tagId, ((Tag) parent).getNombre());
             return new javax.swing.tree.TreePath(pathAccum.toArray());
         }
         int childCount = model.getChildCount(parent);

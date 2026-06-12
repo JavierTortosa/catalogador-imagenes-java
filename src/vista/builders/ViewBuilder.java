@@ -50,6 +50,11 @@ import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 import vista.util.ThumbnailPreviewer; // <<< AÑADIR IMPORT
 
+/**
+ * Construye y ensambla los componentes visuales de la ventana principal
+ * y sus subpaneles (visor, miniaturas, barras de herramientas, etc.).
+ * Centraliza la creacion de la UI delegando en builders especializados.
+ */
 public class ViewBuilder {
 
     private static final Logger logger = LoggerFactory.getLogger(ViewBuilder.class);
@@ -408,6 +413,7 @@ public class ViewBuilder {
         thumbnailList.setFixedCellHeight(renderer.getAlturaCalculadaDeCelda());
         thumbnailList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
         thumbnailList.setVisibleRowCount(-1);
+        thumbnailList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
         JScrollPane scrollPane = new JScrollPane(thumbnailList);
 

@@ -50,6 +50,10 @@ public class ListCoordinator extends AbstractListCoordinator {
     private int officialSelectedIndex = -1;
 
     private boolean thumbnailUpdatesEnabled = true;
+
+    // Sincronización de multi-selección entre paneles
+    private boolean syncingMultiSelection = false;
+    private int thumbnailWindowStart = 0;
     
     public ListCoordinator() {
         // Constructor simple. Las dependencias se inyectan.
@@ -60,24 +64,26 @@ public class ListCoordinator extends AbstractListCoordinator {
     // =================================================================================
 
     
-    // --- INICIO DE MODIFICACIÓN 2: MÉTODOS PARA GESTIONAR LISTENERS ---
+    // Añade un listener que será notificado cuando la selección maestra cambie
     public void addMasterSelectionChangeListener(MasterSelectionChangeListener listener) {
         if (!selectionListeners.contains(listener)) {
             selectionListeners.add(listener);
         }
-    }
+    } // --- Fin del método addMasterSelectionChangeListener ---
+
 
     public void removeMasterSelectionChangeListener(MasterSelectionChangeListener listener) {
         selectionListeners.remove(listener);
-    }
+    } // --- Fin del método removeMasterSelectionChangeListener ---
+
 
     private void fireMasterSelectionChanged(int newIndex) {
         for (MasterSelectionChangeListener listener : selectionListeners) {
             listener.onMasterSelectionChanged(newIndex, this);
         }
-    }
-    
-    
+    } // --- Fin del método fireMasterSelectionChanged ---
+
+
     @Override
     public synchronized void seleccionarImagenPorIndice(int desiredIndex) {
         // --- INICIO LÓGICA DEBOUNCE ---
@@ -164,6 +170,7 @@ public class ListCoordinator extends AbstractListCoordinator {
         ImageListManager.RangoMiniaturasCalculado rango = controller.calcularNumMiniaturasDinamicas();
         int inicio = Math.max(0, selectedIndex - rango.antes);
         int fin = Math.min(modeloPrincipal.getSize() - 1, selectedIndex + rango.despues);
+        this.thumbnailWindowStart = inicio;
 
         List<String> clavesParaMiniaturas = new ArrayList<>();
         List<Path> rutasParaCache = new ArrayList<>();
@@ -205,6 +212,87 @@ public class ListCoordinator extends AbstractListCoordinator {
             lista.clearSelection();
         }
     } // --- Fin del método sincronizarSeleccionJList ---
+
+    /**
+     * Propaga la multi-selección desde una lista origen a todas las demás listas
+     * del modo VISUALIZADOR, traduciendo índices entre modelos (completo vs. ventana).
+     */
+    private void propagarMultiSeleccion(JList<String> source, int[] indices) {
+        if (syncingMultiSelection || indices == null || indices.length == 0) return;
+        syncingMultiSelection = true;
+        try {
+            // Convertir índices relativos de thumbnails a absolutos si es necesario
+            int[] absIndices;
+            boolean isThumbSource = (source == registry.get("list.miniaturas")
+                                  || source == registry.get("list.miniaturas.carousel"));
+            if (isThumbSource) {
+                absIndices = new int[indices.length];
+                for (int i = 0; i < indices.length; i++) {
+                    absIndices[i] = indices[i] + thumbnailWindowStart;
+                }
+            } else {
+                absIndices = indices;
+            }
+
+            // Aplicar a lista de nombres (modelo completo)
+            JList<String> fileList = registry.get("list.nombresArchivo");
+            if (fileList != null && fileList != source) {
+                fileList.setSelectedIndices(absIndices);
+            }
+
+            // Aplicar a grid del visor (modelo completo)
+            JList<String> gridList = registry.get("list.grid");
+            if (gridList != null && gridList != source) {
+                gridList.setSelectedIndices(absIndices);
+            }
+
+            // Aplicar a miniaturas (modelo de ventana, convertir absolutos a relativos)
+            JList<String> thumbList = registry.get("list.miniaturas");
+            if (thumbList != null && thumbList != source) {
+                java.util.List<Integer> relIndices = new java.util.ArrayList<>();
+                for (int absIdx : absIndices) {
+                    int relIdx = absIdx - thumbnailWindowStart;
+                    if (relIdx >= 0 && relIdx < thumbList.getModel().getSize()) {
+                        relIndices.add(relIdx);
+                    }
+                }
+                if (!relIndices.isEmpty()) {
+                    int[] thumbArr = relIndices.stream().mapToInt(Integer::intValue).toArray();
+                    thumbList.setSelectedIndices(thumbArr);
+                }
+            }
+        } finally {
+            syncingMultiSelection = false;
+        }
+    } // --- Fin del método propagarMultiSeleccion ---
+
+    /**
+     * Configura los listeners de selección en todas las listas del modo VISUALIZADOR
+     * para sincronizar la multi-selección entre paneles.
+     * Debe llamarse después de que todas las listas estén creadas e inicializadas.
+     */
+    public void configurarSyncMultiSeleccion() {
+        javax.swing.event.ListSelectionListener listener = (javax.swing.event.ListSelectionEvent e) -> {
+            if (syncingMultiSelection || isSincronizandoUI()) return;
+            if (e.getValueIsAdjusting()) return;
+            Object src = e.getSource();
+            if (!(src instanceof javax.swing.JList)) return;
+            @SuppressWarnings("unchecked")
+            javax.swing.JList<String> list = (javax.swing.JList<String>) src;
+            propagarMultiSeleccion(list, list.getSelectedIndices());
+        };
+
+        JList<String>[] lists = new JList[]{
+            registry.get("list.nombresArchivo"),
+            registry.get("list.miniaturas"),
+            registry.get("list.grid")
+        };
+        for (JList<String> list : lists) {
+            if (list != null) {
+                list.addListSelectionListener(listener);
+            }
+        }
+    } // --- Fin del método configurarSyncMultiSeleccion ---
 
     // =================================================================================
     // === MÉTODOS DE NAVEGACIÓN (Robustos gracias al estado interno) ===
@@ -270,7 +358,8 @@ public class ListCoordinator extends AbstractListCoordinator {
         int baseIndex = (pendingSelectionIndex != null) ? pendingSelectionIndex : this.officialSelectedIndex;
         int next = Math.min(baseIndex + pageScrollIncrement, listModel.getSize() - 1);
         seleccionarImagenPorIndice(next);
-    }
+    } // --- Fin del método seleccionarBloqueSiguiente ---
+
 
     @Override
     public void seleccionarBloqueAnterior() {

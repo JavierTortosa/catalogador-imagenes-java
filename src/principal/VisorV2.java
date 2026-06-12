@@ -24,8 +24,8 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.19.10";
-        
+        version = "V2.30.10";
+
         System.out.println("Iniciando Visor de Imágenes " + version);
 
         UIManager.put("MenuBar.windowBindings", new Object[] {});
@@ -51,7 +51,6 @@ public class VisorV2 {
     
     // TODO HACER SALTO DE CARPETA. Cuando estamos viendo una carpeta que vemos que no nos cuadra, poder saltar todas las imagenes de esa carpeta
     // TODO CTRL + SHIFT DEBE ACTIVAR EL MODO PANEO Y DESACTIVARLO CUANDO SE DEJA DE PULSAR
-    // TODO mejorar el comportamiento de las miniaturas. siempre debe mostrar el maximo de miniaturas posible. si podemos ver 12 imagenes y la imagen que tenemos seleccionada es la primera solo se muestran 6 imagenes. hasta que no marcamos la 7 no muestra las 12  
     
     
     // PROYECTO

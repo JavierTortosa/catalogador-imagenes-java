@@ -51,6 +51,7 @@ public class AppModeService {
     private ComponentRegistry registry;
     private ImageListManager imageListManager;
     private Map<String, Action> actionMap;
+    private controlador.managers.TaggingManager taggingManager;
 
     private volatile boolean isChangingSubfolderMode = false;
 
@@ -63,35 +64,48 @@ public class AppModeService {
         this.displayModeManager = displayModeManager;
         this.configAppManager = configAppManager;
         this.statusBarManager = statusBarManager;
-    }
+    } // --- Fin del método AppModeService (constructor) ---
+
 
     public void setVisorController(VisorController visorController) {
         this.visorController = visorController;
-    }
+    } // --- Fin del método setVisorController ---
+
 
     public void setProjectController(ProjectController projectController) {
         this.projectController = projectController;
-    }
+    } // --- Fin del método setProjectController ---
+
 
     public void setDataController(DataController dataController) {
         this.dataController = dataController;
-    }
+    } // --- Fin del método setDataController ---
+
 
     public void setConfiguration(ConfigurationManager configuration) {
         this.configuration = configuration;
-    }
+    } // --- Fin del método setConfiguration ---
+
 
     public void setRegistry(ComponentRegistry registry) {
         this.registry = registry;
-    }
+    } // --- Fin del método setRegistry ---
+
 
     public void setImageListManager(ImageListManager imageListManager) {
         this.imageListManager = imageListManager;
-    }
+    } // --- Fin del método setImageListManager ---
+
 
     public void setActionMap(Map<String, Action> actionMap) {
         this.actionMap = actionMap;
-    }
+    } // --- Fin del método setActionMap ---
+
+
+    public void setTaggingManager(controlador.managers.TaggingManager taggingManager) {
+        this.taggingManager = taggingManager;
+    } // --- Fin del método setTaggingManager ---
+
 
     /**
      * Cambia la tarjeta visible en el CardLayout principal.
@@ -106,7 +120,7 @@ public class AppModeService {
         };
         viewManager.cambiarAVista("container.workmodes", vistaName);
         logger.debug("[AppModeService] Vista cambiada a: {}", vistaName);
-    }
+    } // --- Fin del método cambiarVistaPrincipal ---
 
 
     /**
@@ -196,8 +210,9 @@ public class AppModeService {
     public void gestionarCargaSubcarpetas(boolean incluir, Runnable postCarga) {
         model.setMostrarSoloCarpetaActual(!incluir);
         if (postCarga != null) postCarga.run();
-    }
-    
+    } // --- Fin del método gestionarCargaSubcarpetas ---
+
+
     /**
      * Solicita al ViewManager que actualice el título de la ventana principal.
      * Este método se encarga de la lógica de presentación del título.
@@ -208,8 +223,9 @@ public class AppModeService {
         // y asumimos que está correctamente inicializado.
         viewManager.actualizarTituloVentana();
         logger.debug("[AppModeService] Título principal de la ventana actualizado.");
-    }
-    
+    } // --- Fin del método actualizarTituloPrincipal ---
+
+
     /**
      * Sincroniza el estado LÓGICO Y VISUAL de los botones de modo de trabajo.
      * Asegura que solo el botón del modo activo esté seleccionado y que se aplique
@@ -246,8 +262,9 @@ public class AppModeService {
             }
         }
         logger.debug("Botones de modo sincronizados. Activo: {}", comandoModoActivo);
-    }
-    
+    } // --- Fin del método sincronizarBotonesModo ---
+
+
     public boolean cambiarModoDeTrabajo(WorkMode modoDestino, WorkMode modoActual) {
         if (modoActual == modoDestino) return false;
 
@@ -287,7 +304,8 @@ public class AppModeService {
         actualizarTituloPrincipal(); // Llamamos al método que ya creamos antes
         
         return true; // Éxito
-    }
+    } // --- Fin del método cambiarModoDeTrabajo ---
+
 
 	/**
 	* Realiza las tareas de "limpieza" o guardado de estado de un modo antes de
@@ -435,7 +453,10 @@ public class AppModeService {
                         break;
                     case DATOS:
                         if (dataController != null) {
-                            dataController.syncSelectionFromVisualizador();
+                            Path visPath = taggingManager != null ? taggingManager.getLastActiveImagePath() : null;
+                            String visKey = taggingManager != null ? taggingManager.getLastActiveImageKey() : null;
+                            logger.debug("TaggingManager >>> path={}, key={}", visPath, visKey);
+                            dataController.setPendingSyncFromVisualizador(visPath, visKey);
                             dataController.activate();
                         } else {
                             logger.error("DataController es nulo. No se puede activar el Modo Datos.");
@@ -472,7 +493,7 @@ public class AppModeService {
         } finally {
             isChangingSubfolderMode = false;
         }
-    }
+    } // --- Fin del método toggleModoCargaSubcarpetas ---
     
     /**
      * Método helper que gestiona el flujo cuando se intenta entrar en modo proyecto
@@ -526,6 +547,6 @@ public class AppModeService {
             return false; // Cancelado
         }
     } // ---FIN de metodo manejarAperturaDeProyectoVacio---
-    
-    
-}
+
+
+} // --- FIN de clase AppModeService ---
