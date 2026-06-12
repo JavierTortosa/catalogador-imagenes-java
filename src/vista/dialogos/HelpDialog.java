@@ -92,6 +92,7 @@ public class HelpDialog extends JDialog {
         DefaultMutableTreeNode uiRefFolder = new DefaultMutableTreeNode(new HelpPageInfo("Referencia de UI", "summary_ui.html"));
         uiRefFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Barras de Herramientas", "toolbars_autogen.html")));
         uiRefFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Barra de Menús", "menus_autogen.html")));
+        uiRefFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Personalizar Tema", "personalizar_tema.html")));
         top.add(uiRefFolder);
 
         top.add(new DefaultMutableTreeNode(new HelpPageInfo("Atajos de Teclado", "atajos.html")));

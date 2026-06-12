@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Personalizar Tema</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <h1>Personalizar Tema</h1>
+
+    <p>
+        El Visor de Imágenes te permite personalizar completamente los colores de la interfaz
+        mediante el <strong>Editor de Temas Personalizados</strong>. Puedes ajustar cada elemento
+        visual por separado y guardar tu combinación como un tema reutilizable.
+    </p>
+
+    <h2>Cómo acceder</h2>
+    <p>
+        Ve al menú <strong>Ver &gt; Personalizar Tema</strong> o utiliza los botones de configuración
+        en la ventana principal.
+    </p>
+
+    <h2>La interfaz del editor</h2>
+    <p>
+        El editor se divide en dos paneles principales:
+    </p>
+    <ul>
+        <li>
+            <strong>Vista previa interactiva</strong> (izquierda): muestra un esquema de la ventana
+            del visor con las distintas zonas coloreadas. Pasa el ratón por encima para ver qué zona
+            resalta, y haz clic en cualquier zona para abrir el selector de color correspondiente.
+        </li>
+        <li>
+            <strong>Colores personalizables</strong> (derecha): lista organizada en categorías con
+            todas las propiedades de color que puedes modificar. Cada fila muestra el nombre
+            descriptivo del elemento y una muestra del color actual. Haz clic en cualquier fila
+            para cambiarlo.
+        </li>
+    </ul>
+
+    <h2>Categorías de colores</h2>
+    <p>
+        Los colores están agrupados en 8 categorías para facilitar su localización:
+    </p>
+
+    <table class="help-table">
+        <tr>
+            <th>Categoría</th>
+            <th>¿Qué incluye?</th>
+        </tr>
+        <tr>
+            <td>Menú y Herramientas</td>
+            <td>Fondo y texto del menú superior, barra de herramientas, colores de botones y sus bordes.</td>
+        </tr>
+        <tr>
+            <td>Barra de Estado</td>
+            <td>Barras de información superior e inferior, campos de texto de ruta y carpeta, bordes de campo activo.</td>
+        </tr>
+        <tr>
+            <td>Lista de Archivos</td>
+            <td>Panel de lista, texto, selección activa e inactiva, bordes de celda.</td>
+        </tr>
+        <tr>
+            <td>Visor de Imágenes</td>
+            <td>Fondo del área de visualización, bordes de imagen marcada y enfocada.</td>
+        </tr>
+        <tr>
+            <td>Miniaturas</td>
+            <td>Fondo de la tira de miniaturas, texto, fondo de combos y spinners.</td>
+        </tr>
+        <tr>
+            <td>Grid del Proyecto</td>
+            <td>Selección en árbol y tabla del modo proyecto, bordes de celda, encabezados, barra de estado.</td>
+        </tr>
+        <tr>
+            <td>Acentos y Bordes</td>
+            <td>Color de acento general, color de enfoque, bordes de componente, subrayado de pestañas, separadores, barras de progreso.</td>
+        </tr>
+        <tr>
+            <td>Varios</td>
+            <td>Colores de checkbox, radio, título de ventana, estados deshabilitados e inactivos.</td>
+        </tr>
+    </table>
+
+    <h2>Cómo personalizar un color</h2>
+    <ol>
+        <li>En el panel derecho, localiza la propiedad que quieras cambiar dentro de su categoría.</li>
+        <li>Haz clic en cualquier parte de la fila (en el texto o en la muestra de color).</li>
+        <li>Se abrirá el selector de color del sistema. Elige el nuevo color y pulsa <strong>Aceptar</strong>.</li>
+        <li>La vista previa se actualizará automáticamente para que veas el cambio en contexto.</li>
+    </ol>
+
+    <p class="note">
+        <strong>Consejo:</strong> También puedes hacer clic directamente en cualquier zona de la
+        vista previa interactiva (panel izquierdo) para abrir el selector del color de esa zona.
+    </p>
+
+    <h2>Tema base</h2>
+    <p>
+        En la parte superior del editor puedes seleccionar un <strong>tema base</strong>. Todos los
+        colores se inicializan con los valores de ese tema. Si cambias de tema base, tus
+        personalizaciones actuales se descartarán y se cargarán los colores del nuevo tema.
+    </p>
+
+    <h2>Guardar un tema</h2>
+    <ol>
+        <li>Escribe un nombre para tu tema en el campo <strong>Nombre del Tema</strong>.</li>
+        <li>Haz clic en <strong>Guardar Tema</strong>.</li>
+        <li>El tema se guardará como un archivo <code>.properties</code> en la carpeta
+            <code>.temas_personalizados/</code> del visor.</li>
+        <li>El tema aparecerá en el menú de selección de temas la próxima vez que inicies la aplicación.</li>
+    </ol>
+
+    <h2>Aplicar cambios sin guardar</h2>
+    <p>
+        Si solo quieres probar una combinación de colores sin guardarla como tema, haz clic en
+        <strong>Aplicar</strong>. Los cambios se aplicarán inmediatamente a la interfaz, pero no
+        se guardarán como tema permanente.
+    </p>
+
+    <h2>Ubicación de los temas personalizados</h2>
+    <p>
+        Los temas guardados se almacenan como archivos <code>.properties</code> en la carpeta
+        <code>.temas_personalizados/</code> en la raíz del visor. Cada archivo contiene:
+    </p>
+    <ul>
+        <li>El nombre del tema y el tema base del que deriva (como comentarios).</li>
+        <li>Una lista de todas las propiedades de FlatLaf modificadas con su valor hexadecimal.</li>
+    </ul>
+
+    <p>
+        Puedes compartir estos archivos con otros usuarios, que solo tendrán que copiarlos en su
+        propia carpeta <code>.temas_personalizados/</code> para usarlos.
+    </p>
+
+</body>
+</html>
