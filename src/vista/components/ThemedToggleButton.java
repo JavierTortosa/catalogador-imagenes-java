@@ -1,5 +1,6 @@
 package vista.components;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -12,45 +13,64 @@ import org.slf4j.LoggerFactory;
 
 import vista.theme.ThemeManager;
 
+/**
+ * JToggleButton personalizado que pinta un fondo y un marco visibles cuando está seleccionado.
+ * El marco usa el mismo color que el borde de imagen marcada (colorImagenMarcada)
+ * para mantener la coherencia visual en toda la aplicación.
+ */
 public class ThemedToggleButton extends JToggleButton {
 
-	private static final Logger logger = LoggerFactory.getLogger(ThemedToggleButton.class);
-	
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private final ThemeManager themeManager;
+    private static final Logger logger = LoggerFactory.getLogger(ThemedToggleButton.class);
+    private static final long serialVersionUID = 2L;
+    private static final int BORDER_THICKNESS = 3;
 
+    private final ThemeManager themeManager;
+
+    /**
+     * Crea un ThemedToggleButton asociado a una acción.
+     * @param themeManager Gestor de temas para obtener colores
+     * @param action       Acción asociada al botón
+     */
     public ThemedToggleButton(ThemeManager themeManager, Action action) {
         super(action);
         this.themeManager = themeManager;
-        // Nos aseguramos de que el Look and Feel no intente pintar el fondo por nosotros.
-        // Nosotros tomamos el control.
+        // El LAF no pintará el fondo; nosotros lo hacemos en paintComponent.
         setContentAreaFilled(false);
     }
 
+    // ─────────────────────────────────────────────────────────────────
+    //  Pintado personalizado
+    // ─────────────────────────────────────────────────────────────────
+
     @Override
     protected void paintComponent(Graphics g) {
-        // Solo pintamos nuestro fondo personalizado si el botón está seleccionado.
         if (isSelected()) {
             Graphics2D g2 = (Graphics2D) g.create();
             try {
-                // Obtenemos el color que queremos de nuestro tema.
-                Color selectedColor = themeManager.getTemaActual().colorBotonFondoActivado();
-                
-                // Pintamos un rectángulo del color deseado sobre toda el área del botón.
-                g2.setColor(selectedColor);
+                g2.setColor(themeManager.getTemaActual().colorBotonFondoActivado());
                 g2.fillRect(0, 0, getWidth(), getHeight());
-
             } finally {
                 g2.dispose();
             }
         }
-        
-        // MUY IMPORTANTE: Después de pintar (o no) nuestro fondo,
-        // le decimos al Look and Feel que continúe con su pintado normal.
-        // Esto dibujará el icono, el borde, el texto, etc., ENCIMA de nuestro fondo.
         super.paintComponent(g);
     }
-} // FIN de la clase ThemedToggleButton ---
+
+    @Override
+    protected void paintBorder(Graphics g) {
+        if (isSelected()) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            try {
+                g2.setStroke(new BasicStroke(BORDER_THICKNESS));
+                g2.setColor(themeManager.getTemaActual().colorImagenMarcada());
+                g2.drawRect(BORDER_THICKNESS / 2, BORDER_THICKNESS / 2,
+                        getWidth() - BORDER_THICKNESS, getHeight() - BORDER_THICKNESS);
+            } finally {
+                g2.dispose();
+            }
+        } else {
+            super.paintBorder(g);
+        }
+    }
+
+} // --- Fin de la clase ThemedToggleButton ---
