@@ -28,7 +28,6 @@ import controlador.managers.BackgroundControlManager;
 import controlador.managers.CarouselManager;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.DataManager;
-import controlador.managers.DataManager;
 import controlador.managers.DisplayModeManager;
 import controlador.managers.EditionManager;
 import controlador.managers.FileOperationsManager;
@@ -38,8 +37,8 @@ import controlador.managers.GlobalInputManager;
 import controlador.managers.ImageListManager;
 import controlador.managers.InfobarImageManager;
 import controlador.managers.InfobarStatusManager;
-import controlador.managers.MenuPopupManager;
 import controlador.managers.KeyboardShortcutManager;
+import controlador.managers.MenuPopupManager;
 import controlador.managers.ToolbarManager;
 import controlador.managers.ViewManager;
 import controlador.managers.ZoomManager;
@@ -112,15 +111,15 @@ public class AppInitializer {
     // Coordinadores
     private ListCoordinator listCoordinator;
     private ProjectListCoordinator projectListCoordinator;
-    
-    // Services 
-    private FilterService filterService; //PENDIENTE DE REFACTORIZAR
-    private NavigationService navigationService; //PENDIENTE DE REFACTORIZAR
-    private ProjectLifecycleService projectLifecycleService; //PENDIENTE DE REFACTORIZAR
-    private SearchSortService searchSortService;//PENDIENTE DE REFACTORIZAR
-    private ZoomPanService zoomPanService;//PENDIENTE DE REFACTORIZAR
+
+    // Services
+    private FilterService filterService; // PENDIENTE DE REFACTORIZAR
+    private NavigationService navigationService; // PENDIENTE DE REFACTORIZAR
+    private ProjectLifecycleService projectLifecycleService; // PENDIENTE DE REFACTORIZAR
+    private SearchSortService searchSortService; // PENDIENTE DE REFACTORIZAR
+    private ZoomPanService zoomPanService; // PENDIENTE DE REFACTORIZAR
     private AppModeService appModeService;
-    
+
     // Managers
     private ConfigApplicationManager configAppManager;
     private ZoomManager zoomManager;
@@ -150,17 +149,26 @@ public class AppInitializer {
 
     private final String appVersion;
 
+    /**
+     * Constructor que inicializa el controlador principal y la versión de la aplicación.
+     *
+     * @param controller Controlador principal de la aplicación
+     * @param version Versión de la aplicación
+     */
     public AppInitializer(VisorController controller, String version) {
         this.controller = Objects.requireNonNull(controller, "VisorController no puede ser null en AppInitializer");
         this.activePreviewers = new ArrayList<>();
         this.appVersion = version;
-    } // ---FIN de metodo AppInitializer (constructor)---
+    } // --- Fin del metodo/clase AppInitializer ---
 
+    
     /**
      * Orquesta el proceso de arranque de la aplicación en tres fases claras:
      * 1. Instanciación: Crea todos los objetos.
      * 2. Cableado: Conecta las dependencias entre los objetos creados.
      * 3. Inicialización: Construye la UI y arranca la lógica de la aplicación.
+     *
+     * @return true si la inicialización fue exitosa, false en caso contrario
      */
     public boolean initialize() {
         logger.info("--- Iniciando Proceso de Inicialización Global ---");
@@ -174,8 +182,9 @@ public class AppInitializer {
             logger.error("Error fatal durante el proceso de arranque", e);
             return false;
         }
-    } // ---FIN de metodo initialize---
+    } // --- Fin del metodo/clase initialize ---
 
+    
     /**
      * FASE 1: INSTANCIACIÓN.
      * Crea todas las instancias de los componentes principales (Modelos, Servicios,
@@ -319,7 +328,8 @@ public class AppInitializer {
         this.appModeService = new AppModeService(this.model, this.viewManager, this.toolbarManager, this.displayModeManager, this.configAppManager, this.statusBarManager);
         
         logger.debug(" -> Instanciación de componentes completada.");
-    } // ---FIN de metodo instantiateComponents---
+    } // --- Fin del metodo/clase instantiateComponents ---
+    
 
     /**
      * FASE 2: CABLEADO DE DEPENDENCIAS.
@@ -491,6 +501,7 @@ public class AppInitializer {
         configAppManager.setBackgroundControlManager(this.backgroundControlManager);
         toolbarManager.setBackgroundControlManager(this.backgroundControlManager);
         actionFactory.setCarouselManager(carouselManager);
+        actionFactory.setConfigAppManager(this.configAppManager);
 
         toolbarManager.setProjectController(this.projectController);
 
@@ -527,8 +538,9 @@ public class AppInitializer {
 
         logger.debug(" -> Cableado de dependencias completado.");
 
-    } // ---FIN de metodo wireDependencies---
+    } // --- Fin del metodo/clase wireDependencies ---
 
+    
     /**
      * FASE 3: INICIALIZACIÓN.
      * Ejecuta las tareas que arrancan la aplicación. Esto se hace en el Event
@@ -745,10 +757,9 @@ public class AppInitializer {
                 manejarErrorFatalInicializacion("[EDT] Error fatal durante la creación de la UI", e);
             }
         });
-    } // ---FIN de metodo initializeApplication---
+    } // --- Fin del metodo/clase initializeApplication ---
 
-    // --- MÉTODOS AYUDANTES REFACTORIZADOS ---
-
+    
     private void aplicarConfiguracionAlModelo() {
         logger.debug("  -> Aplicando Configuración a los contextos del Modelo...");
         if (this.configuration == null || this.model == null)
@@ -794,7 +805,7 @@ public class AppInitializer {
             }
         }
         this.model.setUltimaImagenKeyCarrusel(configuration.getString(ConfigKeys.CARRUSEL_ESTADO_ULTIMA_IMAGEN, ""));
-    } // ---FIN de metodo aplicarConfiguracionAlModelo---
+    } // --- Fin del metodo/clase aplicarConfiguracionAlModelo ---
 
     private void instalarPreviewers() {
         JList<String> miniaturasList = registry.get("list.miniaturas");
@@ -833,7 +844,7 @@ public class AppInitializer {
         } else {
             logger.warn("WARN: No se pudo instalar ThumbnailPreviewer, 'list.datamode.grid' no encontrada.");
         }
-    } // ---FIN de metodo instalarPreviewers---
+    } // --- Fin del metodo/clase instalarPreviewers ---
 
     private void configurarCierreVentana() {
         // --- INICIO DE LA MODIFICACIÓN ---
@@ -849,7 +860,7 @@ public class AppInitializer {
                 controller.shutdownApplication();
             }
         });
-    } // ---FIN de metodo configurarCierreVentana---
+    } // --- Fin del metodo/clase configurarCierreVentana ---
 
     private void sincronizarVisibilidadInicialUI() {
         logger.debug("  -> Sincronizando visibilidad inicial de paneles...");
@@ -863,7 +874,7 @@ public class AppInitializer {
                 }
             }
         }
-    } // ---FIN de metodo sincronizarVisibilidadInicialUI---
+    } // --- Fin del metodo/clase sincronizarVisibilidadInicialUI ---
 
     private void cargarDatosIniciales(Runnable onComplete) {
         String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);
@@ -882,7 +893,7 @@ public class AppInitializer {
                 onComplete.run();
             }
         }
-    } // ---FIN de metodo cargarDatosIniciales---
+    } // --- Fin del metodo/clase cargarDatosIniciales ---
 
     /**
      * Comprueba si existe una sesión de recuperación pendiente y, de ser así,
@@ -953,8 +964,15 @@ public class AppInitializer {
         } else {
             logger.debug("  -> No se encontró clave de recuperación. Inicio normal.");
         }
-    } // ---FIN de metodo comprobarYRestaurarSesion---
+    } // --- Fin del metodo/clase comprobarYRestaurarSesion ---
 
+    /**
+     * Maneja errores fatales durante la inicialización de la aplicación, mostrando un diálogo de error al usuario
+     * y terminando la ejecución si es necesario.
+     *
+     * @param message Mensaje de error a mostrar
+     * @param cause Excepción que causó el error
+     */
     private void manejarErrorFatalInicializacion(String message, Throwable cause) {
         logger.error("### ERROR FATAL DE INICIALIZACIÓN ###");
         logger.error("Mensaje: " + message, cause);
@@ -976,6 +994,6 @@ public class AppInitializer {
 
         logger.error("Terminando la aplicación debido a un error fatal de inicialización.");
         System.exit(1);
-    } // ---FIN de metodo manejarErrorFatalInicializacion---
+    } // --- Fin del metodo/clase manejarErrorFatalInicializacion ---
 
-} // ---FIN de la clase AppInitializer---
+} // --- Fin del metodo/clase AppInitializer ---

@@ -38,19 +38,23 @@ public class ArchiveAnalysisWorker extends SwingWorker<Void, String> {
                 for (Path archivePath : item.getRutasArchivosAsociados()) {
                     ArchiveMetadata meta = dao.buscarPorRuta(archivePath.toString());
                     if (meta == null) {
-                        meta = service.analyze(archivePath);
-                        dao.guardar(meta);
+                        meta = service.analyze(archivePath, msg -> publish(msg));
+                        if (meta != null) {
+                            dao.guardar(meta);
+                        }
                     }
-                    item.setMetadata(meta);
-                    // Auto-poblar solo campos que el usuario no haya editado (valor 0 = sin tocar)
-                    if (item.getPiezasConSoporte() <= 0) {
-                        item.setPiezasConSoporte(meta.supportedStlCount);
-                    }
-                    if (item.getPiezasSinSoporte() <= 0) {
-                        item.setPiezasSinSoporte(meta.unsupportedStlCount);
-                    }
-                    if (item.getPiezas() <= 0 && meta.stlCount > 0) {
-                        item.setPiezas(meta.stlCount);
+                    if (meta != null) {
+                        item.setMetadata(meta);
+                        // Auto-poblar solo campos que el usuario no haya editado (valor 0 = sin tocar)
+                        if (item.getPiezasConSoporte() <= 0) {
+                            item.setPiezasConSoporte(meta.supportedStlCount);
+                        }
+                        if (item.getPiezasSinSoporte() <= 0) {
+                            item.setPiezasSinSoporte(meta.unsupportedStlCount);
+                        }
+                        if (item.getPiezas() <= 0 && meta.stlCount > 0) {
+                            item.setPiezas(meta.stlCount);
+                        }
                     }
                 }
             }
@@ -62,17 +66,16 @@ public class ArchiveAnalysisWorker extends SwingWorker<Void, String> {
     @Override
     protected void process(List<String> chunks) {
         String latestMessage = chunks.get(chunks.size() - 1);
-        // Usamos el método que me has pasado en tu código de TaskProgressDialog
         dialog.updateStatusText(latestMessage);
     }
 
     @Override
     protected void done() {
-        if (!isCancelled()) {
-            SwingUtilities.invokeLater(() -> {
-                dialog.closeDialog();
-                if (onDone != null) onDone.run();
-            });
-        }
+        SwingUtilities.invokeLater(() -> {
+            dialog.closeDialog();
+            if (!isCancelled() && onDone != null) {
+                onDone.run();
+            }
+        });
     }
 }

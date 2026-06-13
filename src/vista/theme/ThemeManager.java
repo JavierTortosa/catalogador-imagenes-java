@@ -361,14 +361,21 @@ public class ThemeManager {
     
     public Map<String, ThemeInfo> getAvailableThemes() {
         return new java.util.HashMap<>(TEMAS_DISPONIBLES);
-    }
+    } // --- Fin del metodo [getAvailableThemes] ---
 
+
+    /**
+     * Elimina un tema personalizado del mapa interno de temas
+     * disponibles. Se usa después de borrar el archivo .properties
+     * para que el tema desaparezca de la lista sin reiniciar.
+     */
     public void removeCustomTheme(String themeId) {
         if (themeId != null) {
             TEMAS_DISPONIBLES.remove(themeId);
         }
-    }
-    
+    } // --- Fin del metodo [removeCustomTheme] ---
+
+
     /**
      * Aplica personalizaciones de color en "vivo" al tema actual.
      * Actualiza el UIManager, FlatLaf y el objeto temaActual, notificando a los listeners.

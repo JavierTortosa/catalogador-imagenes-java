@@ -20,6 +20,10 @@ import org.slf4j.LoggerFactory;
 
 import vista.builders.HelpBuilder;
 
+/**
+ * Diálogo de ayuda de la aplicación. Muestra un árbol de navegación
+ * con temas de ayuda a la izquierda y el contenido HTML a la derecha.
+ */
 public class HelpDialog extends JDialog {
 
     private static final long serialVersionUID = 1L;

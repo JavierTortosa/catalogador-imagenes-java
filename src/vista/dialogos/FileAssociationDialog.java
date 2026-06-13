@@ -16,7 +16,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class FileAssociationDialog extends JDialog {
 
-    private String selectedPath = null;
+    private static final long serialVersionUID = 1L;
+	private String selectedPath = null;
     private JTextField txtPath;
 
     public FileAssociationDialog(Frame parent) {

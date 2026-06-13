@@ -59,6 +59,12 @@ import vista.theme.ThemeManager.ThemeCategory;
 import vista.theme.ThemeManager.ThemeInfo;
 import vista.theme.ThemePreviewPanel;
 
+/**
+ * Diálogo de personalización de temas. Muestra una previsualización
+ * interactiva del visor con zonas cliqueables y una lista organizada
+ * por categorías de todos los colores personalizables de la aplicación.
+ * Permite guardar, aplicar y borrar temas personalizados.
+ */
 public class ThemeCustomizerDialog extends JDialog {
 
     private static final long serialVersionUID = 1L;
@@ -78,15 +84,24 @@ public class ThemeCustomizerDialog extends JDialog {
     private JScrollPane colorScrollPane;
     private boolean isInitializing = true;
 
+    /**
+     * Definición interna de una categoría de colores: título y lista
+     * de entradas (etiqueta descriptiva + claves de propiedad).
+     */
     private static class CategoryDef {
         final String title;
         final String[][] entries;
         CategoryDef(String title, String[][] entries) {
             this.title = title;
             this.entries = entries;
-        }
-    }
+        } // --- Fin del metodo [CategoryDef] ---
+    } // --- Fin de clase [CategoryDef] ---
 
+
+    /**
+     * Construye y devuelve la lista completa de categorías con todas
+     * las entradas de color que se mostrarán en el editor.
+     */
     private static List<CategoryDef> buildCategories() {
         List<CategoryDef> cats = new ArrayList<>();
 
@@ -171,8 +186,14 @@ public class ThemeCustomizerDialog extends JDialog {
         }));
 
         return cats;
-    }
+    } // --- Fin del metodo [buildCategories] ---
 
+
+    /**
+     * Constructor. Configura la interfaz del editor: panel de
+     * previsualización a la izquierda, categorías de colores a la
+     * derecha, selector de tema base y botones de acción.
+     */
     public ThemeCustomizerDialog(JFrame owner, ThemeManager themeManager) {
         super(owner, "Editor de Temas Personalizados", true);
         this.themeManager = themeManager;
@@ -319,8 +340,13 @@ public class ThemeCustomizerDialog extends JDialog {
 
         initializeFromCurrentTheme();
         isInitializing = false;
-    }
+    } // --- Fin del metodo [ThemeCustomizerDialog] ---
 
+
+    /**
+     * Construye el panel visual de una categoría con borde titulado
+     * y todas sus filas de color.
+     */
     private JPanel buildCategoryPanel(CategoryDef cat) {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createTitledBorder(
@@ -345,8 +371,13 @@ public class ThemeCustomizerDialog extends JDialog {
         panel.add(new JPanel(), gbc);
 
         return panel;
-    }
+    } // --- Fin del metodo [buildCategoryPanel] ---
 
+
+    /**
+     * Crea una fila cliqueable con una etiqueta descriptiva y una
+     * muestra de color. Al hacer clic se abre el selector de color.
+     */
     private JPanel createColorRow(String labelText, String[] propertyKeys) {
         JPanel row = new JPanel(new BorderLayout(5, 0));
         row.setBorder(BorderFactory.createEmptyBorder(3, 8, 3, 8));
@@ -389,8 +420,14 @@ public class ThemeCustomizerDialog extends JDialog {
         label.addMouseListener(handler);
 
         return row;
-    }
+    } // --- Fin del metodo [createColorRow] ---
 
+
+    /**
+     * Abre el selector de color del sistema para la fila indicada.
+     * Si el usuario elige un nuevo color, actualiza la muestra,
+     * el mapa de colores personalizados y la previsualización.
+     */
     private void openColorChooser(String labelText) {
         ColorPreviewPanel swatch = colorSwatches.get(labelText);
         String[] keys = labelToKeys.get(labelText);
@@ -406,8 +443,14 @@ public class ThemeCustomizerDialog extends JDialog {
             }
             refreshPreview();
         }
-    }
+    } // --- Fin del metodo [openColorChooser] ---
 
+
+    /**
+     * Maneja el clic en una zona de la previsualización. Busca la
+     * fila de color correspondiente a la clave de propiedad, hace
+     * scroll hasta ella y abre el selector de color.
+     */
     private void handleZoneClicked(String propertyKey) {
         String label = keyToLabel.get(propertyKey);
         if (label != null) {
@@ -417,8 +460,13 @@ public class ThemeCustomizerDialog extends JDialog {
             }
             openColorChooser(label);
         }
-    }
+    } // --- Fin del metodo [handleZoneClicked] ---
 
+
+    /**
+     * Refresca la previsualización con los colores actuales de todas
+     * las filas del editor.
+     */
     private void refreshPreview() {
         if (themePreview == null) return;
         Map<String, Color> previewColors = new HashMap<>();
@@ -432,8 +480,14 @@ public class ThemeCustomizerDialog extends JDialog {
             }
         }
         themePreview.setColors(previewColors);
-    }
+    } // --- Fin del metodo [refreshPreview] ---
 
+
+    /**
+     * Actualiza todas las muestras de color con los valores por
+     * defecto del tema base seleccionado. Se llama al cambiar el
+     * selector de tema base.
+     */
     private void updateColorPreviews() {
         if (isInitializing) return;
 
@@ -469,8 +523,14 @@ public class ThemeCustomizerDialog extends JDialog {
             logger.error("No se pudieron cargar los colores para el tema: "
                 + selectedThemeInfo.nombreDisplay(), e);
         }
-    }
+    } // --- Fin del metodo [updateColorPreviews] ---
 
+
+    /**
+     * Inicializa todas las muestras de color con los valores del
+     * tema actualmente aplicado en la interfaz. Se llama una vez al
+     * abrir el diálogo.
+     */
     private void initializeFromCurrentTheme() {
         for (Map.Entry<String, String[]> entry : labelToKeys.entrySet()) {
             String labelText = entry.getKey();
@@ -491,8 +551,13 @@ public class ThemeCustomizerDialog extends JDialog {
             }
         }
         refreshPreview();
-    }
+    } // --- Fin del metodo [initializeFromCurrentTheme] ---
 
+
+    /**
+     * Muestra un diálogo para seleccionar y borrar un tema
+     * personalizado del disco y del mapa interno de temas.
+     */
     private void deleteCustomTheme() {
         File customThemesDir = new File(".temas_personalizados");
         if (!customThemesDir.exists() || !customThemesDir.isDirectory()) {
@@ -567,8 +632,13 @@ public class ThemeCustomizerDialog extends JDialog {
                 }
             }
         }
-    }
+    } // --- Fin del metodo [deleteCustomTheme] ---
 
+
+    /**
+     * Guarda el tema personalizado actual en un archivo .properties
+     * dentro de la carpeta .temas_personalizados/.
+     */
     private void saveCustomTheme() {
         String newThemeName = customThemeNameField.getText().trim();
         if (newThemeName.isEmpty()) {
@@ -651,8 +721,13 @@ public class ThemeCustomizerDialog extends JDialog {
                 "No se pudo guardar el archivo del tema.",
                 "Error de Archivo", JOptionPane.ERROR_MESSAGE);
         }
-    }
+    } // --- Fin del metodo [saveCustomTheme] ---
 
+
+    /**
+     * Renderizador personalizado para el selector de temas base.
+     * Muestra el nombre descriptivo de cada tema.
+     */
     private static class ThemeInfoRenderer extends DefaultListCellRenderer {
         private static final long serialVersionUID = 1L;
         @Override
@@ -663,9 +738,14 @@ public class ThemeCustomizerDialog extends JDialog {
                 setText(((ThemeInfo) value).nombreDisplay());
             }
             return this;
-        }
-    }
+        } // --- Fin del metodo [getListCellRendererComponent] ---
+    } // --- Fin de clase [ThemeInfoRenderer] ---
 
+
+    /**
+     * Panel cuadrado que muestra una muestra de color. Si no hay
+     * color definido, dibuja un patrón de cuadros (checkerboard).
+     */
     private static class ColorPreviewPanel extends JPanel {
         private static final long serialVersionUID = 1L;
         private Color definedColor;
@@ -676,11 +756,12 @@ public class ThemeCustomizerDialog extends JDialog {
         public void setColor(Color color) {
             this.definedColor = color;
             repaint();
-        }
+        } // --- Fin del metodo [setColor] ---
+
 
         public Color getColor() {
             return definedColor;
-        }
+        } // --- Fin del metodo [getColor] ---
 
         @Override
         protected void paintComponent(Graphics g) {
@@ -699,12 +780,17 @@ public class ThemeCustomizerDialog extends JDialog {
                     }
                 }
             }
-        }
-    }
+        } // --- Fin del metodo [paintComponent] ---
+    } // --- Fin de clase [ColorPreviewPanel] ---
 
+
+    /**
+     * Registro que asocia el nombre mostrado de un tema con el
+     * archivo .properties que lo contiene.
+     */
     private record FileEntry(String name, File file) {
         @Override
         public String toString() { return name; }
-    }
+    } // --- Fin de clase [FileEntry] ---
 
-}
+} // --- Fin de clase [ThemeCustomizerDialog] ---

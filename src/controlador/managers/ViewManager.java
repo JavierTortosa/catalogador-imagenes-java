@@ -1654,49 +1654,4 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
     // FIN GETTERS Y SETTERS
     // ***************************************************************************************************************************
 
-    // *********************************************************************************************************************************
-    // *********************************************************************************************************************************
-    // *********************************************************************************************************************************
-
-    /**
-     * Una clase de borde "inteligente" que no almacena un color, sino la clave de
-     * UIManager
-     * para buscar el color. Cada vez que se pinta, obtiene el color más reciente
-     * del tema,
-     * solucionando así problemas de timing durante la inicialización.
-     */
-    private static class DynamicAccentBorder extends javax.swing.border.AbstractBorder {
-        private static final long serialVersionUID = 1L;
-        private final int thickness;
-        private final String colorKey;
-
-        public DynamicAccentBorder(String colorKey, int thickness) {
-            this.colorKey = colorKey;
-            this.thickness = thickness;
-        }
-
-        @Override
-        public void paintBorder(Component c, java.awt.Graphics g, int x, int y, int width, int height) {
-            Color accentColor = UIManager.getColor(colorKey);
-            if (accentColor == null) {
-                accentColor = Color.MAGENTA; // Fallback de error visible
-            }
-            g.setColor(accentColor);
-            for (int i = 0; i < thickness; i++) {
-                g.drawRect(x + i, y + i, width - 1 - (i * 2), height - 1 - (i * 2));
-            }
-        }
-
-        @Override
-        public java.awt.Insets getBorderInsets(Component c, java.awt.Insets insets) {
-            insets.left = insets.top = insets.right = insets.bottom = thickness;
-            return insets;
-        }
-
-        @Override
-        public java.awt.Insets getBorderInsets(Component c) {
-            return new java.awt.Insets(thickness, thickness, thickness, thickness);
-        }
-    } // --- FIN de la clase DynamicAccentBorder ---
-
 } // --- Fin de la clase ViewManager ---

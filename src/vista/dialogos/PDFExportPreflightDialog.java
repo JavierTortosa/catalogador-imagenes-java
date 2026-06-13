@@ -6,7 +6,8 @@ import java.nio.file.Path;
 import java.util.List;
 
 public class PDFExportPreflightDialog extends JDialog {
-    private boolean generateConfirmed = false;
+    private static final long serialVersionUID = 1L;
+	private boolean generateConfirmed = false;
 
     public PDFExportPreflightDialog(JFrame owner, List<Path> files, List<String> warnings) {
         super(owner, "Verificación previa de exportación", true);

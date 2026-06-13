@@ -18,6 +18,12 @@ import java.util.Map;
 import java.util.function.Consumer;
 import javax.swing.JPanel;
 
+/**
+ * Panel de previsualización interactiva del editor de temas.
+ * Dibuja un esquema del visor con zonas cliqueables que se mapean
+ * a propiedades de color de FlatLaf. Soporta hover highlight y
+ * clic para editar el color de cada zona.
+ */
 public class ThemePreviewPanel extends JPanel {
 
     private static final long serialVersionUID = 1L;
@@ -26,6 +32,10 @@ public class ThemePreviewPanel extends JPanel {
     private String hoveredKey;
     private final Map<Rectangle2D.Float, String> zones = new LinkedHashMap<>();
 
+    /**
+     * Constructor. Inicializa el panel con tamaño preferido, fondo oscuro
+     * y los manejadores de ratón para detección de zonas y hover.
+     */
     public ThemePreviewPanel() {
         setPreferredSize(new Dimension(600, 480));
         setBackground(new Color(45, 45, 48));
@@ -53,8 +63,14 @@ public class ThemePreviewPanel extends JPanel {
         };
         addMouseListener(handler);
         addMouseMotionListener(handler);
-    }
+    } // --- Fin del metodo [ThemePreviewPanel] ---
 
+
+    /**
+     * Busca qué zona (clave de propiedad) está en las coordenadas
+     * dadas, iterando las zonas registradas de atrás hacia adelante
+     * para que la última (más específica) tenga prioridad.
+     */
     private String findZoneAt(int mx, int my) {
         float rx = (float) mx / getWidth();
         float ry = (float) my / getHeight();
@@ -63,18 +79,32 @@ public class ThemePreviewPanel extends JPanel {
             if (entry.getKey().contains(rx, ry)) found = entry.getValue();
         }
         return found;
-    }
+    } // --- Fin del metodo [findZoneAt] ---
 
+
+    /**
+     * Establece los colores a mostrar en el mockup y repinta.
+     */
     public void setColors(Map<String, Color> newColors) {
         this.colors.putAll(newColors);
         repaint();
-    }
+    } // --- Fin del metodo [setColors] ---
 
+
+    /**
+     * Registra el callback que se invocará cuando el usuario haga
+     * clic en una zona.
+     */
     public void setOnZoneClicked(Consumer<String> listener) {
         this.onZoneClicked = listener;
-    }
+    } // --- Fin del metodo [setOnZoneClicked] ---
+
 
     @Override
+    /**
+     * Dibuja el esquema completo del visor con todas sus zonas
+     * cliqueables y el highlight de hover.
+     */
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
@@ -88,10 +118,8 @@ public class ThemePreviewPanel extends JPanel {
         int gap = 2;
         int lineH = Math.max(14, (int)(vh * 0.045f));
 
-        // --- 1. MENU BAR ---
         drawZone(g2, "MENU", vx, vy, vw, lineH, "MenuBar.background", "MenuBar.foreground");
 
-        // --- 2. TOOLBAR ---
         int toolbarY = vy + lineH + gap;
         int toolbarH = lineH * 2;
         drawZone(g2, "HERRAMIENTAS", vx, toolbarY, vw, toolbarH, "ToolBar.background", "Button.foreground");
@@ -103,7 +131,6 @@ public class ThemePreviewPanel extends JPanel {
         g2.setFont(new Font("Segoe UI", Font.BOLD, 9));
         g2.drawString("BOTONES", vx + 10, toolbarY + toolbarH - 4);
 
-        // --- 3. UPPER STATUS BAR ---
         int infoY = toolbarY + toolbarH + gap;
         drawZone(g2, "BARRA ESTADO", vx, infoY, vw, lineH, "Visor.statusBarBackground", "Visor.statusBarForeground");
 
@@ -123,14 +150,12 @@ public class ThemePreviewPanel extends JPanel {
         g2.drawString(infoText, tx, infoY + lineH - 6);
         registerZone("Visor.statusBarBackground", labelX, infoY, labelW, lineH);
 
-        // --- MAIN BODY ---
         int footerH = lineH * 3;
         int statusBottomH = lineH;
         int mainY = infoY + lineH + gap;
         int availableH = vh - (mainY - vy) - footerH - statusBottomH - (gap * 2);
         int sideW = Math.max(80, (int)(vw * 0.28f));
 
-        // --- 4. FILE LIST ---
         drawZone(g2, "LISTA", vx, mainY, sideW, availableH, "List.background", "List.foreground");
         int selH = lineH - 2;
         int selY = mainY + 14;
@@ -140,13 +165,11 @@ public class ThemePreviewPanel extends JPanel {
         drawInteractiveRect(g2, vx + 2, inactY, sideW - 4, selH,
             "List.selectionInactiveBackground", "List.selectionInactiveForeground", "Inactivo");
 
-        // --- 5. IMAGE VIEWER ---
         int rightX = vx + sideW + gap;
         int rightW = vw - sideW - gap;
         int viewerW = (int)(rightW * 0.65f);
         drawZone(g2, "VISOR", rightX, mainY, viewerW, availableH, "windowBackground", Color.GRAY);
 
-        // Focus border zone
         int focusX = rightX + 10;
         int focusY = mainY + 10;
         int focusW = viewerW - 20;
@@ -159,7 +182,6 @@ public class ThemePreviewPanel extends JPanel {
         g2.setFont(new Font("Segoe UI", Font.PLAIN, 8));
         g2.drawString("borde enfoque", focusX + 3, focusY + 10);
 
-        // Marked image border (small sample)
         int markedX = rightX + 10;
         int markedY = mainY + availableH - 25;
         int markedW = 55;
@@ -172,7 +194,6 @@ public class ThemePreviewPanel extends JPanel {
         g2.setFont(new Font("Segoe UI", Font.PLAIN, 8));
         g2.drawString("marcada", markedX + 3, markedY + 12);
 
-        // --- 6. GRID AREA (Tree/Table) ---
         int gridX = rightX + viewerW + gap;
         int gridW = rightW - viewerW - gap;
         drawZone(g2, "GRILLA", gridX, mainY, gridW, availableH, "Panel.background", "Label.foreground");
@@ -183,7 +204,6 @@ public class ThemePreviewPanel extends JPanel {
         drawInteractiveRect(g2, gridX + 2, tableSelY, gridW - 4, selH,
             "Table.selectionBackground", "Table.selectionForeground", "Tabla");
 
-        // --- 7. THUMBNAILS ---
         int thumbY = mainY + availableH + gap;
         drawZone(g2, "MINIATURAS", vx, thumbY, vw, footerH, "Panel.background", "Label.foreground");
         g2.setColor(getColor("Visor.markedImageBorder", Color.MAGENTA));
@@ -191,7 +211,6 @@ public class ThemePreviewPanel extends JPanel {
         g2.drawRect(vx + sideW + 10, thumbY + 10, 40, 30);
         registerZone("Visor.markedImageBorder", vx + sideW + 10, thumbY + 10, 40, 30);
 
-        // --- 8. LOWER STATUS BAR ---
         int statusBottomY = thumbY + footerH + gap;
         drawZone(g2, "BARRA ESTADO", vx, statusBottomY, vw, statusBottomH,
             "Visor.statusBarBackground", "Visor.statusBarForeground");
@@ -208,7 +227,6 @@ public class ThemePreviewPanel extends JPanel {
         g2.drawString(bottomText, tx, statusBottomY + statusBottomH - 6);
         registerZone("Visor.statusBarBackground", labelX2, statusBottomY, labelW2, statusBottomH);
 
-        // --- HOVER HIGHLIGHT ---
         if (hoveredKey != null) {
             g2.setColor(new Color(255, 255, 255, 80));
             g2.setStroke(new BasicStroke(2f));
@@ -220,8 +238,13 @@ public class ThemePreviewPanel extends JPanel {
                 }
             }
         }
-    }
+    } // --- Fin del metodo [paintComponent] ---
 
+
+    /**
+     * Dibuja una zona principal con fondo, texto centrado y la registra
+     * como cliqueable.
+     */
     private void drawZone(Graphics2D g2, String label, int x, int y, int w, int h,
                           String bgKey, Object fg) {
         Color bgColor = getColor(bgKey, Color.GRAY);
@@ -238,8 +261,13 @@ public class ThemePreviewPanel extends JPanel {
         g2.drawString(label, tx, ty);
 
         registerZone(bgKey, x, y, w, h);
-    }
+    } // --- Fin del metodo [drawZone] ---
 
+
+    /**
+     * Dibuja un rectángulo interior interactivo con un texto descriptivo
+     * y lo registra como zona cliqueable.
+     */
     private void drawInteractiveRect(Graphics2D g2, int x, int y, int w, int h,
                                      String bgKey, String fgKey, String text) {
         Color bgColor = getColor(bgKey, Color.GRAY);
@@ -255,15 +283,27 @@ public class ThemePreviewPanel extends JPanel {
         }
 
         registerZone(bgKey, x, y, w, h);
-    }
+    } // --- Fin del metodo [drawInteractiveRect] ---
 
+
+    /**
+     * Registra un rectángulo (en coordenadas relativas) asociado a una
+     * clave de propiedad para detección de clics.
+     */
     private void registerZone(String key, int x, int y, int w, int h) {
         zones.put(new Rectangle2D.Float((float) x / getWidth(), (float) y / getHeight(),
             (float) w / getWidth(), (float) h / getHeight()), key);
-    }
+    } // --- Fin del metodo [registerZone] ---
 
+
+    /**
+     * Obtiene el color asociado a una clave del mapa, o un fallback
+     * si no está definido.
+     */
     private Color getColor(String key, Color fallback) {
         Color c = colors.get(key);
         return (c != null) ? c : fallback;
-    }
-}
+    } // --- Fin del metodo [getColor] ---
+
+
+} // --- Fin de clase [ThemePreviewPanel] ---

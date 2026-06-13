@@ -182,6 +182,9 @@ public class ActionFactory {
     // 1.9. Campo para el registro de componentes
     private ComponentRegistry registry;
 
+    // 1.10. Campo para ConfigApplicationManager
+    private controlador.managers.ConfigApplicationManager configAppManager;
+
     // 1.10. Campo para añadir carpeta actual a la coleccion
     private ImageListManager imageListManager;
 
@@ -698,6 +701,11 @@ public class ActionFactory {
         Action openThemeCustomizerAction = new controlador.actions.config.OpenThemeCustomizerAction(
                 "Personalizar Tema...", this.view, this.themeManager);
         registerAction(AppActionCommands.CMD_CONFIG_CUSTOM_THEME, openThemeCustomizerAction);
+
+        Action openConfigAction = new controlador.actions.config.OpenConfigurationAction(
+                "Configuración Avanzada...", this.view, this.configuration,
+                this.configAppManager, this.themeManager);
+        registerAction(AppActionCommands.CMD_CONFIG_AVANZADA, openConfigAction);
 
         // Actions que dependen del 'actionMap' completo para construir menús
         // emergentes.
@@ -1911,6 +1919,10 @@ public class ActionFactory {
     public void setFileOperationsManager(FileOperationsManager fileOperationsManager) {
         this.fileOperationsManager = Objects.requireNonNull(fileOperationsManager,
                 "FileOperationsManager no puede ser null en setFileOperationsManager");
+    }
+
+    public void setConfigAppManager(controlador.managers.ConfigApplicationManager configAppManager) {
+        this.configAppManager = configAppManager;
     }
 
     // --- MÉTODOS PARA CREAR ACCIONES DE TAGS (MODO DATOS) ---

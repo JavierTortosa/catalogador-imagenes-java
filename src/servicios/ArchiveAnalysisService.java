@@ -16,17 +16,22 @@ public class ArchiveAnalysisService {
     private static final Logger logger = LoggerFactory.getLogger(ArchiveAnalysisService.class);
 
     public ArchiveMetadata analyze(Path archivePath) {
+        return analyze(archivePath, null);
+    }
+
+    public ArchiveMetadata analyze(Path archivePath, java.util.function.Consumer<String> progressReporter) {
         ArchiveMetadata meta = new ArchiveMetadata();
         meta.archivePath = archivePath.toString();
         meta.analysisDate = System.currentTimeMillis();
 
-        analyzRecursive(archivePath, meta);
+        if (progressReporter != null) progressReporter.accept("Listando contenido: " + archivePath.getFileName());
+        analyzRecursive(archivePath, meta, progressReporter);
 
         meta.isMultipart = meta.stlCount > 1;
         return meta;
     }
 
-    private void analyzRecursive(Path archivePath, ArchiveMetadata meta) {
+    private void analyzRecursive(Path archivePath, ArchiveMetadata meta, java.util.function.Consumer<String> progressReporter) {
         List<String> internalPaths = new ArrayList<>();
         long totalBytes = 0;
 
@@ -79,10 +84,16 @@ public class ArchiveAnalysisService {
                 // Extraer el archivo anidado a temporal y analizarlo recursivamente
                 Path tempDir = null;
                 try {
+                    if (progressReporter != null) {
+                        String name = internalPath;
+                        int lastSlash = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
+                        if (lastSlash >= 0) name = name.substring(lastSlash + 1);
+                        progressReporter.accept("Extrayendo comprimido anidado: " + name);
+                    }
                     tempDir = Files.createTempDirectory("visor_archive_");
                     Path nestedFile = extractToTemp(archivePath, internalPath, tempDir);
                     if (nestedFile != null && Files.exists(nestedFile)) {
-                        analyzRecursive(nestedFile, meta);
+                        analyzRecursive(nestedFile, meta, progressReporter);
                     }
                 } catch (Exception e) {
                     logger.warn("No se pudo analizar archivo anidado: {} dentro de {}", internalPath, archivePath);

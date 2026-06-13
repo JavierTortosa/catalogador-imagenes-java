@@ -208,6 +208,7 @@ public interface AppActionCommands {
     public static final String CMD_MODO_EDICION 					= "cmd.modo.edicion";
     public static final String CMD_VISTA_CAROUSEL 					= "cmd.vista.carousel";
     public static final String CMD_CONFIG_CUSTOM_THEME				= "cmd.config.custom_theme";
+    public static final String CMD_CONFIG_AVANZADA					= "cmd.config.avanzada";
     
     // --- Comportamiento/Toggles Generales ---
     public static final String CMD_TOGGLE_SUBCARPETAS 				= "cmd.toggle.subcarpetas";             // Para ToggleSubfoldersAction

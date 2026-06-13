@@ -84,7 +84,10 @@ public class GridCellRenderer implements ListCellRenderer<String> {
         // --- FIN DE LA MODIFICACIÓN ---
 
         this.cellPanel.addMouseListener(new MouseAdapter() {
-            @Override
+            
+        	@SuppressWarnings("unchecked")
+			
+        	@Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
                     Component sourceComponent = (Component) e.getSource();

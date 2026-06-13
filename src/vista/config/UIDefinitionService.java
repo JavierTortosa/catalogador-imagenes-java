@@ -569,6 +569,9 @@ public class UIDefinitionService {
         configSubItems.add(new MenuItemDefinition(AppActionCommands.CMD_CONFIG_CUSTOM_THEME, MenuItemType.ITEM,
                 "Personalizar Tema...", null));
         configSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));
+        configSubItems.add(new MenuItemDefinition(AppActionCommands.CMD_CONFIG_AVANZADA, MenuItemType.ITEM,
+                "Configuración Avanzada...", null));
+        configSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));
 
         // 7.7. Ítems finales del menú "Configuración" (Guardar, Cargar, Versión)
         configSubItems.add(new MenuItemDefinition(AppActionCommands.CMD_ESPECIAL_REFRESCAR, MenuItemType.ITEM,

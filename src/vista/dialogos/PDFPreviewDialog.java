@@ -14,7 +14,8 @@ import java.util.Map;
 
 public class PDFPreviewDialog extends JDialog {
 
-    private final List<ExportItem> items;
+    private static final long serialVersionUID = 1L;
+	private final List<ExportItem> items;
     private final JPanel listPanel;
     private final JLabel infoLabel;
     private boolean confirmed = false;
@@ -103,7 +104,8 @@ public class PDFPreviewDialog extends JDialog {
     }
 
     private class ItemCard extends JPanel {
-        private final JTextField piezasField;
+        private static final long serialVersionUID = 1L;
+		private final JTextField piezasField;
         private final JTextField lvlField;
         private final JTextField pvpField;
         private final JTextField notasField;

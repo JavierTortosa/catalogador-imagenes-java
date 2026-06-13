@@ -64,26 +64,41 @@ public class ListCoordinator extends AbstractListCoordinator {
     // =================================================================================
 
     
-    // Añade un listener que será notificado cuando la selección maestra cambie
+    /**
+     * Añade un listener que será notificado cuando la selección maestra cambie.
+     * @param listener El listener a añadir
+     */
     public void addMasterSelectionChangeListener(MasterSelectionChangeListener listener) {
         if (!selectionListeners.contains(listener)) {
             selectionListeners.add(listener);
         }
-    } // --- Fin del método addMasterSelectionChangeListener ---
+    } // --- Fin del metodo/clase addMasterSelectionChangeListener ---
 
 
+    /**
+     * Elimina un listener de la lista de notificaciones.
+     * @param listener El listener a eliminar
+     */
     public void removeMasterSelectionChangeListener(MasterSelectionChangeListener listener) {
         selectionListeners.remove(listener);
-    } // --- Fin del método removeMasterSelectionChangeListener ---
+    } // --- Fin del metodo/clase removeMasterSelectionChangeListener ---
 
 
+    /**
+     * Notifica a todos los listeners registrados que la selección maestra ha cambiado.
+     * @param newIndex El nuevo índice seleccionado
+     */
     private void fireMasterSelectionChanged(int newIndex) {
         for (MasterSelectionChangeListener listener : selectionListeners) {
             listener.onMasterSelectionChanged(newIndex, this);
         }
-    } // --- Fin del método fireMasterSelectionChanged ---
+    } // --- Fin del metodo/clase fireMasterSelectionChanged ---
 
 
+    /**
+     * Selecciona una imagen por su índice, sincronizando todas las vistas.
+     * @param desiredIndex El índice a seleccionar
+     */
     @Override
     public synchronized void seleccionarImagenPorIndice(int desiredIndex) {
         // --- INICIO LÓGICA DEBOUNCE ---
@@ -138,25 +153,26 @@ public class ListCoordinator extends AbstractListCoordinator {
             }
             // --- FIN LÓGICA DEBOUNCE ---
         }
-    } // --- Fin del método seleccionarImagenPorIndice ---
+    } // --- Fin del metodo/clase seleccionarImagenPorIndice ---
 
 
     /**
      * Lógica CLAVE para actualizar el modelo de la tira de miniaturas y su selección.
+     * @param selectedIndex El índice seleccionado
      */
     private void actualizarTiraDeMiniaturas(int selectedIndex) {
-    	
-    	logger.debug("[ListCoordinator] Iniciando ActualizarTiraDeMiniaturas");
-    	
-    	// Si estamos en modo Grid o Polaroid, la barra de miniaturas está oculta y no necesita actualizarse.
+        
+        logger.debug("[ListCoordinator] Iniciando ActualizarTiraDeMiniaturas");
+        
+        // Si estamos en modo Grid o Polaroid, la barra de miniaturas está oculta y no necesita actualizarse.
         if (model != null && (model.getCurrentDisplayMode() == VisorModel.DisplayMode.GRID
                            || model.getCurrentDisplayMode() == VisorModel.DisplayMode.POLAROID)) {
             return; // No hacer nada.
         }
-    	
-    	
-    	if (!thumbnailUpdatesEnabled || controller.getModeloMiniaturas() == null || model.getCurrentListContext() == null) return;
-    	
+        
+        
+        if (!thumbnailUpdatesEnabled || controller.getModeloMiniaturas() == null || model.getCurrentListContext() == null) return;
+        
         if (controller.getModeloMiniaturas() == null || model.getCurrentListContext() == null) return;
 
         DefaultListModel<String> modeloMiniaturas = controller.getModeloMiniaturas();
@@ -194,10 +210,13 @@ public class ListCoordinator extends AbstractListCoordinator {
         int indiceRelativo = selectedIndex - inicio;
         sincronizarSeleccionJList(listaMiniaturasActiva, indiceRelativo);
 
-    } // --- Fin del método actualizarTiraDeMiniaturas ---
+    } // --- Fin del metodo/clase actualizarTiraDeMiniaturas ---
+
 
     /**
      * Sincroniza de forma segura la selección de una JList.
+     * @param lista La lista a sincronizar
+     * @param index El índice a seleccionar
      */
     private void sincronizarSeleccionJList(JList<String> lista, int index) {
         if (lista == null) return;
@@ -211,11 +230,14 @@ public class ListCoordinator extends AbstractListCoordinator {
         } else {
             lista.clearSelection();
         }
-    } // --- Fin del método sincronizarSeleccionJList ---
+    } // --- Fin del metodo/clase sincronizarSeleccionJList ---
+
 
     /**
      * Propaga la multi-selección desde una lista origen a todas las demás listas
      * del modo VISUALIZADOR, traduciendo índices entre modelos (completo vs. ventana).
+     * @param source La lista origen
+     * @param indices Los índices seleccionados en la lista origen
      */
     private void propagarMultiSeleccion(JList<String> source, int[] indices) {
         if (syncingMultiSelection || indices == null || indices.length == 0) return;
@@ -264,7 +286,8 @@ public class ListCoordinator extends AbstractListCoordinator {
         } finally {
             syncingMultiSelection = false;
         }
-    } // --- Fin del método propagarMultiSeleccion ---
+    } // --- Fin del metodo/clase propagarMultiSeleccion ---
+
 
     /**
      * Configura los listeners de selección en todas las listas del modo VISUALIZADOR
@@ -287,18 +310,19 @@ public class ListCoordinator extends AbstractListCoordinator {
             registry.get("list.miniaturas"),
             registry.get("list.grid")
         };
+        
+        
         for (JList<String> list : lists) {
             if (list != null) {
                 list.addListSelectionListener(listener);
             }
         }
-    } // --- Fin del método configurarSyncMultiSeleccion ---
+    } // --- Fin del metodo/clase configurarSyncMultiSeleccion ---
 
-    // =================================================================================
-    // === MÉTODOS DE NAVEGACIÓN (Robustos gracias al estado interno) ===
-    // =================================================================================
-    
-    
+
+    /**
+     * Selecciona la siguiente imagen en la lista.
+     */
     @Override
     public void seleccionarSiguiente() {
         DefaultListModel<String> listModel = model.getCurrentListContext().getModeloLista();
@@ -315,8 +339,12 @@ public class ListCoordinator extends AbstractListCoordinator {
             nextIndex = Math.min(nextIndex, total - 1);
         }
         seleccionarImagenPorIndice(nextIndex);
-    } // --- Fin del método seleccionarSiguiente ---
+    } // --- Fin del metodo/clase seleccionarSiguiente ---
 
+
+    /**
+     * Selecciona la imagen anterior en la lista.
+     */
     @Override
     public void seleccionarAnterior() {
         DefaultListModel<String> listModel = model.getCurrentListContext().getModeloLista();
@@ -332,7 +360,7 @@ public class ListCoordinator extends AbstractListCoordinator {
             prevIndex = Math.max(0, baseIndex - 1);
         }
         seleccionarImagenPorIndice(prevIndex);
-    } // --- Fin del método seleccionarAnterior ---
+    } // --- Fin del metodo/clase seleccionarAnterior ---
 
     @Override
     public void seleccionarPrimero() {
