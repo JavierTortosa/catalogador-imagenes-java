@@ -15,8 +15,8 @@ import vista.theme.ThemeManager;
 
 /**
  * JToggleButton personalizado que pinta un fondo y un marco visibles cuando está seleccionado.
- * El marco usa el color de borde general del tema (colorBorde)
- * para mantener la coherencia visual con el resto de la UI.
+ * El marco usa el color de borde activo del tema (colorBordeActivo =
+ * Component.accentColor), el mismo que FlatLaf usa para el foco.
  */
 public class ThemedToggleButton extends JToggleButton {
 
@@ -62,7 +62,7 @@ public class ThemedToggleButton extends JToggleButton {
             Graphics2D g2 = (Graphics2D) g.create();
             try {
                 g2.setStroke(new BasicStroke(BORDER_THICKNESS));
-                g2.setColor(themeManager.getTemaActual().colorBorde());
+                g2.setColor(themeManager.getTemaActual().colorBordeActivo());
                 g2.drawRect(BORDER_THICKNESS / 2, BORDER_THICKNESS / 2,
                         getWidth() - BORDER_THICKNESS, getHeight() - BORDER_THICKNESS);
             } finally {
