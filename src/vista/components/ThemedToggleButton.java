@@ -14,9 +14,9 @@ import org.slf4j.LoggerFactory;
 import vista.theme.ThemeManager;
 
 /**
- * JToggleButton personalizado que pinta un fondo y un marco visibles cuando está seleccionado.
- * El marco usa el color de borde activo del tema (colorBordeActivo =
- * Component.accentColor), el mismo que FlatLaf usa para el foco.
+ * JToggleButton personalizado que dibuja un marco visible alrededor del botón
+ * cuando está seleccionado. El marco usa colorBordeActivo (Component.accentColor),
+ * el mismo color que FlatLaf usa para el borde de foco.
  */
 public class ThemedToggleButton extends JToggleButton {
 
@@ -34,7 +34,7 @@ public class ThemedToggleButton extends JToggleButton {
     public ThemedToggleButton(ThemeManager themeManager, Action action) {
         super(action);
         this.themeManager = themeManager;
-        // El LAF no pintará el fondo; nosotros lo hacemos en paintComponent.
+        // El LAF no pintará el fondo; nosotros solo pintamos el marco en paintComponent.
         setContentAreaFilled(false);
     }
 
@@ -44,20 +44,8 @@ public class ThemedToggleButton extends JToggleButton {
 
     @Override
     protected void paintComponent(Graphics g) {
-        if (isSelected()) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            try {
-                g2.setColor(themeManager.getTemaActual().colorBotonFondoActivado());
-                g2.fillRect(0, 0, getWidth(), getHeight());
-            } finally {
-                g2.dispose();
-            }
-        }
         super.paintComponent(g);
-    }
 
-    @Override
-    protected void paintBorder(Graphics g) {
         if (isSelected()) {
             Graphics2D g2 = (Graphics2D) g.create();
             try {
@@ -68,8 +56,6 @@ public class ThemedToggleButton extends JToggleButton {
             } finally {
                 g2.dispose();
             }
-        } else {
-            super.paintBorder(g);
         }
     }
 
