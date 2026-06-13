@@ -72,8 +72,11 @@ public class TagSearchEngine {
         boolean hasLeadingDot = text.startsWith(".");
         boolean hasTrailingDot = text.endsWith(".") && text.length() > 1;
 
+        if (hasTrailingDot) {
+            return InputMode.DRILL_DOWN;
+        }
         if (hasLeadingDot) {
-            return hasTrailingDot ? InputMode.DRILL_DOWN : InputMode.WILDCARD;
+            return InputMode.WILDCARD;
         }
         if (text.contains(".")) {
             return InputMode.PATH;
@@ -133,19 +136,42 @@ public class TagSearchEngine {
     }
 
     private List<PathResult> searchDrillDown(String text) {
-        String path = text.substring(1, text.length() - 1);
-        if (path.isEmpty()) return Collections.emptyList();
+        if (text.startsWith(".")) {
+            // Search drill-down: .x. → find all tags named X (any level), show their children
+            String nameToFind = text.substring(1, text.length() - 1);
+            if (nameToFind.isEmpty()) return Collections.emptyList();
 
-        Tag parent = resolveTagByPath(path);
-        if (parent == null) return Collections.emptyList();
+            String lowerName = nameToFind.toLowerCase();
+            List<PathResult> results = new ArrayList<>();
+            for (Tag t : allTags) {
+                if (t.getNombre().toLowerCase().equals(lowerName)) {
+                    List<Tag> children = childrenByParentId.get(t.getId());
+                    if (children != null) {
+                        for (Tag child : children) {
+                            results.add(pathResult(child));
+                            if (results.size() >= MAX_RESULTS) break;
+                        }
+                    }
+                    if (results.size() >= MAX_RESULTS) break;
+                }
+            }
+            return results;
+        } else {
+            // Imperative drill-down: x. → show children of the resolved path
+            String path = text.substring(0, text.length() - 1);
+            if (path.isEmpty()) return Collections.emptyList();
 
-        List<Tag> children = childrenByParentId.get(parent.getId());
-        if (children == null || children.isEmpty()) return Collections.emptyList();
+            Tag parent = resolveTagByPath(path);
+            if (parent == null) return Collections.emptyList();
 
-        return children.stream()
-                .limit(MAX_RESULTS)
-                .map(t -> pathResult(t))
-                .collect(Collectors.toList());
+            List<Tag> children = childrenByParentId.get(parent.getId());
+            if (children == null || children.isEmpty()) return Collections.emptyList();
+
+            return children.stream()
+                    .limit(MAX_RESULTS)
+                    .map(t -> pathResult(t))
+                    .collect(Collectors.toList());
+        }
     }
 
     private List<PathResult> rootTagPaths() {
@@ -223,5 +249,9 @@ public class TagSearchEngine {
 
     public List<Tag> getAllTags() {
         return allTags;
+    }
+
+    public List<Tag> getChildren(Long parentId) {
+        return childrenByParentId.get(parentId);
     }
 }

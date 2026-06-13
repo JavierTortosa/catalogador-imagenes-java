@@ -24,10 +24,11 @@ import modelo.datos.Tag;
  */
 public class TagManagementPanel extends JPanel {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
     private final JList<Tag> tagsList;
     private final JScrollPane scrollPane;
     private List<Tag> currentTags = new java.util.ArrayList<>();
+    private List<Tag> allTagsBackup = new java.util.ArrayList<>();
 
     // Callbacks para notificar al controlador
     private Consumer<Tag> onRemoveTag;
@@ -64,12 +65,9 @@ public class TagManagementPanel extends JPanel {
      * @param tags La lista de objetos Tag a mostrar.
      */
     public void setTags(List<Tag> tags) {
-        this.currentTags = (tags != null) ? new java.util.ArrayList<>(tags) : new java.util.ArrayList<>();
-        javax.swing.DefaultListModel<Tag> model = (javax.swing.DefaultListModel<Tag>) tagsList.getModel();
-        model.clear();
-        for (Tag tag : currentTags) {
-            model.addElement(tag);
-        }
+        this.allTagsBackup = (tags != null) ? new java.util.ArrayList<>(tags) : new java.util.ArrayList<>();
+        this.currentTags = new java.util.ArrayList<>(this.allTagsBackup);
+        refreshListModel();
         revalidate();
         repaint();
     } // ---FIN de metodo [setTags]---
@@ -79,11 +77,79 @@ public class TagManagementPanel extends JPanel {
      * Útil cuando no hay ninguna imagen seleccionada.
      */
     public void clearPanel() {
+        this.allTagsBackup.clear();
         this.currentTags.clear();
         ((javax.swing.DefaultListModel<Tag>) tagsList.getModel()).clear();
         revalidate();
         repaint();
     } // ---FIN de metodo [clearPanel]---
+
+    /**
+     * Filtra la lista mostrando solo tags cuyo nombre contenga el texto (ignore case).
+     */
+    public void filter(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            clearFilter();
+            return;
+        }
+        String lower = text.toLowerCase().trim();
+        this.currentTags.clear();
+        for (Tag tag : allTagsBackup) {
+            if (tag.getNombre().toLowerCase().contains(lower)) {
+                this.currentTags.add(tag);
+            }
+        }
+        refreshListModel();
+    }
+
+    /**
+     * Restaura la lista completa de tags (quita el filtro).
+     */
+    public void clearFilter() {
+        this.currentTags = new java.util.ArrayList<>(this.allTagsBackup);
+        refreshListModel();
+    }
+
+    /**
+     * Busca la siguiente ocurrencia del texto (ignore case) a partir de la selección actual.
+     * Hace wrap-around si llega al final.
+     * @return true si encontró match, false si no.
+     */
+    public boolean findNext(String text) {
+        if (text == null || text.trim().isEmpty() || currentTags.isEmpty()) return false;
+        String lower = text.toLowerCase().trim();
+        int start = tagsList.getSelectedIndex();
+        if (start < 0) start = -1;
+
+        for (int i = start + 1; i < currentTags.size(); i++) {
+            if (currentTags.get(i).getNombre().toLowerCase().contains(lower)) {
+                tagsList.setSelectedIndex(i);
+                tagsList.ensureIndexIsVisible(i);
+                return true;
+            }
+        }
+        // Wrap around
+        for (int i = 0; i <= start; i++) {
+            if (currentTags.get(i).getNombre().toLowerCase().contains(lower)) {
+                tagsList.setSelectedIndex(i);
+                tagsList.ensureIndexIsVisible(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public JList<Tag> getTagsList() {
+        return tagsList;
+    }
+
+    private void refreshListModel() {
+        javax.swing.DefaultListModel<Tag> model = (javax.swing.DefaultListModel<Tag>) tagsList.getModel();
+        model.clear();
+        for (Tag tag : currentTags) {
+            model.addElement(tag);
+        }
+    }
 
     /**
      * Añade un tag localmente para dar feedback inmediato.

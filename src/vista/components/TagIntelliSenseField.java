@@ -37,6 +37,7 @@ public class TagIntelliSenseField extends JTextField {
 
     private static final String MSG_NOT_FOUND = "(no existe)";
     private static final String MSG_NO_CHILDREN = "(sin hijos)";
+    private static final String MSG_SELECT = "Seleccionar...";
 
     private final TagSearchEngine engine = new TagSearchEngine();
     private final JPopupMenu popupMenu;
@@ -47,6 +48,7 @@ public class TagIntelliSenseField extends JTextField {
     private boolean suppressListener = false;
     private boolean pendingCreationCheck = false;
     private boolean inCreationDialog = false;
+    private Runnable onEnterNoPopupAction;
 
     public TagIntelliSenseField() {
         super();
@@ -134,10 +136,14 @@ public class TagIntelliSenseField extends JTextField {
 
                     case KeyEvent.VK_ENTER:
                         if (popupMenu.isVisible()) {
-                            applySelectedSuggestion();
+                            boolean applied = applySelectedSuggestion();
+                            if (applied) {
+                                pendingCreationCheck = true;
+                                SwingUtilities.invokeLater(TagIntelliSenseField.this::checkAndHandleCreation);
+                            }
+                        } else if (onEnterNoPopupAction != null) {
+                            onEnterNoPopupAction.run();
                         }
-                        pendingCreationCheck = true;
-                        SwingUtilities.invokeLater(TagIntelliSenseField.this::checkAndHandleCreation);
                         break;
 
                     case KeyEvent.VK_PERIOD:
@@ -145,13 +151,25 @@ public class TagIntelliSenseField extends JTextField {
                             PathResult sel = suggestionList.getSelectedValue();
                             if (sel != null && !MSG_NOT_FOUND.equals(sel.displayName())
                                     && !MSG_NO_CHILDREN.equals(sel.displayName())) {
-                                applySelectedSuggestion();
                                 String txt = getText();
-                                if (!txt.endsWith(".")) {
-                                    suppressListener = true;
-                                    setText(txt + ".");
-                                    suppressListener = false;
-                                    updateSuggestions();
+                                if (txt.startsWith(".") || MSG_SELECT.equals(sel.displayName())) {
+                                    // In search mode or placeholder selected: just append "." to enter drill-down
+                                    if (!txt.endsWith(".")) {
+                                        suppressListener = true;
+                                        setText(txt + ".");
+                                        suppressListener = false;
+                                        updateSuggestions();
+                                    }
+                                } else {
+                                    // In imperative mode: apply suggestion and drill down
+                                    applySelectedSuggestion();
+                                    String newTxt = getText();
+                                    if (!newTxt.endsWith(".")) {
+                                        suppressListener = true;
+                                        setText(newTxt + ".");
+                                        suppressListener = false;
+                                        updateSuggestions();
+                                    }
                                 }
                                 e.consume();
                             }
@@ -175,9 +193,6 @@ public class TagIntelliSenseField extends JTextField {
                         hidePopup();
                     }
                 });
-                pendingCreationCheck = true;
-                SwingUtilities.invokeLater(
-                        TagIntelliSenseField.this::checkAndHandleCreation);
             }
         });
 
@@ -241,6 +256,26 @@ public class TagIntelliSenseField extends JTextField {
         return engine.hasExactMatch(name, parentId);
     }
 
+    public boolean pathExists(String dotPath) {
+        return engine.pathExists(dotPath);
+    }
+
+    public TagSearchEngine getEngine() {
+        return engine;
+    }
+
+    public boolean isPopupVisible() {
+        return popupMenu.isVisible();
+    }
+
+    /**
+     * Establece una acción que se ejecuta al pulsar Enter cuando el popup NO está visible.
+     * Útil para el modo tornado (find-next-match).
+     */
+    public void setOnEnterNoPopupAction(Runnable action) {
+        this.onEnterNoPopupAction = action;
+    }
+
     // ─── SUGERENCIAS ────────────────────────────────────────────────────────
 
     private void onTextChanged() {
@@ -268,11 +303,13 @@ public class TagIntelliSenseField extends JTextField {
             return;
         }
 
+        // Pre-append placeholder as first option
+        suggestionModel.addElement(new PathResult(MSG_SELECT, ""));
         for (PathResult s : suggestions) {
             suggestionModel.addElement(s);
         }
         suggestionList.setSelectedIndex(0);
-        showPopup(suggestions.size());
+        showPopup(suggestions.size() + 1);
     }
 
     // ─── POPUP ──────────────────────────────────────────────────────────────
@@ -301,17 +338,18 @@ public class TagIntelliSenseField extends JTextField {
 
     // ─── SELECCION ──────────────────────────────────────────────────────────
 
-    private void applySelectedSuggestion() {
+    private boolean applySelectedSuggestion() {
         PathResult selected = suggestionList.getSelectedValue();
         if (selected == null && !suggestionModel.isEmpty()) {
             selected = suggestionModel.get(0);
         }
-        if (selected == null) return;
+        if (selected == null) return false;
 
         if (MSG_NOT_FOUND.equals(selected.displayName())
-                || MSG_NO_CHILDREN.equals(selected.displayName())) {
+                || MSG_NO_CHILDREN.equals(selected.displayName())
+                || MSG_SELECT.equals(selected.displayName())) {
             hidePopup();
-            return;
+            return false;
         }
 
         String fullPath = selected.fullPath();
@@ -326,9 +364,111 @@ public class TagIntelliSenseField extends JTextField {
         hidePopup();
 
         lastSelectedTag = engine.resolveTagByPath(fullPath);
+        return true;
     }
 
     // ─── CREACION (Fase 3) ─────────────────────────────────────────────────
+
+    /**
+     * Comprueba si la ruta completa del texto actual existe, y si no,
+     * pregunta al usuario si desea crearla.  Útil para que el botón
+     * "Asignar" externo pueda pedir confirmación sin duplicar la lógica.
+     * @return true si la ruta existe o se creó correctamente.
+     */
+    public boolean ensurePathResolved() {
+        String text = getText().trim();
+        if (text.isEmpty()) return false;
+        String pathToResolve = text.startsWith(".") ? text.substring(1) : text;
+        if (engine.pathExists(pathToResolve)) return true;
+
+        String[] segments = pathToResolve.split("\\.");
+        if (segments.length == 0) return false;
+
+        Long parentId = null;
+        int firstMissingIdx = -1;
+        for (int i = 0; i < segments.length; i++) {
+            String seg = segments[i].trim();
+            if (seg.isEmpty()) continue;
+            if (!engine.hasExactMatch(seg, parentId)) {
+                firstMissingIdx = i;
+                break;
+            }
+            List<Tag> siblings = engine.getChildren(parentId);
+            if (siblings != null) {
+                for (Tag t : siblings) {
+                    if (t.getNombre().equalsIgnoreCase(seg)) {
+                        parentId = t.getId();
+                        break;
+                    }
+                }
+            }
+        }
+        if (firstMissingIdx < 0) return true;
+
+        StringBuilder existingPath = new StringBuilder();
+        for (int i = 0; i < firstMissingIdx; i++) {
+            if (i > 0) existingPath.append(".");
+            existingPath.append(segments[i]);
+        }
+        String existingParentPath = existingPath.toString();
+
+        StringBuilder missingChain = new StringBuilder();
+        for (int i = firstMissingIdx; i < segments.length; i++) {
+            if (i > firstMissingIdx) missingChain.append(".");
+            missingChain.append(segments[i]);
+        }
+        String missingStr = missingChain.toString();
+
+        Tag parentTag = !existingParentPath.isEmpty() ? engine.resolveTagByPath(existingParentPath) : null;
+        String message = String.format(
+                "Vas a asignar el tag \"%s\" y no existe en la ruta \"%s\". \u00bfLo creamos?",
+                missingStr, existingParentPath.isEmpty() ? "ra\u00edz" : existingParentPath);
+
+        inCreationDialog = true;
+        int response = JOptionPane.showConfirmDialog(
+                this, message, "Crear tag(s)",
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        inCreationDialog = false;
+
+        if (response == JOptionPane.YES_OPTION) {
+            try {
+                TagDAO dao = new TagDAO();
+                Tag lastCreated = null;
+                for (int i = firstMissingIdx; i < segments.length; i++) {
+                    String seg = segments[i].trim();
+                    if (seg.isEmpty()) continue;
+                    Optional<Tag> created = dao.addTag(seg, parentId);
+                    if (created.isPresent()) {
+                        lastCreated = created.get();
+                        parentId = lastCreated.getId();
+                    } else {
+                        logger.warn("[IntelliSense] No se pudo crear el segmento '{}'.", seg);
+                        break;
+                    }
+                }
+                if (lastCreated != null) {
+                    hidePopup();
+                    refreshTags(dao.getAllTags());
+                    String createdFullPath = engine.getFullPath(lastCreated);
+                    suppressListener = true;
+                    try {
+                        setText(createdFullPath);
+                        setCaretPosition(getText().length());
+                    } finally {
+                        suppressListener = false;
+                    }
+                    lastSelectedTag = lastCreated;
+                    return true;
+                }
+            } catch (Exception ex) {
+                logger.error("Error al crear tag(s)", ex);
+                JOptionPane.showMessageDialog(this,
+                        "Error al crear el tag. Revisa el log para mas detalles.",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        return false;
+    }
 
     private void checkAndHandleCreation() {
         if (!pendingCreationCheck) return;
@@ -344,47 +484,78 @@ public class TagIntelliSenseField extends JTextField {
         String[] segments = pathToResolve.split("\\.");
         if (segments.length == 0) return;
 
-        String newTagName = segments[segments.length - 1];
-        if (newTagName.isEmpty()) return;
-
-        StringBuilder parentPathBuilder = new StringBuilder();
-        for (int i = 0; i < segments.length - 1; i++) {
-            if (i > 0) parentPathBuilder.append(".");
-            parentPathBuilder.append(segments[i]);
-        }
-        String parentPath = parentPathBuilder.toString();
-
-        Tag parentTag = null;
-        if (!parentPath.isEmpty()) {
-            parentTag = engine.resolveTagByPath(parentPath);
-            if (parentTag == null) {
-                logger.debug("[IntelliSense] Ruta padre '{}' no existe.", parentPath);
-                return;
+        // Encontrar hasta dónde existe la ruta y dónde empieza lo faltante
+        Long parentId = null;
+        int firstMissingIdx = -1;
+        for (int i = 0; i < segments.length; i++) {
+            String seg = segments[i].trim();
+            if (seg.isEmpty()) continue;
+            boolean exists = engine.hasExactMatch(seg, parentId);
+            if (!exists) {
+                firstMissingIdx = i;
+                break;
+            }
+            List<Tag> siblings = engine.getChildren(parentId);
+            if (siblings != null) {
+                for (Tag t : siblings) {
+                    if (t.getNombre().equalsIgnoreCase(seg)) {
+                        parentId = t.getId();
+                        break;
+                    }
+                }
             }
         }
+        if (firstMissingIdx < 0) return;
 
+        // Construir el padre existente (o raíz)
+        StringBuilder existingPath = new StringBuilder();
+        for (int i = 0; i < firstMissingIdx; i++) {
+            if (i > 0) existingPath.append(".");
+            existingPath.append(segments[i]);
+        }
+        String existingParentPath = existingPath.toString();
+
+        // Construir la cadena faltante
+        StringBuilder missingChain = new StringBuilder();
+        for (int i = firstMissingIdx; i < segments.length; i++) {
+            if (i > firstMissingIdx) missingChain.append(".");
+            missingChain.append(segments[i]);
+        }
+        String missingStr = missingChain.toString();
+
+        Tag parentTag = !existingParentPath.isEmpty() ? engine.resolveTagByPath(existingParentPath) : null;
         String parentDisplay = (parentTag != null) ? parentTag.getNombre() : "raiz";
         String message = String.format(
-                "El tag '%s' no existe dentro de '%s'. \u00bfDesea crearlo?",
-                newTagName, parentDisplay);
+                "Vas a asignar el tag \"%s\" y no existe en la ruta \"%s\". \u00bfLo creamos?",
+                missingStr, existingParentPath.isEmpty() ? "ra\u00edz" : existingParentPath);
 
         inCreationDialog = true;
         int response = JOptionPane.showConfirmDialog(
-                this, message, "Crear nuevo tag",
+                this, message, "Crear tag(s)",
                 JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         inCreationDialog = false;
 
         if (response == JOptionPane.YES_OPTION) {
             try {
                 TagDAO dao = new TagDAO();
-                Long parentId = (parentTag != null) ? parentTag.getId() : null;
-                Optional<Tag> created = dao.addTag(newTagName, parentId);
-                if (created.isPresent()) {
-                    logger.info("[IntelliSense] Tag '{}' creado bajo padre ID {}",
-                            newTagName, parentId);
+                Tag lastCreated = null;
+                for (int i = firstMissingIdx; i < segments.length; i++) {
+                    String seg = segments[i].trim();
+                    if (seg.isEmpty()) continue;
+                    Optional<Tag> created = dao.addTag(seg, parentId);
+                    if (created.isPresent()) {
+                        lastCreated = created.get();
+                        parentId = lastCreated.getId();
+                        logger.debug("[IntelliSense] Tag '{}' creado bajo padre ID {}", seg, parentId);
+                    } else {
+                        logger.warn("[IntelliSense] No se pudo crear el segmento '{}'.", seg);
+                        break;
+                    }
+                }
+                if (lastCreated != null) {
                     hidePopup();
                     refreshTags(dao.getAllTags());
-                    String createdFullPath = engine.getFullPath(created.get());
+                    String createdFullPath = engine.getFullPath(lastCreated);
                     suppressListener = true;
                     try {
                         setText(createdFullPath);
@@ -392,28 +563,16 @@ public class TagIntelliSenseField extends JTextField {
                     } finally {
                         suppressListener = false;
                     }
-                    lastSelectedTag = created.get();
-                } else {
-                    logger.warn("[IntelliSense] No se pudo crear el tag '{}'.", newTagName);
+                    lastSelectedTag = lastCreated;
                 }
             } catch (Exception ex) {
-                logger.error("Error al crear tag '{}'", newTagName, ex);
+                logger.error("Error al crear tag(s)", ex);
                 JOptionPane.showMessageDialog(this,
                         "Error al crear el tag. Revisa el log para mas detalles.",
                         "Error", JOptionPane.ERROR_MESSAGE);
             }
-        } else {
-            if (lastSelectedTag != null) {
-                String lastPath = engine.getFullPath(lastSelectedTag);
-                suppressListener = true;
-                try {
-                    setText(lastPath);
-                    setCaretPosition(getText().length());
-                } finally {
-                    suppressListener = false;
-                }
-            }
         }
+        // Si cancela, no hacemos nada (ni borrar textbox, ni limpiar campo)
     }
 
 } // --- FIN de clase TagIntelliSenseField ---

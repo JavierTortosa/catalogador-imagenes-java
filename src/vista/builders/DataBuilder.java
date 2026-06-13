@@ -18,7 +18,6 @@ import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -40,6 +39,7 @@ import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
 import servicios.image.ThumbnailService;
+import vista.components.TagIntelliSenseField;
 import vista.config.MenuItemDefinition;
 import vista.config.MenuItemType;
 import vista.panels.DriveListPanel;
@@ -47,7 +47,6 @@ import vista.panels.GridDisplayPanel;
 import vista.panels.ImageDisplayPanel;
 import vista.panels.PolaroidDisplayPanel;
 import vista.panels.TagManagementPanel;
-import vista.components.TagIntelliSenseField;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 import vista.util.ThumbnailPreviewer;
@@ -104,17 +103,14 @@ public class DataBuilder {
         JToolBar tagToolbar = new JToolBar();
         tagToolbar.setFloatable(false);
         
-        // Vista lista
-        JButton btnVistaLista = new JButton(iconUtils.getScaledIcon("30100-Vector.png", 24, 24));
-        btnVistaLista.setToolTipText("Vista por lista");
-        btnVistaLista.addActionListener(actionMap.get(AppActionCommands.CMD_DATOS_TAGS_VISTA_LISTA));
-        tagToolbar.add(btnVistaLista);
-        
-        // Vista árbol
-        JButton btnVistaArbol = new JButton(iconUtils.getScaledIcon("30101-Hierarchy.png", 24, 24));
-        btnVistaArbol.setToolTipText("Vista por árbol");
-        btnVistaArbol.addActionListener(actionMap.get(AppActionCommands.CMD_DATOS_TAGS_VISTA_ARBOL));
-        tagToolbar.add(btnVistaArbol);
+        // Botón único de cambio de vista (árbol ↔ lista) con 2 iconos
+        javax.swing.Icon iconTree = iconUtils.getScaledIcon("30101-Hierarchy.png", 24, 24);
+        javax.swing.Icon iconList = iconUtils.getScaledIcon("30100-Vector.png", 24, 24);
+        JToggleButton btnViewToggle = new JToggleButton(iconTree);
+        btnViewToggle.setSelectedIcon(iconList);
+        btnViewToggle.setToolTipText("Vista por \u00e1rbol");
+        registry.register("btn.datamode.tag.view.toggle", btnViewToggle);
+        tagToolbar.add(btnViewToggle);
         tagToolbar.addSeparator();
         
         // Orden
@@ -217,7 +213,10 @@ public class DataBuilder {
                 if (value instanceof modelo.datos.Tag) {
                     modelo.datos.Tag tag = (modelo.datos.Tag) value;
                     servicios.db.TagDAO tagDAO = (servicios.db.TagDAO) list.getClientProperty("flatTagDAO");
-                    java.util.List<Long> discoIds = (java.util.List<Long>) list.getClientProperty("flatDiscoIds");
+                    
+                    @SuppressWarnings("unchecked")
+					java.util.List<Long> discoIds = (java.util.List<Long>) list.getClientProperty("flatDiscoIds");
+                    
                     int total = (tagDAO != null) ? tagDAO.getImageCountForTag(tag.getId()) : 0;
                     int avail = (tagDAO != null && discoIds != null) ? tagDAO.getAvailableImageCountForTag(tag.getId(), discoIds) : 0;
                     label.setText(tag.getNombre() + " (" + avail + "/" + total + ")");
@@ -247,15 +246,16 @@ public class DataBuilder {
         treeListContainer.add(flatListScrollPane, "LIST");
         registry.register("panel.datamode.treelist.container", treeListContainer);
         
-        btnVistaLista.addActionListener(e -> {
+        btnViewToggle.addActionListener(e -> {
+            boolean showingTree = !btnViewToggle.isSelected();
+            btnViewToggle.setToolTipText(showingTree ? "Vista por lista" : "Vista por \u00e1rbol");
             CardLayout cl = (CardLayout) treeListContainer.getLayout();
-            cl.show(treeListContainer, "LIST");
-            if (dataController != null) dataController.onTagViewSwitched(false);
-        });
-        btnVistaArbol.addActionListener(e -> {
-            CardLayout cl = (CardLayout) treeListContainer.getLayout();
-            cl.show(treeListContainer, "TREE");
-            if (dataController != null) dataController.onTagViewSwitched(true);
+            if (showingTree) {
+                cl.show(treeListContainer, "TREE");
+            } else {
+                cl.show(treeListContainer, "LIST");
+            }
+            if (dataController != null) dataController.onTagViewSwitched(showingTree);
         });
         
         // IntelliSense unificado: se coloca debajo del toolbar, centrado al ancho de los botones
@@ -275,10 +275,14 @@ public class DataBuilder {
         leftHeader.add(tagToolbar);
 
         int toolbarWidth = Math.max(tagToolbar.getPreferredSize().width, 200);
-        unifiedIntelliSense.setPreferredSize(new Dimension(toolbarWidth, unifiedIntelliSense.getPreferredSize().height));
-        unifiedIntelliSense.setMinimumSize(new Dimension(Math.min(toolbarWidth, 200), 20));
-        JPanel intelliSenseRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 2));
-        intelliSenseRow.add(unifiedIntelliSense);
+        JPanel intelliSenseRow = new JPanel(new BorderLayout(2, 0));
+        // Tornado toggle para la columna izquierda (a la izquierda del IntelliSense)
+        JToggleButton btnTornadoIzda = new JToggleButton(iconUtils.getScaledIcon("40001-filter_48x48.png", 20, 20));
+        btnTornadoIzda.setToolTipText("Activar/desactivar filtro en vivo en el panel de etiquetas");
+        btnTornadoIzda.setSelected(false);
+        registry.register("toggle.datamode.tag.tornado", btnTornadoIzda);
+        intelliSenseRow.add(btnTornadoIzda, BorderLayout.WEST);
+        intelliSenseRow.add(unifiedIntelliSense, BorderLayout.CENTER);
         leftHeader.add(intelliSenseRow);
 
         // Árbol + header
@@ -286,8 +290,8 @@ public class DataBuilder {
         treeWithButtonsPanel.add(leftHeader, BorderLayout.NORTH);
         treeWithButtonsPanel.add(treeListContainer, BorderLayout.CENTER);
 
-        // Anclar el ancho de la columna izquierda al ancho del toolbar
-        leftPanel.setPreferredSize(new Dimension(toolbarWidth + 10, 400));
+        // Anclar el ancho de la columna izquierda
+        leftPanel.setPreferredSize(new Dimension(toolbarWidth + 30, 400));
         leftPanel.add(treeWithButtonsPanel, BorderLayout.CENTER);
         
         // ═══════════════════════════════════════════════════════════════
@@ -301,18 +305,18 @@ public class DataBuilder {
         JToolBar tornadobar = new JToolBar();
         tornadobar.setFloatable(false);
         
+        JToggleButton btnTornado = new JToggleButton(iconUtils.getScaledIcon("40001-filter_48x48.png", 24, 24));
+        btnTornado.setToolTipText("Activar/desactivar filtro en vivo");
+        btnTornado.setSelected(false);
+        registry.register("toggle.datamode.tornado", btnTornado);
+        tornadobar.add(btnTornado);
+        
         JTextField tornadoField = new JTextField(20);
         tornadoField.setToolTipText("<html><b>Búsqueda rápida (Tornado):</b><br>" +
             "• Con filtro tornado <b>APAGADO</b>: pulsa Enter para buscar la cadena desde la selección actual<br>" +
             "• Con filtro tornado <b>ENCENDIDO</b>: filtra en vivo los nombres que contienen el texto</html>");
         registry.register("textfield.datamode.tornado", tornadoField);
         tornadobar.add(tornadoField);
-        
-        JToggleButton btnTornado = new JToggleButton(iconUtils.getScaledIcon("40001-filter_48x48.png", 24, 24));
-        btnTornado.setToolTipText("Activar/desactivar filtro en vivo");
-        btnTornado.setSelected(false);
-        registry.register("toggle.datamode.tornado", btnTornado);
-        tornadobar.add(btnTornado);
         
         tornadoPanel.add(tornadobar, BorderLayout.CENTER);
         centerPanel.add(tornadoPanel, BorderLayout.NORTH);
@@ -379,6 +383,13 @@ public class DataBuilder {
         JToolBar assignToolbar = new JToolBar();
         assignToolbar.setFloatable(false);
         
+        // Tornado toggle para la columna derecha (filtro de tags asignados) - antes del IntelliSense
+        JToggleButton btnTornadoAsig = new JToggleButton(iconUtils.getScaledIcon("40001-filter_48x48.png", 20, 20));
+        btnTornadoAsig.setToolTipText("Activar/desactivar filtro en vivo en los tags asignados");
+        btnTornadoAsig.setSelected(false);
+        registry.register("toggle.datamode.tag.assigned.tornado", btnTornadoAsig);
+        assignToolbar.add(btnTornadoAsig);
+        
         // IntelliSense para asignar tags (mantiene clave antigua para compatibilidad)
         TagIntelliSenseField assignIntelliSense = new TagIntelliSenseField();
         assignIntelliSense.setColumns(15);
@@ -412,7 +423,7 @@ public class DataBuilder {
         btnHerencia.setSelected(true);
         registry.register("toggle.datamode.tag.herencia", btnHerencia);
         assignToolbar.add(btnHerencia);
-        
+
         assignPanel.add(assignToolbar, BorderLayout.CENTER);
         
         JPanel tagMgmtPanelContainer = new JPanel(new BorderLayout());

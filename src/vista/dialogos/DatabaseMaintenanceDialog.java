@@ -2,7 +2,6 @@ package vista.dialogos;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.nio.file.Files;
@@ -24,7 +23,6 @@ import javax.swing.SwingWorker;
 import controlador.managers.DataManager;
 import modelo.datos.ImagenInfo;
 import modelo.datos.Tag;
-import vista.util.IconUtils;
 
 public class DatabaseMaintenanceDialog extends JDialog {
 
@@ -56,6 +54,9 @@ public class DatabaseMaintenanceDialog extends JDialog {
 
         // Pestaña 2: Limpiar Etiquetas
         tabbedPane.addTab("Etiquetas Sin Uso", createUnusedTagsPanel());
+
+        // Pestaña 2b: Ramas Vacías
+        tabbedPane.addTab("Ramas Vacías", createEmptyBranchesPanel());
 
         // Pestaña 3: Fusionar Etiquetas
         tabbedPane.addTab("Fusionar Etiquetas", createMergeTagsPanel());
@@ -154,6 +155,52 @@ public class DatabaseMaintenanceDialog extends JDialog {
             }
         });
         
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        btnPanel.add(btnScan);
+        panel.add(btnPanel, BorderLayout.CENTER);
+
+        return panel;
+    }
+
+    private JPanel createEmptyBranchesPanel() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+        JLabel lblInfo = new JLabel("<html>Busca ramas completas de etiquetas que no tienen ninguna imagen asociada (ni la rama ni sus descendientes).<br>"
+            + "Estas ramas suelen crearse a partir de carpetas del sistema de archivos que ya no existen o no contienen imágenes indexadas.</html>");
+        panel.add(lblInfo, BorderLayout.NORTH);
+
+        JButton btnScan = new JButton("Buscar Ramas Vacías");
+        btnScan.addActionListener(e -> {
+            List<Tag> emptyBranches = dataManager.getTagDAO().getEmptyBranches();
+            if (emptyBranches.isEmpty()) {
+                JOptionPane.showMessageDialog(panel, "No hay ramas vacías.", "Resultado", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            StringBuilder sb = new StringBuilder();
+            sb.append("Se encontraron ").append(emptyBranches.size()).append(" rama(s) vacía(s):\n\n");
+            for (Tag t : emptyBranches) {
+                String path = dataManager.getTagDAO().getTagFullPath(t.getId()).replace(" > ", ".");
+                int childCount = dataManager.getTagDAO().getDirectChildCount(t.getId());
+                sb.append("  • ").append(path);
+                if (childCount > 0) sb.append(" (").append(childCount).append(" subniveles)");
+                sb.append("\n");
+            }
+            sb.append("\n¿Deseas eliminar TODAS estas ramas vacías?");
+            int confirm = JOptionPane.showConfirmDialog(panel, sb.toString(),
+                    "Eliminar Ramas Vacías", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            if (confirm == JOptionPane.YES_OPTION) {
+                int count = 0;
+                for (Tag t : emptyBranches) {
+                    if (dataManager.getTagDAO().deleteTagBranch(t.getId())) count++;
+                }
+                JOptionPane.showMessageDialog(panel,
+                        "Se han eliminado " + count + " rama(s) vacía(s).", "Limpieza completada",
+                        JOptionPane.INFORMATION_MESSAGE);
+                dbChanged = true;
+            }
+        });
+
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         btnPanel.add(btnScan);
         panel.add(btnPanel, BorderLayout.CENTER);

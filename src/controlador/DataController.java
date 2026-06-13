@@ -34,10 +34,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.managers.DataManager;
-import controlador.managers.DisplayModeManager;
 import controlador.managers.InfobarStatusManager;
 import controlador.managers.interfaces.IProjectManager;
 import controlador.utils.ComponentRegistry;
+import controlador.utils.TornadoFilterController;
 import modelo.ListContext;
 import modelo.VisorModel;
 import modelo.datos.Disco;
@@ -73,6 +73,20 @@ public class DataController {
     private TagTreeModel tagTreeModel;
     private TagTreeCellRenderer tagTreeRenderer;
 
+    // Indica si la vista actual de tags es árbol (true) o lista plana (false)
+    private boolean tagTreeViewActive = true;
+
+    // Controladores tornado para las 3 columnas
+    private TornadoFilterController centerTornado;
+    private TornadoFilterController leftTornado;
+    private TornadoFilterController assignedTornado;
+
+    // Estado de expansión guardado antes de filtrar el árbol (para restaurar al desactivar tornado)
+    private java.util.Set<Long> savedExpandedTagIds = new java.util.HashSet<>();
+
+    // Flag para saber si el tornado forzó la vista lista estando en modo árbol
+    private boolean tornadoForcedListView = false;
+
     // Flag para evitar bucles de sincronización entre lista central y grid
     private boolean isSyncingLists = false;
 
@@ -85,15 +99,28 @@ public class DataController {
     private Path pendingSyncPath = null;
     private String pendingSyncKey = null;
 
+    /**
+     * Constructor del controlador de datos.
+     *
+     * @param model Modelo de la aplicación
+     * @param registry Registro de componentes
+     * @param dataManager Gestor de datos
+     */
     public DataController(VisorModel model, ComponentRegistry registry, DataManager dataManager) {
         this.model = model;
         this.registry = registry;
         this.dataManager = dataManager;
-    } // ---FIN de constructor [DataController]---
+    } // --- Fin del metodo/clase DataController ---
 
+
+    /**
+     * Devuelve el gestor de datos.
+     *
+     * @return DataManager gestor de datos
+     */
     public DataManager getDataManager() {
         return this.dataManager;
-    } // ---FIN de metodo [getDataManager]---
+    } // --- Fin del metodo/clase getDataManager ---
 
     /**
      * Permite inyectar el VisorController principal para acceder a atajos y acciones globales.
@@ -101,7 +128,8 @@ public class DataController {
      */
     public void setVisorController(VisorController visorController) {
         this.visorController = visorController;
-    } // ---FIN de metodo [setVisorController]---
+    } // --- Fin del metodo/clase setVisorController ---
+
 
     /**
      * Permite inyectar el ProjectManager para poder marcar imágenes desde el Modo Datos.
@@ -109,18 +137,25 @@ public class DataController {
      */
     public void setProjectManager(IProjectManager projectManager) {
         this.projectManager = projectManager;
-    } // ---FIN de metodo [setProjectManager]---
+    } // --- Fin del metodo/clase setProjectManager ---
+
 
     /**
      * Permite inyectar el StatusBarManager para mostrar mensajes de estado.
+     * @param statusBarManager Gestor de la barra de estado
      */
     public void setStatusBarManager(InfobarStatusManager statusBarManager) {
         this.statusBarManager = statusBarManager;
-    } // ---FIN de metodo [setStatusBarManager]---
+    } // --- Fin del metodo/clase setStatusBarManager ---
 
+
+    /**
+     * Establece el gestor de etiquetas (tagging).
+     * @param taggingManager Gestor de etiquetas
+     */
     public void setTaggingManager(controlador.managers.TaggingManager taggingManager) {
         this.taggingManager = taggingManager;
-    } // ---FIN de metodo [setTaggingManager]---
+    } // --- Fin del metodo/clase setTaggingManager ---
 
     /**
      * Inicializa el controlador. Carga los datos iniciales y configura los listeners.
@@ -133,6 +168,8 @@ public class DataController {
         // Inicializaciones ligeras (solo listeners, sin carga de datos pesada)
         initializeFileNameList();
         initializeTornadoFilter();
+        initializeLeftTagTornadoFilter();
+        initializeAssignedTagTornadoFilter();
         setupTagManagementCallbacks();
         setupListeners();
         setupTagCRUDButtons();
@@ -155,6 +192,12 @@ public class DataController {
                 logger.error("Error en carga inicial de unidades", ex);
             }
             
+            // Actualizar el renderer del árbol con los ids de discos conectados
+            if (tagTreeRenderer != null) {
+                tagTreeRenderer.setConnectedDiscoIds(dataManager.getConnectedDiscoIds());
+                tagTreeRenderer.refreshCache();
+            }
+            
             // Refrescar vista si hay selección inicial
             javax.swing.SwingUtilities.invokeLater(() -> {
                 JTree tree = registry.get("tree.datamode.alltags");
@@ -169,8 +212,12 @@ public class DataController {
         }, "DataController-init").start();
         
         isInitialized = true;
-    } // ---FIN de metodo [initialize]---
-    
+    } // --- Fin del metodo/clase initialize ---
+
+
+    /**
+     * Configura el diálogo de mantenimiento de la base de datos.
+     */
     private void setupMaintenanceDialog() {
         javax.swing.JButton btn = registry.get("btn.datamode.mantenimiento");
         if (btn != null) {
@@ -187,7 +234,7 @@ public class DataController {
                 }
             });
         }
-    }
+    } // --- Fin del metodo/clase setupMaintenanceDialog ---
     
     /**
      * Activa el modo datos. Se llama cada vez que el usuario cambia a esta vista.
@@ -288,14 +335,23 @@ public class DataController {
                 gridList.setSelectedIndex(0);
             }
         });
-    } // ---FIN de metodo [activate]---
+    } // --- Fin del metodo/clase activate ---
 
+
+    /**
+     * Establece la ruta y la clave de la imagen pendiente de sincronización.
+     * @param path Ruta de la imagen
+     * @param key Clave de la imagen
+     */
     public void setPendingSyncFromVisualizador(Path path, String key) {
         this.pendingSyncPath = path;
         this.pendingSyncKey = key;
-    } // ---FIN de metodo [setPendingSyncFromVisualizador]---
+    } // --- Fin del metodo/clase setPendingSyncFromVisualizador ---
 
 
+    /**
+     * Guarda el contexto actual del modo datos en el modelo.
+     */
     public void guardarContexto() {
         if (model == null) return;
         ListContext ctx = model.getDatosListContext();
@@ -328,14 +384,28 @@ public class DataController {
             }
         }
         ctx.setSelectedImageKey(selectedKey);
-    } // ---FIN de metodo [guardarContexto]---
+    } // --- Fin del metodo/clase guardarContexto ---
 
+
+    /**
+     * Selecciona un nodo en el árbol de tags dado un nombre de tag.
+     * @param tree Árbol de tags
+     * @param tagName Nombre del tag
+     */
     private void selectTagNode(JTree tree, String tagName) {
         javax.swing.tree.TreeModel model = tree.getModel();
         if (model == null || model.getRoot() == null) return;
         buscarYSeleccionarNodo(tree, model.getRoot(), tagName);
-    }
+    } // --- Fin del metodo/clase selectTagNode ---
 
+
+    /**
+     * Busca y selecciona un nodo en el árbol de tags recursivamente.
+     * @param tree Árbol de tags
+     * @param node Nodo actual
+     * @param tagName Nombre del tag
+     * @return true si se encontró y seleccionó, false en caso contrario
+     */
     private boolean buscarYSeleccionarNodo(JTree tree, Object node, String tagName) {
         if (node instanceof javax.swing.tree.DefaultMutableTreeNode) {
             javax.swing.tree.DefaultMutableTreeNode treeNode = (javax.swing.tree.DefaultMutableTreeNode) node;
@@ -352,8 +422,12 @@ public class DataController {
             }
         }
         return false;
-    }
+    } // --- Fin del metodo/clase buscarYSeleccionarNodo ---
 
+
+    /**
+     * Inicializa el modelo del árbol de tags.
+     */
     private void initializeTagTree() {
         final JTree allTagsTree = registry.get("tree.datamode.alltags");
         if (allTagsTree == null) {
@@ -375,8 +449,12 @@ public class DataController {
             allTagsTree.setModel(model);
             allTagsTree.setCellRenderer(renderer);
         });
-    } // ---FIN de metodo [initializeTagTree]---
+    } // --- Fin del metodo/clase initializeTagTree ---
 
+    /**
+     * Refresca el árbol de tags y selecciona un tag específico.
+     * @param selectTagId ID del tag a seleccionar, o null si no se debe seleccionar uno específico.
+     */
     private void refreshTagTreeAndSelect(Long selectTagId) {
         JTree allTagsTree = registry.get("tree.datamode.alltags");
         if (allTagsTree == null || tagTreeModel == null) {
@@ -406,6 +484,11 @@ public class DataController {
         tagTreeModel.clearCache();
         tagTreeModel.fireTreeStructureChanged();
 
+        if (tagTreeRenderer != null) {
+            tagTreeRenderer.setConnectedDiscoIds(dataManager.getConnectedDiscoIds());
+            tagTreeRenderer.refreshCache();
+        }
+
         long targetId = selectTagId != null ? selectTagId : savedSelectionId;
         final long finalTargetId = targetId;
         final java.util.Set<Long> finalExpandedIds = expandedIds;
@@ -423,8 +506,13 @@ public class DataController {
                 selectTagInTree(finalTargetId);
             }
         });
-    } // ---FIN de metodo [refreshTagTreeAndSelect]---
+    } // --- Fin del metodo/clase refreshTagTreeAndSelect ---
 
+
+    /**
+     * Devuelve el ID del tag seleccionado en el árbol.
+     * @return ID del tag seleccionado, o -1 si no hay selección válida.
+     */
     private long getSelectedTagIdFromTree() {
         JTree tree = registry.get("tree.datamode.alltags");
         if (tree == null) return -1;
@@ -433,8 +521,13 @@ public class DataController {
         Object last = selPath.getLastPathComponent();
         if (last instanceof Tag) return ((Tag) last).getId();
         return -1;
-    } // ---FIN de metodo [getSelectedTagIdFromTree]---
+    } // --- Fin del metodo/clase getSelectedTagIdFromTree ---
 
+
+    /**
+     * Selecciona un nodo en el árbol de tags dado un ID de tag.
+     * @param tagId ID del tag a seleccionar
+     */
     private void selectTagInTree(long tagId) {
         JTree tree = registry.get("tree.datamode.alltags");
         if (tree == null || tagTreeModel == null) {
@@ -452,8 +545,17 @@ public class DataController {
         } else {
             logger.debug("selectTagInTree({}): NO ENCONTRADO en el modelo", tagId);
         }
-    } // ---FIN de metodo [selectTagInTree]---
-    
+    } // --- Fin del metodo/clase selectTagInTree ---
+
+
+    /**
+     * Busca la ruta de un nodo en el modelo de árbol dado un ID de tag.
+     * @param model Modelo del árbol
+     * @param parent Nodo padre
+     * @param tagId ID del tag a buscar
+     * @param pathAccum Acumulador de ruta
+     * @return Ruta del nodo encontrado, o null si no se encuentra.
+     */
     private javax.swing.tree.TreePath findNodePathInModel(javax.swing.tree.TreeModel model, Object parent, long tagId, java.util.ArrayList<Object> pathAccum) {
         pathAccum.add(parent);
         if (parent instanceof Tag && ((Tag) parent).getId() == tagId) {
@@ -468,8 +570,11 @@ public class DataController {
         }
         pathAccum.remove(pathAccum.size() - 1);
         return null;
-    } // ---FIN de metodo [findNodePathInModel]---
+    } // --- Fin del metodo/clase findNodePathInModel ---
 
+    /**
+     * Inicializa la lista plana de tags.
+     */
     private void initializeFlatTagList() {
         JList<Tag> flatList = registry.get("list.datamode.alltags.flat");
         if (flatList == null) {
@@ -484,9 +589,12 @@ public class DataController {
                 loadImagesForTagName(selectedTag.getNombre());
             }
         });
-    } // ---FIN de metodo [initializeFlatTagList]---
+    } // --- Fin del metodo/clase initializeFlatTagList ---
 
-    @SuppressWarnings("unchecked")
+
+    /**
+     * Refresca la lista plana de tags.
+     */
     private void refreshFlatTagList() {
         flatListOriginalOrder.clear();
         flatListOriginalOrder.addAll(dataManager.getAllTags());
@@ -506,18 +614,37 @@ public class DataController {
             flatList.putClientProperty("flatDiscoIds", dataManager.getConnectedDiscoIds());
         }
         logger.debug("Lista plana de tags actualizada con {} elementos.", flatListOriginalOrder.size());
-    } // ---FIN de metodo [refreshFlatTagList]---
+    } // --- Fin del metodo/clase refreshFlatTagList ---
 
     /**
      * Notificado desde DataBuilder cuando el usuario cambia entre vista árbol y lista.
+     * Preserva la selección actual al cambiar de vista.
      * @param isTree true si se cambió a vista árbol, false si a vista lista.
      */
     public void onTagViewSwitched(boolean isTree) {
         logger.debug("Vista de tags cambiada: {} ", isTree ? "árbol" : "lista");
+        this.tagTreeViewActive = isTree;
         if (!isTree) {
+            // Preservar selección del árbol antes de refrescar la lista
+            Tag currentTreeTag = getSelectedTagFromTree();
             refreshFlatTagList();
+            if (currentTreeTag != null) {
+                JList<Tag> flatList = registry.get("list.datamode.alltags.flat");
+                if (flatList != null) {
+                    flatList.setSelectedValue(currentTreeTag, true);
+                }
+            }
+        } else {
+            // Preservar selección de la lista antes de restaurar
+            JList<Tag> flatList = registry.get("list.datamode.alltags.flat");
+            Tag currentListTag = (flatList != null) ? flatList.getSelectedValue() : null;
+            restoreFlatTagList();
+            if (currentListTag != null) {
+                selectTagInTree(currentListTag.getId());
+            }
         }
-    } // ---FIN de metodo [onTagViewSwitched]---
+    } // --- Fin del metodo/clase onTagViewSwitched ---
+
 
     /**
      * Ordena la lista plana de tags. Llamado desde el callback del botón de ordenar.
@@ -548,8 +675,11 @@ public class DataController {
 
         model.clear();
         for (Tag t : items) model.addElement(t);
-    } // ---FIN de metodo [ordenarListaPlana]---
+    } // --- Fin del metodo/clase ordenarListaPlana ---
 
+    /**
+     * Inicializa la lista de unidades de disco.
+     */
     private void initializeDriveList() {
         DriveListPanel drivePanel = registry.get("panel.datamode.drives");
         if (drivePanel == null) {
@@ -559,8 +689,12 @@ public class DataController {
 
         drivePanel.setOnRefresh(this::refreshDriveList);
         refreshDriveList();
-    } // ---FIN de metodo [initializeDriveList]---
+    } // --- Fin del metodo/clase initializeDriveList ---
 
+
+    /**
+     * Refresca la lista de unidades de disco.
+     */
     private void refreshDriveList() {
         DriveListPanel drivePanel = registry.get("panel.datamode.drives");
         if (drivePanel == null) return;
@@ -573,8 +707,11 @@ public class DataController {
         SwingUtilities.invokeLater(() -> {
             drivePanel.updateDrives(registered, connected);
         });
-    } // ---FIN de metodo [refreshDriveList]---
+    } // --- Fin del metodo/clase refreshDriveList ---
 
+    /**
+     * Carga la imagen seleccionada en el visor.
+     */
     private void cargarImagenEnVisor() {
         String selectedKey = model.getSelectedImageKey();
         if (selectedKey == null || visorController == null) return;
@@ -613,8 +750,12 @@ public class DataController {
                 }
             }
         }.execute();
-    } // ---FIN de metodo [cargarImagenEnVisor]---
+    } // --- Fin del metodo/clase cargarImagenEnVisor ---
 
+
+    /**
+     * Inicializa la lista de nombres de archivo.
+     */
     private void initializeFileNameList() {
         JList<String> fileNameList = registry.get("list.datamode.filenames");
         if (fileNameList == null) {
@@ -652,43 +793,142 @@ public class DataController {
                 }
             }
         });
-    } // ---FIN de metodo [initializeFileNameList]---
+    } // --- Fin del metodo/clase initializeFileNameList ---
 
+    /**
+     * Inicializa el filtro Tornado para la columna central (lista de archivos).
+     */
     private void initializeTornadoFilter() {
         JTextField tornadoField = registry.get("textfield.datamode.tornado");
         JToggleButton btnTornado = registry.get("toggle.datamode.tornado");
-        JList<String> fileNameList = registry.get("list.datamode.filenames");
-        if (tornadoField == null || btnTornado == null || fileNameList == null) return;
+        if (tornadoField == null || btnTornado == null) return;
 
+        centerTornado = new TornadoFilterController(tornadoField, btnTornado,
+            null, // no popup
+            () -> applyTornadoFilter(tornadoField.getText()),
+            () -> findNextTornadoMatch(tornadoField.getText()),
+            () -> refreshVisibleFileList(),
+            300
+        );
+    } // --- Fin del metodo/clase initializeTornadoFilter ---
+
+
+    /**
+     * Inicializa el filtro Tornado para la columna izquierda (tags/ramas).
+     * Comportamiento:
+     * - Vista árbol con filtro ON: navega al primer tag que coincida (expande+selecciona)
+     * - Vista lista con filtro ON: filtra la lista plana mostrando solo coincidencias
+     * - Enter con filtro OFF (y popup oculto): busca la siguiente coincidencia
+     */
+    private void initializeLeftTagTornadoFilter() {
+        TagIntelliSenseField createField = registry.get("textfield.datamode.tag.intellisense.create");
+        JToggleButton btnTornado = registry.get("toggle.datamode.tag.tornado");
+        if (createField == null || btnTornado == null) {
+            logger.debug("initializeLeftTagTornadoFilter: componentes no encontrados");
+            return;
+        }
+
+        createField.setOnEnterNoPopupAction(() -> {
+            if (!btnTornado.isSelected() && !createField.getText().isEmpty()) {
+                findNextTagMatch(createField.getText());
+            }
+        });
+
+        // Guardar estado de expansión del árbol al activar el toggle
         btnTornado.addActionListener(e -> {
-            if (btnTornado.isSelected()) {
-                String text = tornadoField.getText();
-                if (!text.isEmpty()) {
-                    applyTornadoFilter(text);
+            if (btnTornado.isSelected() && tagTreeViewActive) {
+                saveTreeExpansionState();
+            }
+        });
+
+        leftTornado = new TornadoFilterController(createField, btnTornado,
+            createField::isPopupVisible,
+            () -> { // live filter callback (toggle ON)
+                String text = createField.getText();
+                if (tagTreeViewActive) {
+                    if (text.isEmpty()) {
+                        // Sin texto: restaurar vista árbol
+                        if (tornadoForcedListView) {
+                            tornadoForcedListView = false;
+                            switchToTreeCard();
+                            restoreTreeExpansionState();
+                        }
+                    } else {
+                        // Con texto: cambiar a vista lista y filtrar
+                        if (!tornadoForcedListView) {
+                            tornadoForcedListView = true;
+                            saveTreeExpansionState();
+                            switchToListCard();
+                        }
+                        filterFlatTagList(text);
+                    }
+                } else {
+                    if (text.isEmpty()) {
+                        restoreFlatTagList();
+                    } else {
+                        filterFlatTagList(text);
+                    }
                 }
-            } else {
-                refreshVisibleFileList();
-            }
-        });
+            },
+            () -> {}, // ENTER ya se maneja via setOnEnterNoPopupAction
+            () -> { // restore callback (toggle OFF)
+                if (tagTreeViewActive) {
+                    if (tornadoForcedListView) {
+                        tornadoForcedListView = false;
+                        switchToTreeCard();
+                        restoreTreeExpansionState();
+                    }
+                } else {
+                    restoreFlatTagList();
+                }
+            },
+            300
+        );
+    } // --- Fin del metodo/clase initializeLeftTagTornadoFilter ---
 
-        tornadoField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-            private void handleTextChange() {
-                if (btnTornado.isSelected()) {
-                    applyTornadoFilter(tornadoField.getText());
+
+    /**
+     * Inicializa el filtro Tornado para la columna derecha (tags asignados a imágenes).
+     */
+    private void initializeAssignedTagTornadoFilter() {
+        TagIntelliSenseField assignField = registry.get("textfield.datamode.tag.intellisense");
+        JToggleButton btnTornado = registry.get("toggle.datamode.tag.assigned.tornado");
+        TagManagementPanel tagPanel = registry.get("panel.datamode.tagmanagement");
+        if (assignField == null || btnTornado == null || tagPanel == null) {
+            logger.debug("initializeAssignedTagTornadoFilter: componentes no encontrados");
+            return;
+        }
+
+        assignField.setOnEnterNoPopupAction(() -> {
+            if (!btnTornado.isSelected() && !assignField.getText().isEmpty()) {
+                boolean found = tagPanel.findNext(assignField.getText());
+                if (!found) {
+                    statusBarManager.mostrarMensajeTemporal(
+                        "No se encontró: \"" + assignField.getText() + "\"", 3000);
                 }
             }
-            public void insertUpdate(javax.swing.event.DocumentEvent e) { handleTextChange(); }
-            public void removeUpdate(javax.swing.event.DocumentEvent e) { handleTextChange(); }
-            public void changedUpdate(javax.swing.event.DocumentEvent e) { handleTextChange(); }
         });
 
-        tornadoField.addActionListener(e -> {
-            if (!btnTornado.isSelected() && !tornadoField.getText().isEmpty()) {
-                findNextTornadoMatch(tornadoField.getText());
-            }
-        });
-    } // ---FIN de metodo [initializeTornadoFilter]---
+        assignedTornado = new TornadoFilterController(assignField, btnTornado,
+            assignField::isPopupVisible,
+            () -> { // live filter
+                String text = assignField.getText();
+                if (text.isEmpty()) return;
+                tagPanel.filter(text);
+            },
+            () -> {}, // ENTER ya se maneja via setOnEnterNoPopupAction
+            () -> { // restore
+                tagPanel.clearFilter();
+            },
+            300
+        );
+    }
 
+
+    /**
+     * Aplica el filtro Tornado.
+     * @param text Texto del filtro
+     */
     private void applyTornadoFilter(String text) {
         JList<String> fileNameList = registry.get("list.datamode.filenames");
         if (fileNameList == null) return;
@@ -710,8 +950,13 @@ public class DataController {
         if (selectedValue != null && filteredModel.contains(selectedValue)) {
             fileNameList.setSelectedValue(selectedValue, true);
         }
-    } // ---FIN de metodo [applyTornadoFilter]---
+    } // --- Fin del metodo/clase applyTornadoFilter ---
 
+
+    /**
+     * Busca la siguiente coincidencia con el filtro Tornado.
+     * @param text Texto del filtro
+     */
     private void findNextTornadoMatch(String text) {
         JList<String> fileNameList = registry.get("list.datamode.filenames");
         if (fileNameList == null || text.isEmpty()) return;
@@ -735,20 +980,112 @@ public class DataController {
                 return;
             }
         }
-    } // ---FIN de metodo [findNextTornadoMatch]---
+    } // --- Fin del metodo/clase findNextTornadoMatch ---
 
+    /**
+     * Busca la siguiente coincidencia en la lista plana de tags (o árbol) y la selecciona.
+     * @param text Texto a buscar
+     */
+    private void findNextTagMatch(String text) {
+        if (text == null || text.trim().isEmpty()) return;
+        String lower = text.toLowerCase().trim();
+        int startIdx = findCurrentTagIndexInFlatList();
+
+        for (int i = startIdx + 1; i < flatListOriginalOrder.size(); i++) {
+            if (flatListOriginalOrder.get(i).getNombre().toLowerCase().contains(lower)) {
+                selectTagMatch(i);
+                return;
+            }
+        }
+        // Wrap around
+        for (int i = 0; i <= startIdx; i++) {
+            if (flatListOriginalOrder.get(i).getNombre().toLowerCase().contains(lower)) {
+                selectTagMatch(i);
+                return;
+            }
+        }
+        statusBarManager.mostrarMensajeTemporal("No se encontr\u00f3: \"" + text + "\"", 3000);
+    } // --- Fin del metodo/clase findNextTagMatch ---
+
+    /**
+     * Encuentra el índice del tag actualmente seleccionado en flatListOriginalOrder.
+     */
+    private int findCurrentTagIndexInFlatList() {
+        if (tagTreeViewActive) {
+            Tag currentTreeTag = getSelectedTagFromTree();
+            if (currentTreeTag != null) {
+                for (int i = 0; i < flatListOriginalOrder.size(); i++) {
+                    if (flatListOriginalOrder.get(i).getId() == currentTreeTag.getId()) {
+                        return i;
+                    }
+                }
+            }
+        } else {
+            JList<Tag> flatList = registry.get("list.datamode.alltags.flat");
+            if (flatList != null) {
+                Tag sel = flatList.getSelectedValue();
+                if (sel != null) {
+                    for (int i = 0; i < flatListOriginalOrder.size(); i++) {
+                        if (flatListOriginalOrder.get(i).getId() == sel.getId()) {
+                            return i;
+                        }
+                    }
+                }
+            }
+        }
+        return -1;
+    } // --- Fin del metodo/clase findCurrentTagIndexInFlatList ---
+
+    /**
+     * Selecciona el tag en la vista activa (árbol o lista) según el índice en flatListOriginalOrder.
+     */
+    private void selectTagMatch(int flatListIndex) {
+        if (flatListIndex < 0 || flatListIndex >= flatListOriginalOrder.size()) return;
+        Tag tag = flatListOriginalOrder.get(flatListIndex);
+        JList<Tag> flatList = registry.get("list.datamode.alltags.flat");
+
+        if (tagTreeViewActive) {
+            selectTagInTree(tag.getId());
+            // También seleccionar en la lista plana en segundo plano
+            if (flatList != null) {
+                flatList.setSelectedValue(tag, true);
+            }
+        } else {
+            if (flatList != null) {
+                flatList.setSelectedValue(tag, true);
+                flatList.ensureIndexIsVisible(flatList.getSelectedIndex());
+            }
+        }
+    } // --- Fin del metodo/clase selectTagMatch ---
+
+
+    /**
+     * Obtiene el modelo de la lista maestra de archivos.
+     * @return El modelo de la lista maestra
+     */
     private javax.swing.DefaultListModel<String> getMasterFileListModel() {
         return masterFileListModel;
-    }
+    } // --- Fin del metodo/clase getMasterFileListModel ---
+
 
     private javax.swing.DefaultListModel<String> masterFileListModel = new javax.swing.DefaultListModel<>();
 
+
+    /**
+     * Refresca la lista de archivos visible.
+     */
     private void refreshVisibleFileList() {
         JList<String> fileNameList = registry.get("list.datamode.filenames");
         if (fileNameList == null) return;
         fileNameList.setModel(masterFileListModel);
-    } // ---FIN de metodo [refreshVisibleFileList]---
+    } // --- Fin del metodo/clase refreshVisibleFileList ---
 
+    /**
+     * Configura los listeners para la lista de archivos, el grid y el menú contextual.
+     */
+    /**
+     * Configura los listeners para la lista de archivos, el grid y el menú contextual.
+     */
     private void setupListeners() {
         JTree allTagsTree = registry.get("tree.datamode.alltags");
         allTagsTree.addTreeSelectionListener(e -> {
@@ -806,11 +1143,13 @@ public class DataController {
                 if (e.isPopupTrigger()) showGridContextMenu(e);
             }
         });
-    } // ---FIN de metodo [setupListeners]---
+    } // --- Fin del metodo/clase setupListeners ---
+
 
     /**
      * Muestra un menú contextual en el grid del modo datos con la opción
      * de añadir/quitar la imagen del proyecto.
+     * @param e Evento de ratón
      */
     private void showGridContextMenu(MouseEvent e) {
         JList<String> gridList = registry.get("list.datamode.grid");
@@ -944,8 +1283,11 @@ public class DataController {
         popup.add(linkFileItem);
         
         popup.show(gridList, e.getX(), e.getY());
-    } // ---FIN de metodo [showGridContextMenu]---
+    } // --- Fin del metodo/clase showGridContextMenu ---
 
+    /**
+     * Configura los callbacks para la gestión de tags.
+     */
     private void setupTagManagementCallbacks() {
         TagManagementPanel tagPanel = registry.get("panel.datamode.tagmanagement");
         if (tagPanel == null) return;
@@ -959,10 +1301,12 @@ public class DataController {
                 refreshAvailableTags(); // Refrescar el combo
             }
         });
-    } // ---FIN de metodo [setupTagManagementCallbacks]---
+    } // --- Fin del metodo/clase setupTagManagementCallbacks ---
+
 
     /**
      * Obtiene el Tag actualmente seleccionado en el árbol, o null si no hay selección o no es un Tag.
+     * @return El tag seleccionado, o null.
      */
     private Tag getSelectedTagFromTree() {
         JTree allTagsTree = registry.get("tree.datamode.alltags");
@@ -971,7 +1315,8 @@ public class DataController {
         if (selPath == null) return null;
         Object node = selPath.getLastPathComponent();
         return (node instanceof Tag) ? (Tag) node : null;
-    } // ---FIN de metodo [getSelectedTagFromTree]---
+    } // --- Fin del metodo/clase getSelectedTagFromTree ---
+
 
     /**
      * Recarga los tags disponibles en el campo IntelliSense.
@@ -987,12 +1332,16 @@ public class DataController {
             assignField.refreshTags(allTags);
         }
         logger.debug("IntelliSense actualizado con {} tags.", allTags.size());
-    } // ---FIN de metodo [refreshIntelliSense]---
+    } // --- Fin del metodo/clase refreshIntelliSense ---
+
 
     /**
      * Resuelve una ruta en notación punto manejando ambigüedad.
      * Si un segmento no se encuentra bajo su padre esperado pero existe
      * en múltiples ramas, muestra un diálogo para que el usuario elija.
+     * @param input Entrada en notación punto
+     * @param parent Componente padre para el diálogo
+     * @return Lista de tags resueltos
      */
     private List<Tag> resolveWithAmbiguityDialog(String input, Component parent) {
         // Primero intentar la resolución normal (que ya maneja 1 match global automáticamente)
@@ -1042,7 +1391,7 @@ public class DataController {
             parentId = existing.get().getId();
         }
         return dataManager.resolveDotNotation(input);
-    } // ---FIN de metodo [resolveWithAmbiguityDialog]---
+    } // --- Fin del metodo/clase resolveWithAmbiguityDialog ---
 
     /**
      * Configura los listeners para los botones CRUD de tags (Crear, Editar, Borrar en el panel izquierdo).
@@ -1295,8 +1644,8 @@ public class DataController {
         }
         if (nameMatches.size() == 1) return nameMatches.get(0);
 
-        // Intentar resolución como ruta punto
-        List<Tag> resolvedPath = resolveExistingPath(trimmed);
+        // Intentar resolución como ruta punto (solo si tiene puntos)
+        List<Tag> resolvedPath = trimmed.contains(".") ? resolveExistingPath(trimmed) : null;
         if (resolvedPath != null && !resolvedPath.isEmpty()) {
             return resolvedPath.get(resolvedPath.size() - 1);
         }
@@ -1352,6 +1701,42 @@ public class DataController {
     }
 
     /**
+     * Guarda el estado de expansión actual del árbol (ids de tags expandidos).
+     */
+    private void saveTreeExpansionState() {
+        savedExpandedTagIds.clear();
+        JTree tree = registry.get("tree.datamode.alltags");
+        if (tree == null) return;
+        for (int row = 0; row < tree.getRowCount(); row++) {
+            if (tree.isExpanded(row)) {
+                Object last = tree.getPathForRow(row).getLastPathComponent();
+                if (last instanceof Tag) {
+                    savedExpandedTagIds.add(((Tag) last).getId());
+                }
+            }
+        }
+    } // --- Fin del metodo/clase saveTreeExpansionState ---
+
+
+    /**
+     * Restaura el estado de expansión guardado del árbol.
+     */
+    private void restoreTreeExpansionState() {
+        JTree tree = registry.get("tree.datamode.alltags");
+        if (tree == null) return;
+        for (int row = 0; row < tree.getRowCount(); row++) {
+            javax.swing.tree.TreePath path = tree.getPathForRow(row);
+            if (path != null) {
+                Object last = path.getLastPathComponent();
+                if (last instanceof Tag && savedExpandedTagIds.contains(((Tag) last).getId())) {
+                    tree.expandRow(row);
+                }
+            }
+        }
+    } // --- Fin del metodo/clase restoreTreeExpansionState ---
+
+
+    /**
      * Filtra la lista plana de tags para mostrar solo aquellos cuyo nombre contiene el texto.
      */
     private void filterFlatTagList(String filterText) {
@@ -1366,6 +1751,29 @@ public class DataController {
             }
         }
     }
+
+    /**
+     * Cambia la CardLayout del contenedor árbol/lista a mostrar la LISTA.
+     */
+    private void switchToListCard() {
+        JPanel container = registry.get("panel.datamode.treelist.container");
+        if (container != null) {
+            java.awt.CardLayout cl = (java.awt.CardLayout) container.getLayout();
+            cl.show(container, "LIST");
+        }
+    } // --- Fin del metodo/clase switchToListCard ---
+
+
+    /**
+     * Cambia la CardLayout del contenedor árbol/lista a mostrar el ÁRBOL.
+     */
+    private void switchToTreeCard() {
+        JPanel container = registry.get("panel.datamode.treelist.container");
+        if (container != null) {
+            java.awt.CardLayout cl = (java.awt.CardLayout) container.getLayout();
+            cl.show(container, "TREE");
+        }
+    } // --- Fin del metodo/clase switchToTreeCard ---
 
     /**
      * Restaura la lista plana de tags a su estado completo original (sin filtro).
@@ -1405,7 +1813,6 @@ public class DataController {
     private void setupImageTagCRUDButtons() {
         JButton btnAssign = registry.get("btn.datamode.tag.assign");
         javax.swing.JTextField intelliSenseField = registry.get("textfield.datamode.tag.intellisense");
-        JToggleButton btnHerencia = registry.get("toggle.datamode.tag.herencia");
         JButton btnRemoveTag = registry.get("btn.datamode.tag.removetag");
         JList<String> gridList = registry.get("list.datamode.grid");
         
@@ -1423,25 +1830,23 @@ public class DataController {
                 String dotPath = intelliSenseField.getText();
                 if (dotPath == null || dotPath.trim().isEmpty()) return;
 
-                List<Tag> resolvedPath = resolveWithAmbiguityDialog(dotPath.trim(), btnAssign.getTopLevelAncestor());
-                if (resolvedPath.isEmpty()) {
-                    JOptionPane.showMessageDialog(btnAssign.getTopLevelAncestor(),
-                        "No se pudo resolver la ruta: " + dotPath);
-                    return;
-                }
-
+                String path = dotPath.trim();
                 List<Path> selectedPaths = getSelectedImagePaths();
                 if (selectedPaths.isEmpty()) return;
 
-                Tag leafTag = resolvedPath.get(resolvedPath.size() - 1);
-
-                if (btnHerencia != null && btnHerencia.isSelected()) {
-                    for (Tag tag : resolvedPath) {
-                        dataManager.addTagToImages(selectedPaths, tag.getNombre());
-                    }
+                if (intelliSenseField instanceof TagIntelliSenseField isField) {
+                    if (!isField.ensurePathResolved()) return;
                 } else {
-                    dataManager.addTagToImages(selectedPaths, leafTag.getNombre());
+                    // Fallback: usar el método original si no es TagIntelliSenseField
+                    List<Tag> resolvedPath = resolveWithAmbiguityDialog(path, btnAssign.getTopLevelAncestor());
+                    if (resolvedPath.isEmpty()) {
+                        JOptionPane.showMessageDialog(btnAssign.getTopLevelAncestor(),
+                            "No se pudo resolver la ruta: " + path);
+                        return;
+                    }
                 }
+
+                dataManager.assignDotNotationTagToImages(selectedPaths, path);
 
                 intelliSenseField.setText("");
                 updateTagPanelSelection();
@@ -1625,6 +2030,10 @@ public class DataController {
         }
     } // ---FIN de metodo [updateTagPanelSelection]---
     
+    /**
+     * Carga las imágenes asociadas a un tag.
+     * @param tag Tag del cual cargar imágenes
+     */
     private void loadImagesForTag(Tag tag) {
         JList<String> gridList = registry.get("list.datamode.grid");
         if (gridList == null) {
@@ -1672,8 +2081,13 @@ public class DataController {
             }
             logger.debug("Grid y lista central actualizados con {} elementos.", gridListModel.getSize());
         });
-    } // ---FIN de metodo loadImagesForTag---
+    } // --- Fin del metodo/clase loadImagesForTag ---
 
+
+    /**
+     * Carga las imágenes asociadas a un tag por su nombre.
+     * @param tagName Nombre del tag
+     */
     private void loadImagesForTagName(String tagName) {
         JList<String> gridList = registry.get("list.datamode.grid");
         if (gridList == null) {
@@ -1720,8 +2134,12 @@ public class DataController {
             }
             logger.debug("Grid y lista central actualizados por nombre '{}' con {} elementos.", tagName, gridListModel.getSize());
         });
-    } // ---FIN de metodo loadImagesForTagName---
+    } // --- Fin del metodo/clase loadImagesForTagName ---
 
+
+    /**
+     * Carga todas las imágenes.
+     */
     private void loadAllImages() {
         JList<String> gridList = registry.get("list.datamode.grid");
         if (gridList == null) {
@@ -1768,6 +2186,6 @@ public class DataController {
             }
             logger.debug("Grid y lista central actualizados con todas las {} imágenes.", gridListModel.getSize());
         });
-    } // ---FIN de metodo loadAllImages---
+    } // --- Fin del metodo/clase loadAllImages ---
 
 } // --- FIN de clase DataController ---

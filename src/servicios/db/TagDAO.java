@@ -981,4 +981,45 @@ public class TagDAO {
         return result;
     } // ---FIN de metodo [computeAllTagCountsBulk]---
 
+    /**
+     * Obtiene las ramas completas (tag + descendientes) que tienen 0 imágenes asociadas en total.
+     * Son ramas "vacías" que pueden eliminarse de forma segura.
+     * @return Lista de tags raíz de cada rama vacía (sin descendencia repetida).
+     */
+    public List<Tag> getEmptyBranches() {
+        List<Tag> emptyRoots = new ArrayList<>();
+        // Buscar tags donde ni ellos ni sus descendientes tienen imágenes asociadas
+        String sql = "WITH RECURSIVE tag_tree AS ("
+            + "SELECT id AS ancestor_id, id AS descendant_id FROM tags "
+            + "UNION ALL "
+            + "SELECT tt.ancestor_id, t.id FROM tags t "
+            + "JOIN tag_tree tt ON t.parent_id = tt.descendant_id"
+            + ") SELECT tt.ancestor_id "
+            + "FROM tag_tree tt "
+            + "LEFT JOIN imagen_tags it ON it.tag_id = tt.descendant_id "
+            + "GROUP BY tt.ancestor_id "
+            + "HAVING COUNT(it.imagen_id) = 0";
+
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            java.util.Set<Long> emptyIds = new java.util.HashSet<>();
+            while (rs.next()) {
+                emptyIds.add(rs.getLong(1));
+            }
+            if (emptyIds.isEmpty()) return emptyRoots;
+
+            // Obtener solo las raíces: tags cuyo padre no está también en emptyIds
+            for (Tag t : getAllTags()) {
+                if (emptyIds.contains(t.getId())) {
+                    if (t.getParentId() == null || !emptyIds.contains(t.getParentId())) {
+                        emptyRoots.add(t);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Error al obtener ramas vacías.", e);
+        }
+        return emptyRoots;
+    } // ---FIN de metodo [getEmptyBranches]---
+
 } // --- FIN de clase TagDAO ---
