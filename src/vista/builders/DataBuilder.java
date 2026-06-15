@@ -35,6 +35,7 @@ import javax.swing.tree.TreeSelectionModel;
 
 import controlador.DataController;
 import controlador.commands.AppActionCommands;
+import controlador.managers.interfaces.IProjectManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
@@ -66,6 +67,7 @@ public class DataBuilder {
     private final ConfigurationManager configManager;
     private Map<String, javax.swing.Action> actionMap;
     private DataController dataController;
+    private IProjectManager projectManager;
 
     public DataBuilder(ComponentRegistry registry, VisorModel model, ThemeManager themeManager, IconUtils iconUtils, ThumbnailService gridThumbnailService, ConfigurationManager configManager) {
         this.registry = registry;
@@ -82,6 +84,10 @@ public class DataBuilder {
 
     public void setDataController(DataController dataController) {
         this.dataController = dataController;
+    }
+
+    public void setProjectManager(IProjectManager projectManager) {
+        this.projectManager = projectManager;
     }
 
     /**
@@ -310,6 +316,17 @@ public class DataBuilder {
         btnTornado.setSelected(false);
         registry.register("toggle.datamode.tornado", btnTornado);
         tornadobar.add(btnTornado);
+
+        tornadobar.addSeparator();
+
+        javax.swing.Icon markIcon = iconUtils.getScaledIcon("7003-marcar_imagen_48x48.png", 24, 24);
+        javax.swing.Icon markIconSelected = iconUtils.getScaledIcon("7101-marcar_imagen_48x48.png", 24, 24);
+        JToggleButton btnDataMark = new javax.swing.JToggleButton(markIcon);
+        btnDataMark.setSelectedIcon(markIconSelected);
+        btnDataMark.setToolTipText("Marcar/desmarcar im\u00e1genes seleccionadas para el proyecto");
+        btnDataMark.setSelected(false);
+        registry.register("toggle.datamode.mark", btnDataMark);
+        tornadobar.add(btnDataMark);
         
         JTextField tornadoField = new JTextField(20);
         tornadoField.setToolTipText("<html><b>Búsqueda rápida (Tornado):</b><br>" +
@@ -364,7 +381,7 @@ public class DataBuilder {
 
         ComponentRegistry fakeRegistry = new ComponentRegistry();
         ThumbnailPreviewer gridPreviewer = new ThumbnailPreviewer(null, model, themeManager, null, fakeRegistry);
-        GridDisplayPanel gridDisplayPanel = new GridDisplayPanel(model, gridThumbnailService, themeManager, iconUtils, gridPreviewer, fakeRegistry);
+        GridDisplayPanel gridDisplayPanel = new GridDisplayPanel(model, gridThumbnailService, themeManager, iconUtils, gridPreviewer, projectManager, null, fakeRegistry);
         
         TitledBorder gridBorder = BorderFactory.createTitledBorder("Imágenes con la etiqueta seleccionada");
         displayModesContainer.setBorder(gridBorder);

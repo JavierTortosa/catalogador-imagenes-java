@@ -576,6 +576,7 @@ public class AppInitializer {
                 this.viewBuilder.setActionMap(this.actionMap);
                 this.dataBuilder.setActionMap(this.actionMap);
                 this.dataBuilder.setDataController(this.dataController);
+                this.dataBuilder.setProjectManager(this.projectManagerService);
                 this.configAppManager.setActionMap(this.actionMap);
                 this.viewManager.setActionMap(this.actionMap);
                 this.controller.setActionMap(this.actionMap);

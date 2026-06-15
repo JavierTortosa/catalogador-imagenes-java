@@ -566,9 +566,6 @@ public class UIDefinitionService {
         configSubItems.add(new MenuItemDefinition(null, MenuItemType.SUB_MENU, "Tema", configTemaSubItems));
 
         configSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));
-        configSubItems.add(new MenuItemDefinition(AppActionCommands.CMD_CONFIG_CUSTOM_THEME, MenuItemType.ITEM,
-                "Personalizar Tema...", null));
-        configSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));
         configSubItems.add(new MenuItemDefinition(AppActionCommands.CMD_CONFIG_AVANZADA, MenuItemType.ITEM,
                 "Configuración Avanzada...", null));
         configSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));
@@ -751,11 +748,15 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_EDICION, "8004-edicion_48x48.png",
                         "Modo Edicion", "modo", ButtonType.TOGGLE),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_CAROUSEL, "4005-carrousel_48x48.png",
-                        "Vista Carrusel", "modo", ButtonType.TOGGLE),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_CONFIG_CUSTOM_THEME, "7005-settings_48x48.png",
-                        "Configuracion", "modo", ButtonType.TOGGLE)
+                        "Vista Carrusel", "modo", ButtonType.TOGGLE)
         // FIN GRUPO DE BOTONES
+        );
 
+        List<ToolbarButtonDefinition> botonesModoBottom = List.of(
+                new ToolbarButtonDefinition(AppActionCommands.CMD_CONFIG_AVANZADA, "7005-settings_48x48.png",
+                        "Configuración Avanzada...", "modo_bottom", ButtonType.NORMAL),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_CONFIG_MOSTRAR_VERSION, "7006-Information-48x48.png",
+                        "Ayuda", "modo_bottom", ButtonType.NORMAL)
         );
         // botones para los modos de edicion, carrousel, proyectos, gestion de Datos...
 
@@ -1098,7 +1099,11 @@ public class UIDefinitionService {
                 ,
                 new ToolbarDefinition("modo", "Modo", 105, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO,
                         WorkMode.DATOS, WorkMode.CARROUSEL, WorkMode.EDICION), List.copyOf(botonesModo),
-                        ToolbarAlignment.RIGHT)
+                        ToolbarAlignment.FREE)
+                ,
+                new ToolbarDefinition("modo_bottom", "Modo Bottom", 106, EnumSet.of(WorkMode.VISUALIZADOR,
+                        WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CARROUSEL, WorkMode.EDICION),
+                        List.copyOf(botonesModoBottom), ToolbarAlignment.FREE)
 
                 // Boton aislado de Abrir Carpeta
                 ,

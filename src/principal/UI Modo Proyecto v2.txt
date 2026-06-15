@@ -1,0 +1,18 @@
+el modo proyecto basicamente se divide en 3 fases:
+1 refinado de imagenes seleccionadas: las que me gustan se quedan en seleccion y las que no van a descartes.
+2. proceso de exportar: se abre un panel que nos muestra si las imagenes tienen correctamente asignado el archivo comprimido para exportar, aqui el panel de seleccion y descartes no nos sirve para nada, se podria ocultar. pero tenemos que tener espacio para mostrar tambien el panel de archivos asociados por si tenemos que hacer asociaciones multiples que no detecta el programa por si solo, por ej....
+3. presupuesto/pdf de eleccion. aqui tenemos que ver la imagen para saber la dificultad que tiene el pintado, los datos de cuantos archivos hay para imprimir (piezas) y ademas tiene que coincidir que estas imagenes del futuro pdf tiene que estar ok en el panel de exportar.... 
+
+basandonso en esto. ahora mismo el modo proyecto tiene los paneles:
+seleccion
+descartes
+visor
+exportar
+detalles de archivos asociados
+detalles de pdf
+
+creo que no me dejo ninguno.... 
+
+en la fase 1. la interfaz se queda como esta. a la izquierda la columna de seleccion y descartes y en el centro el visor
+en la fase 2. ocultamos la columna de seleccion y descartes. esa columna ahora es el panel del visor y usamos el actual espacio del visor para mostrar el panel de exportar. si tenemos que mostrar el panel de asociacion de archivos, la parte derecha la partimos por la mitad y que se muestre en la parte de arriba el panel de exportar y en la de abajo el panel de asociacion de archivos
+en la fase 3. el panel de 

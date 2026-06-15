@@ -642,6 +642,10 @@ public class ActionFactory {
         registerAction(AppActionCommands.CMD_CONFIG_MOSTRAR_VERSION, createShowVersionAction());
         registerAction(AppActionCommands.CMD_ESPECIAL_REFRESCAR_UI, createRefreshUIAction());
 
+        registerAction(AppActionCommands.CMD_CONFIG_AVANZADA,
+                new controlador.actions.config.OpenConfigurationAction("Configuración Avanzada...",
+                        this.configuration, this.configAppManager, this.themeManager));
+
         // Acciones para otros WorkModes futuros, si los tienes definidos en
         // UIDefinitionService.
 
@@ -697,15 +701,6 @@ public class ActionFactory {
                 AppActionCommands.CMD_CAROUSEL_SPEED_RESET,
                 new ChangeCarouselSpeedAction(model, carouselManager, configuration,
                         ChangeCarouselSpeedAction.SpeedChangeType.RESET));
-
-        Action openThemeCustomizerAction = new controlador.actions.config.OpenThemeCustomizerAction(
-                "Personalizar Tema...", this.view, this.themeManager);
-        registerAction(AppActionCommands.CMD_CONFIG_CUSTOM_THEME, openThemeCustomizerAction);
-
-        Action openConfigAction = new controlador.actions.config.OpenConfigurationAction(
-                "Configuración Avanzada...", this.view, this.configuration,
-                this.configAppManager, this.themeManager);
-        registerAction(AppActionCommands.CMD_CONFIG_AVANZADA, openConfigAction);
 
         // Actions que dependen del 'actionMap' completo para construir menús
         // emergentes.

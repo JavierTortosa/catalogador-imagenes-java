@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.30.90";
+        version = "V2.31.30";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -45,14 +45,12 @@ public class VisorV2 {
     // GENERAL
     
     // FIXME cuando el programa arranca y no encuentra la carpeta de inicio que tiene en el config debe mostrar la pantalla de presentacion
-    // TODO hacer que los botones activos tengan un marco alrededor del color del marco que muestra que una imagen esta marcada para claridad de que ese boton esta activado
     
     
     // VISUALIZADOR
     
     // TODO HACER SALTO DE CARPETA. Cuando estamos viendo una carpeta que vemos que no nos cuadra, poder saltar todas las imagenes de esa carpeta
     // TODO CTRL + SHIFT DEBE ACTIVAR EL MODO PANEO Y DESACTIVARLO CUANDO SE DEJA DE PULSAR
-    // FIXME no se pone el marco en el panel del visor polaroid cuando se marca una imagen
     // FIXME cuando tengo el foco en la imagen que se esta viendo, no funcionan las teclas de direccion para pasar las imagenes
     
     
@@ -60,7 +58,6 @@ public class VisorV2 {
     
     // TODO hacer que el salto de pagina avance o retroceda los items que se estipulan en el config, ahora lo hace pero de la lista general, no en la lista especifica, si movemos items a descartes pasa del item 0 al 10 pero si en medio no hay items porque estan en descartes va al item 10 igual
     // TODO hacer que la lista de imagenes cargada pueda copiar las imagenes al portapapeles para enviar por whatsapp por ej....
-    // FIXME con el visor single o polaroid no funciona el panel de preview con el doble click
     
     
     // TOOLBAR
@@ -70,8 +67,6 @@ public class VisorV2 {
     
     
     //DATOS
-    
-    // FIXME el textbox de busqueda de datos no funciona. si escribo un texto y pulso enter no busca el siguiente archivo con ese contenido
     
 
     // CONFIGURACION

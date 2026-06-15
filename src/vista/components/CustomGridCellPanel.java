@@ -25,6 +25,8 @@ public class CustomGridCellPanel extends JPanel {
     private Color borderColor;
     
     private boolean isSelected;
+    private boolean isMarked;
+    private Color markColor;
     
     // Colores y fuentes pre-calculados para eficiencia
     private final Color selectionColor = new Color(0, 150, 255, 70);
@@ -55,6 +57,17 @@ public class CustomGridCellPanel extends JPanel {
         this.overlayText = overlayText;
         this.isSelected = isSelected;
         this.borderColor = borderColor;
+        this.isMarked = false;
+        this.markColor = null;
+    }
+
+    public void setData(ImageIcon image, String overlayText, boolean isSelected, Color cellBackground, Color borderColor, boolean isMarked, Color markColor) {
+        this.image = image;
+        this.overlayText = overlayText;
+        this.isSelected = isSelected;
+        this.borderColor = borderColor;
+        this.isMarked = isMarked;
+        this.markColor = markColor;
         setBackground(cellBackground); // El fondo del área de la imagen
 
         // --- DEFINICIÓN DE LA "TORRE" DE PANELES ---
@@ -155,7 +168,20 @@ public class CustomGridCellPanel extends JPanel {
             );
         }
 
-        // 6. DIBUJAR TEXTO
+        // 6. SI ESTÁ MARCADO, DIBUJAR MARCO ÁMBAR
+        if (isMarked && markColor != null) {
+            int grosor = 4;
+            g2d.setColor(markColor);
+            g2d.setStroke(new java.awt.BasicStroke(grosor));
+            g2d.drawRect(
+                x + (grosor / 2),
+                y + (grosor / 2),
+                width - grosor,
+                height - grosor
+            );
+        }
+
+        // 7. DIBUJAR TEXTO
         if (overlayText != null && !overlayText.isBlank()) {
             g2d.setFont(textFont);
             FontMetrics fm = g2d.getFontMetrics();

@@ -43,7 +43,7 @@ public class GridCellRenderer implements ListCellRenderer<String> {
     private final boolean showNamesDefault;
     private final IconUtils iconUtils;
     private final ThumbnailPreviewer previewer;
-    private final IProjectManager projectManager;
+    private IProjectManager projectManager;
     private final Color selectionBorderColor;
     
     private final ProjectController projectController;
@@ -104,6 +104,10 @@ public class GridCellRenderer implements ListCellRenderer<String> {
         });
     } // ---FIN de metodo constructor ---
     
+    public void setProjectManager(IProjectManager pm) {
+        this.projectManager = pm;
+    }
+
     public java.awt.Dimension getCellSize() {
         return this.cellPanel.getPreferredSize();
     } // ---FIN de metodo ---
@@ -188,10 +192,23 @@ public class GridCellRenderer implements ListCellRenderer<String> {
             iconoFinal = new ImageIcon(IconUtils.toGrayscale(bufferedImage));
         }
 
+        // --- Calcular estado de MARCADO ---
+        boolean isMarked = false;
+        Color markedColor = null;
+        if (rutaCompleta != null && projectManager != null) {
+            isMarked = projectManager.estaMarcada(rutaCompleta);
+        }
+        if (isMarked) {
+            markedColor = javax.swing.UIManager.getColor("Visor.markedColor");
+            if (markedColor == null) {
+                markedColor = new Color(255, 191, 0);
+            }
+        }
+
         // Llamada corregida a setData:
         // 1. cellBackground: Siempre el color de fondo de la lista.
         // 2. borderColor: El color que acabamos de calcular (puede ser null).
-        this.cellPanel.setData(iconoFinal, textoParaMostrar, isSelected, list.getBackground(), statusBorderColor);
+        this.cellPanel.setData(iconoFinal, textoParaMostrar, isSelected, list.getBackground(), statusBorderColor, isMarked, markedColor);
         
         // --- FIN DE LA LÓGICA DE COLOR Y ESTADO UNIFICADA ---
 

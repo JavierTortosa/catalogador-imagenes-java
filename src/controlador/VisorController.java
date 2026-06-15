@@ -1547,6 +1547,37 @@ public class VisorController implements IModoController, ThemeChangeListener {
 			if (panelObj instanceof vista.panels.ImageDisplayPanel) {
 				((vista.panels.ImageDisplayPanel) panelObj).setImagenMarcada(estaMarcada);
 			}
+			// Modo proyecto
+			Object panelProyectoObj = registry.get("panel.proyecto.display");
+			if (panelProyectoObj instanceof vista.panels.ImageDisplayPanel) {
+				((vista.panels.ImageDisplayPanel) panelProyectoObj).setImagenMarcada(estaMarcada);
+			}
+		}
+
+		// --- 5. Actualizar el marco visual en el panel POLAROID ---
+		if (registry != null) {
+			Object polaroidObj = registry.get("panel.display.polaroid.image");
+			if (polaroidObj instanceof vista.panels.ImageDisplayPanel) {
+				((vista.panels.ImageDisplayPanel) polaroidObj).setImagenMarcada(estaMarcada);
+			}
+			// Modo proyecto
+			Object polaroidProyectoObj = registry.get("panel.proyecto.display.polaroid.image");
+			if (polaroidProyectoObj instanceof vista.panels.ImageDisplayPanel) {
+				((vista.panels.ImageDisplayPanel) polaroidProyectoObj).setImagenMarcada(estaMarcada);
+			}
+		}
+
+		// --- 6. Refrescar el GRID para que las celdas actualicen su estado de marcado ---
+		if (registry != null) {
+			Object gridListObj = registry.get("list.grid");
+			if (gridListObj instanceof JList) {
+				((JList<?>) gridListObj).repaint();
+			}
+			// Modo proyecto
+			Object gridProyectoObj = registry.get("list.grid.proyecto");
+			if (gridProyectoObj instanceof JList) {
+				((JList<?>) gridProyectoObj).repaint();
+			}
 		}
 
 		logger.debug("  [Controller] Estado visual de 'Marcar' actualizado. Marcada: " + estaMarcada);

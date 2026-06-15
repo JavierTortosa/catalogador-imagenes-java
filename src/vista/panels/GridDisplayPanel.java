@@ -32,6 +32,7 @@ public class GridDisplayPanel extends JPanel {
     private static final long serialVersionUID = 1L;
     private JList<String> gridList;
     private JPanel toolbarContainer;
+    private GridCellRenderer renderer;
     
     /**
      * Constructor para el MODO VISUALIZADOR.
@@ -80,7 +81,7 @@ public class GridDisplayPanel extends JPanel {
         
         
         
-        GridCellRenderer renderer = new GridCellRenderer(
+        this.renderer = new GridCellRenderer(
             gridThumbnailService,
             model,
             themeManager,
@@ -90,10 +91,10 @@ public class GridDisplayPanel extends JPanel {
             projectManager,
             projectController
         );
-        gridList.setCellRenderer(renderer);
+        gridList.setCellRenderer(this.renderer);
 
-        gridList.setFixedCellWidth(renderer.getCellSize().width);
-        gridList.setFixedCellHeight(renderer.getCellSize().height);
+        gridList.setFixedCellWidth(this.renderer.getCellSize().width);
+        gridList.setFixedCellHeight(this.renderer.getCellSize().height);
 
         JScrollPane scrollPane = new JScrollPane(gridList);
         
@@ -108,6 +109,12 @@ public class GridDisplayPanel extends JPanel {
         
         add(scrollPane, BorderLayout.CENTER);
     } // ---FIN de Constructor GridDisplayPanel ---
+
+    public void setProjectManager(IProjectManager pm) {
+        if (this.renderer != null) {
+            this.renderer.setProjectManager(pm);
+        }
+    }
 
     public JList<String> getGridList() {
         return gridList;

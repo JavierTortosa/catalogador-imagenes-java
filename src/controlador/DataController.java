@@ -175,6 +175,7 @@ public class DataController {
         setupTagCRUDButtons();
         setupImageTagCRUDButtons();
         setupMaintenanceDialog();
+        initializeMarkButton();
         
         // Tareas pesadas (carga de tags, cómputo de counts, escaneo de discos) se ejecutan
         // en segundo plano para no bloquear la UI al entrar al modo datos
@@ -753,6 +754,100 @@ public class DataController {
     } // --- Fin del metodo/clase cargarImagenEnVisor ---
 
 
+    public void toggleMarcaImagenesSeleccionadas() {
+        if (projectManager == null || registry == null) return;
+
+        JList<String> fileNameList = registry.get("list.datamode.filenames");
+        if (fileNameList == null) return;
+
+        List<String> selectedKeys = fileNameList.getSelectedValuesList();
+        if (selectedKeys == null || selectedKeys.isEmpty()) return;
+
+        List<Path> paths = new ArrayList<>();
+        for (String key : selectedKeys) {
+            if (key == null || key.isEmpty()) continue;
+            Path p = model.getRutaCompleta(key);
+            if (p != null) paths.add(p);
+        }
+        if (paths.isEmpty()) return;
+
+        boolean todasMarcadas = paths.stream().allMatch(p -> projectManager.estaMarcada(p));
+
+        for (Path path : paths) {
+            if (todasMarcadas) {
+                projectManager.desmarcarImagen(path);
+            } else {
+                projectManager.marcarImagen(path);
+            }
+        }
+        projectManager.notificarModificacion();
+
+        String msg = paths.size() + " imagen(es) " +
+            (todasMarcadas ? "quitada(s) del" : "a\u00f1adida(s) al") + " proyecto";
+        logger.info(msg);
+        if (statusBarManager != null) {
+            statusBarManager.mostrarMensajeTemporal(msg, 3000);
+        }
+
+        actualizarEstadoVisualMarcado();
+    } // --- Fin del metodo/clase toggleMarcaImagenesSeleccionadas ---
+
+
+    public void actualizarEstadoVisualMarcado() {
+        if (registry == null || projectManager == null) return;
+
+        String currentKey = model.getSelectedImageKey();
+        boolean estaMarcada = false;
+        if (currentKey != null) {
+            Path ruta = model.getRutaCompleta(currentKey);
+            if (ruta != null) {
+                estaMarcada = projectManager.estaMarcada(ruta);
+            }
+        }
+
+        Object singlePanel = registry.get("panel.datamode.display");
+        if (singlePanel instanceof ImageDisplayPanel) {
+            ((ImageDisplayPanel) singlePanel).setImagenMarcada(estaMarcada);
+        }
+
+        Object polaroidImage = registry.get("panel.datamode.display.polaroid.image");
+        if (polaroidImage instanceof ImageDisplayPanel) {
+            ((ImageDisplayPanel) polaroidImage).setImagenMarcada(estaMarcada);
+        }
+
+        Object gridList = registry.get("list.datamode.grid");
+        if (gridList instanceof JList) {
+            ((JList<?>) gridList).repaint();
+        }
+
+        JToggleButton markBtn = registry.get("toggle.datamode.mark");
+        if (markBtn != null) {
+            markBtn.setSelected(estaMarcada);
+        }
+    } // --- Fin del metodo/clase actualizarEstadoVisualMarcado ---
+
+
+    private void initializeMarkButton() {
+        JToggleButton markBtn = registry.get("toggle.datamode.mark");
+        if (markBtn == null) return;
+
+        markBtn.addActionListener(e -> toggleMarcaImagenesSeleccionadas());
+
+        // Al cambiar de imagen, actualizar estado del botón y marcos visuales
+        JList<String> fileNameList = registry.get("list.datamode.filenames");
+        if (fileNameList != null) {
+            fileNameList.addListSelectionListener(e -> {
+                if (!e.getValueIsAdjusting()) {
+                    actualizarEstadoVisualMarcado();
+                }
+            });
+        }
+
+        // Sincronizar estado inicial
+        actualizarEstadoVisualMarcado();
+    } // --- Fin del metodo/clase initializeMarkButton ---
+
+
     /**
      * Inicializa la lista de nombres de archivo.
      */
@@ -779,7 +874,7 @@ public class DataController {
                         updateTagPanelSelection();
                         JList<String> gridList = registry.get("list.datamode.grid");
                         if (gridList != null) {
-                            gridList.setSelectedValue(selectedKey, true);
+                            gridList.setSelectedIndices(fileNameList.getSelectedIndices());
                         }
                         if (visorController != null) {
                             controlador.managers.DisplayModeManager dmm = visorController.getDisplayModeManager();
@@ -793,7 +888,68 @@ public class DataController {
                 }
             }
         });
+
+        // Popup contextual sobre la lista de nombres de archivo
+        fileNameList.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (e.isPopupTrigger()) showFileNameListPopup(e);
+            }
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (e.isPopupTrigger()) showFileNameListPopup(e);
+            }
+        });
     } // --- Fin del metodo/clase initializeFileNameList ---
+
+
+    private void showFileNameListPopup(MouseEvent e) {
+        JList<String> fileNameList = registry.get("list.datamode.filenames");
+        if (fileNameList == null || projectManager == null) return;
+
+        int index = fileNameList.locationToIndex(e.getPoint());
+        if (index == -1) return;
+
+        if (!fileNameList.isSelectedIndex(index)) {
+            fileNameList.setSelectedIndex(index);
+        }
+
+        List<Path> selectedPaths = new ArrayList<>();
+        for (String key : fileNameList.getSelectedValuesList()) {
+            if (key == null) continue;
+            Path p = model.getRutaCompleta(key);
+            if (p != null) selectedPaths.add(p);
+        }
+        if (selectedPaths.isEmpty()) return;
+
+        boolean todasMarcadas = selectedPaths.stream().allMatch(p -> projectManager.estaMarcada(p));
+
+        JPopupMenu popup = new JPopupMenu();
+        String menuText = todasMarcadas ? "Quitar del Proyecto" : "A\u00f1adir al Proyecto";
+        JMenuItem menuItem = new JMenuItem(menuText);
+        menuItem.addActionListener(ae -> {
+            for (Path path : selectedPaths) {
+                if (todasMarcadas) {
+                    projectManager.desmarcarImagen(path);
+                } else {
+                    projectManager.marcarImagen(path);
+                }
+            }
+            projectManager.notificarModificacion();
+
+            String msg = selectedPaths.size() + " imagen(es) " +
+                (todasMarcadas ? "quitada(s) del" : "a\u00f1adida(s) al") + " proyecto";
+            logger.info(msg);
+            if (statusBarManager != null) {
+                statusBarManager.mostrarMensajeTemporal(msg, 3000);
+            }
+
+            actualizarEstadoVisualMarcado();
+        });
+        popup.add(menuItem);
+
+        popup.show(fileNameList, e.getX(), e.getY());
+    } // --- Fin del metodo/clase showFileNameListPopup ---
 
     /**
      * Inicializa el filtro Tornado para la columna central (lista de archivos).
@@ -1117,8 +1273,8 @@ public class DataController {
                     cargarImagenEnVisor();
                     updateTagPanelSelection();
                     JList<String> fileNameList = registry.get("list.datamode.filenames");
-                    if (fileNameList != null && selectedKey != null) {
-                        fileNameList.setSelectedValue(selectedKey, true);
+                    if (fileNameList != null) {
+                        fileNameList.setSelectedIndices(gridList.getSelectedIndices());
                     }
                     if (visorController != null) {
                         controlador.managers.DisplayModeManager dmm = visorController.getDisplayModeManager();

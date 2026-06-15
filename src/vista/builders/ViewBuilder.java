@@ -2,6 +2,7 @@ package vista.builders;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -10,6 +11,7 @@ import java.awt.Insets;
 import java.util.Map;
 import java.util.Objects;
 
+import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -159,6 +161,38 @@ public class ViewBuilder {
         northWrapper.add(topInfoPanel, BorderLayout.SOUTH);
 
         mainFrame.add(northWrapper, BorderLayout.NORTH);
+
+        // === BARRA LATERAL VERTICAL DE MODOS ===
+        JToolBar modeToolbar = this.toolbarManager.getToolbar("modo");
+        modeToolbar.setOrientation(JToolBar.VERTICAL);
+        modeToolbar.setFloatable(false);
+        modeToolbar.setBorder(null);
+        for (Component comp : modeToolbar.getComponents()) {
+            if (comp instanceof AbstractButton) {
+                ((AbstractButton) comp).setMargin(new java.awt.Insets(12, 4, 12, 4));
+            }
+        }
+        modeToolbar.revalidate();
+
+        JToolBar bottomToolbar = this.toolbarManager.getToolbar("modo_bottom");
+        bottomToolbar.setOrientation(JToolBar.VERTICAL);
+        bottomToolbar.setFloatable(false);
+        bottomToolbar.setBorder(null);
+        for (Component comp : bottomToolbar.getComponents()) {
+            if (comp instanceof AbstractButton) {
+                ((AbstractButton) comp).setMargin(new java.awt.Insets(12, 4, 12, 4));
+            }
+        }
+        bottomToolbar.revalidate();
+
+        JPanel sidebarPanel = new JPanel(new BorderLayout());
+        sidebarPanel.setBackground(modeToolbar.getBackground());
+        sidebarPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, java.awt.Color.GRAY));
+        sidebarPanel.add(modeToolbar, BorderLayout.NORTH);
+        sidebarPanel.add(Box.createVerticalGlue(), BorderLayout.CENTER);
+        sidebarPanel.add(bottomToolbar, BorderLayout.SOUTH);
+        mainFrame.add(sidebarPanel, BorderLayout.WEST);
+        // ===========================================
 
         JPanel bottomStatusBar = createBottomStatusBar();
         mainFrame.add(bottomStatusBar, BorderLayout.SOUTH);
@@ -607,6 +641,7 @@ public class ViewBuilder {
         // 4. Crear una instancia del GridDisplayPanel, pasándole AHORA el previewer.
         GridDisplayPanel gridViewPanel = new GridDisplayPanel(this.model, this.gridThumbnailService, this.themeManager,
                 this.iconUtils, gridPreviewer, this.registry);
+        gridViewPanel.setProjectManager(this.projectManager);
 
         // --- INICIO DE LA MODIFICACIÓN: Añadir la toolbar de tamaño al grid del
         // visualizador ---

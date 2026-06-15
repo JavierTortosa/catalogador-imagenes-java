@@ -648,6 +648,10 @@ public class GeneralController
 
         if (model.isEnModoProyecto()) {
             projectController.solicitudAlternarMarcaImagen();
+        } else if (model.getCurrentWorkMode() == WorkMode.DATOS) {
+            if (dataController != null) {
+                dataController.toggleMarcaImagenesSeleccionadas();
+            }
         } else {
             visorController.solicitudAlternarMarcaDeImagenActual();
         }
