@@ -1271,10 +1271,18 @@ public class DataController {
                     String selectedKey = gridList.getSelectedValue();
                     model.setSelectedImageKey(selectedKey);
                     cargarImagenEnVisor();
+                    if (visorController != null && visorController.getListCoordinator() != null) {
+                        visorController.getListCoordinator().forzarActualizacionEstadoAcciones();
+                    }
                     updateTagPanelSelection();
                     JList<String> fileNameList = registry.get("list.datamode.filenames");
                     if (fileNameList != null) {
                         fileNameList.setSelectedIndices(gridList.getSelectedIndices());
+                        int selectedIndex = gridList.getSelectedIndex();
+                        if (selectedIndex >= 0) {
+                            gridList.ensureIndexIsVisible(selectedIndex);
+                            fileNameList.ensureIndexIsVisible(selectedIndex);
+                        }
                     }
                     if (visorController != null) {
                         controlador.managers.DisplayModeManager dmm = visorController.getDisplayModeManager();
@@ -2222,6 +2230,7 @@ public class DataController {
         
         model.getDatosListContext().getRutaCompletaMap().clear();
         model.getDatosListContext().getRutaCompletaMap().putAll(gridPathMap);
+        model.getDatosListContext().setModeloLista(fileNameModel);
 
         // Actualizar modelo maestro de la lista central
         masterFileListModel = fileNameModel;
@@ -2234,6 +2243,9 @@ public class DataController {
                 if (btnTornado == null || !btnTornado.isSelected()) {
                     fileNameList.setModel(fileNameModel);
                 }
+            }
+            if (visorController != null && visorController.getListCoordinator() != null) {
+                visorController.getListCoordinator().forzarActualizacionEstadoAcciones();
             }
             logger.debug("Grid y lista central actualizados con {} elementos.", gridListModel.getSize());
         });
@@ -2276,6 +2288,7 @@ public class DataController {
 
         model.getDatosListContext().getRutaCompletaMap().clear();
         model.getDatosListContext().getRutaCompletaMap().putAll(gridPathMap);
+        model.getDatosListContext().setModeloLista(fileNameModel);
 
         masterFileListModel = fileNameModel;
 
@@ -2287,6 +2300,9 @@ public class DataController {
                 if (btnTornado == null || !btnTornado.isSelected()) {
                     fileNameList.setModel(fileNameModel);
                 }
+            }
+            if (visorController != null && visorController.getListCoordinator() != null) {
+                visorController.getListCoordinator().forzarActualizacionEstadoAcciones();
             }
             logger.debug("Grid y lista central actualizados por nombre '{}' con {} elementos.", tagName, gridListModel.getSize());
         });
@@ -2328,6 +2344,7 @@ public class DataController {
         
         model.getDatosListContext().getRutaCompletaMap().clear();
         model.getDatosListContext().getRutaCompletaMap().putAll(gridPathMap);
+        model.getDatosListContext().setModeloLista(fileNameModel);
 
         masterFileListModel = fileNameModel;
 
@@ -2340,8 +2357,133 @@ public class DataController {
                     fileNameList.setModel(fileNameModel);
                 }
             }
+            if (visorController != null && visorController.getListCoordinator() != null) {
+                visorController.getListCoordinator().forzarActualizacionEstadoAcciones();
+            }
             logger.debug("Grid y lista central actualizados con todas las {} imágenes.", gridListModel.getSize());
         });
     } // --- Fin del metodo/clase loadAllImages ---
+
+    // -------------------------------------------------------------------------
+    // Navegación en modo DATOS (opera directamente sobre el grid)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Reemplaza la selección del grid con un único índice.
+     * Usa clearSelection + addSelectionInterval en vez de setSelectedIndex
+     * porque el grid usa MULTIPLE_INTERVAL_SELECTION y setSelectedIndex sería aditivo.
+     * @param gridList El JList del grid de datos
+     * @param index    El índice a seleccionar
+     */
+    private void seleccionarIndiceGrid(JList<String> gridList, int index) {
+        gridList.getSelectionModel().clearSelection();
+        gridList.getSelectionModel().addSelectionInterval(index, index);
+    } // --- Fin del método seleccionarIndiceGrid ---
+
+
+    /**
+     * Navega a la imagen siguiente dentro del grid del modo DATOS.
+     * Respeta la configuración de navegación circular.
+     */
+    public void navegarSiguiente() {
+        JList<String> gridList = registry.get("list.datamode.grid");
+        if (gridList == null) return;
+        DefaultListModel<String> listModel = (DefaultListModel<String>) gridList.getModel();
+        if (listModel == null || listModel.isEmpty()) return;
+        int currentIndex = gridList.getSelectedIndex();
+        int nextIndex;
+        if (model.isNavegacionCircularActivada()) {
+            nextIndex = (currentIndex + 1) % listModel.getSize();
+        } else {
+            nextIndex = Math.min(currentIndex + 1, listModel.getSize() - 1);
+        }
+        if (nextIndex != currentIndex) {
+            seleccionarIndiceGrid(gridList, nextIndex);
+        }
+    } // --- Fin del método navegarSiguiente ---
+
+
+    /**
+     * Navega a la imagen anterior dentro del grid del modo DATOS.
+     * Respeta la configuración de navegación circular.
+     */
+    public void navegarAnterior() {
+        JList<String> gridList = registry.get("list.datamode.grid");
+        if (gridList == null) return;
+        DefaultListModel<String> listModel = (DefaultListModel<String>) gridList.getModel();
+        if (listModel == null || listModel.isEmpty()) return;
+        int currentIndex = gridList.getSelectedIndex();
+        int prevIndex;
+        if (model.isNavegacionCircularActivada()) {
+            prevIndex = (currentIndex <= 0) ? listModel.getSize() - 1 : currentIndex - 1;
+        } else {
+            prevIndex = Math.max(0, currentIndex - 1);
+        }
+        if (prevIndex != currentIndex) {
+            seleccionarIndiceGrid(gridList, prevIndex);
+        }
+    } // --- Fin del método navegarAnterior ---
+
+
+    /**
+     * Navega a la primera imagen del grid del modo DATOS.
+     */
+    public void navegarPrimero() {
+        JList<String> gridList = registry.get("list.datamode.grid");
+        if (gridList == null) return;
+        DefaultListModel<String> listModel = (DefaultListModel<String>) gridList.getModel();
+        if (listModel == null || listModel.isEmpty()) return;
+        if (gridList.getSelectedIndex() != 0) {
+            seleccionarIndiceGrid(gridList, 0);
+        }
+    } // --- Fin del método navegarPrimero ---
+
+
+    /**
+     * Navega a la última imagen del grid del modo DATOS.
+     */
+    public void navegarUltimo() {
+        JList<String> gridList = registry.get("list.datamode.grid");
+        if (gridList == null) return;
+        DefaultListModel<String> listModel = (DefaultListModel<String>) gridList.getModel();
+        if (listModel == null || listModel.isEmpty()) return;
+        int lastIndex = listModel.getSize() - 1;
+        if (gridList.getSelectedIndex() != lastIndex) {
+            seleccionarIndiceGrid(gridList, lastIndex);
+        }
+    } // --- Fin del método navegarUltimo ---
+
+
+    /**
+     * Navega un bloque (10 imágenes) hacia atrás en el grid del modo DATOS.
+     */
+    public void navegarBloqueAnterior() {
+        JList<String> gridList = registry.get("list.datamode.grid");
+        if (gridList == null) return;
+        DefaultListModel<String> listModel = (DefaultListModel<String>) gridList.getModel();
+        if (listModel == null || listModel.isEmpty()) return;
+        int currentIndex = gridList.getSelectedIndex();
+        int prevIndex = Math.max(0, currentIndex - 10);
+        if (prevIndex != currentIndex) {
+            seleccionarIndiceGrid(gridList, prevIndex);
+        }
+    } // --- Fin del método navegarBloqueAnterior ---
+
+
+    /**
+     * Navega un bloque (10 imágenes) hacia adelante en el grid del modo DATOS.
+     */
+    public void navegarBloqueSiguiente() {
+        JList<String> gridList = registry.get("list.datamode.grid");
+        if (gridList == null) return;
+        DefaultListModel<String> listModel = (DefaultListModel<String>) gridList.getModel();
+        if (listModel == null || listModel.isEmpty()) return;
+        int currentIndex = gridList.getSelectedIndex();
+        int nextIndex = Math.min(currentIndex + 10, listModel.getSize() - 1);
+        if (nextIndex != currentIndex) {
+            seleccionarIndiceGrid(gridList, nextIndex);
+        }
+    } // --- Fin del método navegarBloqueSiguiente ---
+
 
 } // --- FIN de clase DataController ---

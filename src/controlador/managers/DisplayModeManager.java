@@ -62,6 +62,7 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
         if (gridListVisualizador != null) {
             gridListVisualizador.addListSelectionListener(e -> {
                 if (!e.getValueIsAdjusting() && !isSyncingFromManager) {
+                    if (gridListVisualizador.getSelectedIndices().length > 1) return;
                     int selectedIndex = gridListVisualizador.getLeadSelectionIndex();
                     if (selectedIndex != -1 && listCoordinator != null && selectedIndex != listCoordinator.getOfficialSelectedIndex()) {
                         logger.debug("[DisplayModeManager] Selección del usuario en Grid-Visualizador. Índice: {}. Notificando a ListCoordinator.", selectedIndex);
@@ -77,6 +78,7 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
         if (gridListProyecto != null) {
             gridListProyecto.addListSelectionListener(e -> {
                 if (!e.getValueIsAdjusting() && !isSyncingFromManager) {
+                    if (gridListProyecto.getSelectedIndices().length > 1) return;
                     int selectedIndex = gridListProyecto.getLeadSelectionIndex();
                     if (selectedIndex != -1 && projectListCoordinator != null && selectedIndex != projectListCoordinator.getOfficialSelectedIndex()) {
                         logger.debug("[DisplayModeManager] Selección del usuario en Grid-Proyecto. Índice: {}. Notificando a ProjectListCoordinator.", selectedIndex);

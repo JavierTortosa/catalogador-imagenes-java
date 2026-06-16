@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.ProjectController;
+import controlador.commands.AppActionCommands;
 import modelo.proyecto.ExportItem;
 import vista.panels.export.ExportPanel;
 import vista.panels.export.ExportTableModel;
@@ -45,9 +46,24 @@ public class TogglePdfDetailsTableAction extends AbstractAction {
         exportPanel.getPdfDetailsTablePanel().stopEditing();
         exportPanel.stopExportTableEditing();
 
+        // Toggle + sincronización de ambos botones (siempre después del toggle)
+        Runnable toggleYSincronizar = () -> {
+            exportPanel.togglePdfDetailsTableVisibility();
+            // Sincronizar el botón propio
+            if (e.getSource() instanceof AbstractButton) {
+                AbstractButton button = (AbstractButton) e.getSource();
+                putValue(Action.SELECTED_KEY, button.isSelected());
+            }
+            // Sincronizar el botón de Detalles de Archivos Asociados (exclusión mutua)
+            Action detailsAction = projectController.getActionMap().get(AppActionCommands.CMD_EXPORT_DETALLES_SELECCION);
+            if (detailsAction != null) {
+                detailsAction.putValue(Action.SELECTED_KEY, exportPanel.isDetailsPanelVisible());
+            }
+        };
+
         if (exportPanel.isPdfDetailsTableVisible()) {
             // Ya visible: simplemente ocultar
-            exportPanel.togglePdfDetailsTableVisibility();
+            toggleYSincronizar.run();
         } else {
             // Oculto: analizar archivos primero, luego mostrar
             ExportTableModel modelTable = (ExportTableModel) exportPanel.getTablaExportacion().getModel();
@@ -56,18 +72,11 @@ public class TogglePdfDetailsTableAction extends AbstractAction {
                     .collect(Collectors.toList());
 
             if (seleccionados.isEmpty()) {
-                // Sin elementos, mostrar el panel vacío directamente
-                exportPanel.togglePdfDetailsTableVisibility();
+                toggleYSincronizar.run();
             } else {
                 projectController.asegurarAnalisisTecnico(seleccionados,
-                        () -> SwingUtilities.invokeLater(
-                                () -> exportPanel.togglePdfDetailsTableVisibility()));
+                        () -> SwingUtilities.invokeLater(toggleYSincronizar));
             }
-        }
-
-        if (e.getSource() instanceof AbstractButton) {
-            AbstractButton button = (AbstractButton) e.getSource();
-            putValue(Action.SELECTED_KEY, button.isSelected());
         }
     }
 

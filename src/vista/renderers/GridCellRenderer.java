@@ -192,10 +192,11 @@ public class GridCellRenderer implements ListCellRenderer<String> {
             iconoFinal = new ImageIcon(IconUtils.toGrayscale(bufferedImage));
         }
 
-        // --- Calcular estado de MARCADO ---
+        // --- Calcular estado de MARCADO (oculto en modo PROYECTO porque es redundante y tapa el selector) ---
         boolean isMarked = false;
         Color markedColor = null;
-        if (rutaCompleta != null && projectManager != null) {
+        if (modeloVisor.getCurrentWorkMode() != VisorModel.WorkMode.PROYECTO
+                && rutaCompleta != null && projectManager != null) {
             isMarked = projectManager.estaMarcada(rutaCompleta);
         }
         if (isMarked) {

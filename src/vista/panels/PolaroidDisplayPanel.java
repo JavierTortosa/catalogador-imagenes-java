@@ -118,6 +118,10 @@ public class PolaroidDisplayPanel extends JPanel {
         imagePanel.setNavigationActions(prevAction, nextAction, prevIcon, nextIcon);
     } // --- FIN de metodo [setNavigationActions] ---
 
+    public void setNavigationArrowsVisible(boolean visible) {
+        imagePanel.setNavigationArrowsVisible(visible);
+    } // --- FIN de metodo [setNavigationArrowsVisible] ---
+
     public void actualizarInformacionDesdeModelo() {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(this::actualizarInformacionDesdeModelo);

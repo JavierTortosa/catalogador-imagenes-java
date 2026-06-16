@@ -75,6 +75,7 @@ import controlador.actions.projects.RemoveFromExportQueueAction;
 import controlador.actions.projects.RestoreFromDiscardsAction;
 import controlador.actions.projects.ToggleExportDetailsAction;
 import controlador.actions.projects.ToggleExportViewAction;
+import controlador.actions.projects.ToggleProjectLayoutAction;
 import controlador.actions.projects.TogglePdfDetailsTableAction;
 import controlador.actions.projects.ToggleGridStateAction;
 import controlador.actions.projects.ToggleIgnoreCompressedAction;
@@ -85,6 +86,9 @@ import controlador.actions.toggle.ToggleNavegacionCircularAction;
 import controlador.actions.toggle.ToggleProporcionesAction;
 import controlador.actions.toggle.ToggleSubfoldersAction;
 import controlador.actions.toggle.ToggleSyncAction;
+import controlador.actions.toggle.ToggleMostrarBienvenidaAction;
+import controlador.actions.toggle.ToggleRestaurarUltimaImagenAction;
+import controlador.actions.toggle.ToggleMostrarFlechasNavegacionAction;
 import controlador.actions.tree.DrillDownFolderAction;
 import controlador.actions.tree.OpenFolderAction;
 import controlador.actions.vista.MostrarDialogoListaAction;
@@ -127,6 +131,11 @@ import vista.config.UIDefinitionService;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 
+/**
+ * Fábrica que crea y registra todas las acciones (Action) de la aplicación.
+ * Centraliza la creación de acciones para evitar duplicación y garantizar
+ * que todas tengan los comandos, iconos y dependencias correctos.
+ */
 public class ActionFactory {
 
     public record IconInfo(String iconKey, vista.config.IconScope scope) {
@@ -352,6 +361,9 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_NAV_SIGUIENTE, createNextImageAction());
         actionMap.put(AppActionCommands.CMD_NAV_ULTIMA, createLastImageAction());
         actionMap.put(AppActionCommands.CMD_TOGGLE_WRAP_AROUND, createToggleNavegacionCircularAction());
+        actionMap.put(AppActionCommands.CMD_TOGGLE_WELCOME, createToggleMostrarBienvenidaAction());
+        actionMap.put(AppActionCommands.CMD_TOGGLE_RESTORE_LAST, createToggleRestaurarUltimaImagenAction());
+        actionMap.put(AppActionCommands.CMD_TOGGLE_NAV_ARROWS, createToggleMostrarFlechasNavegacionAction());
 
         // 3.4. Crear y registrar Actions de Edición
         actionMap.put(AppActionCommands.CMD_IMAGEN_ROTAR_IZQ, createRotateLeftAction());
@@ -459,6 +471,7 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_EXPORT_REFRESH, createRefreshExportQueueAction());
 
         actionMap.put(AppActionCommands.CMD_EXPORT_ASSIGN_PANNEL, createToggleExportViewAction());
+        actionMap.put(AppActionCommands.CMD_PROYECTO_TOGGLE_LAYOUT, createToggleProjectLayoutAction());
         actionMap.put(AppActionCommands.CMD_EXPORT_DETALLES_SELECCION, createToggleExportDetailsAction());
         actionMap.put(AppActionCommands.CMD_DETALLES_PDF_SELECCION, createTogglePdfDetailsTableAction());
 
@@ -899,6 +912,21 @@ public class ActionFactory {
                 AppActionCommands.CMD_TOGGLE_WRAP_AROUND);
     } // --- Fin del método createToggleNavegacionCircularAction ---
 
+    private Action createToggleMostrarBienvenidaAction() {
+        return new ToggleMostrarBienvenidaAction("Mostrar Imagen de Bienvenida", null, this.configuration,
+                AppActionCommands.CMD_TOGGLE_WELCOME);
+    } // --- Fin del método createToggleMostrarBienvenidaAction ---
+
+    private Action createToggleRestaurarUltimaImagenAction() {
+        return new ToggleRestaurarUltimaImagenAction("Abrir Última Imagen Vista al Iniciar", null, this.configuration,
+                AppActionCommands.CMD_TOGGLE_RESTORE_LAST);
+    } // --- Fin del método createToggleRestaurarUltimaImagenAction ---
+
+    private Action createToggleMostrarFlechasNavegacionAction() {
+        return new ToggleMostrarFlechasNavegacionAction("Mostrar Flechas de Navegación en Imagen", null, this.configuration,
+                this.viewManager, AppActionCommands.CMD_TOGGLE_NAV_ARROWS);
+    } // --- Fin del método createToggleMostrarFlechasNavegacionAction ---
+
     /*
      * --- 4.5. Métodos Create para Actions de Edición (usarán EditionManager) ---
      */
@@ -1323,6 +1351,10 @@ public class ActionFactory {
     private Action createToggleExportViewAction() {
         return new ToggleExportViewAction(this.projectControllerRef);
     } // ---FIN de metodo [createToggleExportViewAction]---
+
+    private Action createToggleProjectLayoutAction() {
+        return new ToggleProjectLayoutAction(this.projectControllerRef);
+    } // ---FIN de metodo [createToggleProjectLayoutAction]---
 
     private Action createToggleExportDetailsAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_EXPORT_DETALLES_SELECCION);

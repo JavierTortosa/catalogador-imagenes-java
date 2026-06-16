@@ -182,8 +182,8 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
         
         projectController.getRegistry().register("panel.exportacion.detalles", detailPanel);
         
-        detailPanel.setPreferredSize(new java.awt.Dimension(0, 120));
-        detailPanel.setMinimumSize(new java.awt.Dimension(0, 120));
+        detailPanel.setPreferredSize(new java.awt.Dimension(0, 300));
+        detailPanel.setMinimumSize(new java.awt.Dimension(0, 200));
         
         Action addAction = projectController.getActionMap().get(AppActionCommands.CMD_EXPORT_ADD_ASSOCIATED_FILE);
         Action removeAction = projectController.getActionMap().get(AppActionCommands.CMD_EXPORT_DEL_ASSOCIATED_FILE);
@@ -196,8 +196,7 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
         splitPane.setResizeWeight(1.0);
         
         pdfDetailsTablePanel = new PdfDetailsTablePanel();
-        // Le damos una altura por defecto de 200 píxeles para que se vea bien al abrirse
-        pdfDetailsTablePanel.setPreferredSize(new java.awt.Dimension(0, 200)); 
+        pdfDetailsTablePanel.setPreferredSize(new java.awt.Dimension(0, 300)); 
         pdfDetailsTablePanel.setVisible(false);
         projectController.getRegistry().register("panel.exportacion.pdfdetalles.tabla", pdfDetailsTablePanel);
         
@@ -483,6 +482,9 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
      * Si está oculto, lo muestra y restaura la posición del divisor.
      */
     public void toggleDetailsPanelVisibility() {
+        if (pdfTableVisible) {
+            togglePdfDetailsTableVisibility(); // Cierra el otro
+        }
         isDetailsPanelVisible = !isDetailsPanelVisible; // Invertimos el estado
 
         if (isDetailsPanelVisible) {
@@ -517,6 +519,9 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
     
     
     public void togglePdfDetailsTableVisibility() {
+        if (isDetailsPanelVisible) {
+            toggleDetailsPanelVisibility();
+        }
     	
         pdfTableVisible = !pdfTableVisible;
         pdfDetailsTablePanel.setVisible(pdfTableVisible);
@@ -525,7 +530,6 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
             pdfDetailsTablePanel.setItems(tableModel.getCola());
         }
         
-        // Forzamos a Swing a recalcular los tamaños de los contenedores
         SwingUtilities.invokeLater(() -> {
             revalidate();
             repaint();
@@ -536,10 +540,20 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
         return this.detailPanel;
     } // ---FIN de metodo [getDetailPanel]---
     
+    public void refreshPdfDetailsTable() {
+        if (pdfTableVisible) {
+            pdfDetailsTablePanel.setItems(tableModel.getCola());
+        }
+    } // ---FIN de metodo [refreshPdfDetailsTable]---
+
     public PdfDetailsTablePanel getPdfDetailsTablePanel() {
         return this.pdfDetailsTablePanel;
     }
     
+    public boolean isDetailsPanelVisible() {
+        return this.isDetailsPanelVisible;
+    }
+
     public boolean isPdfDetailsTableVisible() {
         return this.pdfTableVisible;
     }

@@ -1,6 +1,7 @@
 package controlador.ui;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -32,7 +33,7 @@ import controlador.interfaces.ContextSensitiveAction;
 import controlador.managers.DataManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
-import vista.panels.GridDisplayPanel;
+
 import vista.panels.export.ExportPanel;
 import vista.panels.export.ProjectMetadataPanel;
 import vista.theme.Tema;
@@ -60,28 +61,87 @@ public class ProjectUIManager {
         this.dataManager = dataManager;
     } // --- Fin del metodo setDataManager ---
 
-    // Calcula y ajusta la posición del divisor del split pane derecho (vertical)
+    // Mueve los paneles al layout de ASIGNACION
+    public void aplicarLayoutAsignacion() {
+        JSplitPane mainSplit = registry.get("splitpane.proyecto.main");
+        JSplitPane leftSplit = registry.get("splitpane.proyecto.left");
+        JSplitPane rightSplit = registry.get("splitpane.proyecto.right");
+        if (mainSplit == null || leftSplit == null || rightSplit == null) return;
+
+        JPanel panelSeleccion = registry.get("panel.proyecto.seleccion.container");
+        JPanel panelDescartes = registry.get("panel.proyecto.descartes.container");
+        Component panelVisor = rightSplit.getLeftComponent();
+        if (panelSeleccion == null || panelDescartes == null || panelVisor == null) return;
+
+        // 1. Quitar componentes
+        mainSplit.remove(leftSplit);
+        rightSplit.remove(panelVisor);
+
+        // 2. Configurar lado derecho: placeholder invisible arriba, toolsPanel abajo
+        rightSplit.setLeftComponent(new JPanel());
+        rightSplit.setDividerLocation(0);
+        rightSplit.setResizeWeight(0.0);
+
+        // 3. Crear componentes para nuevo layout
+        // Izquierda: Visor (arriba) | Tabs: Selección, Descartes (abajo)
+        JTabbedPane tabs = new JTabbedPane();
+        tabs.addTab("Selección", panelSeleccion);
+        tabs.addTab("Descartes", panelDescartes);
+
+        JSplitPane leftAssignmentSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, panelVisor, tabs);
+        leftAssignmentSplit.setResizeWeight(0.7);
+        registry.register("splitpane.proyecto.left.assignment", leftAssignmentSplit);
+        registry.register("tabbedpane.proyecto.left.assignment", tabs);
+
+        mainSplit.setLeftComponent(leftAssignmentSplit);
+
+        mainSplit.revalidate();
+        mainSplit.repaint();
+    }
+
+    // Mueve los paneles al layout de DEFAULT
+    public void aplicarLayoutDefault() {
+        JSplitPane mainSplit = registry.get("splitpane.proyecto.main");
+        JSplitPane leftSplit = registry.get("splitpane.proyecto.left");
+        JSplitPane rightSplit = registry.get("splitpane.proyecto.right");
+        if (mainSplit == null || leftSplit == null || rightSplit == null) return;
+
+        JPanel panelSeleccion = registry.get("panel.proyecto.seleccion.container");
+        JPanel panelDescartes = registry.get("panel.proyecto.descartes.container");
+        JSplitPane leftAssignmentSplit = registry.get("splitpane.proyecto.left.assignment");
+        if (panelSeleccion == null || panelDescartes == null || leftAssignmentSplit == null) return;
+
+        Component panelVisor = leftAssignmentSplit.getLeftComponent();
+        if (panelVisor == null) return;
+
+        // 1. Quitar componentes del layout Asignación
+        mainSplit.remove(leftAssignmentSplit);
+
+        // 2. Reensamblar
+        // Izquierda: Selección | Descartes
+        leftSplit.setLeftComponent(panelSeleccion);
+        leftSplit.setRightComponent(panelDescartes);
+        mainSplit.setLeftComponent(leftSplit);
+
+        // Derecha: Visor | Export Tools
+        rightSplit.setLeftComponent(panelVisor);
+
+        mainSplit.revalidate();
+        mainSplit.repaint();
+    }
+
+
+
     public void ajustarPosicionDivisorDerecho() {
         if (registry == null)
             return;
 
         JSplitPane rightSplit = registry.get("splitpane.proyecto.right");
-        GridDisplayPanel gridPanel = registry.get("panel.display.grid.proyecto");
 
-        if (rightSplit != null && gridPanel != null && rightSplit.isVisible()) {
+        if (rightSplit != null && rightSplit.isVisible()) {
             SwingUtilities.invokeLater(() -> {
-                int cellHeight = gridPanel.getGridList().getFixedCellHeight();
-                if (cellHeight <= 0)
-                    cellHeight = 132;
-
-                int desiredHeight = (int) (cellHeight * 1.5) + 15;
-
-                // Asegurarnos de no poner el divisor en una posición inválida
-                int maxLocation = rightSplit.getHeight() - rightSplit.getDividerSize() - 50;
-                desiredHeight = Math.min(desiredHeight, maxLocation);
-
-                rightSplit.setDividerLocation(desiredHeight);
-                logger.debug("Posición del divisor derecho ajustada a {}px.", desiredHeight);
+                rightSplit.setDividerLocation(1);
+                logger.debug("Posición del divisor derecho ajustada a 0.4.");
             });
         }
     } // --- Fin del metodo: ajustarPosicionDivisorDerecho ---

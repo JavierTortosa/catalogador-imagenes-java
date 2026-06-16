@@ -225,7 +225,7 @@ public class ListCoordinator extends AbstractListCoordinator {
         // porque queremos FORZAR a la vista a obedecer al modelo, incluso si cree que ya está sincronizada.
         
         if (index >= 0 && index < lista.getModel().getSize()) {
-            lista.setSelectedIndex(index);
+            lista.setSelectedIndices(new int[]{index});
             lista.ensureIndexIsVisible(index);
         } else {
             lista.clearSelection();

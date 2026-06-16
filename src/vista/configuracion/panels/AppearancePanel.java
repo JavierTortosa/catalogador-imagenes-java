@@ -18,6 +18,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionListener;
 
@@ -68,6 +69,9 @@ public class AppearancePanel extends JPanel implements ConfigurationPanel {
         setBorder(new TitledBorder("Apariencia"));
         initComponents();
         load(config);
+        themeManager.addThemeListChangeListener(() -> {
+            SwingUtilities.invokeLater(this::reloadThemeList);
+        });
     }
 
     private void initComponents() {
@@ -203,6 +207,31 @@ public class AppearancePanel extends JPanel implements ConfigurationPanel {
         pendingColors[2] = null;
         pendingColors[3] = null;
     }
+
+    public void reloadThemeList() {
+        ThemeListModel model = new ThemeListModel();
+        Map<String, ThemeInfo> themes = themeManager.getAvailableThemes();
+        ThemeCategory[] categories = {
+            ThemeCategory.LIGHT, ThemeCategory.DARK,
+            ThemeCategory.GRADIENT, ThemeCategory.CUSTOM_INTERNAL, ThemeCategory.CUSTOM
+        };
+        for (ThemeCategory cat : categories) {
+            boolean firstInCat = true;
+            for (Map.Entry<String, ThemeInfo> e : themes.entrySet()) {
+                if (e.getValue().category() == cat) {
+                    if (firstInCat) {
+                        model.addCategory(cat.getDisplayName());
+                        firstInCat = false;
+                    }
+                    model.addTheme(e.getKey(), e.getValue().nombreDisplay());
+                }
+            }
+        }
+        themeList.setModel(model);
+        if (themeManager.getTemaActual() != null) {
+            selectThemeInList(themeManager.getTemaActual().nombreInterno());
+        }
+    } // --- Fin del metodo [reloadThemeList] ---
 
     private void selectThemeInList(String themeId) {
         ThemeListModel model = (ThemeListModel) themeList.getModel();

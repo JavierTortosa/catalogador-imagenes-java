@@ -303,11 +303,12 @@ public class VisorController implements IModoController, ThemeChangeListener {
 	        
 	        listaNombres.addListSelectionListener(e -> {
 	            if (!e.getValueIsAdjusting()) {
+	                if (listaNombres.getSelectedIndices().length > 1) return;
                     // 1. Obtenemos el índice MAESTRO de la acción del usuario en ESTA vista.
                     //    Como esta lista usa el modelo maestro directamente, el índice es el correcto.
 	                int selectedMasterIndex = listaNombres.getSelectedIndex();
                     if (selectedMasterIndex == -1) return;
-
+                    
                     // 2. Comprobamos el estado actual del MODELO MAESTRO.
                     int officialMasterIndex = listCoordinator.getOfficialSelectedIndex();
 

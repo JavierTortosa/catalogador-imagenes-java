@@ -79,6 +79,7 @@ public class ThemeManager {
     
     private final ConfigurationManager configManager;
     private final List<ThemeChangeListener> listeners = new java.util.concurrent.CopyOnWriteArrayList<>();
+    private final List<Runnable> themeListChangeListeners = new java.util.concurrent.CopyOnWriteArrayList<>();
     private ConfigApplicationManager configAppManager;
 
     private final Map<String, ThemeInfo> TEMAS_DISPONIBLES;
@@ -364,6 +365,54 @@ public class ThemeManager {
     } // --- Fin del metodo [getAvailableThemes] ---
 
 
+    public void addThemeListChangeListener(Runnable listener) {
+        themeListChangeListeners.add(listener);
+    } // --- Fin del metodo [addThemeListChangeListener] ---
+
+
+    public void removeThemeListChangeListener(Runnable listener) {
+        themeListChangeListeners.remove(listener);
+    } // --- Fin del metodo [removeThemeListChangeListener] ---
+
+
+    private void notificarThemeListChanged() {
+        for (Runnable listener : themeListChangeListeners) {
+            if (listener != null) listener.run();
+        }
+    } // --- Fin del metodo [notificarThemeListChanged] ---
+
+
+    /**
+     * Registra un tema personalizado en el mapa interno TEMAS_DISPONIBLES,
+     * generando el mismo themeId que usaría loadCustomThemes() al leer el archivo.
+     * Dispara notificarThemeListChanged() para que las UI se actualicen.
+     * @param themeName Nombre visible del tema
+     * @param baseThemeClassName Nombre completo de la clase del tema base (ej. "com.formdev.flatlaf.intellijthemes.FlatArcDarkIJTheme")
+     * @param customProperties Propiedades de color personalizadas
+     * @return El themeId generado
+     */
+    public String registerCustomTheme(String themeName, String baseThemeClassName, Properties customProperties) {
+        String fileId = themeName.toLowerCase()
+            .replaceAll("[^a-z0-9_\u00E1\u00E9\u00ED\u00F3\u00FA\u00F1]", "")
+            .replaceAll("\\s+", "_");
+        String themeId = "custom_" + fileId;
+
+        Supplier<LookAndFeel> supplier = () -> {
+            try {
+                Class<?> baseClass = Class.forName(baseThemeClassName);
+                return (LookAndFeel) baseClass.getDeclaredConstructor().newInstance();
+            } catch (Exception e) {
+                logger.error("No se pudo instanciar el tema base para: " + themeName, e);
+                return null;
+            }
+        };
+
+        TEMAS_DISPONIBLES.put(themeId, new ThemeInfo(themeName, supplier, customProperties, ThemeCategory.CUSTOM));
+        notificarThemeListChanged();
+        return themeId;
+    } // --- Fin del metodo [registerCustomTheme] ---
+
+
     /**
      * Elimina un tema personalizado del mapa interno de temas
      * disponibles. Se usa después de borrar el archivo .properties
@@ -372,6 +421,7 @@ public class ThemeManager {
     public void removeCustomTheme(String themeId) {
         if (themeId != null) {
             TEMAS_DISPONIBLES.remove(themeId);
+            notificarThemeListChanged();
         }
     } // --- Fin del metodo [removeCustomTheme] ---
 

@@ -38,6 +38,7 @@ import controlador.commands.AppActionCommands;
 import controlador.managers.interfaces.IProjectManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
+import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import servicios.image.ThumbnailService;
 import vista.components.TagIntelliSenseField;
@@ -345,7 +346,7 @@ public class DataBuilder {
         JScrollPane fileNameScroll = new JScrollPane(fileNameList);
         TitledBorder imgBorder = BorderFactory.createTitledBorder("Imágenes");
         fileNameScroll.setBorder(imgBorder);
-        registry.register("list.datamode.filenames", fileNameList);
+        registry.register("list.datamode.filenames", fileNameList, "WHEEL_NAVIGABLE");
         
         // --- Unidades (movido de columna izquierda) ---
         DriveListPanel driveListPanel = new DriveListPanel();
@@ -378,6 +379,19 @@ public class DataBuilder {
         registry.register("panel.datamode.display.polaroid", polaroidViewPanel);
         registry.register("panel.datamode.display.polaroid.image", polaroidImagePanel);
         registry.register("label.datamode.polaroid.imagen", polaroidViewPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
+
+        // Flechas de navegacion en los paneles de datos
+        if (actionMap != null && iconUtils != null) {
+            javax.swing.Action prevAction = actionMap.get(AppActionCommands.CMD_NAV_ANTERIOR);
+            javax.swing.Action nextAction = actionMap.get(AppActionCommands.CMD_NAV_SIGUIENTE);
+            javax.swing.Icon prevIcon = iconUtils.getScaledIcon("1002-anterior_48x48.png", 48, 48);
+            javax.swing.Icon nextIcon = iconUtils.getScaledIcon("1003-siguiente_48x48.png", 48, 48);
+            singleImageViewPanel.setNavigationActions(prevAction, nextAction, prevIcon, nextIcon);
+            polaroidViewPanel.setNavigationActions(prevAction, nextAction, prevIcon, nextIcon);
+            boolean arrowsVisible = this.configManager.getBoolean(ConfigKeys.COMPORTAMIENTO_MOSTRAR_FLECHAS, true);
+            singleImageViewPanel.setNavigationArrowsVisible(arrowsVisible);
+            polaroidViewPanel.setNavigationArrowsVisible(arrowsVisible);
+        }
 
         ComponentRegistry fakeRegistry = new ComponentRegistry();
         ThumbnailPreviewer gridPreviewer = new ThumbnailPreviewer(null, model, themeManager, null, fakeRegistry);

@@ -53,6 +53,7 @@ public class MenuBarBuilder {
     private final ComponentRegistry registry;
     
     private final ThemeManager themeManager;
+    private JMenu temaMenu;
 
     /**
      * Constructor simplificado. Inicializa las estructuras internas.
@@ -74,6 +75,9 @@ public class MenuBarBuilder {
         this.viewManager = Objects.requireNonNull(viewManager, "IViewManager no puede ser null");
         this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null en MenuBarBuilder");
         this.themeManager = Objects.requireNonNull(themeManager, "ThemeManager no puede ser null");
+        
+        // Registrar listener para reconstruir el menú de temas cuando se añadan/borren temas en vivo
+        this.themeManager.addThemeListChangeListener(this::rebuildThemeMenu);
         
         // actionMap y controllerGlobalActionListener se recibirán/establecerán externamente.
         // currentButtonGroup se inicializa a null y se gestiona durante la construcción.
@@ -409,7 +413,7 @@ public class MenuBarBuilder {
             return;
         }
 
-        JMenu temaMenu = (JMenu) parentContainer;
+        this.temaMenu = (JMenu) parentContainer;
         ButtonGroup themeGroup = new ButtonGroup();
 
         // Pedimos al ThemeManager la lista completa de temas
@@ -468,6 +472,19 @@ public class MenuBarBuilder {
             }
         }
     } // --- FIN del metodo buildDynamicThemeMenu ---
+    
+    
+    /**
+     * Reconstruye el menú de temas desde cero, añadiendo los temas personalizados
+     * que se hayan registrado en tiempo de ejecución.
+     */
+    public void rebuildThemeMenu() {
+        if (temaMenu == null) return;
+        temaMenu.removeAll();
+        buildDynamicThemeMenu(temaMenu);
+        temaMenu.revalidate();
+        temaMenu.repaint();
+    } // --- FIN del metodo rebuildThemeMenu ---
     
     
     /**

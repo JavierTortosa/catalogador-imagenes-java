@@ -99,6 +99,10 @@ public class ProjectController implements IModoController {
     private Map<String, ExportItem> exportItemMap = new HashMap<>();
     private int lastRightDividerLocation = -1;
 
+    private ProjectLayout currentLayout = ProjectLayout.DEFAULT;
+    private Component storedRightComponent = null;
+    private int lastMainDividerLocation = -1;
+
     // Constructor que inicializa los servicios headless de exportacion y PDF
     /**
      * Constructor que inicializa los servicios headless de exportación y PDF.
@@ -358,6 +362,11 @@ public class ProjectController implements IModoController {
         logger.debug("Alternando vista de exportación. Nuevo estado visible: {}", ahoraSeraVisible);
 
         if (ahoraSeraVisible) {
+            // --- ABRIR: Primero reorganizar layout a ASSIGNMENT ---
+            if (currentLayout == ProjectLayout.DEFAULT) {
+                toggleProjectLayout();
+            }
+
             // --- MOSTRAR PANEL ---
             toolsPanel.setVisible(true);
             rightSplit.setDividerSize(5);
@@ -389,6 +398,11 @@ public class ProjectController implements IModoController {
 
             // Al ocultar, la intención vuelve a la selección normal.
             setProjectViewState(ProjectViewState.VIEW_SELECTION);
+
+            // --- Luego revertir layout a DEFAULT ---
+            if (currentLayout == ProjectLayout.ASSIGNMENT) {
+                toggleProjectLayout();
+            }
         }
     } // --- Fin del metodo: toggleExportView ---
 
@@ -468,10 +482,50 @@ public class ProjectController implements IModoController {
 
 
     /**
+     * Alterna entre layout DEFAULT (izquierda + derecha) y ASSIGNMENT (reordenado).
+     */
+    public void toggleProjectLayout() {
+        if (registry == null) return;
+        if (uiManager == null) return;
+
+        if (currentLayout == ProjectLayout.DEFAULT) {
+            uiManager.aplicarLayoutAsignacion();
+            currentLayout = ProjectLayout.ASSIGNMENT;
+        } else {
+            uiManager.aplicarLayoutDefault();
+            currentLayout = ProjectLayout.DEFAULT;
+        }
+
+        Action toggleAction = actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_LAYOUT);
+        if (toggleAction != null) {
+            toggleAction.putValue(Action.SELECTED_KEY, currentLayout == ProjectLayout.ASSIGNMENT);
+        }
+    }
+
+
+    /**
      * Resetea el layout del panel derecho a su estado por defecto.
      */
     public void resetProjectViewLayout() {
         lastRightDividerLocation = -1;
+        // Si estamos en layout ASSIGNMENT, restaurar a DEFAULT primero
+        if (currentLayout == ProjectLayout.ASSIGNMENT && storedRightComponent != null) {
+            JSplitPane mainSplit = registry.get("splitpane.proyecto.main");
+            if (mainSplit != null) {
+                mainSplit.add(storedRightComponent, JSplitPane.RIGHT);
+                mainSplit.setDividerSize(5);
+                mainSplit.setDividerLocation(0.25);
+                mainSplit.revalidate();
+                mainSplit.repaint();
+            }
+            storedRightComponent = null;
+            currentLayout = ProjectLayout.DEFAULT;
+
+            Action toggleAction = actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_LAYOUT);
+            if (toggleAction != null) {
+                toggleAction.putValue(Action.SELECTED_KEY, false);
+            }
+        }
         uiManager.resetLayoutProyecto(actionMap);
     } // --- Fin del metodo: resetProjectViewLayout ---
 
@@ -1055,6 +1109,7 @@ public class ProjectController implements IModoController {
             if (destinoGuardado != null) {
                 exportPanel.setRutaDestino(destinoGuardado);
             }
+            exportPanel.refreshPdfDetailsTable();
         }
         
         actualizarEstadoExportacionUI();
@@ -1443,6 +1498,11 @@ public class ProjectController implements IModoController {
                 }
             } else {
                 tablaExportacion.clearSelection();
+            }
+            // Sincronizar también la tabla de detalles del PDF
+            ExportPanel exportPanel = registry.get("panel.proyecto.exportacion.completo");
+            if (exportPanel != null) {
+                exportPanel.getPdfDetailsTablePanel().selectRowByPath(claveSeleccionada);
             }
         });
     } // --- Fin del metodo: sincronizarSeleccionEnTablaExportacion ---
@@ -1937,6 +1997,11 @@ public class ProjectController implements IModoController {
         projectManager.nuevoProyecto();
 
         logger.info("Nuevo proyecto creado en el backend (ProjectManager).");
+
+        currentLayout = ProjectLayout.DEFAULT;
+        if (model != null) {
+            model.setProjectExportPanelVisible(false);
+        }
 
         limpiarCacheRenderersProyecto();
         limpiarVistaProyecto();
@@ -2741,17 +2806,16 @@ public class ProjectController implements IModoController {
 
         if (visible) {
             if (!toolsPanel.isVisible()) {
+                if (currentLayout == ProjectLayout.DEFAULT) {
+                    toggleProjectLayout();
+                }
                 toolsPanel.setVisible(true);
                 rightSplit.setDividerSize(5);
 
                 ensureExportPanelIsFullyInitialized();
 
                 SwingUtilities.invokeLater(() -> {
-                    if (lastRightDividerLocation > 0) {
-                        rightSplit.setDividerLocation(lastRightDividerLocation);
-                    } else {
-                        ajustarPosicionDivisorDerecho();
-                    }
+                    ajustarPosicionDivisorDerecho();
                 });
 
                 logger.debug("[ProjectController] Panel de exportación restaurado a visible.");
@@ -2761,6 +2825,9 @@ public class ProjectController implements IModoController {
                 lastRightDividerLocation = rightSplit.getDividerLocation();
                 toolsPanel.setVisible(false);
                 rightSplit.setDividerSize(0);
+                if (currentLayout == ProjectLayout.ASSIGNMENT) {
+                    toggleProjectLayout();
+                }
                 logger.debug("[ProjectController] Panel de exportación ocultado programáticamente.");
             }
         }
@@ -2956,6 +3023,10 @@ public class ProjectController implements IModoController {
     public GeneralController getGeneralController() {
         return this.generalController;
     } // --- Fin del metodo: getGeneralController ---
+
+    public ProjectLayout getCurrentLayout() {
+        return this.currentLayout;
+    }
 
 
     /**

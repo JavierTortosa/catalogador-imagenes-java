@@ -8,7 +8,9 @@ import javax.swing.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.Action;
 import controlador.ProjectController;
+import controlador.commands.AppActionCommands;
 import vista.panels.export.ExportPanel;
 
 public class ToggleExportDetailsAction extends AbstractAction {
@@ -39,6 +41,11 @@ public class ToggleExportDetailsAction extends AbstractAction {
             if (e.getSource() instanceof AbstractButton) {
                 AbstractButton button = (AbstractButton) e.getSource();
                 putValue(Action.SELECTED_KEY, button.isSelected());
+            }
+            // Sincronizar también el botón de Detalles del PDF (exclusión mutua)
+            Action pdfAction = projectController.getActionMap().get(AppActionCommands.CMD_DETALLES_PDF_SELECCION);
+            if (pdfAction != null) {
+                pdfAction.putValue(Action.SELECTED_KEY, exportPanel.isPdfDetailsTableVisible());
             }
         } else {
             logger.error("No se pudo encontrar 'panel.proyecto.exportacion.completo' en el ComponentRegistry.");

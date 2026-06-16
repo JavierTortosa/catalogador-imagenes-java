@@ -12,6 +12,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableRowSorter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,7 @@ public class PdfDetailsTablePanel extends JPanel {
         detailsTable.putClientProperty("JTable.autoStartsEdit", true);
 
         detailsTable.getTableHeader().setReorderingAllowed(false);
+        detailsTable.setAutoCreateRowSorter(true);
 
         detailsTable.getColumnModel().getColumn(0).setPreferredWidth(200);
         detailsTable.getColumnModel().getColumn(1).setPreferredWidth(60);
@@ -67,9 +69,10 @@ public class PdfDetailsTablePanel extends JPanel {
 
         detailsTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
-                int selectedRow = detailsTable.getSelectedRow();
-                ExportItem selectedItem = (selectedRow != -1 && selectedRow < currentItems.size())
-                        ? currentItems.get(selectedRow) : null;
+                int viewRow = detailsTable.getSelectedRow();
+                int modelRow = viewRow != -1 ? detailsTable.convertRowIndexToModel(viewRow) : -1;
+                ExportItem selectedItem = (modelRow != -1 && modelRow < currentItems.size())
+                        ? currentItems.get(modelRow) : null;
                 if (onSelectionChangedListener != null) {
                     onSelectionChangedListener.accept(selectedItem);
                 }
@@ -103,6 +106,30 @@ public class PdfDetailsTablePanel extends JPanel {
         tableModel.fireTableDataChanged();
     } // --- Fin del metodo: setItems ---
 
+
+    // Selecciona la fila cuya ruta de imagen coincida con la clave indicada
+    public void selectRowByPath(String imagePath) {
+        if (imagePath == null || imagePath.isEmpty() || currentItems.isEmpty()) {
+            detailsTable.clearSelection();
+            return;
+        }
+        String normalizedTarget = imagePath.replace("\\", "/");
+        for (int i = 0; i < currentItems.size(); i++) {
+            ExportItem item = currentItems.get(i);
+            if (item.getRutaImagen() != null) {
+                String itemPath = item.getRutaImagen().toString().replace("\\", "/");
+                if (itemPath.equals(normalizedTarget)) {
+                    int viewRow = detailsTable.convertRowIndexToView(i);
+                    if (viewRow != -1) {
+                        detailsTable.setRowSelectionInterval(viewRow, viewRow);
+                        detailsTable.scrollRectToVisible(detailsTable.getCellRect(viewRow, 0, true));
+                    }
+                    return;
+                }
+            }
+        }
+        detailsTable.clearSelection();
+    } // --- Fin del metodo: selectRowByPath ---
 
     // Refresca los datos visibles en la tabla sin recargar la lista
     public void refreshData() {

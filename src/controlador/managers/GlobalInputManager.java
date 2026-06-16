@@ -438,13 +438,13 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
         Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
         if (focusOwner == null) return false;
 
-        JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
-        JList<String> listaNombres = registry.get("list.nombresArchivo");
-
-        boolean focoEnAreaMiniaturas = (scrollMiniaturas != null && SwingUtilities.isDescendingFrom(focusOwner, scrollMiniaturas));
-        boolean focoEnListaNombres = (listaNombres != null && SwingUtilities.isDescendingFrom(focusOwner, listaNombres));
-
-        if (focoEnAreaMiniaturas || focoEnListaNombres) {
+        // Navegación global: las teclas funcionan desde cualquier componente
+        // excepto aquellos que las usan para su propia edición (texto, tablas, árboles)
+        boolean focoEnComponenteConNavegacionPropia = (focusOwner instanceof javax.swing.text.JTextComponent
+                || focusOwner instanceof javax.swing.JTable
+                || focusOwner instanceof javax.swing.JTree);
+        
+        if (!focoEnComponenteConNavegacionPropia && !e.isShiftDown()) {
             boolean consumed = false;
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_UP: case KeyEvent.VK_LEFT: modoController.navegarAnterior(); consumed = true; break;

@@ -40,12 +40,18 @@ public class GeneralPanel extends JPanel implements ConfigurationPanel {
     private final JTextField txtNewOmit = new JTextField(20);
 
     private final JCheckBox chkSubfolders = new JCheckBox("Cargar imágenes de subcarpetas");
+    private final JCheckBox chkWelcome = new JCheckBox("Mostrar imagen de bienvenida al iniciar");
+    private final JCheckBox chkRestoreLast = new JCheckBox("Abrir última imagen vista al iniciar");
+    private final JCheckBox chkNavArrows = new JCheckBox("Mostrar flechas de navegación en imagen");
 
     private String initialStartupFolder;
     private String initialStartupImage;
     private List<String> initialExcludeFolders;
     private List<String> initialOmitDirs;
     private boolean initialSubfolders;
+    private boolean initialWelcome;
+    private boolean initialRestoreLast;
+    private boolean initialNavArrows;
 
     public GeneralPanel(ConfigurationManager config) {
         setLayout(new GridBagLayout());
@@ -165,6 +171,12 @@ public class GeneralPanel extends JPanel implements ConfigurationPanel {
         g.anchor = GridBagConstraints.WEST;
         g.gridx = 0; g.gridy = 0;
         cargaPanel.add(chkSubfolders, g);
+        g.gridy = 1;
+        cargaPanel.add(chkWelcome, g);
+        g.gridy = 2;
+        cargaPanel.add(chkRestoreLast, g);
+        g.gridy = 3;
+        cargaPanel.add(chkNavArrows, g);
 
         // Ensamblaje
         gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 1.0; gbc.weighty = 0;
@@ -230,6 +242,9 @@ public class GeneralPanel extends JPanel implements ConfigurationPanel {
         initialExcludeFolders = parseCommaList(config.getString(ConfigKeys.INDEXACION_EXCLUIR_CARPETAS, ""));
         initialOmitDirs = parseCommaList(config.getString(ConfigKeys.INDEXACION_OMITIR_DIRECTORIOS, ""));
         initialSubfolders = config.getBoolean(ConfigKeys.COMPORTAMIENTO_CARGAR_SUBCARPETAS, true);
+        initialWelcome = config.getBoolean(ConfigKeys.COMPORTAMIENTO_MOSTRAR_BIENVENIDA, true);
+        initialRestoreLast = config.getBoolean(ConfigKeys.COMPORTAMIENTO_RESTAURAR_ULTIMA_IMAGEN, true);
+        initialNavArrows = config.getBoolean(ConfigKeys.COMPORTAMIENTO_MOSTRAR_FLECHAS, true);
 
         txtStartupFolder.setText(initialStartupFolder);
         txtStartupImage.setText(initialStartupImage);
@@ -241,6 +256,9 @@ public class GeneralPanel extends JPanel implements ConfigurationPanel {
         initialOmitDirs.forEach(omitModel::addElement);
 
         chkSubfolders.setSelected(initialSubfolders);
+        chkWelcome.setSelected(initialWelcome);
+        chkRestoreLast.setSelected(initialRestoreLast);
+        chkNavArrows.setSelected(initialNavArrows);
     }
 
     @Override
@@ -273,6 +291,21 @@ public class GeneralPanel extends JPanel implements ConfigurationPanel {
             initialSubfolders = chkSubfolders.isSelected();
             changed = true;
         }
+        if (chkWelcome.isSelected() != initialWelcome) {
+            config.setString(ConfigKeys.COMPORTAMIENTO_MOSTRAR_BIENVENIDA, String.valueOf(chkWelcome.isSelected()));
+            initialWelcome = chkWelcome.isSelected();
+            changed = true;
+        }
+        if (chkRestoreLast.isSelected() != initialRestoreLast) {
+            config.setString(ConfigKeys.COMPORTAMIENTO_RESTAURAR_ULTIMA_IMAGEN, String.valueOf(chkRestoreLast.isSelected()));
+            initialRestoreLast = chkRestoreLast.isSelected();
+            changed = true;
+        }
+        if (chkNavArrows.isSelected() != initialNavArrows) {
+            config.setString(ConfigKeys.COMPORTAMIENTO_MOSTRAR_FLECHAS, String.valueOf(chkNavArrows.isSelected()));
+            initialNavArrows = chkNavArrows.isSelected();
+            changed = true;
+        }
         return changed;
     }
 
@@ -290,7 +323,10 @@ public class GeneralPanel extends JPanel implements ConfigurationPanel {
             || !txtStartupImage.getText().trim().equals(initialStartupImage)
             || !modelToList(excludeModel).equals(initialExcludeFolders)
             || !modelToList(omitModel).equals(initialOmitDirs)
-            || chkSubfolders.isSelected() != initialSubfolders;
+            || chkSubfolders.isSelected() != initialSubfolders
+            || chkWelcome.isSelected() != initialWelcome
+            || chkRestoreLast.isSelected() != initialRestoreLast
+            || chkNavArrows.isSelected() != initialNavArrows;
     }
 
     @Override

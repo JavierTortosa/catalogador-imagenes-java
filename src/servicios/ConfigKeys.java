@@ -174,6 +174,10 @@ public final class ConfigKeys {
     
     public static final String CAROUSEL_DELAY_MS 								= "carousel.delay.ms";
     
+    public static final String COMPORTAMIENTO_MOSTRAR_BIENVENIDA                 = "comportamiento.mostrar_bienvenida";
+    public static final String COMPORTAMIENTO_RESTAURAR_ULTIMA_IMAGEN            = "comportamiento.restaurar_ultima_imagen";
+    public static final String COMPORTAMIENTO_MOSTRAR_FLECHAS                    = "comportamiento.mostrar_flechas_navegacion";
+
     public static final String COMPORTAMIENTO_SYNC_VISOR_CARRUSEL               = "comportamiento.sync.visor_carrusel.activado";
     public static final String CARRUSEL_ESTADO_ULTIMA_CARPETA                   = "carrusel.estado.ultima_carpeta";
     public static final String CARRUSEL_ESTADO_ULTIMA_IMAGEN                    = "carrusel.estado.ultima_imagen_key";

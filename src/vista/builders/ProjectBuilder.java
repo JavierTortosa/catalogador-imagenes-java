@@ -287,6 +287,7 @@ public class ProjectBuilder implements ThemeChangeListener {
                 javax.swing.Icon prevIcon = iconUtils.getScaledIcon("1002-anterior_48x48.png", 48, 48);
                 javax.swing.Icon nextIcon = iconUtils.getScaledIcon("1003-siguiente_48x48.png", 48, 48);
                 singleImageViewPanel.setNavigationActions(prevAction, nextAction, prevIcon, nextIcon);
+                singleImageViewPanel.setNavigationArrowsVisible(true);
             }
         }
         // --- FIN AÑADIDO FLECHAS NAVEGACION ---
@@ -393,6 +394,7 @@ public class ProjectBuilder implements ThemeChangeListener {
                 javax.swing.Icon prevIcon = iconUtils.getScaledIcon("1002-anterior_48x48.png", 48, 48);
                 javax.swing.Icon nextIcon = iconUtils.getScaledIcon("1003-siguiente_48x48.png", 48, 48);
                 polaroidViewPanel.setNavigationActions(prevAction, nextAction, prevIcon, nextIcon);
+                polaroidViewPanel.setNavigationArrowsVisible(true);
             }
         }
 

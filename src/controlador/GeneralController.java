@@ -195,6 +195,7 @@ public class GeneralController
 
                 @SuppressWarnings("unchecked")
                 JList<String> sourceList = (JList<String>) e.getSource();
+                if (sourceList.getSelectedIndices().length > 1) return;
                 int selectedIndexInView = sourceList.getSelectedIndex();
                 if (selectedIndexInView == -1)
                     return;
@@ -766,8 +767,9 @@ public class GeneralController
         logger.debug("[GeneralController] Delegando navegarSiguiente para modo: " + model.getCurrentWorkMode());
         if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarSiguiente();
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
+            dataController.navegarSiguiente();
         } else {
-            // Sirve tanto para VISUALIZADOR como para CARROUSEL
             visorController.navegarSiguiente();
         }
     } // --- FIN del metodo navegarSiguiente ---
@@ -777,6 +779,8 @@ public class GeneralController
         logger.debug("[GeneralController] Delegando navegarAnterior para modo: " + model.getCurrentWorkMode());
         if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarAnterior();
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
+            dataController.navegarAnterior();
         } else {
             visorController.navegarAnterior();
         }
@@ -787,6 +791,8 @@ public class GeneralController
         logger.debug("[GeneralController] Delegando navegarPrimero para modo: " + model.getCurrentWorkMode());
         if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarPrimero();
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
+            dataController.navegarPrimero();
         } else {
             visorController.navegarPrimero();
         }
@@ -797,6 +803,8 @@ public class GeneralController
         logger.debug("[GeneralController] Delegando navegarUltimo para modo: " + model.getCurrentWorkMode());
         if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarUltimo();
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
+            dataController.navegarUltimo();
         } else {
             visorController.navegarUltimo();
         }
@@ -807,6 +815,8 @@ public class GeneralController
         logger.debug("[GeneralController] Delegando navegarBloqueAnterior para modo: " + model.getCurrentWorkMode());
         if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarBloqueAnterior();
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
+            dataController.navegarBloqueAnterior();
         } else {
             visorController.navegarBloqueAnterior();
         }
@@ -817,6 +827,8 @@ public class GeneralController
         logger.debug("[GeneralController] Delegando navegarBloqueSiguiente para modo: " + model.getCurrentWorkMode());
         if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarBloqueSiguiente();
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
+            dataController.navegarBloqueSiguiente();
         } else {
             visorController.navegarBloqueSiguiente();
         }

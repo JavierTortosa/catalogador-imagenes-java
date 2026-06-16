@@ -718,15 +718,18 @@ public class AppInitializer {
                 configurarCierreVentana();
 
                 // 3.9: Hacer visible la UI y cargar datos
-                String folderInitPath = this.configuration.getString(ConfigKeys.INICIO_CARPETA, "");
-                if (!folderInitPath.isEmpty()) {
-                    try {
-                        Path candidatePath = Paths.get(folderInitPath);
-                        if (Files.isDirectory(candidatePath)) {
-                            this.model.setCarpetaRaizInicialParaVisualizador(candidatePath);
+                boolean restaurarUltimaImagen = this.configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_RESTAURAR_ULTIMA_IMAGEN, true);
+                if (restaurarUltimaImagen) {
+                    String folderInitPath = this.configuration.getString(ConfigKeys.INICIO_CARPETA, "");
+                    if (!folderInitPath.isEmpty()) {
+                        try {
+                            Path candidatePath = Paths.get(folderInitPath);
+                            if (Files.isDirectory(candidatePath)) {
+                                this.model.setCarpetaRaizInicialParaVisualizador(candidatePath);
+                            }
+                        } catch (Exception e) {
+                            logger.warn("WARN: Ruta de carpeta inicial inválida en config: '" + folderInitPath + "'");
                         }
-                    } catch (Exception e) {
-                        logger.warn("WARN: Ruta de carpeta inicial inválida en config: '" + folderInitPath + "'");
                     }
                 }
 
@@ -878,9 +881,30 @@ public class AppInitializer {
     } // --- Fin del metodo/clase sincronizarVisibilidadInicialUI ---
 
     private void cargarDatosIniciales(Runnable onComplete) {
-        String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);
+        boolean restaurarUltimaImagen = configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_RESTAURAR_ULTIMA_IMAGEN, true);
+        String imagenInicialKey = restaurarUltimaImagen
+                ? configuration.getString(ConfigKeys.INICIO_IMAGEN, null) : null;
+
         if (this.model.getCarpetaRaizActual() != null) {
-            this.controller.getImageListManager().cargarListaImagenes(imagenInicialKey, onComplete);
+            boolean mostrarBienvenida = configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_MOSTRAR_BIENVENIDA, true);
+            if (mostrarBienvenida) {
+                // Splash de bienvenida: mostrar la imagen de bienvenida de inmediato
+                this.viewManager.limpiarUI();
+                this.viewManager.restaurarVisibilidadPaneles();
+                this.generalController.sincronizarTodaLaUIConElModelo();
+                // Después del splash, cargar los datos
+                javax.swing.Timer splashTimer = new javax.swing.Timer(2000, e -> {
+                    // limpiarUI dejó el flag de sincronización activado (lo limpia asíncronamente)
+                    this.controller.getListCoordinator().setSincronizandoUI(false);
+                    this.controller.getImageListManager().cargarListaImagenes(imagenInicialKey, () -> {
+                        if (onComplete != null) onComplete.run();
+                    });
+                });
+                splashTimer.setRepeats(false);
+                splashTimer.start();
+            } else {
+                this.controller.getImageListManager().cargarListaImagenes(imagenInicialKey, onComplete);
+            }
         } else {
             logger.debug("  -> No hay carpeta inicial válida. Se mostrará el estado de bienvenida.");
             this.viewManager.limpiarUI();
@@ -889,7 +913,6 @@ public class AppInitializer {
                 this.controller.getStatusBarManager()
                         .mostrarMensaje("Abre una carpeta para empezar (Archivo -> Abrir Carpeta)");
             }
-            // Si no hay carga, ejecutamos el callback inmediatamente
             if (onComplete != null) {
                 onComplete.run();
             }

@@ -1157,6 +1157,22 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
 
     } // --- FIN lostOwnership ---
 
+    public void restaurarVisibilidadPaneles() {
+        logger.debug("[ViewManager] Restaurando visibilidad de paneles ocultos por limpiarUI...");
+        if (registry != null) {
+            JPanel panelIzquierdo = registry.get("panel.izquierdo.contenedorPrincipal");
+            if (panelIzquierdo != null) panelIzquierdo.setVisible(true);
+            JScrollPane scrollMiniaturasVisor = registry.get("scroll.miniaturas");
+            if (scrollMiniaturasVisor != null) scrollMiniaturasVisor.setVisible(true);
+            JScrollPane scrollMiniaturasCarousel = registry.get("scroll.miniaturas.carousel");
+            if (scrollMiniaturasCarousel != null) scrollMiniaturasCarousel.setVisible(true);
+        }
+        if (view != null) {
+            view.revalidate();
+            view.repaint();
+        }
+    } // Fin del metodo restaurarVisibilidadPaneles ---
+
     public void limpiarUI() {
         logger.debug("[ViewManager] Limpiando UI y Modelo a estado de bienvenida...");
 

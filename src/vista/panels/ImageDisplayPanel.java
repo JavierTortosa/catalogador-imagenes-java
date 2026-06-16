@@ -46,6 +46,9 @@ public class ImageDisplayPanel extends JPanel {
     private boolean isMarcada = false; // Indica si la imagen actual está marcada
     private boolean isPlaceholderSinImagen = false; // Indica si estamos mostrando el placeholder de "sin imagen"
 
+    private javax.swing.JPanel navArrowsLeftPanel;
+    private javax.swing.JPanel navArrowsRightPanel;
+
     public ImageDisplayPanel(ThemeManager themeManager, VisorModel model) {
 
         this.themeManager = themeManager;
@@ -420,10 +423,10 @@ public class ImageDisplayPanel extends JPanel {
             prevButton.setFocusable(false);
             prevButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 
-            JPanel leftPanel = new JPanel(new java.awt.GridBagLayout());
-            leftPanel.setOpaque(false);
-            leftPanel.add(prevButton);
-            this.add(leftPanel, BorderLayout.WEST);
+            navArrowsLeftPanel = new JPanel(new java.awt.GridBagLayout());
+            navArrowsLeftPanel.setOpaque(false);
+            navArrowsLeftPanel.add(prevButton);
+            this.add(navArrowsLeftPanel, BorderLayout.WEST);
         }
 
         if (nextAction != null && nextIcon != null) {
@@ -435,14 +438,20 @@ public class ImageDisplayPanel extends JPanel {
             nextButton.setFocusable(false);
             nextButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 
-            JPanel rightPanel = new JPanel(new java.awt.GridBagLayout());
-            rightPanel.setOpaque(false);
-            rightPanel.add(nextButton);
-            this.add(rightPanel, BorderLayout.EAST);
+            navArrowsRightPanel = new JPanel(new java.awt.GridBagLayout());
+            navArrowsRightPanel.setOpaque(false);
+            navArrowsRightPanel.add(nextButton);
+            this.add(navArrowsRightPanel, BorderLayout.EAST);
         }
 
         this.revalidate();
         this.repaint();
     } // --- FIN de metodo setNavigationActions ---
+
+
+    public void setNavigationArrowsVisible(boolean visible) {
+        if (navArrowsLeftPanel != null) navArrowsLeftPanel.setVisible(visible);
+        if (navArrowsRightPanel != null) navArrowsRightPanel.setVisible(visible);
+    } // --- FIN de metodo setNavigationArrowsVisible ---
 
 } // --- FIN DE LA CLASE ImageDisplayPanel ---

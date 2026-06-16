@@ -167,6 +167,7 @@ public interface AppActionCommands {
 	    public static final String CMD_EXPORTAR_PDF		 			= "cmd.export.pdf";
 	    public static final String CMD_EXPORT_SELECCIONAR_CARPETA 	= "cmd.export.seleccionar.carpeta";
 	    public static final String CMD_EXPORT_ASSIGN_PANNEL			= "cmd.export.assign_pannel";
+    public static final String CMD_PROYECTO_TOGGLE_LAYOUT      = "cmd.proyecto.toggle_layout";
 	    
 	    public static final String CMD_EXPORT_DETALLES_SELECCION	= "cmd.export.detalles_seleccion";
 	    public static final String CMD_DETALLES_PDF_SELECCION		= "cmd.export.detalles_pdf_seleccion";
@@ -213,7 +214,10 @@ public interface AppActionCommands {
     // --- Comportamiento/Toggles Generales ---
     public static final String CMD_TOGGLE_SUBCARPETAS 				= "cmd.toggle.subcarpetas";             // Para ToggleSubfoldersAction
     public static final String CMD_TOGGLE_MANTENER_PROPORCIONES 	= "cmd.toggle.mantener_proporciones"; 	// Para ToggleProporcionesAction
-    public static final String CMD_TOGGLE_WRAP_AROUND 				= "cmd.toggle.wrap_around";           	// (Futuro?) Para 'Volver al inicio al llegar al final'
+    public static final String CMD_TOGGLE_WRAP_AROUND 				= "cmd.toggle.wrap_around";           	// Para 'Volver al inicio al llegar al final'
+    public static final String CMD_TOGGLE_WELCOME 				    = "cmd.toggle.welcome";               	// Mostrar imagen de bienvenida
+    public static final String CMD_TOGGLE_RESTORE_LAST 			    = "cmd.toggle.restore_last_image";    	// Abrir última imagen vista al iniciar
+    public static final String CMD_TOGGLE_NAV_ARROWS 			    = "cmd.toggle.nav_arrows";            	// Mostrar flechas de navegación en imagen
     
     // --- Tema ---
     public static final String CMD_TEMA_PREFIX 						= "cmd.tema.";

@@ -11,6 +11,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -25,6 +27,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -83,6 +86,7 @@ public class ThemeCustomizerDialog extends JDialog {
     private ThemePreviewPanel themePreview;
     private JScrollPane colorScrollPane;
     private boolean isInitializing = true;
+    private boolean isSaved = false;
 
     /**
      * Definición interna de una categoría de colores: título y lista
@@ -300,13 +304,28 @@ public class ThemeCustomizerDialog extends JDialog {
         deleteButton.addActionListener(e -> deleteCustomTheme());
 
         JButton cancelButton = new JButton("Cancelar");
-        cancelButton.addActionListener(e -> dispose());
+        cancelButton.addActionListener(e -> {
+            if (confirmCloseIfUnsaved()) {
+                dispose();
+            }
+        });
 
         buttonPanel.add(saveButton);
         buttonPanel.add(deleteButton);
         buttonPanel.add(applyButton);
         buttonPanel.add(cancelButton);
         add(buttonPanel, BorderLayout.SOUTH);
+
+        // Preguntar al cerrar la ventana si hay cambios sin guardar
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (confirmCloseIfUnsaved()) {
+                    dispose();
+                }
+            }
+        });
 
         // Select current theme
         String currentThemeId = themeManager.getTemaActual().nombreInterno();
@@ -709,9 +728,19 @@ public class ThemeCustomizerDialog extends JDialog {
             }
 
             logger.info("Tema personalizado guardado en: " + themeFile.getAbsolutePath());
+
+            // Convertir colores a Properties y registrar el tema en vivo
+            Properties themeProps = new Properties();
+            customColors.forEach((key, color) -> {
+                String hex = String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
+                themeProps.put(key, hex);
+            });
+            String newThemeId = themeManager.registerCustomTheme(newThemeName, baseThemeClassName, themeProps);
+            themeManager.setTemaActual(newThemeId, true);
+            isSaved = true;
+
             JOptionPane.showMessageDialog(this,
-                "\u00A1Tema guardado con \u00E9xito!\n'"
-                + newThemeName + "' estar\u00E1 disponible la pr\u00F3xima vez que inicies la aplicaci\u00F3n.",
+                "\u00A1Tema guardado y aplicado con \u00E9xito!",
                 "\u00C9xito", JOptionPane.INFORMATION_MESSAGE);
             dispose();
 
@@ -722,6 +751,23 @@ public class ThemeCustomizerDialog extends JDialog {
                 "Error de Archivo", JOptionPane.ERROR_MESSAGE);
         }
     } // --- Fin del metodo [saveCustomTheme] ---
+
+
+    // Devuelve true si se puede cerrar; si hay cambios sin guardar, pregunta al usuario
+    private boolean confirmCloseIfUnsaved() {
+        if (!customColors.isEmpty() && !isSaved) {
+            int response = JOptionPane.showConfirmDialog(this,
+                "Hay cambios sin guardar.\nSi cierras ahora, el tema personalizado se perder\u00E1\n"
+                + "y la pr\u00F3xima vez que inicies la aplicaci\u00F3n\n"
+                + "no se aplicar\u00E1n estas modificaciones.\n\n"
+                + "\u00BFEst\u00E1s seguro de que quieres salir sin guardar?",
+                "Tema sin guardar",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+            return response == JOptionPane.YES_OPTION;
+        }
+        return true;
+    } // --- Fin del metodo [confirmCloseIfUnsaved] ---
 
 
     /**

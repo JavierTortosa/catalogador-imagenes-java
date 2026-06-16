@@ -346,9 +346,9 @@ public class UIDefinitionService {
 
         // 7.3. Submenú "General" (Configuraciones de comportamiento)
         List<MenuItemDefinition> configGeneralSubItems = List.of(
-                new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
+                new MenuItemDefinition(AppActionCommands.CMD_TOGGLE_WELCOME,
                         MenuItemType.CHECKBOX_ITEM, "Mostrar Imagen de Bienvenida", null),
-                new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
+                new MenuItemDefinition(AppActionCommands.CMD_TOGGLE_RESTORE_LAST,
                         MenuItemType.CHECKBOX_ITEM, "Abrir Ultima Imagen Vista al Iniciar", null),
                 new MenuItemDefinition(null,
                         MenuItemType.SEPARATOR, null, null),
@@ -356,7 +356,7 @@ public class UIDefinitionService {
                         MenuItemType.CHECKBOX_ITEM, "Navegación Circular (Wrap Around)", null),
                 new MenuItemDefinition(null,
                         MenuItemType.SEPARATOR, null, null),
-                new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
+                new MenuItemDefinition(AppActionCommands.CMD_TOGGLE_NAV_ARROWS,
                         MenuItemType.CHECKBOX_ITEM, "Mostrar Flechas de Navegación en Imagen", null));
         configSubItems.add(new MenuItemDefinition(null,
                 MenuItemType.SUB_MENU, "Comportamiento General", configGeneralSubItems));
@@ -414,10 +414,12 @@ public class UIDefinitionService {
         }
 
         // Añadimos el submenú "Herramientas" completo al menú de Configuración
-        configSubItems.add(new MenuItemDefinition(null,
-                MenuItemType.SUB_MENU, "Herramientas", configHerramientasSubItems));
-        configSubItems.add(new MenuItemDefinition(null,
-                MenuItemType.SEPARATOR, null, null));
+        
+        // ***** OPCION DE HERRAMIENTAS DEL MENU CONFIGURACION ***** --- PENDIENTE DE ELIMINACION ---
+//        configSubItems.add(new MenuItemDefinition(null,
+//                MenuItemType.SUB_MENU, "Herramientas", configHerramientasSubItems));
+//        configSubItems.add(new MenuItemDefinition(null,
+//                MenuItemType.SEPARATOR, null, null));
 
         // --- 7.6. SUBMENÚ: "CONFIGURAR VISIBILIDAD DE BARRAS DE INFORMACIÓN" ---
         List<MenuItemDefinition> configVisibilidadBarrasSubItems = new ArrayList<>();
@@ -563,9 +565,12 @@ public class UIDefinitionService {
         configTemaSubItems.add(
                 new MenuItemDefinition("placeholder.temas", MenuItemType.PLACEHOLDER, "PLACEHOLDER_TEMAS", null));
 
-        configSubItems.add(new MenuItemDefinition(null, MenuItemType.SUB_MENU, "Tema", configTemaSubItems));
+        
+        // ***** OPCION DE CAMBIO DE TEMA EN EL MENU DE CONFIGURACION ***** -PENDIENTE DE ELIMINACION
+//        configSubItems.add(new MenuItemDefinition(null, MenuItemType.SUB_MENU, "Tema", configTemaSubItems));
+//        configSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));
 
-        configSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));
+        
         configSubItems.add(new MenuItemDefinition(AppActionCommands.CMD_CONFIG_AVANZADA, MenuItemType.ITEM,
                 "Configuración Avanzada...", null));
         configSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));

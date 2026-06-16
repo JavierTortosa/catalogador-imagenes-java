@@ -63,7 +63,7 @@ public class InfobarImageManager implements ThemeChangeListener{
      */
     public void actualizar() {
     	
-    	logger.info("actualizar() Activado");
+        logger.debug("actualizar() Activado");
         
     	if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(this::actualizarBarraInfoSuperior);

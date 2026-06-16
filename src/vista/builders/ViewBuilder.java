@@ -604,6 +604,7 @@ public class ViewBuilder {
             javax.swing.Icon prevIcon = this.iconUtils.getScaledIcon("1002-anterior_48x48.png", 48, 48);
             javax.swing.Icon nextIcon = this.iconUtils.getScaledIcon("1003-siguiente_48x48.png", 48, 48);
             singleImageViewPanel.setNavigationActions(prevAction, nextAction, prevIcon, nextIcon);
+            singleImageViewPanel.setNavigationArrowsVisible(this.configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_MOSTRAR_FLECHAS, true));
         }
         // --- FIN AÑADIDO FLECHAS NAVEGACION ---
 
@@ -676,6 +677,7 @@ public class ViewBuilder {
             javax.swing.Icon prevIcon = this.iconUtils.getScaledIcon("1002-anterior_48x48.png", 48, 48);
             javax.swing.Icon nextIcon = this.iconUtils.getScaledIcon("1003-siguiente_48x48.png", 48, 48);
             polaroidViewPanel.setNavigationActions(prevAction, nextAction, prevIcon, nextIcon);
+            polaroidViewPanel.setNavigationArrowsVisible(this.configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_MOSTRAR_FLECHAS, true));
         }
 
         polaroidImagePanel.setFocusable(true);
