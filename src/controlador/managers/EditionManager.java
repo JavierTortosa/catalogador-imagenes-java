@@ -5,13 +5,13 @@ import java.util.Objects;
 
 import javax.swing.JOptionPane;
 
-import controlador.VisorController; // <-- NUEVO IMPORT
+import controlador.VisorController;
 import controlador.commands.AppActionCommands;
 import controlador.managers.interfaces.IEditionManager;
 import controlador.managers.interfaces.IZoomManager;
 import modelo.VisorModel;
 import servicios.image.ImageEdition;
-// No se necesita importar VisorView
+import vista.dialogos.CropDialog;
 
 public class EditionManager  implements IEditionManager{
 
@@ -85,16 +85,20 @@ public class EditionManager  implements IEditionManager{
     
     @Override
     public void aplicarRecorte() {
-        // Mostrar un JOptionPane informativo como placeholder
-        if (controller != null && controller.getView() != null) {
-            JOptionPane.showMessageDialog(
-                controller.getView(),
-                "La funcionalidad de 'Recortar' está pendiente de implementación.",
-                "Funcionalidad en Desarrollo",
-                JOptionPane.INFORMATION_MESSAGE
+        if (!validarPrecondiciones("aplicarRecorte")) return;
+
+        BufferedImage imagenOriginal = model.getCurrentImage();
+        CropDialog dialog = new CropDialog(controller.getView(), imagenOriginal);
+        dialog.setVisible(true);
+
+        if (dialog.isAccepted()) {
+            BufferedImage imagenRecortada = dialog.getCroppedImage();
+            procesarResultadoEdicion(
+                imagenRecortada,
+                "Recorte",
+                AppActionCommands.CMD_IMAGEN_RECORTAR,
+                true
             );
-        } else {
-            System.err.println("La funcionalidad de 'Recortar' está pendiente de implementación (no se pudo mostrar diálogo).");
         }
     } // --- Fin del método aplicarRecorte ---
 

@@ -118,8 +118,31 @@ public class ImageEdition {
      }
  }
 
- // TODO: Añadir método para cortar (crop)
- // public static BufferedImage crop(BufferedImage source, int x, int y, int width, int height) { ... }
+ /**
+  * Recorta una región rectangular de la imagen.
+  * @param source La imagen original.
+  * @param x Coordenada X de inicio del recorte.
+  * @param y Coordenada Y de inicio del recorte.
+  * @param width Ancho del recorte.
+  * @param height Alto del recorte.
+  * @return Una NUEVA BufferedImage con la región recortada, o null si la entrada es null o hay error.
+  */
+ public static BufferedImage crop(BufferedImage source, int x, int y, int width, int height) {
+     if (source == null) return null;
+     if (width <= 0 || height <= 0) return null;
+     if (x < 0 || y < 0 || x + width > source.getWidth() || y + height > source.getHeight()) return null;
+
+     try {
+         BufferedImage sub = source.getSubimage(x, y, width, height);
+         BufferedImage copy = new BufferedImage(width, height, sub.getType() == BufferedImage.TYPE_CUSTOM ? BufferedImage.TYPE_INT_ARGB : sub.getType());
+         copy.getGraphics().drawImage(sub, 0, 0, null);
+         return copy;
+     } catch (Exception e) {
+         System.err.println("ERROR [ImageEditor.crop]: " + e.getMessage());
+         e.printStackTrace();
+         return null;
+     }
+ }
 
 
  /**

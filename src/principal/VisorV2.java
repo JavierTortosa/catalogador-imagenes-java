@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.32.60";
+        version = "V2.34.10";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -43,8 +43,6 @@ public class VisorV2 {
     }
 
     // GENERAL
-    
-    // FIXME cuando el programa arranca y no encuentra la carpeta de inicio que tiene en el config debe mostrar la pantalla de presentacion
     
     
     // VISUALIZADOR
