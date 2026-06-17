@@ -12,6 +12,7 @@ import modelo.ListContext;
 import modelo.VisorModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 
 import javax.swing.*;
@@ -311,7 +312,7 @@ public class SearchSortService {
                 break;
         }
 
-        int iconSize = configuration.getInt("iconos.ancho", 24);
+        int iconSize = configuration.getInt(ConfigKeys.ICONOS_ANCHO, 24);
         ImageIcon newIcon = visorController.getIconUtils().getScaledIcon(iconKey, iconSize, iconSize);
         sortAction.putValue(Action.SMALL_ICON, newIcon);
         sortAction.putValue(Action.SHORT_DESCRIPTION, tooltip);

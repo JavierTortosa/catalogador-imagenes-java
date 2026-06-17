@@ -1449,7 +1449,7 @@ public class VisorController implements IModoController, ThemeChangeListener {
 
     
     private void cargarVisorNormal() {
-	    String folderInit = configuration.getString("inicio.carpeta", "");
+	    String folderInit = configuration.getString(ConfigKeys.INICIO_CARPETA, "");
 	    Path folderPath = null;
 	    boolean carpetaValida = false;
 
@@ -1472,7 +1472,7 @@ public class VisorController implements IModoController, ThemeChangeListener {
 	            generalController.solicitarCargaDesdeNuevaRaiz(folderPath);
 	        } else {
 	            // Fallback si generalController no está listo (no debería pasar)
-	            String imagenInicialKey = configuration.getString("inicio.imagen", null);
+	            String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);
 	            imageListManager.cargarListaImagenes(imagenInicialKey, () -> {
 	                SwingUtilities.invokeLater(this::sincronizarComponentesDeModoVisualizador);
 	            });
@@ -2038,7 +2038,7 @@ public class VisorController implements IModoController, ThemeChangeListener {
         // El modelo ya imprime su log: "[VisorModel] Navegación Circular cambiada a: ..."
 
         // 2. Actualizar ConfigurationManager (en memoria)
-        String configKey = "comportamiento.navegacion.circular"; // La clave que usa la Action
+        String configKey = ConfigKeys.COMPORTAMIENTO_NAVEGACION_CIRCULAR; // La clave que usa la Action
         configuration.setString(configKey, String.valueOf(nuevoEstadoCircular));
         logger.debug("  -> Configuración '" + configKey + "' actualizada en memoria a: " + nuevoEstadoCircular);
 

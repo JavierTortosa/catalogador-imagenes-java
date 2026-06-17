@@ -203,7 +203,7 @@ public class ConfigApplicationManager {
         boolean soloCarpeta = !incluirSubcarpetas;
         boolean navCircular = config.getBoolean(ConfigKeys.COMPORTAMIENTO_NAVEGACION_CIRCULAR, false);
         boolean zoomManualInicial = config.getBoolean(ConfigKeys.COMPORTAMIENTO_ZOOM_MANUAL_INICIAL, true);
-        boolean zoomAlCursor = config.getBoolean("comportamiento.zoom.al_cursor.activado", false);
+        boolean zoomAlCursor = config.getBoolean(ConfigKeys.COMPORTAMIENTO_ZOOM_AL_CURSOR_ACTIVADO, false);
         int saltoBloque = config.getInt(ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE, 10);
         
         // Lógica para obtener el modo de zoom inicial de forma segura

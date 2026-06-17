@@ -277,7 +277,8 @@ public class ThemeManager {
     }
 
     private void loadCustomThemes() {
-        File customThemesDir = new File(".temas_personalizados");
+        String themesPath = configManager.getString(ConfigKeys.TEMA_CARPETA_PERSONALIZADOS, ".temas_personalizados");
+        File customThemesDir = new File(themesPath);
         if (!customThemesDir.exists() || !customThemesDir.isDirectory()) {
             return;
         }

@@ -74,7 +74,7 @@ public class GridCellRenderer implements ListCellRenderer<String> {
         
         int anchoMiniatura = configuration.getInt(ConfigKeys.GRID_THUMBNAIL_WIDTH, 120);
         int altoMiniatura = configuration.getInt(ConfigKeys.GRID_THUMBNAIL_HEIGHT, 120);
-        this.showNamesDefault = configuration.getBoolean("grid.mostrar.nombres.state", true);
+        this.showNamesDefault = configuration.getBoolean(ConfigKeys.GRID_MOSTRAR_NOMBRES_STATE, true);
         
         this.cellPanel = new CustomGridCellPanel();
         

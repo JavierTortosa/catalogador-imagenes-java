@@ -333,7 +333,7 @@ public class ViewBuilder {
         SwingUtilities.invokeLater(() -> {
             JSplitPane splitPane = registry.get("splitpane.main");
             if (splitPane != null) {
-                double dividerLocation = configuration.getDouble("ui.splitpane.main.dividerLocation", 0.25);
+                double dividerLocation = configuration.getDouble(ConfigKeys.SPLITPANE_MAIN_DIVIDER_LOCATION, 0.25);
                 splitPane.setDividerLocation(dividerLocation);
             }
         });

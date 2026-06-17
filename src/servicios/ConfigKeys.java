@@ -70,9 +70,12 @@ public final class ConfigKeys {
     } // --- Fin del método toolbarButtonVisible ---
     
     // --- CONSTANTES PARA CLAVES ÚNICAS (las que no se pueden generar) ---
-	    public static final String INICIO_CARPETA = "inicio.carpeta";
-	    public static final String INICIO_IMAGEN = "inicio.imagen";
-	    public static final String DATABASE_PATH = "database.path";
+	    public static final String INICIO_CARPETA = "config.inicio.carpeta";
+	    public static final String INICIO_IMAGEN = "config.inicio.imagen";
+	    public static final String ICONOS_ANCHO = "config.inicio.iconos.ancho";
+	    public static final String ICONOS_ALTO = "config.inicio.iconos.alto";
+	    public static final String DATABASE_PATH = "config.database.path";
+	    public static final String TEMA_CARPETA_PERSONALIZADOS = "interfaz.tema.carpeta_personalizados";
     
     public static final String VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE = menuState("vista", "mostrar_nombres_en_miniaturas");
     // ... aquí irían el resto de tus constantes de ConfigKeys que no siguen un patrón generable
@@ -132,11 +135,12 @@ public final class ConfigKeys {
     
     
     // --- SECCIÓN: ESTADO DE LA VENTANA ---
-    public static final String WINDOW_X 										= "window.x";
-    public static final String WINDOW_Y 										= "window.y";
-    public static final String WINDOW_WIDTH 									= "window.width";
-    public static final String WINDOW_HEIGHT 									= "window.height";
-    public static final String WINDOW_MAXIMIZED 								= "window.maximized";
+    public static final String WINDOW_X 										= "config.window.x";
+    public static final String WINDOW_Y 										= "config.window.y";
+    public static final String WINDOW_WIDTH 									= "config.window.width";
+    public static final String WINDOW_HEIGHT 									= "config.window.height";
+    public static final String WINDOW_MAXIMIZED 								= "config.window.maximized";
+    public static final String SPLITPANE_MAIN_DIVIDER_LOCATION                  = "interfaz.splitpane.main.dividerLocation";
 
     // --- SECCIÓN: INICIO Y PROYECTOS ---
     public static final String PROYECTOS_CARPETA_BASE 							= "proyectos.carpeta_base";
@@ -154,31 +158,31 @@ public final class ConfigKeys {
     // public static final String KEY_PROYECTOS_INICIO_ACCION 					= "proyectos.inicio.accion"; // ej. "cargar_ultimo", "nuevo_temporal"
     
     // --- SECCIÓN: TEMA ---
-    public static final String TEMA_NOMBRE = "tema.nombre";
+    public static final String TEMA_NOMBRE = "interfaz.tema.nombre";
 
-    // --- SECCIÓN: COMPORTAMIENTO ---
-    public static final String COMPORTAMIENTO_ZOOM_MODO_INICIAL 				= "comportamiento.display.zoom.initial_mode";
-    public static final String COMPORTAMIENTO_PANTALLA_COMPLETA 				= "comportamiento.ventana.pantalla_completa";
-    public static final String COMPORTAMIENTO_ZOOM_MANUAL_INICIAL 				= "comportamiento.zoom.manual_inicial_activo";
-    public static final String COMPORTAMIENTO_ZOOM_ULTIMO_MODO 					= "comportamiento.zoom.ultimo_modo_seleccionado";
-    public static final String COMPORTAMIENTO_ZOOM_PORCENTAJE_PERSONALIZADO 	= "comportamiento.zoom.personalizado.porcentaje";
-    public static final String COMPORTAMIENTO_NAVEGACION_CIRCULAR 				= "comportamiento.navegacion.circular";
-    public static final String COMPORTAMIENTO_CARGAR_SUBCARPETAS 				= "comportamiento.carpeta.cargarSubcarpetas";
-    public static final String COMPORTAMIENTO_ZOOM_AL_CURSOR_ACTIVADO 			= "comportamiento.zoom.al_cursor.activado";
-    public static final String COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE 			="comportamiento.navegacion.tamano_salto_bloque";
+    // --- SECCIÓN: CONFIG ---
+    public static final String COMPORTAMIENTO_ZOOM_MODO_INICIAL 				= "config.display.zoom.initial_mode";
+    public static final String COMPORTAMIENTO_PANTALLA_COMPLETA 				= "config.ventana.pantalla_completa";
+    public static final String COMPORTAMIENTO_ZOOM_MANUAL_INICIAL 				= "config.zoom.manual_inicial_activo";
+    public static final String COMPORTAMIENTO_ZOOM_ULTIMO_MODO 					= "config.zoom.ultimo_modo_seleccionado";
+    public static final String COMPORTAMIENTO_ZOOM_PORCENTAJE_PERSONALIZADO 	= "config.zoom.personalizado.porcentaje";
+    public static final String COMPORTAMIENTO_NAVEGACION_CIRCULAR 				= "config.navegacion.circular";
+    public static final String COMPORTAMIENTO_CARGAR_SUBCARPETAS 				= "config.carpeta.cargarSubcarpetas";
+    public static final String COMPORTAMIENTO_ZOOM_AL_CURSOR_ACTIVADO 			= "config.zoom.al_cursor.activado";
+    public static final String COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE 			="config.navegacion.tamano_salto_bloque";
     
-    public static final String COMPORTAMIENTO_DISPLAY_MODE_ULTIMO_USADO   		= "comportamiento.display.ultimo_modo_usado";
-    public static final String INDEXACION_EXCLUIR_CARPETAS						= "comportamiento.indexacion.excluir_carpetas";
-    public static final String INDEXACION_OMITIR_DIRECTORIOS					= "comportamiento.indexacion.omitir_directorios";
+    public static final String COMPORTAMIENTO_DISPLAY_MODE_ULTIMO_USADO   		= "config.display.ultimo_modo_usado";
+    public static final String INDEXACION_EXCLUIR_CARPETAS						= "config.indexacion.excluir_carpetas";
+    public static final String INDEXACION_OMITIR_DIRECTORIOS					= "config.indexacion.omitir_directorios";
     
     
     public static final String CAROUSEL_DELAY_MS 								= "carousel.delay.ms";
     
-    public static final String COMPORTAMIENTO_MOSTRAR_BIENVENIDA                 = "comportamiento.mostrar_bienvenida";
-    public static final String COMPORTAMIENTO_RESTAURAR_ULTIMA_IMAGEN            = "comportamiento.restaurar_ultima_imagen";
-    public static final String COMPORTAMIENTO_MOSTRAR_FLECHAS                    = "comportamiento.mostrar_flechas_navegacion";
+    public static final String COMPORTAMIENTO_MOSTRAR_BIENVENIDA                 = "config.mostrar_bienvenida";
+    public static final String COMPORTAMIENTO_RESTAURAR_ULTIMA_IMAGEN            = "config.restaurar_ultima_imagen";
+    public static final String COMPORTAMIENTO_MOSTRAR_FLECHAS                    = "config.mostrar_flechas_navegacion";
 
-    public static final String COMPORTAMIENTO_SYNC_VISOR_CARRUSEL               = "comportamiento.sync.visor_carrusel.activado";
+    public static final String COMPORTAMIENTO_SYNC_VISOR_CARRUSEL               = "config.sync.visor_carrusel.activado";
     public static final String CARRUSEL_ESTADO_ULTIMA_CARPETA                   = "carrusel.estado.ultima_carpeta";
     public static final String CARRUSEL_ESTADO_ULTIMA_IMAGEN                    = "carrusel.estado.ultima_imagen_key";
     
@@ -259,13 +263,24 @@ public final class ConfigKeys {
     
     
     // --- Claves para el grid
-    public static final String GRID_MOSTRAR_NOMBRES_STATE 						= "grid.mostrar.nombres.state";
-    public static final String GRID_THUMBNAIL_WIDTH 							= "grid.thumbnail.width";
-    public static final String GRID_THUMBNAIL_HEIGHT 							= "grid.thumbnail.height";
-    public static final String GRID_MOSTRAR_ESTADO_STATE 						= "grid.mostrar.estado.state";
+    public static final String GRID_MOSTRAR_NOMBRES_STATE 						= "proyectos.grid.mostrar.nombres.state";
+    public static final String GRID_THUMBNAIL_WIDTH 							= "proyectos.grid.thumbnail.width";
+    public static final String GRID_THUMBNAIL_HEIGHT 							= "proyectos.grid.thumbnail.height";
+    public static final String GRID_MOSTRAR_ESTADO_STATE 						= "proyectos.grid.mostrar.estado.state";
     
     // ... (Añade aquí las claves para el resto de barras: vista, proyecto, etc.) ...
     
     
+
+    // --- Nuevas Configuraciones de Interfaz ---
+    public static final String BOTON_BARRA_ESTADO_CONTROLES_VISTA_ALWAYS_ON_TOP_VISIBLE = buttonVisible("barra_estado_controles", "vista_always_on_top");
+    public static final String BOTON_CARROUSEL_CAROUSEL_SHUFFLE_VISIBLE = buttonVisible("carrousel", "carousel_shuffle");
+    public static final String BOTON_TOGGLE_VISTA_ALWAYS_ON_TOP_VISIBLE = buttonVisible("toggle", "vista_always_on_top");
+    public static final String BOTON_MODO_CONFIG_MOSTRAR_VERSION_VISIBLE = buttonVisible("modo", "config_mostrar_version");
+    public static final String BOTON_MODO_CONFIG_AVANZADA_VISIBLE = buttonVisible("modo", "config_avanzada");
+    public static final String BOTON_MODO_BOTTOM_CONFIG_AVANZADA_VISIBLE = buttonVisible("modo_bottom", "config_avanzada");
+    public static final String BOTON_MODO_BOTTOM_CONFIG_MOSTRAR_VERSION_VISIBLE = buttonVisible("modo_bottom", "config_mostrar_version");
+    public static final String HERRAMIENTAS_MODO_BOTTOM_VISIBLE = toolbarVisible("modo_bottom");
+    public static final String BOTON_PROYECTO_PROYECTO_TOGGLE_LAYOUT_VISIBLE = buttonVisible("proyecto", "proyecto_toggle_layout");
 
 } // --- FIN DE LA CLASE ConfigKeys ---

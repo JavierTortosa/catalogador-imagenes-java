@@ -266,8 +266,8 @@ public class ActionFactory {
                 "comandoToIconInfoMap no puede ser null");
 
         // 2.4. Leer dimensiones de iconos desde la configuración.
-        this.iconoAncho = configuration.getInt("iconos.ancho", 24);
-        this.iconoAlto = configuration.getInt("iconos.alto", 24);
+        this.iconoAncho = configuration.getInt(ConfigKeys.ICONOS_ANCHO, 24);
+        this.iconoAlto = configuration.getInt(ConfigKeys.ICONOS_ALTO, 24);
 
         // 2.5. Inicializar el mapa interno de acciones.
         this.actionMap = new HashMap<>();

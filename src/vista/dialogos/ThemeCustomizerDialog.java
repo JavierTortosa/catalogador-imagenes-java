@@ -28,6 +28,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import servicios.ConfigKeys;
+import servicios.ConfigurationManager;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -578,7 +580,8 @@ public class ThemeCustomizerDialog extends JDialog {
      * personalizado del disco y del mapa interno de temas.
      */
     private void deleteCustomTheme() {
-        File customThemesDir = new File(".temas_personalizados");
+        String themesPath = ConfigurationManager.getInstance().getString(ConfigKeys.TEMA_CARPETA_PERSONALIZADOS, ".temas_personalizados");
+        File customThemesDir = new File(themesPath);
         if (!customThemesDir.exists() || !customThemesDir.isDirectory()) {
             JOptionPane.showMessageDialog(this,
                 "No hay temas personalizados para borrar.",
@@ -693,7 +696,8 @@ public class ThemeCustomizerDialog extends JDialog {
             return;
         }
 
-        File customThemesDir = new File(".temas_personalizados");
+        String themesPath = ConfigurationManager.getInstance().getString(ConfigKeys.TEMA_CARPETA_PERSONALIZADOS, ".temas_personalizados");
+        File customThemesDir = new File(themesPath);
         if (!customThemesDir.exists()) {
             if (!customThemesDir.mkdir()) {
                 logger.error("No se pudo crear el directorio .temas_personalizados");

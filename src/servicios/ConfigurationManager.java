@@ -12,7 +12,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +35,7 @@ public class ConfigurationManager
 	private static final Map<String, String> DEFAULT_GROUP_COMMENTS;
 	public static final Map<String, String> DEFAULT_CONFIG;
 	
-	public static final String KEY_INICIO_CARPETA = "inicio.carpeta";
+	public static final String KEY_INICIO_CARPETA = "config.inicio.carpeta";
 	
 	static
 	{
@@ -47,11 +49,11 @@ public class ConfigurationManager
 
 	// Lista de prefijos que definen SECCIONES PRINCIPALES (las que usan =====)
 	private static final List<String> KNOWN_SECTION_PREFIXES = List.of(
-	        "comportamiento",
-	        "inicio",
+	        "config",
 	        "miniaturas",
 	        "interfaz",
-	        "proyecto"// Ahora "interfaz" es la sección principal
+	        "proyectos",
+	        "carrusel"
 	);
 	
 	private static ConfigurationManager instance = null;
@@ -349,10 +351,12 @@ public class ConfigurationManager
 
 	// --- Crear Archivo de Configuración por Defecto ---
 
-	// En ConfigurationManager
-
+	/**
+	 * Crea el archivo config.cfg desde cero con la estructura jerárquica de comentarios.
+	 * Escribe automáticamente los comentarios de sección (padre → hijo) antes de cada grupo de claves.
+	 */
 	private void crearConfigPorDefecto(File configFile) throws IOException {
-	    logger.debug("Creando config por defecto (estructura jerárquica v2.1)...");
+	    logger.debug("Creando config por defecto (estructura jerárquica v3.0)...");
 	    try (BufferedWriter writer = new BufferedWriter(new FileWriter(configFile))) {
 	        writer.write("# Archivo de Configuración VisorV2 (Generado por defecto)\n");
 	        writer.write("# Use '#' al inicio de línea para comentarios.\n\n");
@@ -362,10 +366,11 @@ public class ConfigurationManager
 	        Collections.sort(sortedKeys);
 
 	        List<String> sortedCommentPrefixes = new ArrayList<>(DEFAULT_GROUP_COMMENTS.keySet());
-	        sortedCommentPrefixes.sort((s1, s2) -> Integer.compare(s2.length(), s1.length())); // Más largo primero
+	        sortedCommentPrefixes.sort((s1, s2) -> Integer.compare(s2.length(), s1.length()));
 
 	        // --- Iteración y Escritura ---
-	        String lastWrittenCommentPrefix = null; // El prefijo exacto del último comentario escrito
+	        Set<String> writtenPrefixes = new HashSet<>();
+	        String lastWrittenTopSection = null;
 	        boolean firstEntryOverall = true;
 
 	        for (String key : sortedKeys) {
@@ -376,74 +381,75 @@ public class ConfigurationManager
 	            String bestMatchingPrefixForKey = null;
 	            for (String prefix : sortedCommentPrefixes) {
 	                if (key.startsWith(prefix)) {
-	                    bestMatchingPrefixForKey = prefix; // Encontramos el más largo/específico
+	                    bestMatchingPrefixForKey = prefix;
 	                    break;
 	                }
 	            }
 
-	            // --- Lógica de Escritura de Comentarios ---
-	            // Escribir un comentario SI el mejor prefijo para esta clave
-	            // es DIFERENTE del último prefijo de comentario que escribimos.
-	            if (!Objects.equals(bestMatchingPrefixForKey, lastWrittenCommentPrefix)) {
-
-	                 // Determinar si necesitamos un salto de línea extra (cambio de sección mayor?)
-	                 boolean isMajorSectionChange = false;
-	                 if (lastWrittenCommentPrefix != null && bestMatchingPrefixForKey != null) {
-	                     // Es un cambio mayor si el nuevo prefijo no empieza con el anterior
-	                     // O si alguno pertenece a KNOWN_SECTION_PREFIXES y el otro no o es diferente
-	                     String currentTopSection = findTopSection(bestMatchingPrefixForKey);
-	                     String lastTopSection = findTopSection(lastWrittenCommentPrefix);
-	                     if (!Objects.equals(currentTopSection, lastTopSection)) {
-	                         isMajorSectionChange = true;
-	                     }
-	                 } else if (bestMatchingPrefixForKey != null) {
-	                     // Si antes no había prefijo y ahora sí, podría ser inicio de sección
-	                     if (KNOWN_SECTION_PREFIXES.contains(bestMatchingPrefixForKey)) {
-	                         isMajorSectionChange = true;
-	                     }
-	                 }
-
-	                 // Escribir salto de línea antes del comentario si no es el primero general
-	                 // Y si es un cambio de sección mayor O si simplemente cambió el prefijo
-	                 if (!firstEntryOverall) {
-	                     // Poner doble salto si es cambio de sección mayor, simple si es subgrupo
-	                     writer.write(isMajorSectionChange ? "\n\n" : "\n");
-	                 }
-
-	                // Escribir el comentario si encontramos un prefijo para esta clave
-	                if (bestMatchingPrefixForKey != null) {
-	                    String comment = DEFAULT_GROUP_COMMENTS.get(bestMatchingPrefixForKey);
-	                    if (comment != null) {
-	                        writer.write(comment + "\n");
-	                    } else {
-	                        // Caso raro: el prefijo existe pero no tiene comentario?
-	                        writer.write("# Prefijo encontrado: " + bestMatchingPrefixForKey + " (Sin Comentario)\n");
-	                    }
-	                } else {
-	                    // Si una clave no coincide con NINGÚN prefijo, no escribimos comentario para ella
-	                    // Podríamos añadir un comentario genérico aquí si quisiéramos agrupar los "sin grupo"
-	                    // writer.write("# == Otras Configuraciones ==\n"); // <-- Cuidado, se repetiría
+	            if (bestMatchingPrefixForKey != null) {
+	                // --- Construir cadena jerárquica de prefijos a escribir ---
+	                // Desde la raíz (ej. "config") hasta el prefijo más específico
+	                String[] parts = bestMatchingPrefixForKey.split("\\.");
+	                List<String> fullChain = new ArrayList<>();
+	                StringBuilder sb = new StringBuilder();
+	                for (int i = 0; i < parts.length; i++) {
+	                    if (i > 0) sb.append(".");
+	                    sb.append(parts[i]);
+	                    fullChain.add(sb.toString());
 	                }
 
-	                // Actualizar el último prefijo escrito
-	                lastWrittenCommentPrefix = bestMatchingPrefixForKey;
+	                // Filtrar solo los que tienen comentario y no se han escrito aún
+	                List<String> prefixesToWrite = new ArrayList<>();
+	                for (String p : fullChain) {
+	                    if (DEFAULT_GROUP_COMMENTS.containsKey(p) && !writtenPrefixes.contains(p)) {
+	                        prefixesToWrite.add(p);
+	                    }
+	                }
+
+	                // --- Escribir comentarios jerárquicos ---
+	                if (!prefixesToWrite.isEmpty()) {
+	                    for (int i = 0; i < prefixesToWrite.size(); i++) {
+	                        String prefix = prefixesToWrite.get(i);
+	                        String comment = DEFAULT_GROUP_COMMENTS.get(prefix);
+	                        if (comment == null) continue;
+
+	                        if (!firstEntryOverall) {
+	                            boolean isTopSection = KNOWN_SECTION_PREFIXES.contains(prefix);
+	                            if (i == 0 && isTopSection
+	                                    && lastWrittenTopSection != null
+	                                    && !prefix.equals(lastWrittenTopSection)) {
+	                                writer.write("\n\n");
+	                            } else {
+	                                writer.write("\n");
+	                            }
+	                        }
+
+	                        writer.write(comment + "\n");
+	                        writtenPrefixes.add(prefix);
+	                        firstEntryOverall = false;
+
+	                        if (KNOWN_SECTION_PREFIXES.contains(prefix)) {
+	                            lastWrittenTopSection = prefix;
+	                        }
+	                    }
+	                }
 	            }
 
 	            // --- Escribir Clave-Valor ---
 	            writer.write(key + " = " + value + "\n");
 	            firstEntryOverall = false;
 
-	        } // Fin del bucle for
+	        }
 
 	        writer.write("\n#----------------------- FIN CONFIGURACION ------------------------\n");
 
 	    } catch (IOException e) {
-	        // ... manejo de error ...
+	        logger.error("Error al crear configuración por defecto", e);
 	    }
-	     logger.debug("Archivo de configuración por defecto creado en: " + configFile.getAbsolutePath());
-	}
+	    logger.debug("Archivo de configuración por defecto creado en: " + configFile.getAbsolutePath());
+	} // --- Fin del metodo crearConfigPorDefecto ---
 
-	
+
 	// Helper para encontrar la sección principal de un prefijo
 	private String findTopSection(String prefix) {
 	     if (prefix == null) return null;
@@ -484,6 +490,9 @@ public class ConfigurationManager
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE, "10");
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_PANTALLA_COMPLETA, "false");
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_ZOOM_AL_CURSOR_ACTIVADO, "true");
+	defaults.put(ConfigKeys.COMPORTAMIENTO_MOSTRAR_BIENVENIDA, "false");
+	defaults.put(ConfigKeys.COMPORTAMIENTO_MOSTRAR_FLECHAS, "true");
+	defaults.put(ConfigKeys.COMPORTAMIENTO_RESTAURAR_ULTIMA_IMAGEN, "true");
 	    defaults.put(ConfigKeys.INDEXACION_EXCLUIR_CARPETAS, "ARCHIVOS 3D");
 	    defaults.put(ConfigKeys.INDEXACION_OMITIR_DIRECTORIOS, "__MACOSX");
 
@@ -500,10 +509,12 @@ public class ConfigurationManager
 	    defaults.put(ConfigKeys.WINDOW_MAXIMIZED, "true"); // INICIO DE LA APLICACION MAXIMIZADA
 
 	    defaults.put(ConfigKeys.TEMA_NOMBRE, "purpura_misterioso");// clear"); TEMA DE INICIO POR DEFECTO
-	    defaults.put("iconos.ancho", "18");
-	    defaults.put("iconos.alto", "18");
+	    defaults.put(ConfigKeys.ICONOS_ANCHO, "18");
+	    defaults.put(ConfigKeys.ICONOS_ALTO, "18");
 	    
-	    defaults.put("ui.splitpane.main.dividerLocation", "0.25");
+	    defaults.put(ConfigKeys.SPLITPANE_MAIN_DIVIDER_LOCATION, "0.25");
+	    defaults.put(ConfigKeys.DATABASE_PATH, "");
+	    defaults.put(ConfigKeys.TEMA_CARPETA_PERSONALIZADOS, ".temas_personalizados");
 	    
 	    defaults.put(ConfigKeys.CAROUSEL_DELAY_MS, "3000"); // 3 segundos por defecto
         defaults.put(ConfigKeys.COMPORTAMIENTO_SYNC_VISOR_CARRUSEL, "false"); // Sync desactivado por defecto
@@ -603,8 +614,18 @@ public class ConfigurationManager
 	            }
 	        }
 	    });
-	    
-	    return defaults;
+	    // --- Nuevas Configuraciones de Interfaz ---
+	    defaults.put(ConfigKeys.BOTON_BARRA_ESTADO_CONTROLES_VISTA_ALWAYS_ON_TOP_VISIBLE, "true");
+	    defaults.put(ConfigKeys.BOTON_CARROUSEL_CAROUSEL_SHUFFLE_VISIBLE, "true");
+	    defaults.put(ConfigKeys.BOTON_TOGGLE_VISTA_ALWAYS_ON_TOP_VISIBLE, "true");
+	    defaults.put(ConfigKeys.BOTON_MODO_CONFIG_MOSTRAR_VERSION_VISIBLE, "true");
+	    defaults.put(ConfigKeys.BOTON_MODO_CONFIG_AVANZADA_VISIBLE, "true");
+	    defaults.put(ConfigKeys.BOTON_MODO_BOTTOM_CONFIG_AVANZADA_VISIBLE, "true");
+	    defaults.put(ConfigKeys.BOTON_MODO_BOTTOM_CONFIG_MOSTRAR_VERSION_VISIBLE, "true");
+	    defaults.put(ConfigKeys.HERRAMIENTAS_MODO_BOTTOM_VISIBLE, "true");
+	    defaults.put(ConfigKeys.BOTON_PROYECTO_PROYECTO_TOGGLE_LAYOUT_VISIBLE, "true");
+	return defaults;
+	
 	}
 
 
@@ -612,36 +633,44 @@ public class ConfigurationManager
         Map<String, String> comments = new HashMap<>();
 
         // --- Secciones Principales ---
-        comments.put("inicio",         	"# ===== Inicio =====");
+        comments.put("config.inicio",   "# ===== Config: Inicio =====");
         comments.put("miniaturas",     	"# ===== Barra de Imagenes en Miniatura =====");
         comments.put("interfaz",       	"# ===== Interfaz =====");
 
         // --- Ventana de la aplicacion
-        comments.put("window", 			"# ===== Estado de la Ventana de la aplicacion=====");
-        comments.put("comportamiento", 	"# ===== Comportamiento =====");
+        comments.put("config.window", 	"# ===== Config: Ventana =====");
+        comments.put("config", 	"# ===== Config =====");
         comments.put("carrusel", 	    "# === Comportamiento del Carrusel ===");
+        comments.put("carousel", 	    "# === Carrusel (Delay) ===");
        // --------------------------------------------
         
         // --- Personalizacion
 //        comments.put("colores", 	   	"# ===== Colores UI =====");
-        comments.put("iconos",         	"# ===== Configuración General Iconos ====="); // Para 'iconos.alto', 'iconos.ancho'
-        comments.put("tema",			"# ===== Tema Visual=====");
+        comments.put("config.inicio.iconos", "# ===== Config: Iconos (Inicio) =====");
+        comments.put("interfaz.tema",	"# === Tema Visual ===");
         comments.put("proyectos",		"# ===== Gestión de Proyectos/Selecciones =====");
+        comments.put("proyectos.grid",	"# == Configuración Grid de Proyecto ==");
         
-//        comments.put("tema.nombre", 	"# Nombre del tema (dark, clear, blue, orange, green");
+//        comments.put("interfaz.tema.nombre", 	"# Nombre del tema (dark, clear, blue, orange, green");
 //        comments.put("interfaz.menu.configuracion.tema", "# ===== Tema Visual=====");
         
         
         // --- Subgrupos Nivel 1 (Dentro de interfaz) ---
         comments.put("interfaz.boton", 	"# == Botones =="); // Subgrupo para TODOS los botones
+        comments.put("interfaz.herramientas", "# == Herramientas ==");
         comments.put("interfaz.menu",  	"# == Menús ==");  // Subgrupo para TODOS los menús
+        comments.put("interfaz.splitpane",           "# === Paneles Divididos (SplitPane) ===");
         comments.put("interfaz.infobar",             "# ===== Configuración General de Barras de Información =====");
         comments.put("interfaz.infobar.superior",    "# === Barra de Información Superior ===");
         comments.put("interfaz.infobar.inferior",    "# === Barra de Estado/Control Inferior ===");
         
-        comments.put("comportamiento.display", "# === Comportamiento de Visualización ===");
-        comments.put("comportamiento.zoom", "# === Comportamiento del Zoom ===");
-        comments.put("comportamiento.indexacion", "# === Comportamiento de Indexación ===");
+        comments.put("config.display", "# === Config: Visualización ===");
+        comments.put("config.zoom", "# === Config: Zoom ===");
+        comments.put("config.navegacion", "# === Config: Navegación ===");
+        comments.put("config.ventana", "# === Config: Ventana ===");
+        comments.put("config.carpeta", "# === Config: Carpeta ===");
+        comments.put("config.sync", "# === Config: Sincronización ===");
+        comments.put("config.indexacion", "# === Config: Indexación ===");
 
         // --- Subgrupos Nivel 2 (Dentro de interfaz.boton) ---
         comments.put("interfaz.boton.movimiento", "# === Botones de Movimiento ==="); // Nota: Uso "===" para diferenciar nivel
@@ -720,7 +749,7 @@ public class ConfigurationManager
     } // --- FIN del metodo remove ---
 	
 	// Método específico para inicio.carpeta por conveniencia
-	public void setInicioCarpeta (String path){setString("inicio.carpeta", path != null ? path : "");}
+	public void setInicioCarpeta (String path){setString(KEY_INICIO_CARPETA, path != null ? path : "");}
 
 	// Útil para el Controller si necesita saber el default sin leer la config	cargada
 	public static String getDefault (String key){return DEFAULT_CONFIG.get(key);}

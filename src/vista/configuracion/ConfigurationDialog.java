@@ -113,6 +113,7 @@ public class ConfigurationDialog extends JDialog {
     private DefaultMutableTreeNode buildTreeNodes(JFrame owner, ThemeManager themeManager) {
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(new CategoryNode("Configuración", null));
         addCategoryNode(root, "General");
+        addCategoryNode(root, "Rutas");
         addCategoryNode(root, "Navegación");
         addCategoryNode(root, "Zoom y Visualización");
         addCategoryNode(root, "Miniaturas");
@@ -191,6 +192,7 @@ public class ConfigurationDialog extends JDialog {
      */
     private void registerPanels(JPanel cards, JFrame owner, ThemeManager themeManager) {
         registerPanel(cards, new vista.configuracion.panels.GeneralPanel(config));
+        registerPanel(cards, new vista.configuracion.panels.PathsPanel(config));
         registerPanel(cards, new vista.configuracion.panels.NavigationPanel(config));
         registerPanel(cards, new vista.configuracion.panels.ZoomPanel(config));
         registerPanel(cards, new vista.configuracion.panels.ThumbnailPanel(config));

@@ -253,7 +253,7 @@ public class AppInitializer {
 
         logger.info("Inicializando Botones");
         this.toolbarBuilder = new ToolbarBuilder(this.themeManager, this.iconUtils, this.controller,
-                configuration.getInt("iconos.ancho", 24), configuration.getInt("iconos.alto", 24), this.registry);
+                configuration.getInt(ConfigKeys.ICONOS_ANCHO, 24), configuration.getInt(ConfigKeys.ICONOS_ALTO, 24), this.registry);
         this.toolbarManager = new ToolbarManager(this.registry, this.configuration, this.toolbarBuilder, uiDefSvc,
                 this.model);
 
@@ -774,7 +774,7 @@ public class AppInitializer {
         boolean soloCarpeta = !incluirSubcarpetas;
         boolean navCircular = configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_NAVEGACION_CIRCULAR, false);
         boolean zoomManualInicial = configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_ZOOM_MANUAL_INICIAL, true);
-        boolean zoomAlCursor = configuration.getBoolean("comportamiento.zoom.al_cursor.activado", false);
+        boolean zoomAlCursor = configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_ZOOM_AL_CURSOR_ACTIVADO, false);
         int saltoBloque = configuration.getInt(ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE, 10);
 
         ZoomModeEnum modoZoomInicial;
