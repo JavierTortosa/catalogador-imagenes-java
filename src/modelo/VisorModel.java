@@ -54,6 +54,7 @@ public class VisorModel {
     private ZoomContext datosZoomContext;
 
     private BufferedImage currentImage;
+    private boolean imagenModificada = false;
 
     private int miniaturasAntes;
     private int miniaturasDespues;
@@ -307,6 +308,15 @@ public class VisorModel {
 
     public void setCurrentImage(BufferedImage currentImage) {
         this.currentImage = currentImage;
+        this.imagenModificada = false;
+    }
+
+    public boolean isImagenModificada() {
+        return imagenModificada;
+    }
+
+    public void setImagenModificada(boolean modificada) {
+        this.imagenModificada = modificada;
     }
 
     public int getMiniaturasAntes() {

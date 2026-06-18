@@ -126,6 +126,7 @@ public class EditionManager  implements IEditionManager{
         if (imagenEditada != null) {
             System.out.println("  -> " + nombreOperacion + " exitosa. Actualizando modelo...");
             model.setCurrentImage(imagenEditada);
+            model.setImagenModificada(true);
             
             // --- INICIO DE LA MODIFICACIÓN CLAVE ---
             // En lugar de llamar a zoomManager.refrescarVistaSincrono() directamente,

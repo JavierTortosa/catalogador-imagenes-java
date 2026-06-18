@@ -24,7 +24,12 @@ import controlador.ProjectController;
 import controlador.actions.archivo.DeleteAction;
 // --- SECCIÓN 0: IMPORTS DE CLASES ACTION ESPECCÍFICAS ---
 import controlador.actions.archivo.OpenFileAction;
+import controlador.actions.archivo.PrintAction;
 import controlador.actions.archivo.RefreshAction;
+import controlador.actions.archivo.ReloadImageAction;
+import controlador.actions.archivo.SaveAction;
+import controlador.actions.archivo.SaveAsAction;
+import controlador.actions.archivo.AbrirConAction;
 import controlador.actions.ayuda.ShowHelpAction;
 import controlador.actions.carousel.ChangeCarouselSpeedAction;
 import controlador.actions.carousel.PauseCarouselAction;
@@ -49,8 +54,13 @@ import controlador.actions.filtro.ClearAllFiltersAction;
 import controlador.actions.filtro.PersistLiveFilterAction;
 import controlador.actions.filtro.RemoveFilterAction;
 import controlador.actions.filtro.SetFilterTypeAction;
+import controlador.actions.imagen.ImagePropertiesAction;
+import controlador.actions.imagen.RenameImageAction;
+import controlador.actions.imagen.SetLockScreenAction;
+import controlador.actions.imagen.SetWallpaperAction;
 import controlador.actions.navegacion.EntrarEnSubcarpetaAction;
 import controlador.actions.navegacion.FirstImageAction;
+import controlador.actions.navegacion.GoToAction;
 import controlador.actions.navegacion.LastImageAction;
 import controlador.actions.navegacion.NextImageAction;
 import controlador.actions.navegacion.PreviousImageAction;
@@ -193,6 +203,9 @@ public class ActionFactory {
 
     // 1.10. Campo para ConfigApplicationManager
     private controlador.managers.ConfigApplicationManager configAppManager;
+
+    // 1.11. Campo para ToolbarManager
+    private controlador.managers.ToolbarManager toolbarManager;
 
     // 1.10. Campo para añadir carpeta actual a la coleccion
     private ImageListManager imageListManager;
@@ -360,6 +373,7 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_NAV_ANTERIOR, createPreviousImageAction());
         actionMap.put(AppActionCommands.CMD_NAV_SIGUIENTE, createNextImageAction());
         actionMap.put(AppActionCommands.CMD_NAV_ULTIMA, createLastImageAction());
+        actionMap.put(AppActionCommands.CMD_NAV_IR_A, createGoToAction());
         actionMap.put(AppActionCommands.CMD_TOGGLE_WRAP_AROUND, createToggleNavegacionCircularAction());
         actionMap.put(AppActionCommands.CMD_TOGGLE_WELCOME, createToggleMostrarBienvenidaAction());
         actionMap.put(AppActionCommands.CMD_TOGGLE_RESTORE_LAST, createToggleRestaurarUltimaImagenAction());
@@ -372,9 +386,19 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_IMAGEN_VOLTEAR_V, createFlipVerticalAction());
         actionMap.put(AppActionCommands.CMD_IMAGEN_RECORTAR, createCropAction());
         actionMap.put(AppActionCommands.CMD_IMAGEN_LOCALIZAR, createLocateFileAction());
+        actionMap.put(AppActionCommands.CMD_IMAGEN_RENOMBRAR, createRenameImageAction());
+        actionMap.put(AppActionCommands.CMD_IMAGEN_FONDO_ESCRITORIO, createSetWallpaperAction());
+        actionMap.put(AppActionCommands.CMD_IMAGEN_FONDO_BLOQUEO, createSetLockScreenAction());
+        actionMap.put(AppActionCommands.CMD_IMAGEN_PROPIEDADES, createImagePropertiesAction());
 
         // 3.5. Crear y registrar Actions de Archivo y relacionadas
         actionMap.put(AppActionCommands.CMD_ARCHIVO_ABRIR, createOpenFileAction());
+        actionMap.put(AppActionCommands.CMD_ARCHIVO_GUARDAR, createSaveAction());
+        actionMap.put(AppActionCommands.CMD_ARCHIVO_GUARDAR_COMO, createSaveAsAction());
+        actionMap.put(AppActionCommands.CMD_ARCHIVO_ABRIR_CON, createAbrirConAction());
+        actionMap.put(AppActionCommands.CMD_ARCHIVO_IMPRIMIR, createPrintAction());
+        actionMap.put(AppActionCommands.CMD_ARCHIVO_RECARGAR_IMAGEN, createReloadImageAction());
+        actionMap.put(AppActionCommands.CMD_ARCHIVO_SALIR, createSalirAction());
         actionMap.put(AppActionCommands.CMD_IMAGEN_ELIMINAR, createDeleteAction());
         actionMap.put(AppActionCommands.CMD_ESPECIAL_REFRESCAR, createRefreshAction());
 
@@ -900,11 +924,17 @@ public class ActionFactory {
 
     private Action createLastImageAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_NAV_ULTIMA);
-        // Cambiamos la dependencia
         LastImageAction action = new LastImageAction(this.generalController, "Última Imagen", icon);
-        this.contextSensitiveActions.add(action); // La registramos
+        this.contextSensitiveActions.add(action);
         return action;
     } // --- Fin del método createLastImageAction ---
+
+    private Action createGoToAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_NAV_IR_A);
+        GoToAction action = new GoToAction("Ir a...", icon, this.generalController, this.model);
+        this.contextSensitiveActions.add(action);
+        return action;
+    } // --- Fin del método createGoToAction ---
 
     private Action createToggleNavegacionCircularAction() {
         return new ToggleNavegacionCircularAction("Alternar Navegación Circular", null, this.configuration, this.model,
@@ -975,8 +1005,10 @@ public class ActionFactory {
     // *********************************************************************************************************************************************************
     private Action createOpenFileAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ARCHIVO_ABRIR);
-        return new OpenFileAction("Abrir Carpeta...", icon, this.fileOperationsManager, this.model,
+        OpenFileAction action = new OpenFileAction("Abrir Carpeta...", icon, this.fileOperationsManager, this.model,
                 this.generalController);
+        this.contextSensitiveActions.add(action);
+        return action;
     } // --- Fin del método createOpenFileAction ---
 
     private Action createDeleteAction() {
@@ -991,6 +1023,56 @@ public class ActionFactory {
         return new RefreshAction("Refrescar", icon, this.generalController);
     } // --- Fin del método createRefreshAction ---
 
+    private Action createSaveAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ARCHIVO_GUARDAR);
+        SaveAction action = new SaveAction("Guardar", icon, this.generalController, this.model);
+        this.contextSensitiveActions.add(action);
+        return action;
+    } // --- Fin del método createSaveAction ---
+
+    private Action createSaveAsAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ARCHIVO_GUARDAR_COMO);
+        SaveAsAction action = new SaveAsAction("Guardar Como...", icon, this.generalController, this.model);
+        this.contextSensitiveActions.add(action);
+        return action;
+    } // --- Fin del método createSaveAsAction ---
+
+    private Action createAbrirConAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ARCHIVO_ABRIR_CON);
+        AbrirConAction action = new AbrirConAction("Abrir con...", icon, this.model);
+        this.contextSensitiveActions.add(action);
+        return action;
+    } // --- Fin del método createAbrirConAction ---
+
+    private Action createPrintAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ARCHIVO_IMPRIMIR);
+        PrintAction action = new PrintAction("Imprimir...", icon, this.model);
+        this.contextSensitiveActions.add(action);
+        return action;
+    } // --- Fin del método createPrintAction ---
+
+    private Action createReloadImageAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ARCHIVO_RECARGAR_IMAGEN);
+        ReloadImageAction action = new ReloadImageAction("Recargar Imagen Actual", icon, this.generalController, this.model);
+        this.contextSensitiveActions.add(action);
+        return action;
+    } // --- Fin del método createReloadImageAction ---
+
+    private Action createSalirAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ARCHIVO_SALIR);
+        return new AbstractAction("Salir", icon) {
+            private static final long serialVersionUID = 1L;
+            {
+                putValue(Action.SHORT_DESCRIPTION, "Cerrar la aplicación");
+                putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ARCHIVO_SALIR);
+            }
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                generalController.handleApplicationShutdown();
+            }
+        };
+    } // --- Fin del método createSalirAction ---
+
     private Action createLocateFileAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_LOCALIZAR);
         LocateFileAction action = new LocateFileAction(this.model, this.generalController.getVisorController(),
@@ -998,6 +1080,34 @@ public class ActionFactory {
         this.contextSensitiveActions.add(action);
         return action;
     } // --- Fin del método createLocateFileAction ---
+
+    private Action createRenameImageAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_RENOMBRAR);
+        RenameImageAction action = new RenameImageAction("Cambiar Nombre...", icon, this.model);
+        this.contextSensitiveActions.add(action);
+        return action;
+    } // --- Fin del método createRenameImageAction ---
+
+    private Action createSetWallpaperAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_FONDO_ESCRITORIO);
+        SetWallpaperAction action = new SetWallpaperAction("Fondo de Escritorio", icon, this.model);
+        this.contextSensitiveActions.add(action);
+        return action;
+    } // --- Fin del método createSetWallpaperAction ---
+
+    private Action createSetLockScreenAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_FONDO_BLOQUEO);
+        SetLockScreenAction action = new SetLockScreenAction("Imagen de Bloqueo", icon, this.model);
+        this.contextSensitiveActions.add(action);
+        return action;
+    } // --- Fin del método createSetLockScreenAction ---
+
+    private Action createImagePropertiesAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_PROPIEDADES);
+        ImagePropertiesAction action = new ImagePropertiesAction("Propiedades...", icon, this.generalController, this.model);
+        this.contextSensitiveActions.add(action);
+        return action;
+    } // --- Fin del método createImagePropertiesAction ---
 
     /*
      * --- 4.7. Métodos Create para Actions de Vista (Toggles UI) ---
@@ -1049,10 +1159,10 @@ public class ActionFactory {
     } // --- Fin del método createToggleLocationBarAction ---
 
     private Action createToggleInfoBarAction() {
-        return new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Barra de Información",
+        return new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Barra de Información de Imagen",
                 ConfigKeys.INFOBAR_SUP_VISIBLE, "barra_de_info_imagen",
                 AppActionCommands.CMD_VISTA_TOGGLE_INFOBAR_SUPERIOR);
-    } // --- Fin del método createToggleLocationBarAction ---
+    } // --- Fin del método createToggleInfoBarAction ---
 
     private Action createToggleCheckeredBackgroundAction() {
         return new ToggleCheckeredBackgroundAction("Fondo a Cuadros", null, this.viewManager, this.configuration,
@@ -1060,7 +1170,8 @@ public class ActionFactory {
     } // --- Fin del método createToggleCheckeredBackgroundAction ---
 
     private Action createToggleAlwaysOnTopAction() {
-        return new ToggleAlwaysOnTopAction("Mantener Ventana Siempre Encima", null, this.viewManager,
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP);
+        return new ToggleAlwaysOnTopAction("Mantener Ventana Siempre Encima", icon, this.viewManager,
                 this.configuration, "interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado",
                 controlador.commands.AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP);
     } // --- Fin del método createToggleAlwaysOnTopAction ---
@@ -1388,9 +1499,8 @@ public class ActionFactory {
 
     private Action createHiddenButtonsAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS);
-        return new HiddenButtonsAction("Más Opciones", icon, this.actionMap, this.themeManager, this.configuration);// ,
-                                                                                                                    // this.generalController.getVisorController()
-                                                                                                                    // );
+        return new HiddenButtonsAction("Más Opciones", icon, this.actionMap, this.themeManager, this.configuration,
+                this.toolbarManager);
     } // --- Fin del método createHiddenButtonsAction ---
 
     /*
@@ -1950,6 +2060,10 @@ public class ActionFactory {
 
     public void setConfigAppManager(controlador.managers.ConfigApplicationManager configAppManager) {
         this.configAppManager = configAppManager;
+    }
+
+    public void setToolbarManager(controlador.managers.ToolbarManager toolbarManager) {
+        this.toolbarManager = toolbarManager;
     }
 
     // --- MÉTODOS PARA CREAR ACCIONES DE TAGS (MODO DATOS) ---

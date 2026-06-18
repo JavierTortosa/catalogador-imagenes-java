@@ -34,6 +34,8 @@ public interface IViewManager {
     void sincronizarAccionesFormatoBarraInferior();
     void sincronizarEstadoVisualInicialDeRadiosDeFormato();
     void setBotonMenuEspecialVisible(boolean visible);
+    void setEspecialOverflowButtonVisible(boolean visible);
+    void setSpecialButtonVisibleByCommand(String canonicalCommand, boolean visible, boolean persistConfig);
     void refrescarColoresDeFondoUI();
     void reconstruirPanelesEspecialesTrasTema();
     void mostrarDialogoListaImagenes();

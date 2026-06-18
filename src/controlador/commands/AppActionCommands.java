@@ -20,8 +20,10 @@ public interface AppActionCommands {
     public static final String CMD_ARCHIVO_ABRIR_NUEVA_VENTANA 		= "cmd.archivo.abrir_nueva_ventana"; // (Asumiendo Action futura)
     public static final String CMD_ARCHIVO_GUARDAR 					= "cmd.archivo.guardar"; // (Asumiendo Action futura)
     public static final String CMD_ARCHIVO_GUARDAR_COMO 			= "cmd.archivo.guardar_como"; // (Asumiendo Action futura)
-    public static final String CMD_ARCHIVO_IMPRIMIR 				= "cmd.archivo.imprimir"; // (Asumiendo Action futura)
-    public static final String CMD_ARCHIVO_SALIR 					= "cmd.archivo.salir"; // (Necesario si tienes item "Salir")
+    public static final String CMD_ARCHIVO_IMPRIMIR 				= "cmd.archivo.imprimir";
+    public static final String CMD_ARCHIVO_ABRIR_CON 				= "cmd.archivo.abrir_con";
+    public static final String CMD_ARCHIVO_RECARGAR_IMAGEN			= "cmd.archivo.recargar_imagen";
+    public static final String CMD_ARCHIVO_SALIR 					= "cmd.archivo.salir";
     
 
  // --- Navegación ---
@@ -191,7 +193,7 @@ public interface AppActionCommands {
 	    public static final String CMD_VISTA_POLAROID 				= "cmd.vista.polaroid";				// Para Vista de Polaroid
 	    public static final String CMD_VISTA_PANTALLA_COMPLETA 		= "cmd.vista.pantalla_completa";	// Para Vista de Pantalla Completa
 
-//    public static final String CMD_VISTA_TOGGLE_LOCATION_BAR 		= "cmd.vista.toggle.location_bar";  	// Para ToggleLocationBarAction
+    public static final String CMD_VISTA_TOGGLE_LOCATION_BAR 		= "cmd.vista.toggle.location_bar";  	// Para ToggleLocationBarAction
 	public static final String CMD_VISTA_TOGGLE_INFOBAR_INFERIOR   = "cmd.vista.toggle.infobar.inferior";
 	public static final String CMD_VISTA_TOGGLE_INFOBAR_SUPERIOR   = "cmd.vista.toggle.infobar.superior";
 	

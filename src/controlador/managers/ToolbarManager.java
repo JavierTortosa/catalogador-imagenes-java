@@ -1,19 +1,28 @@
 package controlador.managers;
 
+import java.awt.Component;
+import java.awt.Insets;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.swing.AbstractButton;
 import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
+import controlador.managers.BackgroundControlManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.commands.AppActionCommands;
+import controlador.managers.interfaces.IViewManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import modelo.VisorModel.DisplayMode;
@@ -21,11 +30,15 @@ import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import vista.builders.ToolbarBuilder;
+import vista.config.HotspotDefinition;
 import vista.config.ToolbarAlignment;
+import vista.config.ToolbarButtonDefinition;
+import vista.config.ToolbarComponentDefinition;
 import vista.config.ToolbarDefinition;
 import vista.config.UIDefinitionService;
 import vista.theme.Tema;
 import vista.theme.ThemeChangeListener;
+import vista.util.IconUtils;
 
 /**
  * Gestiona el ciclo de vida, la visibilidad y el posicionamiento de las
@@ -47,23 +60,20 @@ public class ToolbarManager implements ThemeChangeListener{
     
     private BackgroundControlManager backgroundControlManager;
     private controlador.ProjectController projectController;
-    
-    /**
-     * Constructor de ToolbarManager.
-     *
-     * @param registry El registro de componentes para acceder a los paneles contenedores.
-     * @param configuration El gestor de configuración para leer el estado de visibilidad.
-     * @param toolbarBuilder El constructor para crear instancias de JToolBar.
-     * @param uiDefService El servicio que define la estructura de las toolbars.
-     * @param model El modelo de la aplicación para obtener el modo de trabajo actual.
-     */
-    public ToolbarManager(
-            ComponentRegistry registry,
-            ConfigurationManager configuration,
-            ToolbarBuilder toolbarBuilder,
-            UIDefinitionService uiDefService,
-            VisorModel model 
-    ) {
+    private IconUtils iconUtils;
+
+    // --- Estado de overflow ---
+    private IViewManager viewManager;
+    private final List<String> overflowButtonCommands = new ArrayList<>();
+    private final Map<String, Icon> overflowButtonIcons = new HashMap<>();
+    private javax.swing.Timer overflowTimer;
+    private boolean overflowListenersInicializados = false;
+    private boolean previousOverflowState = false;
+    private JButton overflowButton;
+    private static final int OVERFLOW_HGAP = 10;
+    private static final String OVERFLOW_TOOLBAR_KEY = "especiales";
+
+    public ToolbarManager(ComponentRegistry registry, ConfigurationManager configuration, ToolbarBuilder toolbarBuilder, UIDefinitionService uiDefService, VisorModel model) {
         this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null en ToolbarManager.");
         this.configuration = Objects.requireNonNull(configuration, "ConfigurationManager no puede ser null.");
         this.toolbarBuilder = Objects.requireNonNull(toolbarBuilder, "ToolbarBuilder no puede ser null.");
@@ -205,19 +215,27 @@ public class ToolbarManager implements ThemeChangeListener{
 	             backgroundControlManager.initializeAndLinkControls();
 	             backgroundControlManager.sincronizarSeleccionConEstadoActual();
 	         });
-	     }
-	     
-	    // --- INICIO DE LA MODIFICACIÓN CRUCIAL ---
-        // Si acabamos de reconstruir las barras para el modo proyecto y tenemos una
-        // referencia al controlador de proyecto, le notificamos que ya puede
-        // configurar los listeners que dependen de los botones de la toolbar.
-        if (modoActual == WorkMode.PROYECTO && this.projectController != null) {
-            logger.debug("  [ToolbarManager] Notificando a ProjectController para la inicialización post-toolbars...");
-            SwingUtilities.invokeLater(() -> projectController.postToolbarInitialization());
+        // ... (rest of loop)
         }
-        // --- FIN DE LA MODIFICACIÓN CRUCIAL ---
-	     
-        logger.debug("--- [ToolbarManager] Reconstrucción de toolbars completada. ---");
+        
+        // Añadir botón de desbordamiento al panel derecho
+        this.overflowButton = new JButton();
+        this.overflowButton.setActionCommand(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS);
+        this.overflowButton.setToolTipText("Más Opciones");
+        if (this.iconUtils != null) {
+            this.overflowButton.setIcon(this.iconUtils.getScaledIcon("6003-botones_ocultos_48x48.png",
+                    getConfiguredIconWidth(), getConfiguredIconHeight()));
+        }
+        this.overflowButton.setMargin(new Insets(2, 2, 2, 2));
+        this.overflowButton.setVisible(false);
+        rightPanel.add(this.overflowButton);
+
+        inicializarOverflowListeners();
+        javax.swing.Timer timer = new javax.swing.Timer(200, e -> aplicarOverflow());
+        timer.setRepeats(false);
+        timer.start();
+
+        logger.debug("--- [ToolbarManager] Reconstrucción de toolbars completada. Aplicación de overflow programada en 200ms. ---");
     } // --- Fin del método reconstruirContenedorDeToolbars ---
     
     
@@ -270,9 +288,17 @@ public class ToolbarManager implements ThemeChangeListener{
     } // --- Fin del método clearToolbarCache ---
     
     
+    public void setViewManager(IViewManager viewManager) {
+        this.viewManager = viewManager;
+    } // --- Fin del método setViewManager ---
+
     public void setBackgroundControlManager(BackgroundControlManager backgroundControlManager) {
         this.backgroundControlManager = backgroundControlManager;
     } // --- Fin del método setBackgroundControlManager ---
+
+    public void setIconUtils(IconUtils iconUtils) {
+        this.iconUtils = iconUtils;
+    } // --- Fin del método setIconUtils ---
     
     /**
      * Sincroniza el estado de habilitación/deshabilitación de los botones de la toolbar
@@ -320,5 +346,163 @@ public class ToolbarManager implements ThemeChangeListener{
         
         logger.debug("[ToolbarManager] Sincronización de botones completada. Modo: {}, Selección: {}", displayMode, hasSelection);
     } // --- Fin del método sincronizarEstadoBotonesToolbar ---
+
+    /**
+     * Inicializa los listeners de redimension en los paneles de toolbars
+     * para detectar overflow y mostrar/ocultar el botón de desbordamiento.
+     * Solo se ejecuta una vez (bandera overflowListenersInicializados).
+     */
+    public void inicializarOverflowListeners() {
+        if (overflowListenersInicializados)
+            return;
+
+        String[] panelKeys = { "container.toolbars.left", "container.toolbars.center", "container.toolbars.right" };
+        for (String key : panelKeys) {
+            JPanel panel = this.registry.get(key);
+            if (panel != null) {
+                panel.addComponentListener(new java.awt.event.ComponentAdapter() {
+                    @Override
+                    public void componentResized(java.awt.event.ComponentEvent e) {
+                        programarOverflow();
+                    }
+                });
+            }
+        }
+        overflowListenersInicializados = true;
+        logger.debug("[ToolbarManager] Listeners de overflow inicializados.");
+    } // --- Fin del método inicializarOverflowListeners ---
+
+    private void programarOverflow() {
+        if (overflowTimer == null) {
+            overflowTimer = new javax.swing.Timer(150, e -> aplicarOverflow());
+            overflowTimer.setRepeats(false);
+        }
+        overflowTimer.restart();
+    } // --- Fin del método programarOverflow ---
+
+    public void aplicarOverflow() {
+        overflowButtonCommands.clear();
+        overflowButtonIcons.clear();
+
+        verificarOverflowEnPanel(registry.get("container.toolbars.right"));
+        verificarOverflowEnPanel(registry.get("container.toolbars.left"));
+        verificarOverflowEnPanel(registry.get("container.toolbars.center"));
+
+        boolean hasHidden = !overflowButtonCommands.isEmpty();
+        if (hasHidden != previousOverflowState) {
+            previousOverflowState = hasHidden;
+            if (overflowTimer != null) {
+                overflowTimer.stop();
+            }
+            if (this.viewManager != null) {
+                this.viewManager.setEspecialOverflowButtonVisible(hasHidden);
+            }
+        }
+    } // --- Fin del método aplicarOverflow ---
+
+    private void verificarOverflowEnPanel(JPanel panel) {
+        if (panel == null || panel.getWidth() <= 0)
+            return;
+
+        int firstRowY = -1;
+        boolean hayOverflow = false;
+
+        for (Component comp : panel.getComponents()) {
+            if (!(comp instanceof JToolBar))
+                continue;
+
+            JToolBar toolbar = (JToolBar) comp;
+            if (!toolbar.isVisible() || OVERFLOW_TOOLBAR_KEY.equals(toolbar.getName())) {
+                continue;
+            }
+
+            int x = toolbar.getX();
+            int y = toolbar.getY();
+            boolean toolbarFueraDelPanel = x < 0
+                    || x + toolbar.getWidth() > panel.getWidth()
+                    || y + toolbar.getHeight() > panel.getHeight()
+                    || toolbar.getWidth() > panel.getWidth();
+
+            if (firstRowY == -1) {
+                firstRowY = y;
+            }
+
+            if (y > firstRowY || toolbarFueraDelPanel) {
+                hayOverflow = true;
+            }
+
+            if (hayOverflow) {
+                addOverflowCommandsFromToolbar(toolbar);
+            }
+        }
+    } // --- Fin del método verificarOverflowEnPanel ---
+
+    private void addOverflowCommandsFromToolbar(JToolBar toolbar) {
+        Object definition = toolbar.getClientProperty("toolbarDefinition");
+
+        if (definition instanceof ToolbarDefinition toolbarDefinition && toolbarDefinition.componentes() != null) {
+            for (ToolbarComponentDefinition componentDefinition : toolbarDefinition.componentes()) {
+                if (componentDefinition instanceof ToolbarButtonDefinition buttonDefinition) {
+                    List<HotspotDefinition> hotspots = buttonDefinition.listaDeHotspots();
+                    if (hotspots != null && !hotspots.isEmpty()) {
+                        for (HotspotDefinition hotspot : hotspots) {
+                            addOverflowCommand(hotspot.comando(), buildIcon(hotspot.icono(), hotspot.scope()));
+                        }
+                    } else {
+                        addOverflowCommand(buttonDefinition.comandoCanonico(),
+                                buildIcon(buttonDefinition.claveIcono(), buttonDefinition.scopeIconoBase()));
+                    }
+                }
+            }
+            return;
+        }
+
+        for (Component child : toolbar.getComponents()) {
+            if (child instanceof AbstractButton btn) {
+                addOverflowCommand(btn.getActionCommand(), btn.getIcon());
+            }
+        }
+    }
+
+    private Icon buildIcon(String iconKey, vista.config.IconScope scope) {
+        if (this.iconUtils == null || iconKey == null || iconKey.isBlank()) {
+            return null;
+        }
+
+        return scope == vista.config.IconScope.COMMON
+                ? this.iconUtils.getScaledCommonIcon(iconKey, getConfiguredIconWidth(), getConfiguredIconHeight())
+                : this.iconUtils.getScaledIcon(iconKey, getConfiguredIconWidth(), getConfiguredIconHeight());
+    }
+
+    private int getConfiguredIconWidth() {
+        return this.configuration.getInt(ConfigKeys.ICONOS_ANCHO, 24);
+    }
+
+    private int getConfiguredIconHeight() {
+        return this.configuration.getInt(ConfigKeys.ICONOS_ALTO, 24);
+    }
+
+    private void addOverflowCommand(String cmd, Icon icon) {
+        if (cmd != null && !cmd.isEmpty()
+                && !AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS.equals(cmd)
+                && !overflowButtonCommands.contains(cmd)) {
+            overflowButtonCommands.add(cmd);
+            if (icon != null) {
+                overflowButtonIcons.put(cmd, icon);
+            }
+        }
+    }
+
+    /**
+     * Devuelve una copia de la lista de comandos de botones actualmente ocultos por overflow.
+     */
+    public List<String> getHiddenButtonCommands() {
+        return new ArrayList<>(this.overflowButtonCommands);
+    } // --- Fin del método getHiddenButtonCommands ---
+
+    public Icon getHiddenButtonIcon(String command) {
+        return this.overflowButtonIcons.get(command);
+    } // --- Fin del método getHiddenButtonIcon ---
+
 } // --- FIN de la clase ToolbarManager ---
 

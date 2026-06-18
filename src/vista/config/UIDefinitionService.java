@@ -27,30 +27,22 @@ public class UIDefinitionService {
         List<MenuItemDefinition> archivoSubItems = List.of(
                 new MenuItemDefinition(AppActionCommands.CMD_ARCHIVO_ABRIR,
                         MenuItemType.ITEM, "Abrir Archivo...", null),
-                new MenuItemDefinition(AppActionCommands.CMD_ARCHIVO_ABRIR_NUEVA_VENTANA,
-                        MenuItemType.ITEM, "Abrir en ventana nueva", null),
                 new MenuItemDefinition(AppActionCommands.CMD_ARCHIVO_GUARDAR,
-                        MenuItemType.ITEM, "Guardar", null), // Placeholder
+                        MenuItemType.ITEM, "Guardar", null),
                 new MenuItemDefinition(AppActionCommands.CMD_ARCHIVO_GUARDAR_COMO,
-                        MenuItemType.ITEM, "Guardar Como...", null), // Placeholder
+                        MenuItemType.ITEM, "Guardar Como...", null),
                 new MenuItemDefinition(null,
                         MenuItemType.SEPARATOR, null, null),
-                new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
-                        MenuItemType.ITEM, "Abrir Con...", null),
-                new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
-                        MenuItemType.ITEM, "Editar Imagen", null),
+                new MenuItemDefinition(AppActionCommands.CMD_ARCHIVO_ABRIR_CON,
+                        MenuItemType.ITEM, "Abrir con...", null),
                 new MenuItemDefinition(AppActionCommands.CMD_ARCHIVO_IMPRIMIR,
-                        MenuItemType.ITEM, "Imprimir...", null), // Placeholder
-                new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
-                        MenuItemType.ITEM, "Compartir", null),
+                        MenuItemType.ITEM, "Imprimir...", null),
                 new MenuItemDefinition(null,
                         MenuItemType.SEPARATOR, null, null),
                 new MenuItemDefinition(AppActionCommands.CMD_ESPECIAL_REFRESCAR,
                         MenuItemType.ITEM, "Refrescar Lista", null),
-                new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
+                new MenuItemDefinition(AppActionCommands.CMD_ARCHIVO_RECARGAR_IMAGEN,
                         MenuItemType.ITEM, "Recargar Imagen Actual", null),
-                new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
-                        MenuItemType.ITEM, "Descargar Imagen", null),
                 new MenuItemDefinition(null,
                         MenuItemType.SEPARATOR, null, null),
                 new MenuItemDefinition(AppActionCommands.CMD_ARCHIVO_SALIR,
@@ -72,8 +64,10 @@ public class UIDefinitionService {
                         MenuItemType.SEPARATOR, null, null),
                 new MenuItemDefinition(AppActionCommands.CMD_NAV_IR_A,
                         MenuItemType.ITEM, "Ir a...", null),
-                new MenuItemDefinition(AppActionCommands.CMD_NAV_BUSCAR,
-                        MenuItemType.ITEM, "Buscar...", null));
+                new MenuItemDefinition(null,
+                        MenuItemType.SEPARATOR, null, null),
+                new MenuItemDefinition(AppActionCommands.CMD_IMAGEN_LOCALIZAR,
+                        MenuItemType.ITEM, "Abrir Ubicación del Archivo", null));
 
         menuBarStructure.add(new MenuItemDefinition(null,
                 MenuItemType.MAIN_MENU, "Navegación", navSubItems));
@@ -100,24 +94,18 @@ public class UIDefinitionService {
                         MenuItemType.RADIO_GROUP_END, null, null));
 
         List<MenuItemDefinition> tiposPaneoSubItems = List.of(
-                new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
+                new MenuItemDefinition(AppActionCommands.CMD_PAN_TOP_EDGE,
                         MenuItemType.ITEM, "Ver Parte Superior", null),
-                new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
+                new MenuItemDefinition(AppActionCommands.CMD_PAN_BOTTOM_EDGE,
                         MenuItemType.ITEM, "Ver Parte Inferior", null),
-                new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
+                new MenuItemDefinition(AppActionCommands.CMD_PAN_LEFT_EDGE,
                         MenuItemType.ITEM, "Ver Parte Izquierda", null),
-                new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
+                new MenuItemDefinition(AppActionCommands.CMD_PAN_RIGHT_EDGE,
                         MenuItemType.ITEM, "Ver Parte Derecha", null));
 
         List<MenuItemDefinition> zoomSubItems = List.of(
-                new MenuItemDefinition(AppActionCommands.CMD_ZOOM_ACERCAR,
-                        MenuItemType.ITEM, "Acercar", null),
-                new MenuItemDefinition(AppActionCommands.CMD_ZOOM_ALEJAR,
-                        MenuItemType.ITEM, "Alejar", null),
                 new MenuItemDefinition(AppActionCommands.CMD_ZOOM_PERSONALIZADO,
                         MenuItemType.ITEM, "Establecer Zoom %...", null),
-                new MenuItemDefinition(AppActionCommands.CMD_ZOOM_TAMAÑO_REAL,
-                        MenuItemType.ITEM, "Zoom Tamaño Real (100%)", null),
                 new MenuItemDefinition(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES,
                         MenuItemType.CHECKBOX_ITEM, "Mantener Proporciones", null),
                 new MenuItemDefinition(null,
@@ -158,10 +146,8 @@ public class UIDefinitionService {
                         MenuItemType.SEPARATOR, null, null),
                 new MenuItemDefinition(AppActionCommands.CMD_IMAGEN_RENOMBRAR,
                         MenuItemType.ITEM, "Cambiar Nombre de Imagen...", null),
-                new MenuItemDefinition(AppActionCommands.CMD_IMAGEN_MOVER_PAPELERA,
-                        MenuItemType.ITEM, "Mover a Papelera", null),
                 new MenuItemDefinition(AppActionCommands.CMD_IMAGEN_ELIMINAR,
-                        MenuItemType.ITEM, "Eliminar Permanentemente...", null),
+                        MenuItemType.ITEM, "Eliminar Imagen", null),
                 new MenuItemDefinition(null,
                         MenuItemType.SEPARATOR, null, null),
                 new MenuItemDefinition(AppActionCommands.CMD_IMAGEN_FONDO_ESCRITORIO,
@@ -213,8 +199,9 @@ public class UIDefinitionService {
                 new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS,
                         MenuItemType.CHECKBOX_ITEM, "Barra de Miniaturas", null),
 
-                // new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR,
-                // MenuItemType.CHECKBOX_ITEM, "Barra de Estado", null),
+                new MenuItemDefinition(null,
+                        MenuItemType.SEPARATOR, null, null),
+                
                 new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_INFOBAR_SUPERIOR,
                         MenuItemType.CHECKBOX_ITEM, "Barra de Estado de Imagen", null),
                 new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_INFOBAR_INFERIOR,
@@ -222,12 +209,15 @@ public class UIDefinitionService {
 
                 new MenuItemDefinition(null,
                         MenuItemType.SEPARATOR, null, null),
-                new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG,
-                        MenuItemType.CHECKBOX_ITEM, "Fondo a Cuadros", null),
-                new MenuItemDefinition(null,
-                        MenuItemType.SEPARATOR, null, null),
                 new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_MINIATURE_TEXT,
                         MenuItemType.CHECKBOX_ITEM, "Mostrar Nombres en Miniaturas", null),
+                
+                new MenuItemDefinition(null,
+                        MenuItemType.SEPARATOR, null, null),
+                new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG,
+                        MenuItemType.CHECKBOX_ITEM, "Fondo a Cuadros", null),
+                
+                
                 new MenuItemDefinition(null,
                         MenuItemType.SEPARATOR, null, null),
                 new MenuItemDefinition(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA,

@@ -85,9 +85,21 @@ public class ToolbarBuilder {
 
     } // --- Fin del método ToolbarBuilder (constructor) ---
 
+    public JButton createButton(String command, String iconKey, String tooltip) {
+        JButton button = new JButton();
+        button.setActionCommand(command);
+        button.setToolTipText(tooltip);
+        
+        if (iconKey != null && !iconKey.isBlank()) {
+            button.setIcon(iconUtils.getScaledCommonIcon(iconKey, 48, 48));
+        }
+        
+        button.setMargin(new Insets(2, 2, 2, 2));
+        return button;
+    } // --- Fin del método createButton ---
+
     public JToolBar buildSingleToolbar(ToolbarDefinition toolbarDef) {
         logger.info("--- [ToolbarBuilder] Construyendo barra: '" + toolbarDef.titulo() + "' ---");
-
         final JToolBar toolbar = new JToolBar(toolbarDef.titulo());
         toolbar.setName(toolbarDef.claveBarra());
         toolbar.setFloatable(true);

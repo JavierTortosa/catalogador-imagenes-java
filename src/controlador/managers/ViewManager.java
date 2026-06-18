@@ -42,6 +42,7 @@ import controlador.commands.AppActionCommands;
 import controlador.managers.interfaces.IViewManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
+import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import vista.VisorView;
 import vista.builders.ViewBuilder;
@@ -521,10 +522,12 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
 
     @Override
     public void setBotonMenuEspecialVisible(boolean visible) {
-        if (this.botonesPorNombre == null)
+        if (this.registry == null)
             return;
 
-        AbstractButton boton = this.botonesPorNombre.get("interfaz.boton.especiales.Menu_48x48");
+        String buttonKey = ConfigKeys.buildKey("interfaz.boton", "especiales",
+                ConfigKeys.keyPartFromCommand(AppActionCommands.CMD_ESPECIAL_MENU));
+        AbstractButton boton = this.registry.get(buttonKey);
 
         if (boton != null) {
             if (boton.isVisible() != visible) {
@@ -532,7 +535,44 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
                 revalidateToolbarContainer();
             }
         }
+
+        if (this.configuration != null) {
+            this.configuration.setString(buttonKey + ".visible", String.valueOf(visible));
+        }
     } // --- Fin del método setBotonMenuEspecialVisible ---
+
+    public void setEspecialOverflowButtonVisible(boolean visible) {
+        if (this.registry == null)
+            return;
+
+        String buttonKey = ConfigKeys.buildKey("interfaz.boton", "especiales",
+                ConfigKeys.keyPartFromCommand(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS));
+        AbstractButton boton = this.registry.get(buttonKey);
+
+        if (boton != null && boton.isVisible() != visible) {
+            boton.setVisible(visible);
+        }
+    } // --- Fin del método setEspecialOverflowButtonVisible ---
+
+    public void setSpecialButtonVisibleByCommand(String canonicalCommand, boolean visible, boolean persistConfig) {
+        if (this.registry == null)
+            return;
+
+        String buttonKey = ConfigKeys.buildKey("interfaz.boton", "especiales",
+                ConfigKeys.keyPartFromCommand(canonicalCommand));
+        AbstractButton boton = this.registry.get(buttonKey);
+
+        if (boton != null) {
+            if (boton.isVisible() != visible) {
+                boton.setVisible(visible);
+                revalidateToolbarContainer();
+            }
+        }
+
+        if (persistConfig && this.configuration != null) {
+            this.configuration.setString(buttonKey + ".visible", String.valueOf(visible));
+        }
+    } // --- Fin del método setSpecialButtonVisibleByCommand ---
 
     @Override
     public void refrescarColoresDeFondoUI() {

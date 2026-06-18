@@ -746,6 +746,10 @@ public class DataController {
                     if (visorController.getZoomManager() != null) {
                         visorController.getZoomManager().aplicarModoDeZoom(model.getCurrentZoomMode());
                     }
+
+                    if (visorController.getInfobarImageManager() != null) {
+                        visorController.getInfobarImageManager().actualizar();
+                    }
                 } catch (Exception ex) {
                     logger.error("Error cargando imagen en modo datos", ex);
                 }
@@ -2247,6 +2251,9 @@ public class DataController {
             if (visorController != null && visorController.getListCoordinator() != null) {
                 visorController.getListCoordinator().forzarActualizacionEstadoAcciones();
             }
+            if (visorController != null && visorController.getInfobarImageManager() != null) {
+                visorController.getInfobarImageManager().actualizar();
+            }
             logger.debug("Grid y lista central actualizados con {} elementos.", gridListModel.getSize());
         });
     } // --- Fin del metodo/clase loadImagesForTag ---
@@ -2304,6 +2311,9 @@ public class DataController {
             if (visorController != null && visorController.getListCoordinator() != null) {
                 visorController.getListCoordinator().forzarActualizacionEstadoAcciones();
             }
+            if (visorController != null && visorController.getInfobarImageManager() != null) {
+                visorController.getInfobarImageManager().actualizar();
+            }
             logger.debug("Grid y lista central actualizados por nombre '{}' con {} elementos.", tagName, gridListModel.getSize());
         });
     } // --- Fin del metodo/clase loadImagesForTagName ---
@@ -2359,6 +2369,9 @@ public class DataController {
             }
             if (visorController != null && visorController.getListCoordinator() != null) {
                 visorController.getListCoordinator().forzarActualizacionEstadoAcciones();
+            }
+            if (visorController != null && visorController.getInfobarImageManager() != null) {
+                visorController.getInfobarImageManager().actualizar();
             }
             logger.debug("Grid y lista central actualizados con todas las {} imágenes.", gridListModel.getSize());
         });

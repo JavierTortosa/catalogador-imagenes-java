@@ -2,6 +2,7 @@ package controlador.actions.especiales;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -9,55 +10,64 @@ import java.util.Objects;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JPopupMenu;
 
 import controlador.commands.AppActionCommands;
+import controlador.managers.ToolbarManager;
 import servicios.ConfigurationManager;
-import vista.builders.PopupMenuBuilder;   // Para construir el JPopupMenu
-import vista.config.MenuItemDefinition; // Para la estructura del menú
-import vista.config.MenuItemType;     // Para definir los items del popup
+import vista.builders.PopupMenuBuilder;
+import vista.config.MenuItemDefinition;
+import vista.config.MenuItemType;
 import vista.theme.ThemeManager;
-//import vista.config.ViewUIConfig;       // Para pasar al PopupMenuBuilder
 
+/**
+ * Acción para mostrar un menú emergente con las acciones de los botones que no caben en la barra de herramientas.
+ */
 public class HiddenButtonsAction extends AbstractAction {
 
     private static final long serialVersionUID = 1L;
 
-    // private VisorView viewRef; // No es estrictamente necesario si solo usamos e.getSource()
-    private Map<String, Action> actionMapRef; // Para obtener las Actions de los botones ocultos
-//    private ViewUIConfig uiConfigRef;         // Para el PopupMenuBuilder
+    private Map<String, Action> actionMapRef;
     private ThemeManager themeManager;
-    
-    // Podríamos tener una lista de los COMANDOS de los botones que podrían ir aquí
-    // private List<String> overflowButtonCommands; 
-    private ConfigurationManager configManagerRef;         // <--- NUEVO CAMPO
+    private ConfigurationManager configManagerRef;
+    private ToolbarManager toolbarManager;
 
-    // Constructor REFACTORIZADO
+
+    /**
+     * Constructor para HiddenButtonsAction.
+     *
+     * @param name           El nombre de la acción.
+     * @param icon           El icono de la acción.
+     * @param actionMap      El mapa de acciones de la aplicación.
+     * @param themeManager   El gestor de temas.
+     * @param configManager  El gestor de configuración.
+     * @param toolbarManager El gestor de toolbars.
+     */
     public HiddenButtonsAction(
-            // VisorView view, // Opcional
             String name,
             ImageIcon icon,
-            Map<String, Action> actionMap, // Para obtener las actions de los botones
-            ThemeManager themeManager,         // Para el builder
-            ConfigurationManager configManager         
-//            ActionListener specialConfigActionListener
-            // List<String> overflowButtonCommands // Opcional: lista de comandos a mostrar
-            
-    ) {
+            Map<String, Action> actionMap,
+            ThemeManager themeManager,
+            ConfigurationManager configManager,
+            ToolbarManager toolbarManager) {
         super(name, icon);
-        // this.viewRef = view;
         this.actionMapRef = Objects.requireNonNull(actionMap, "ActionMap no puede ser nulo");
-//        this.uiConfigRef = Objects.requireNonNull(uiConfig, "ViewUIConfig no puede ser nulo");
-        this.themeManager = Objects.requireNonNull(themeManager, "ViewUIConfig no puede ser nulo");
-        
+        this.themeManager = Objects.requireNonNull(themeManager, "ThemeManager no puede ser nulo");
         this.configManagerRef = Objects.requireNonNull(configManager);
-        // this.overflowButtonCommands = overflowButtonCommands != null ? overflowButtonCommands : new ArrayList<>();
+        this.toolbarManager = toolbarManager;
 
         putValue(Action.SHORT_DESCRIPTION, "Mostrar acciones adicionales o botones que no caben");
         putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS);
-    }
+    } // --- Fin del método HiddenButtonsAction ---
 
+
+    /**
+     * Ejecuta la acción de mostrar el menú emergente con los botones ocultos.
+     *
+     * @param e El evento de acción.
+     */
     @Override
     public void actionPerformed(ActionEvent e) {
         if (actionMapRef == null || themeManager == null) {
@@ -72,46 +82,65 @@ public class HiddenButtonsAction extends AbstractAction {
         }
         Component invokerComponent = (Component) source;
 
-        System.out.println("[HiddenButtonsAction actionPerformed] Mostrando menú de botones ocultos/adicionales...");
-
-        // --- Lógica para determinar qué botones mostrar ---
-        // ESTA ES LA PARTE COMPLEJA QUE DEJAREMOS COMO TODO O SIMPLIFICADA
         List<MenuItemDefinition> itemsParaPopup = new ArrayList<>();
+        Map<String, Action> popupActionMap = new HashMap<>(this.actionMapRef);
 
-        // TODO: Implementar la lógica para determinar qué botones están "ocultos"
-        // y necesitan mostrarse en este menú.
-        // Por ahora, podemos poner unos placeholders o una lista fija.
+        // Obtener comandos de botones ocultos dinámicamente desde ToolbarManager
+        List<String> hiddenCommands = (toolbarManager != null)
+                ? toolbarManager.getHiddenButtonCommands()
+                : new ArrayList<>();
 
-        // Ejemplo con placeholders/lista fija:
-        // (Usa los AppActionCommands de los botones que quieras que aparezcan aquí)
-        String[] comandosBotonesOcultosEjemplo = {
-            AppActionCommands.CMD_ARCHIVO_IMPRIMIR, // Suponiendo que Imprimir podría estar oculto
-            AppActionCommands.CMD_IMAGEN_PROPIEDADES,
-            // ... añade más comandos de acciones que quieras en este menú de desbordamiento
-        };
-
-        for (String comando : comandosBotonesOcultosEjemplo) {
+        for (String comando : hiddenCommands) {
             Action action = actionMapRef.get(comando);
             if (action != null) {
+                Icon hiddenIcon = toolbarManager != null ? toolbarManager.getHiddenButtonIcon(comando) : null;
+                if (hiddenIcon != null) {
+                    popupActionMap.put(comando, createPopupAction(action, comando, hiddenIcon));
+                }
+
                 String actionName = (String) action.getValue(Action.NAME);
-                // Usamos el nombre de la Action como texto del ítem de menú
-                itemsParaPopup.add(new MenuItemDefinition(comando, MenuItemType.ITEM, actionName != null ? actionName : comando, null));
+                itemsParaPopup.add(new MenuItemDefinition(comando, MenuItemType.ITEM,
+                        actionName != null ? actionName : comando, null));
             }
         }
-        
+
         if (itemsParaPopup.isEmpty()) {
             itemsParaPopup.add(new MenuItemDefinition(null, MenuItemType.ITEM, "(No hay acciones adicionales)", null));
         }
 
-        // --- Construir y mostrar el JPopupMenu ---
         PopupMenuBuilder popupBuilder = new PopupMenuBuilder(
-        		this.themeManager,
-                this.configManagerRef
-//                this.specialConfigActionListenerRef
-            );
-        
-        JPopupMenu popupMenu = popupBuilder.buildPopupMenuWithNestedMenus(itemsParaPopup, this.actionMapRef);
+                this.themeManager,
+                this.configManagerRef);
+
+        JPopupMenu popupMenu = popupBuilder.buildPopupMenuWithNestedMenus(itemsParaPopup, popupActionMap);
 
         popupMenu.show(invokerComponent, 0, invokerComponent.getHeight());
-    }
-}
+    } // --- Fin del método actionPerformed ---
+
+
+    /**
+     * Crea una nueva acción para el menú emergente que delega su ejecución a la acción original.
+     *
+     * @param delegate La acción original.
+     * @param command  El comando de la acción.
+     * @param icon     El icono de la acción.
+     * @return La nueva acción para el popup.
+     */
+    private Action createPopupAction(Action delegate, String command, Icon icon) {
+        String name = (String) delegate.getValue(Action.NAME);
+        AbstractAction popupAction = new AbstractAction(name, icon) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                delegate.actionPerformed(e);
+            }
+        };
+
+        popupAction.setEnabled(delegate.isEnabled());
+        popupAction.putValue(Action.ACTION_COMMAND_KEY, command);
+        popupAction.putValue(Action.SHORT_DESCRIPTION, delegate.getValue(Action.SHORT_DESCRIPTION));
+        return popupAction;
+    } // --- Fin del método createPopupAction ---
+
+} // --- Fin de la clase HiddenButtonsAction ---

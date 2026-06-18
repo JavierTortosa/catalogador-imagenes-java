@@ -500,8 +500,11 @@ public class AppInitializer {
         themeManager.setConfigApplicationManager(this.configAppManager);
         configAppManager.setBackgroundControlManager(this.backgroundControlManager);
         toolbarManager.setBackgroundControlManager(this.backgroundControlManager);
+        toolbarManager.setViewManager(this.viewManager);
+        toolbarManager.setIconUtils(this.iconUtils);
         actionFactory.setCarouselManager(carouselManager);
         actionFactory.setConfigAppManager(this.configAppManager);
+        actionFactory.setToolbarManager(this.toolbarManager);
 
         toolbarManager.setProjectController(this.projectController);
 
@@ -733,10 +736,11 @@ public class AppInitializer {
                     }
                 }
 
-                this.view.setVisible(true);
-                this.zoomManager.configurarListenerRedimensionVentana();
+				this.view.setVisible(true);
+				this.zoomManager.configurarListenerRedimensionVentana();
+				new javax.swing.Timer(1000, e -> this.toolbarManager.aplicarOverflow()).start();
 
-                logger.debug("    -> Ventana principal visible. La aplicación está 'viva'.");
+				logger.debug("    -> Ventana principal visible. La aplicación está 'viva'.");
 
                 sincronizarVisibilidadInicialUI();
 
@@ -878,6 +882,16 @@ public class AppInitializer {
                 }
             }
         }
+        // Sincronizar botón menú: si el menú está visible, el botón debe ocultarse
+        Action menuBarAction = this.actionMap.get(AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR);
+        if (menuBarAction instanceof controlador.actions.config.ToggleUIElementVisibilityAction) {
+            boolean menuVisible = Boolean.TRUE.equals(menuBarAction.getValue(Action.SELECTED_KEY));
+            this.viewManager.setBotonMenuEspecialVisible(!menuVisible);
+        }
+
+        // El botón de desbordamiento siempre empieza oculto
+        this.viewManager.setSpecialButtonVisibleByCommand(
+                AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS, false, true);
     } // --- Fin del metodo/clase sincronizarVisibilidadInicialUI ---
 
     private void cargarDatosIniciales(Runnable onComplete) {
