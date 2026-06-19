@@ -306,10 +306,10 @@ public class ViewBuilder {
         }
         workModesContainer.add(dataWorkModePanel, "VISTA_DATOS");
 
-        JPanel editionWorkModePanel = new JPanel();
-        editionWorkModePanel.add(new JLabel("Modo Edición en desarrollo..."));
-        workModesContainer.add(editionWorkModePanel, "VISTA_EDICION");
-        registry.register("panel.workmode.edicion", editionWorkModePanel);
+        JPanel clientWorkModePanel = new JPanel();
+        clientWorkModePanel.add(new JLabel("Modo Cliente en desarrollo..."));
+        workModesContainer.add(clientWorkModePanel, "VISTA_CLIENTE");
+        registry.register("panel.workmode.cliente", clientWorkModePanel);
 
         // Asignar el CardLayout de WorkModes al centro del mainFrame
         mainFrame.add(workModesContainer, BorderLayout.CENTER);

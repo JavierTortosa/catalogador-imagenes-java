@@ -115,7 +115,7 @@ public class AppModeService {
             case VISUALIZADOR -> "VISTA_VISUALIZADOR";
             case PROYECTO -> "VISTA_PROYECTOS";
             case DATOS -> "VISTA_DATOS";
-            case EDICION -> "VISTA_EDICION";
+            case CLIENTE -> "VISTA_CLIENTE";
             case CARROUSEL -> "VISTA_CARROUSEL_WORKMODE";
         };
         viewManager.cambiarAVista("container.workmodes", vistaName);
@@ -242,7 +242,7 @@ public class AppModeService {
             case VISUALIZADOR -> AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR;
             case PROYECTO      -> AppActionCommands.CMD_PROYECTO_GESTIONAR;
             case DATOS         -> AppActionCommands.CMD_MODO_DATOS;
-            case EDICION       -> AppActionCommands.CMD_MODO_EDICION;
+            case CLIENTE       -> AppActionCommands.CMD_MODO_CLIENTE;
             case CARROUSEL     -> AppActionCommands.CMD_VISTA_CAROUSEL;
         };
 
@@ -250,7 +250,7 @@ public class AppModeService {
                 AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR,
                 AppActionCommands.CMD_PROYECTO_GESTIONAR,
                 AppActionCommands.CMD_MODO_DATOS,
-                AppActionCommands.CMD_MODO_EDICION,
+                AppActionCommands.CMD_MODO_CLIENTE,
                 AppActionCommands.CMD_VISTA_CAROUSEL);
 
         for (String comando : comandosDeModo) {
@@ -411,8 +411,8 @@ public class AppModeService {
                 case DATOS:
                     viewManager.cambiarAVista("container.workmodes", "VISTA_DATOS");
                     break;
-                case EDICION:
-                    viewManager.cambiarAVista("container.workmodes", "VISTA_EDICION");
+                case CLIENTE:
+                    viewManager.cambiarAVista("container.workmodes", "VISTA_CLIENTE");
                     break;
                 case CARROUSEL:
                     viewManager.cambiarAVista("container.workmodes", "VISTA_CARROUSEL_WORKMODE");
@@ -462,7 +462,7 @@ public class AppModeService {
                             logger.error("DataController es nulo. No se puede activar el Modo Datos.");
                         }
                         break;
-                    case EDICION:
+                    case CLIENTE:
                         break;
                 }
                 actualizarUiModo(modoAlQueSeEntra, actionMap);

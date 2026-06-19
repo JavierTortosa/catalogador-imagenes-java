@@ -658,8 +658,8 @@ public class ActionFactory {
                 createSwitchWorkModeAction(WorkMode.CARROUSEL, AppActionCommands.CMD_VISTA_CAROUSEL, "Modo Carrusel"));
         registerAction(AppActionCommands.CMD_MODO_DATOS,
                 createSwitchWorkModeAction(WorkMode.DATOS, AppActionCommands.CMD_MODO_DATOS, "Modo Datos"));
-        registerAction(AppActionCommands.CMD_MODO_EDICION,
-                createSwitchWorkModeAction(WorkMode.EDICION, AppActionCommands.CMD_MODO_EDICION, "Modo Edición"));
+        registerAction(AppActionCommands.CMD_MODO_CLIENTE,
+                createSwitchWorkModeAction(WorkMode.CLIENTE, AppActionCommands.CMD_MODO_CLIENTE, "Modo Cliente"));
 
         // --- Acciones para el Árbol de Tags (Modo Datos) ---
         registerAction(AppActionCommands.CMD_DATOS_TAGS_VISTA_LISTA, createTagViewAction(AppActionCommands.CMD_DATOS_TAGS_VISTA_LISTA, "Vista por lista"));

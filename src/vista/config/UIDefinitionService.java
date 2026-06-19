@@ -236,11 +236,11 @@ public class UIDefinitionService {
                         MenuItemType.RADIO_BUTTON_ITEM, "Modo Proyecto", null),
                 new MenuItemDefinition(null,
                         MenuItemType.SEPARATOR, null, null), // Separador visual
-                new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
+                new MenuItemDefinition(AppActionCommands.CMD_MODO_DATOS,
                         MenuItemType.RADIO_BUTTON_ITEM, "Modo Datos", null),
-                new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
-                        MenuItemType.RADIO_BUTTON_ITEM, "Modo Edición", null),
-                new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
+                new MenuItemDefinition(AppActionCommands.CMD_MODO_CLIENTE /*CMD_FUNCIONALIDAD_PENDIENTE*/,
+                        MenuItemType.RADIO_BUTTON_ITEM, "Modo Cliente", null),
+                new MenuItemDefinition(AppActionCommands.CMD_VISTA_CAROUSEL,
                         MenuItemType.RADIO_BUTTON_ITEM, "Modo Carrusel", null),
                 new MenuItemDefinition(null,
                         MenuItemType.RADIO_GROUP_END, null, null) // Finaliza el grupo de radios
@@ -740,8 +740,8 @@ public class UIDefinitionService {
                         "8002-mostrar_favoritos_48x48.png", "Modo Proyecto", "modo", ButtonType.TOGGLE),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_DATOS, "8003-datos_48x48.png", "Modo Datos",
                         "modo", ButtonType.TOGGLE),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_EDICION, "8004-edicion_48x48.png",
-                        "Modo Edicion", "modo", ButtonType.TOGGLE),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_CLIENTE, "8004-edicion_48x48.png",
+                        "Modo Cliente", "modo", ButtonType.TOGGLE),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_CAROUSEL, "4005-carrousel_48x48.png",
                         "Vista Carrusel", "modo", ButtonType.TOGGLE)
         // FIN GRUPO DE BOTONES
@@ -1093,11 +1093,11 @@ public class UIDefinitionService {
                 // Botones de WorkMode
                 ,
                 new ToolbarDefinition("modo", "Modo", 105, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO,
-                        WorkMode.DATOS, WorkMode.CARROUSEL, WorkMode.EDICION), List.copyOf(botonesModo),
+                        WorkMode.DATOS, WorkMode.CARROUSEL, WorkMode.CLIENTE), List.copyOf(botonesModo),
                         ToolbarAlignment.FREE)
                 ,
                 new ToolbarDefinition("modo_bottom", "Modo Bottom", 106, EnumSet.of(WorkMode.VISUALIZADOR,
-                        WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CARROUSEL, WorkMode.EDICION),
+                        WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CARROUSEL, WorkMode.CLIENTE),
                         List.copyOf(botonesModoBottom), ToolbarAlignment.FREE)
 
                 // Boton aislado de Abrir Carpeta
@@ -1111,7 +1111,7 @@ public class UIDefinitionService {
                 ,
                 new ToolbarDefinition(
                         "especiales", "Apoyo", 120, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS,
-                                WorkMode.EDICION, WorkMode.CARROUSEL),
+                                WorkMode.CLIENTE, WorkMode.CARROUSEL),
                         List.copyOf(botonesApoyo), ToolbarAlignment.RIGHT)
 
                 // Toolbars específicas del modo Carrusel

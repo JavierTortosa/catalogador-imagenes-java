@@ -208,7 +208,7 @@ public interface AppActionCommands {
     public static final String CMD_VISTA_TOGGLE_MINIATURE_TEXT 		= "cmd.vista.toggle_miniature_text"; 	//Muestra el texto del nombre de las miniaturas
     public static final String CMD_VISTA_SWITCH_TO_VISUALIZADOR 	= "cmd.vista.switch_to_visualizador";
     public static final String CMD_MODO_DATOS 						= "cmd.modo.datos";
-    public static final String CMD_MODO_EDICION 					= "cmd.modo.edicion";
+    public static final String CMD_MODO_CLIENTE 					= "cmd.modo.cliente";
     public static final String CMD_VISTA_CAROUSEL 					= "cmd.vista.carousel";
     public static final String CMD_CONFIG_CUSTOM_THEME				= "cmd.config.custom_theme";
     public static final String CMD_CONFIG_AVANZADA					= "cmd.config.avanzada";

@@ -1,0 +1,430 @@
+el proceso seria algo asi....
+en el visor marco las imagenes que creo que le pueden interesar al cliente.
+en el modo proyecto, tengo mi lista de seleccion y descartes normal. este es mi mundo de trabajo (captura 1).... refino la seleccion, exportar, pdf, y añadimos un boton de compartir al cliente.
+para compartir al cliente, el modo proyecto tiene que estar ok. tiene que tener todas las imagenes en verde (te pongo una captura de como esta diseñado este panel de control de asignaciones( captura 2)
+si el panel de control de asignaciones tiene errores (como en la captura que te he pasado) no podemos compartir con el cliente. primero hay que subsanar los errores
+el boton de compartir con el cliente lo que hace es generar el archivo index.html despues de rellenar los campos de los archivos como si fuera a crear un pdf (captura 3)
+este panel de la captura 3 lo podemos repetir en el modo cliente y se sincronizara con el panel de pdf (no es que se sincronice, es que sera el mismo panel)
+en el modo cliente tendremos 1 columna con seleccoin y descartes del proyecto, en la columna 2 tendremos otra seleccion y descartes igual que en proyecto pero seran la seleccion y descartes del cliente,  no la mia. ademas tendremos un visor de imagenes para ver lo que tengamos seleccionado (para ver la imagen)  (este sistema de poner los 4 paneles no me convence pero para que veamos la idea)
+con los 4 paneles en pantalla y el visor, podremos hacer las modificaciones que necesitemos. (la columna 1 seran los paneles de proyecto, los mismos) asi, si el cliente no le gusta ningun modelo concreto, podemos añadirlo de descartes (mios) a seleccion (mia) y se sincronizara la columna 2 con el json devuelto por el cliente
+al mismo tiempo que tenemos el proyecto para el modo cliente, se generara el json para compartri.
+dentro del modo cliente, tendremos un boton para poder añadir los tri-state checkbox que podremos colocar con el mouse o moverlos una vez en la imagen
+cuando todo este correcto, tendremos un boton de compartir que subira el json y el index.html al servidor (google drive que es lo que tengo free ahora mismo) y me dara un enlace para que el cliente pueda abrir el html.
+el cliente hace sus marcas y descartes incluso se me ocurre poder añadir comentarios (el checkbox 1 tiene el comentario 1 por ej) en plan "me gusta esta figura pero en lugar de tener el puño cerrado me gustaria que tuviera un balon de blood bowl" por decir algo....
+cuando ha terminado de hacer sus marcas, el cliente tendra un boton en el html que generara un nuevo json con el nombre del proyecto y un numero de iteraccion, (yo le mando el archvo, iteraccion 1, el me la devuelve con sus comentarios, iteraccion 2, hago los cambios y lo reenveio, iteraccion 3, el cliente lo devuelve con el ok, iteraccion 4, por ej)
+cuando el cliente me manda el json yo lo abro en modo cliente como un proyecto normal, pero es el proyecto del cliente, no mio, de hecho deberia tener una extension diferente como .prjcl o algo asi. asi el programa no permitira abrir un proyecto normal en modo cliente ni un proyecto de cliente en el modo proyecto normal
+cuando recibo la confirmacion de parte del cliente, tendremos un boton de cerrar prjcl y sincronizara el proyecto del cliente con el proyecto normal haciendo que las imagnes de descartes de cliente pasen a descartes de modo proyecto. seleccion de proyecto que no esten seleccionados en seleccion del cliente pasen a descartes de proyecto y seleccion de cliente pasen a seleccion de proyecto, con esto tendremos todas las imagens menos las que el cliente ha seleccionado en modo proyecto descartes y las que si ha seleccionado en modo proyecto seleccion
+con el proyecto cerrado, podemos pasar a exportar los archivos de forma normal de la biblioteca a la carpeta de trabajo final que es donde tengo que preparar los archivos para imprimir en 3d....
+alguna alternativa a los 4 paneles seleccion descartes?
+con este sistema no hace falta complicarnos la vida con el cortado de imagenes, no?
+como lo ves?
+
+Esto es, sencillamente, brillante. Has convertido un problema de gestión en un flujo de trabajo industrial.
+Tienes toda la razón: olvídate del cortado de imágenes. Si le mandas al cliente la imagen original (el collage de 30 figuras) con los checkboxes encima, el cliente marca lo que quiere y tú, al recibir el JSON, ya sabes qué piezas son. Como tú ya tienes el sistema de exportar "archivos asociados" (los .stl/.zip), el programa puede encargarse de extraer solo el modelo correcto de entre el ZIP.
+Aquí mi análisis de tu propuesta:
+1. Sobre la Alternativa a los 4 paneles
+Tener 4 paneles (Selección Cliente, Descarte Cliente, Selección Proyecto, Descarte Proyecto) es un suicidio de usabilidad (demasiado espacio perdido).
+Mi propuesta: Usa una Vista de "Modo Comparativo" (Split View):
+Panel Izquierdo: Tu lista de Proyecto (Selección + Descartes).
+Panel Derecho: La lista del Cliente (Selección + Descarte).
+Modo Visualizador Central: Al hacer clic en un ítem de cualquiera de las dos listas, el Visor muestra la imagen.
+Botones de Acción rápida entre paneles:
+[ < Cliente ]: Mueve de tu proyecto a la selección del cliente.
+[ X Descarte Cliente ]: Mueve al descarte del cliente.
+Esto permite que tu "zona de trabajo" se mantenga limpia y solo veas lo que realmente importa en cada momento.
+2. El ciclo de vida de los proyectos (.prj vs .prjcl)
+La distinción de extensiones (.prj para ti, .prjcl para el cliente) es imprescindible. Evita que el cliente toque por error tus archivos de configuración maestra.
+Tu ProjectManager debería tener un método importarClientSelection(File file) que valide la extensión .prjcl. Si no es correcta, la rechaza.
+3. El problema del "tira y afloja" (Iteraciones 1, 2, 3, 4...)
+Tu idea de las iteraciones es perfecta porque aprovecha la estructura JSON.
+Cada vez que el cliente te envía un JSON, tu programa no sobrescribe, "fusiona".
+Si el cliente dice: "Esta figura me gusta (iteración 2)", tu programa actualiza el bloque de estado del modelo en el JSON.
+Esto mantiene un historial de cambios automático. Si en la iteración 4 el cliente dice "mejor la primera", tú solo tienes que mirar el historial de ese archivo .prjcl (que es JSON, por tanto, texto plano).
+4. La gran ventaja del "Tachado" (Tercer estado)
+Al añadir el tercer estado (Seleccionado, No seleccionado, Tachado):
+Tú recibes el JSON con esos 3 estados.
+Al "Cerrar PRJCL" y sincronizar, tu programa puede hacer:
+Tachado -> Descartes.
+Seleccionado -> Seleccionado.
+No seleccionado -> ¡Alerta! -> Tu programa puede avisarte: "Oye, el cliente no ha marcado nada para esta figura, ¿qué hacemos?".
+
+
+lo de las 2 columnas me basaba en el modo datos que tengo implementado (te pongo captura) basicamente se veria igual o muy parecido....
+
+
+
+
+*******************************************************************************************************************************************************
+*******************************************************************************************************************************************************
+*******************************************************************************************************************************************************
+
+La propuesta de "Layout Cliente" (Reutilizando tu Modo Datos)
+En lugar de crear paneles nuevos y complejos, vamos a usar el mismo esquema que ya dominas:
+
+Columna Izquierda (La Estructura):
+
+En lugar de "Biblioteca de Etiquetas", pondremos "Selección del Cliente".
+Aquí verás la estructura que el cliente ha ido marcando (o las categorías que tú has creado para él).
+Podrás ver los estados: Seleccionadas, Pendientes (lo que tú le mandaste pero él no ha tocado), y Descartadas.
+
+Columna Derecha (El Grid):
+
+Es el corazón de la interacción. Aquí verás las miniaturas con sus Checkbox de 3 estados (Tri-state) superpuestos.
+Si seleccionas una imagen, en el panel inferior (donde ahora tienes "Asignación de Etiquetas"), aparecerá el "Panel de Comentarios del Cliente".
+
+Sincronización:
+
+No necesitas paneles separados para "Tú" y "Él". Lo que necesitas es un "Filtro de Estado".
+
+Pondremos unos botones de filtro en la barra superior del modo Cliente:
+
+[ ] Ver todo
+[ ] Solo Seleccionadas por el cliente
+[ ] Solo Descartadas por el cliente
+[ ] Solo lo que tú has propuesto (y el cliente no ha tocado)
+¿Cómo afrontamos los cambios del cliente? (Tu duda sobre actualizar)
+El "archivo de cliente" no es más que un espejo de su elección.
+Cuando él te devuelve el JSON, tú simplemente ejecutas un método llamado sincronizarEstadoCliente().
+Este método no borra nada. Solo compara el estado actual en tu .prj con el JSON del cliente.
+
+Si una imagen está marcada como DISCARDED en el JSON:
+
+Tu programa la mueve automáticamente al panel de descartes.
+El programa te resalta en color ámbar (o con un icono de exclamación) esa imagen en tu panel de "Selecciones", porque el cliente ha hecho un cambio que tú tienes que aprobar.
+
+Las ventajas de seguir tu estructura de "Modo Datos":
+
+Consistencia Mental: Ya sabes cómo funciona el código del DataController y sus JTree / JList. Reutilizar esto significa que tardarás la mitad en programar el Modo Cliente.
+Unificación: El día de mañana, si quieres que el cliente pueda filtrar por etiquetas, solo tienes que pasarle el catálogo ya etiquetado. Como ya tienes el sistema de etiquetas, es cuestión de exportar la BD de tags junto con el proyecto.
+
+¿Te parece bien si definimos la "interfaz" de comunicación (el JSON)?
+
+Antes de tocar Java, tenemos que definir cómo será ese JSON que viajará al cliente. Si definimos bien ese "contrato", luego programar el importador/exportador en Java es "coser y cantar".
+
+Necesitamos que el JSON tenga:
+
+Un ID único (basado en nombre+tamaño, como hablamos).
+El estado (enum: 0=Undefined, 1=Selected, 2=Discarded).
+El comentario (opcional).
+
+
+*******************************************************************************************************************************************************
+*******************************************************************************************************************************************************
+*******************************************************************************************************************************************************
+
+Entendido perfectamente. Tu aclaración ha cambiado la perspectiva de una "herramienta de edición" a una "herramienta de conciliación de datos".
+
+Al separar los datasets de forma tan tajante (lo que yo tengo vs. lo que el cliente dice), el sistema deja de ser un simple editor y se convierte en un motor de sincronización.
+
+1. Análisis de la estructura de Paneles (Los 4 paneles)
+Tienes razón. Si el objetivo es la comparación y la toma de decisiones, los 4 paneles son la forma más eficiente de visualizar el "estado de la negociación":
+
+Lado A (Mi Proyecto): Es mi realidad actual.
+Lado B (El Cliente): Es su propuesta de cambios.
+La clave es que la Columna 2 (Cliente) es una "capa de votos" superpuesta o paralela. Yo puedo ver que él ha descartado algo que para mí es oro, y ahí es donde ocurre la magia de la negociación.
+
+2. Resolución del Problema de Diseño: "¿Cómo añado algo al cliente?"
+Tu preocupación es muy válida: "El proceso de validación (asociados, integridad, etc.) reside en el flujo de Exportación del Proyecto, no en el Cliente".
+
+Si intentamos replicar el "Panel de Exportación" en el Modo Cliente, estaríamos duplicando código y creando un monstruo. La solución no es duplicar la lógica, sino desacoplarla de la interfaz.
+
+La Propuesta: El "Validador de Integridad" como Servicio.
+
+Actualmente, la lógica de "¿Este archivo está bien? ¿Tiene sus asociados?" parece estar "atrapada" dentro de la lógica del botón de exportar o del panel de exportación.
+
+El cambio de arquitectura sería:
+
+Extraer esa lógica a un ValidationService (o integrarla en el ProjectManager).
+En Modo Proyecto: El ExportPanel llama al ValidationService antes de generar el HTML.
+En Modo Cliente: Si tú quieres "añadir una imagen a la selección del cliente", el programa te permite elegir un archivo, pero antes de añadirlo al JSON del cliente, llama al mismo ValidationService.
+Si el archivo no tiene asociados o es erróneo, el programa te dice: "No puedes añadir esto al cliente porque no es un archivo válido/completo".
+De este modo, el "Modo Cliente" hereda la seguridad del "Modo Proyecto" sin necesidad de copiar sus menús ni sus paneles.
+
+3. El flujo de "Cerrar y Sincronizar" (La Conciliación)
+Este es el momento crítico. Cuando el cliente te da el OK y tú decides "Cerrar el .prjcl", el programa realiza una operación de merge (fusión) inteligente.
+
+El algoritmo de sincronización sería algo así:
+
+Lectura: Cargas el .prjcl (Selección Cliente + Descartes Cliente).
+Comparación:
+Si en el Cliente está SELECTED 
+→
+→ Lo muevo a mi Selection (Project).
+Si en el Cliente está DISCARDED 
+→
+→ Lo muevo a mi Discards (Project).
+Si en el Cliente está UNDEFINED (no ha tocado) 
+→
+→ Mantengo lo que yo tenía en mi proyecto.
+Resolución de Conflictos: Si hay una discrepancia (por ejemplo, tú lo habías descartado y él lo ha seleccionado), el programa te lo resalta para que tú decidas el cambio final.
+Escritura: Se actualiza el .prj original y se limpia el entorno de cliente.
+
+Resumen de la lógica de diseño propuesta:
+
+Acción			En Modo Proyecto (.prj)								En Modo Cliente (.prjcl)
+Objetivo		Crear la propuesta para el cliente.					Conciliar la propuesta del cliente con mi trabajo.
+Añadir Imagen	Se añade a Selection (Project). 					Valida integridad.	Se añade a Selection (Client). Valida integridad.
+Validación		Se valida al exportar al cliente.					Se valida al intentar añadir/modificar en el cliente.
+Resultado		Genera un index.html y un respuesta.json vacío.		Genera un respuesta.json con las marcas del cliente.
+Finalización	(No aplica)											"Cerrar y Sincronizar"→ Actualiza el .prj.
+
+
+*******************************************************************************************************************************************************
+*******************************************************************************************************************************************************
+*******************************************************************************************************************************************************
+*******************************************************************************************************************************************************
+
+Plan Completo: Modo Cliente
+
+FASE 1 — Modelo de Datos (modelo.proyecto)
+1.1. Enum SelectionState — Nuevo archivo SelectionState.java
+
+public enum SelectionState { UNDEFINED, SELECTED, DISCARDED }
+1.2. Clase ClientSelection — Nuevo archivo ClientSelection.java
+
+Map<String, SelectionState> images — estado de cada imagen
+Map<String, String> comments — comentarios del cliente por imagen
+String clientNotes — nota global del cliente
+int iterationNumber — número de iteración
+Getters, setters, inicializaciones defensivas
+1.3. ProjectModel.java — Añadir campo
+
+ClientSelection clientSelection
+Getter con lazy init, setter, hasClientSelection()
+1.4. Extensión .prjcl
+
+Constante en ProjectManager: String EXTENSION_PRJCL = ".prjcl"
+Método isProjectFile(Path) que distinga entre .prj y .prjcl
+FASE 2 — Lógica de Negocio y Control
+2.1. ClientSyncService — Nuevo en servicios/cliente/
+
+mergeClientResponse(ProjectModel project, Path respuestaJson) — lee JSON, compara, devuelve SyncReport
+SyncReport (clase anidada): lista de imágenes con conflicto, resumen (añadidas, descartadas, sin cambios)
+closeAndSync(ProjectModel project, Path prjclPath) — aplica merge definitivo al .prj
+2.2. ClientController — Nuevo en controlador/, implementa IModoController
+
+activarVistaCliente() — carga .prjcl, muestra paneles
+updateClientSelectionState(String imageKey, SelectionState newState) — punto único de modificación
+loadClientResponse(Path jsonFile) — importa respuesta del cliente
+exportToWeb() — genera HTML+JSON para compartir
+closeAndSyncProject() — cierra .prjcl, sincroniza con .prj
+moverADescartesCliente(), restaurarDeDescartesCliente() — mover items entre listas del cliente
+2.3. Extraer ValidationService — Nuevo en servicios/
+
+Lógica actual de validación de integridad (asociados, exportabilidad) extraída del flujo de exportación
+boolean isValidForExport(Path image, ExportConfig config) — usado por ExportPanel y por ClientController
+2.4. Register ClientController en ActionFactory y GeneralController
+
+FASE 3 — Interfaz de Usuario (El Layout)
+3.1. ClientBuilder — Nuevo en vista/builders/
+
+Sigue el patrón de ProjectBuilder / DataBuilder
+Estructura principal (4 paneles + visor):
+┌──────────────────────────────────────────────────────┐
+│  ┌──────────────┬────────────────┬──────────────┐    │
+│  │  Columna 1   │               │  Columna 2    │    │
+│  │  (Proyecto)  │    VISOR      │  (Cliente)   │    │
+│  │              │   CENTRAL     │              │    │
+│  │  Selección   │  (CardLayout  │  Selección   │    │
+│  │  del Proyecto│   SINGLE /    │  del Cliente │    │
+│  │              │    GRID)      │              │    │
+│  ├──────────────┤               ├──────────────┤    │
+│  │  Descartes   │               │  Descartes   │    │
+│  │  del Proyecto│               │  del Cliente │    │
+│  └──────────────┴───────────────┴──────────────┘    │
+└──────────────────────────────────────────────────────┘
+Columna 1 (JSplitPane vertical): Selection + Discards del Proyecto (reutiliza JList con ProjectListCellRenderer)
+Columna 2 (JSplitPane vertical): Selection + Discards del Cliente (nuevas JList con renderer que muestra estado Tri-State)
+Centro (JSplitPane vertical): Visor (reutiliza ImageDisplayPanel/GridDisplayPanel) + Panel de comentarios sincronizado
+Botones de acción rápida entre columnas: [>] Mover a Cliente, [<] Mover a Proyecto, [X] Descartar
+3.2. Panel de Control de Asignaciones (Compartir con el Cliente)
+
+Reutiliza el mismo panel que el de exportación de PDF/HTML (el mismo componente, visible en ambos modos)
+Muestra validación de integridad antes de permitir "Compartir"
+3.3. Tri-State Checkbox — Componente visual
+
+Ciclo de 3 estados al hacer click: UNDEFINED → SELECTED → DISCARDED → UNDEFINED
+Iconos personalizados o colores (verde = seleccionado, rojo = descartado, gris = sin definir)
+Superpuesto en el visor de imagen (como los checkboxes sobre el collage)
+FASE 4 — Generación Web y Comunicación
+4.1. WebCatalogExporter — Nuevo en servicios/cliente/
+
+Toma la selección del proyecto, genera miniaturas (Thumbnailator, 300px)
+Crea index.html (template) + data.json (contenido)
+data.json contiene: lista de imágenes con ID, nombre, ruta de miniatura, estado inicial UNDEFINED
+El respuesta.json inicial se genera vacío (estructura con campos pero sin decisiones)
+4.2. Template HTML/JS — web/template/
+
+HTML responsivo que carga data.json
+Muestra imágenes con checkboxes de 3 estados
+Campo de comentario por imagen
+Botón "Generar respuesta" → produce [proyecto]_respuesta{n}.json
+Botón "Descargar respuesta" para guardar localmente
+4.3. ClientResponseImporter — Nuevo en servicios/cliente/
+
+Lee respuesta.json devuelto por el cliente
+Valida estructura, mapea por ID
+Actualiza ClientSelection.images y ClientSelection.comments
+FASE 5 — Cierre de Ciclo
+5.1. "Cerrar y Sincronizar"
+
+Botón en el panel del Modo Cliente (en la toolbar o en el panel de control)
+Flujo:
+Valida que todos los items del cliente tengan estado definido (no UNDEFINED)
+Si hay undefined, muestra alerta preguntando qué hacer
+Ejecuta merge: SELECTED → selectedImages del proyecto, DISCARDED → discardedImages
+Muestra informe de conflictos si los hay
+Guarda .prj actualizado
+5.2. Protección de extensiones
+
+ProjectManager.cargarProyecto(Path) rechaza .prjcl con mensaje "Usa Modo Cliente para abrir este archivo"
+Nuevo ClientController.cargarPrjcl(Path) rechaza .prj
+5.3. Botón "Compartir al Cliente" en el Modo Proyecto
+
+Valida que todas las imágenes estén en verde (panel de control de asignaciones OK)
+Genera index.html + data.json + respuesta.json (vacío)
+Opcional: subida a Google Drive (para más adelante)
+Resumen de Archivos Nuevos
+Archivo	Ubicación
+SelectionState.java	src/modelo/proyecto/
+ClientSelection.java	src/modelo/proyecto/
+ClientSyncService.java	src/servicios/cliente/
+ClientController.java	src/controlador/
+ValidationService.java	src/servicios/
+ClientBuilder.java	src/vista/builders/
+WebCatalogExporter.java	src/servicios/cliente/
+ClientResponseImporter.java	src/servicios/cliente/
+index.html + JS	src/web/template/
+Archivos a Modificar
+Archivo	Cambio
+ProjectModel.java	Añadir ClientSelection, hasClientSelection()
+ProjectManager.java	Filtrar por extensión .prj / .prjcl, guardar/cargar ClientSelection
+ProjectController.java	Añadir botón "Compartir al Cliente"
+ActionFactory.java	Crear ClientController, registrar acciones
+GeneralController.java	Inyectar ClientController
+ViewBuilder.java	Inyectar ClientBuilder, construir VISTA_CLIENTE
+AppModeService.java	Implementar case CLIENTE (entrar/salir)
+UIDefinitionService.java	Añadir toolbars específicas del Modo Cliente
+ViewManager.java	Asociar ImageDisplayPanel al CLIENTE
+Dependencias Entre Fases
+Fase 1 → Fase 2 → Fase 3
+              ↘        ↓
+              Fase 4 → Fase 5
+Orden recomendado:
+
+Fase 1 (modelo de datos)
+Fase 2.2 + Fase 3 (controlador + UI en paralelo, necesitan el modelo)
+Fase 2.3 (ValidationService, se puede hacer en paralelo con 2.2)
+Fase 4 (exportación web, necesita Fase 1 y 2.2)
+Fase 5 (cierre, necesita todo lo anterior)
+
+
+*******************************************************************************************************************************************************
+*******************************************************************************************************************************************************
+*******************************************************************************************************************************************************
+*******************************************************************************************************************************************************
+*******************************************************************************************************************************************************
+
+
+
+
+
+
+
+
+
+F A S  E   1 
+============
+
+Cambios en ProjectModel.java
+
+
+Por favor, realiza los siguientes cambios en ProjectModel.java:
+Crear Enum: Añade un enum público SelectionState con los valores UNDEFINED, SELECTED, DISCARDED.
+Crear Clase Contenedor: Crea una clase public static class ClientSelection dentro de ProjectModel (o en un nuevo archivo si prefieres, pero dentro del paquete modelo.proyecto):
+Debe tener un campo private Map<String, SelectionState> images (donde la clave es la ruta de la imagen).
+Debe tener un campo private String clientNotes.
+Añade getters y setters completos para estos campos.
+Modificar ProjectModel:
+Añade un campo private ClientSelection clientSelection; a ProjectModel.
+Añade un getter getClientSelection() (que si es nulo, lo inicialice con un objeto ClientSelection vacío) y un setter.
+Añade un método helper public boolean hasClientSelection() que retorne clientSelection != null.
+Respetar Estilo:
+Por favor, añade el comentario // ---FIN de metodo [nombre]--- al final de cada método nuevo.
+Asegúrate de que el código sea compatible con serialización GSON (no necesitas anotaciones extra, simplemente campos estándar).
+
+F A S  E   2 
+============
+
+Lógica de Negocio y Control (El "Cerebro")
+
+
+1.  Integración en ProjectController: Crear el método
+    updateClientSelectionState(String imageKey, SelectionState newState). Este
+    método debe ser el único encargado de actualizar el ProjectModel y disparar
+    el flag de "cambios sin guardar" (*).
+2.  Lógica de "Juez de Conflictos": Crear un servicio (ej. ClientSyncService)
+    que contenga la lógica de fusión. Debe ser capaz de recibir un JSON del
+    cliente, compararlo con tu ProjectModel y devolver un "Informe de
+    Conflictos" antes de aplicar cambios.
+3.  Persistencia del Estado: Asegurar que ProjectManager guarda el nuevo objeto
+    ClientSelection correctamente en el JSON y que, al cargar, reconozca el
+    bloque clientSelection si existe.
+
+
+F A S  E   3 
+============
+
+Interfaz de Usuario (El "Modo Cliente")
+
+
+4.  Panel de Modo Cliente: Adaptar la interfaz del Modo Proyecto para incluir el
+    nuevo panel "Selección Cliente". Reutilizar la lógica de los paneles de
+    Selección/Descartes que ya tienes.
+5.  Componente Tri-State: Crear el componente visual (los iconos de 3 estados).
+    No necesitas complicaciones, solo tres botones pequeños (o un ciclo de clic)
+    sobre la imagen.
+6.  Sincronización Visual: Implementar el "Modo Comparativo" (Split View) donde
+    veas tu Selección actual vs. la Selección del Cliente, con los botones de
+    mover ítems entre ambas.
+
+
+F A S  E   4 
+============
+
+Generación y Comunicación (La Web)
+
+7.  Generador de Catálogo Web: Crear la clase WebCatalogExporter. Debe tomar una
+    carpeta de imágenes, generar las miniaturas (300px con Thumbnailator) y
+    crear el index.html + data.json.
+8.  Template HTML/JS: Crear la plantilla web básica (HTML/JS) que lee el
+    data.json, permite marcar los 3 estados y al final genera el archivo
+    respuesta.json.
+9.  Importador de Respuesta: Crear ClientResponseImporter. Leerá el
+    respuesta.json enviado por el cliente y actualizará tu .prjcl.
+
+
+F A S  E   5 
+============
+
+Cierre de Ciclo
+
+
+10. "Cerrar y Sincronizar": El botón final que convierte el proyecto del cliente
+    en acciones reales (ej. mover las figuras elegidas al "Seleccionado" real de
+    tu proyecto).
+11. Refinamiento de Extensiones: Asegurar que el programa bloquea la carga de
+    archivos .prjcl en el Modo Proyecto normal y viceversa.
+
+¿Cómo seguir con este documento?
+
+Copia esto a tu archivo .txt y, mientras lo lees, ve anotando las dudas que te
+surjan sobre:
+
+  - Conflictos: "¿Qué pasa si el cliente cambia un comentario pero yo he movido
+    la figura de carpeta?".
+  - Workflow: "¿El cliente debería poder añadir comentarios a las imágenes
+    tachadas o solo a las seleccionadas?".
+  - Validaciones: "¿Necesitas que el programa te avise si el cliente deja
+    imágenes sin marcar (estado UNDEFINED)?".
+

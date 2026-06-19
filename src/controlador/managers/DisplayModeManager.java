@@ -103,7 +103,7 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
         logger.info("Cambiando a DisplayMode: {}", newMode);
         model.setCurrentDisplayMode(newMode);
         
-        if (model.getCurrentWorkMode() == WorkMode.EDICION) {
+        if (model.getCurrentWorkMode() == WorkMode.CLIENTE) {
             logger.info("El modo {} no soporta cambios de CardLayout de DisplayMode. Ignorando.", model.getCurrentWorkMode());
             sincronizarBotonesDeModo();
             return;

@@ -23,7 +23,7 @@ public class VisorModel {
         VISUALIZADOR,
         PROYECTO,
         DATOS,
-        EDICION,
+        CLIENTE,
         CARROUSEL
     }
 

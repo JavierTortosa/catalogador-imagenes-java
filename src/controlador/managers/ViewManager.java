@@ -1650,7 +1650,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
             case DATOS:
                 panelKey = isPolaroid ? "panel.datamode.display.polaroid.image" : "panel.datamode.display";
                 break;
-            case EDICION:
+            case CLIENTE:
                 logger.warn("WARN [ViewManager.getActiveDisplayPanel]: El modo " + model.getCurrentWorkMode()
                         + " no tiene un ImageDisplayPanel asociado.");
                 return null;
