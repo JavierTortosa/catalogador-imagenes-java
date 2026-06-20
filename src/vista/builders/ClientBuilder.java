@@ -69,47 +69,31 @@ public class ClientBuilder {
         // Panel Derecho: Cliente
         JSplitPane rightSplitPanel = createClientListsPanel();
 
-                // Crear el contenedor de modos de visualización (CardLayout)
-        JPanel displayModesContainer = new JPanel(new CardLayout());
-        registry.register("container.displaymodes.cliente", displayModesContainer);
+        // --- Placeholder para el contenedor de visualización COMPARTIDO ---
+        JPanel displayPlaceholder = new JPanel(new CardLayout());
+        registry.register("container.displaymodes.cliente", displayPlaceholder);
+        registry.register("placeholder.display.cliente", displayPlaceholder);
 
-        ImageDisplayPanel singleImageViewPanel = new ImageDisplayPanel(themeManager, model);
-        registry.register("panel.cliente.display", singleImageViewPanel);
-        registry.register("label.cliente.imagen", singleImageViewPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
+        // Registrar claves cliente que apuntan a los paneles COMPARTIDOS
+        ImageDisplayPanel sharedImagePanel = registry.get("panel.display.imagen");
+        GridDisplayPanel sharedGridPanel = registry.get("panel.display.grid");
+        PolaroidDisplayPanel sharedPolaroidPanel = registry.get("panel.display.polaroid");
 
-        MouseAdapter focusRequester = new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                singleImageViewPanel.requestFocusInWindow();
-            }
-        };
-        singleImageViewPanel.addMouseListener(focusRequester);
-        singleImageViewPanel.getInternalLabel().addMouseListener(focusRequester);
+        if (sharedImagePanel != null) {
+            registry.register("panel.cliente.display", sharedImagePanel);
+            registry.register("label.cliente.imagen", sharedImagePanel.getInternalLabel(), "WHEEL_NAVIGABLE");
+        }
+        if (sharedGridPanel != null) {
+            registry.register("panel.display.grid.cliente", sharedGridPanel);
+            registry.register("list.grid.cliente", sharedGridPanel.getGridList(), "WHEEL_NAVIGABLE");
+        }
+        if (sharedPolaroidPanel != null) {
+            registry.register("panel.cliente.display.polaroid", sharedPolaroidPanel);
+            registry.register("panel.cliente.display.polaroid.image", sharedPolaroidPanel.getImagePanel());
+            registry.register("label.cliente.polaroid.imagen", sharedPolaroidPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
+        }
 
-        displayModesContainer.add(singleImageViewPanel, "VISTA_SINGLE_IMAGE");
-
-        // --- Visor de Grid ---
-        ThumbnailPreviewer clientGridPreviewer = new ThumbnailPreviewer(null, this.model, this.themeManager, null,
-                this.registry);
-        GridDisplayPanel gridViewPanel = new GridDisplayPanel(this.model,
-                generalController.getVisorController().getServicioMiniaturas(), this.themeManager,
-                generalController.getVisorController().getIconUtils(), clientGridPreviewer,
-                this.registry);
-        registry.register("panel.display.grid.cliente", gridViewPanel);
-        JList<String> gridList = gridViewPanel.getGridList();
-        registry.register("list.grid.cliente", gridList, "WHEEL_NAVIGABLE");
-
-        // --- Visor Polaroid ---
-        PolaroidDisplayPanel polaroidViewPanel = new PolaroidDisplayPanel(this.themeManager, this.model);
-        registry.register("panel.cliente.display.polaroid", polaroidViewPanel);
-        registry.register("panel.cliente.display.polaroid.image", polaroidViewPanel.getImagePanel());
-        registry.register("label.cliente.polaroid.imagen", polaroidViewPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
-
-        displayModesContainer.add(gridViewPanel, "VISTA_GRID");
-        displayModesContainer.add(polaroidViewPanel, "VISTA_POLAROID");
-
-
-        JPanel centerPanel = createCenterPanel(displayModesContainer);
+        JPanel centerPanel = createCenterPanel(displayPlaceholder);
 
         // Ensamblaje (Modo Comparativo: Izquierda, Centro, Derecha)
         // Split Derecho que contiene (Centro + Derecha)

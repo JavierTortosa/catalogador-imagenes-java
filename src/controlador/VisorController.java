@@ -515,10 +515,19 @@ public class VisorController implements IModoController, ThemeChangeListener {
             logger.debug("  -> Listener de redimensionado añadido a 'panel.display.imagen'.");
         }
 
+        // El resto de modos usan el mismo panel compartido; no es necesario duplicar listeners.
+        // Pero los registramos por claridad y compatibilidad (el listener no se duplica
+        // realmente porque ComponentRegistry.addComponentListener chequea identidad).
         ImageDisplayPanel panelProyecto = registry.get("panel.proyecto.display");
-        if (panelProyecto != null) {
+        if (panelProyecto != null && panelProyecto != panelVisor) {
             panelProyecto.addComponentListener(resizeListener);
             logger.debug("  -> Listener de redimensionado añadido a 'panel.proyecto.display'.");
+        }
+
+        ImageDisplayPanel panelCliente = registry.get("panel.cliente.display");
+        if (panelCliente != null && panelCliente != panelVisor) {
+            panelCliente.addComponentListener(resizeListener);
+            logger.debug("  -> Listener de redimensionado añadido a 'panel.cliente.display'.");
         }
 
         ImageDisplayPanel panelCarrusel = registry.get("panel.display.carousel");
@@ -774,24 +783,15 @@ public class VisorController implements IModoController, ThemeChangeListener {
          boolean isPolaroid = (model.getCurrentDisplayMode() == VisorModel.DisplayMode.POLAROID);
 
          switch (model.getCurrentWorkMode()) {
-             case VISUALIZADOR:
-                 panelKey = isPolaroid ? "panel.display.polaroid.image" : "panel.display.imagen";
-                 break;
-             case PROYECTO:
-                 panelKey = isPolaroid ? "panel.proyecto.display.polaroid.image" : "panel.proyecto.display";
-                 break;
              case CARROUSEL:
                  panelKey = "panel.display.carousel";
                  break;
              case DATOS:
                  panelKey = isPolaroid ? "panel.datamode.display.polaroid.image" : "panel.datamode.display";
                  break;
-             case CLIENTE:
-                 panelKey = "panel.cliente.display";
-                 break;
              default:
-                 logger.error("ERROR CRÍTICO: WorkMode no reconocido: " + model.getCurrentWorkMode());
-                 return;
+                 panelKey = isPolaroid ? "panel.display.polaroid.image" : "panel.display.imagen";
+                 break;
          }
 
          ImageDisplayPanel displayPanel = registry.get(panelKey);

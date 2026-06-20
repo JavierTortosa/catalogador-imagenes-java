@@ -166,7 +166,7 @@ public class AppInitializer {
         this.controller = Objects.requireNonNull(controller, "VisorController no puede ser null en AppInitializer");
         this.activePreviewers = new ArrayList<>();
         this.appVersion = version;
-    } // --- Fin del metodo/clase AppInitializer ---
+    } // --- FIN de metodo/clase AppInitializer ---
 
     
     /**
@@ -189,7 +189,7 @@ public class AppInitializer {
             logger.error("Error fatal durante el proceso de arranque", e);
             return false;
         }
-    } // --- Fin del metodo/clase initialize ---
+    } // --- FIN de metodo/clase initialize ---
 
     
     /**
@@ -351,7 +351,7 @@ public class AppInitializer {
         this.appModeService = new AppModeService(this.model, this.viewManager, this.toolbarManager, this.displayModeManager, this.configAppManager, this.statusBarManager);
         
         logger.debug(" -> Instanciación de componentes completada.");
-    } // --- Fin del metodo/clase instantiateComponents ---
+    } // --- FIN de metodo/clase instantiateComponents ---
     
 
     /**
@@ -480,6 +480,7 @@ public class AppInitializer {
         // 7. Inyectamos el gestor de modos y sincronizacion
         this.generalController.setAppModeService(this.appModeService);
         this.generalController.setMenuPopupManager(this.menuPopupManager);
+        this.generalController.setClientController(this.clientController);
 
         // 7.1 Inyectamos dependencias adicionales en AppModeService
         this.appModeService.setVisorController(this.controller);
@@ -566,7 +567,7 @@ public class AppInitializer {
 
         logger.debug(" -> Cableado de dependencias completado.");
 
-    } // --- Fin del metodo/clase wireDependencies ---
+    } // --- FIN de metodo/clase wireDependencies ---
 
     
     /**
@@ -791,7 +792,7 @@ public class AppInitializer {
                 manejarErrorFatalInicializacion("[EDT] Error fatal durante la creación de la UI", e);
             }
         });
-    } // --- Fin del metodo/clase initializeApplication ---
+    } // --- FIN de metodo/clase initializeApplication ---
 
     
     private void aplicarConfiguracionAlModelo() {
@@ -839,7 +840,7 @@ public class AppInitializer {
             }
         }
         this.model.setUltimaImagenKeyCarrusel(configuration.getString(ConfigKeys.CARRUSEL_ESTADO_ULTIMA_IMAGEN, ""));
-    } // --- Fin del metodo/clase aplicarConfiguracionAlModelo ---
+    } // --- FIN de metodo/clase aplicarConfiguracionAlModelo ---
 
     private void instalarPreviewers() {
         JList<String> miniaturasList = registry.get("list.miniaturas");
@@ -878,7 +879,7 @@ public class AppInitializer {
         } else {
             logger.warn("WARN: No se pudo instalar ThumbnailPreviewer, 'list.datamode.grid' no encontrada.");
         }
-    } // --- Fin del metodo/clase instalarPreviewers ---
+    } // --- FIN de metodo/clase instalarPreviewers ---
 
     private void configurarCierreVentana() {
         // --- INICIO DE LA MODIFICACIÓN ---
@@ -894,7 +895,7 @@ public class AppInitializer {
                 controller.shutdownApplication();
             }
         });
-    } // --- Fin del metodo/clase configurarCierreVentana ---
+    } // --- FIN de metodo/clase configurarCierreVentana ---
 
     private void sincronizarVisibilidadInicialUI() {
         logger.debug("  -> Sincronizando visibilidad inicial de paneles...");
@@ -918,7 +919,7 @@ public class AppInitializer {
         // El botón de desbordamiento siempre empieza oculto
         this.viewManager.setSpecialButtonVisibleByCommand(
                 AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS, false, true);
-    } // --- Fin del metodo/clase sincronizarVisibilidadInicialUI ---
+    } // --- FIN de metodo/clase sincronizarVisibilidadInicialUI ---
 
     private void cargarDatosIniciales(Runnable onComplete) {
         boolean restaurarUltimaImagen = configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_RESTAURAR_ULTIMA_IMAGEN, true);
@@ -957,7 +958,7 @@ public class AppInitializer {
                 onComplete.run();
             }
         }
-    } // --- Fin del metodo/clase cargarDatosIniciales ---
+    } // --- FIN de metodo/clase cargarDatosIniciales ---
 
     /**
      * Comprueba si existe una sesión de recuperación pendiente y, de ser así,
@@ -1028,7 +1029,7 @@ public class AppInitializer {
         } else {
             logger.debug("  -> No se encontró clave de recuperación. Inicio normal.");
         }
-    } // --- Fin del metodo/clase comprobarYRestaurarSesion ---
+    } // --- FIN de metodo/clase comprobarYRestaurarSesion ---
 
     /**
      * Maneja errores fatales durante la inicialización de la aplicación, mostrando un diálogo de error al usuario
@@ -1058,6 +1059,6 @@ public class AppInitializer {
 
         logger.error("Terminando la aplicación debido a un error fatal de inicialización.");
         System.exit(1);
-    } // --- Fin del metodo/clase manejarErrorFatalInicializacion ---
+    } // --- FIN de metodo/clase manejarErrorFatalInicializacion ---
 
-} // --- Fin del metodo/clase AppInitializer ---
+} // --- FIN de metodo/clase AppInitializer ---

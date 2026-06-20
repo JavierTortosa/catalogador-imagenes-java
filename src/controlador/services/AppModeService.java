@@ -26,6 +26,7 @@ import javax.swing.Action;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.nio.file.Path;
 import java.util.List;
@@ -66,51 +67,51 @@ public class AppModeService {
         this.displayModeManager = displayModeManager;
         this.configAppManager = configAppManager;
         this.statusBarManager = statusBarManager;
-    } // --- Fin del método AppModeService (constructor) ---
+    } // --- FIN de metodo AppModeService (constructor) ---
 
 
     public void setVisorController(VisorController visorController) {
         this.visorController = visorController;
-    } // --- Fin del método setVisorController ---
+    } // --- FIN de metodo setVisorController ---
 
 
     public void setProjectController(ProjectController projectController) {
         this.projectController = projectController;
-    } // --- Fin del método setProjectController ---
+    } // --- FIN de metodo setProjectController ---
 
 
     public void setDataController(DataController dataController) {
         this.dataController = dataController;
-    } // --- Fin del método setDataController ---
+    } // --- FIN de metodo setDataController ---
 
     public void setClientController(ClientController clientController) {
         this.clientController = clientController;
-    } // --- Fin del método setClientController ---
+    } // --- FIN de metodo setClientController ---
 
 
     public void setConfiguration(ConfigurationManager configuration) {
         this.configuration = configuration;
-    } // --- Fin del método setConfiguration ---
+    } // --- FIN de metodo setConfiguration ---
 
 
     public void setRegistry(ComponentRegistry registry) {
         this.registry = registry;
-    } // --- Fin del método setRegistry ---
+    } // --- FIN de metodo setRegistry ---
 
 
     public void setImageListManager(ImageListManager imageListManager) {
         this.imageListManager = imageListManager;
-    } // --- Fin del método setImageListManager ---
+    } // --- FIN de metodo setImageListManager ---
 
 
     public void setActionMap(Map<String, Action> actionMap) {
         this.actionMap = actionMap;
-    } // --- Fin del método setActionMap ---
+    } // --- FIN de metodo setActionMap ---
 
 
     public void setTaggingManager(controlador.managers.TaggingManager taggingManager) {
         this.taggingManager = taggingManager;
-    } // --- Fin del método setTaggingManager ---
+    } // --- FIN de metodo setTaggingManager ---
 
 
     /**
@@ -126,7 +127,7 @@ public class AppModeService {
         };
         viewManager.cambiarAVista("container.workmodes", vistaName);
         logger.debug("[AppModeService] Vista cambiada a: {}", vistaName);
-    } // --- Fin del método cambiarVistaPrincipal ---
+    } // --- FIN de metodo cambiarVistaPrincipal ---
 
 
     /**
@@ -208,7 +209,7 @@ public class AppModeService {
         }
         
         logger.debug("  [GeneralController] Estado de la UI actualizado.");
-    } // --- Fin del método actualizarUiParaModo ---
+    } // --- FIN de metodo actualizarUiParaModo ---
 
     /**
      * Lógica de sincronización de subcarpetas.
@@ -216,7 +217,7 @@ public class AppModeService {
     public void gestionarCargaSubcarpetas(boolean incluir, Runnable postCarga) {
         model.setMostrarSoloCarpetaActual(!incluir);
         if (postCarga != null) postCarga.run();
-    } // --- Fin del método gestionarCargaSubcarpetas ---
+    } // --- FIN de metodo gestionarCargaSubcarpetas ---
 
 
     /**
@@ -229,7 +230,7 @@ public class AppModeService {
         // y asumimos que está correctamente inicializado.
         viewManager.actualizarTituloVentana();
         logger.debug("[AppModeService] Título principal de la ventana actualizado.");
-    } // --- Fin del método actualizarTituloPrincipal ---
+    } // --- FIN de metodo actualizarTituloPrincipal ---
 
 
     /**
@@ -268,7 +269,7 @@ public class AppModeService {
             }
         }
         logger.debug("Botones de modo sincronizados. Activo: {}", comandoModoActivo);
-    } // --- Fin del método sincronizarBotonesModo ---
+    } // --- FIN de metodo sincronizarBotonesModo ---
 
 
     public boolean cambiarModoDeTrabajo(WorkMode modoDestino, WorkMode modoActual) {
@@ -310,7 +311,7 @@ public class AppModeService {
         actualizarTituloPrincipal(); // Llamamos al método que ya creamos antes
         
         return true; // Éxito
-    } // --- Fin del método cambiarModoDeTrabajo ---
+    } // --- FIN de metodo cambiarModoDeTrabajo ---
 
 
 	/**
@@ -380,10 +381,14 @@ public class AppModeService {
 
         
         
-    } // --- Fin del método salirModo ---
+    } // --- FIN de metodo salirModo ---
 
     public void entrarModo(WorkMode modoAlQueSeEntra) {
     	logger.debug("  [AppModeService] Entrando en modo: " + modoAlQueSeEntra);
+
+        // --- REPARENTING: reposicionar el contenedor de visualización compartido ---
+        reparentSharedDisplayContainer(modoAlQueSeEntra);
+
         if (displayModeManager != null) {
             ListContext contextoDestino = model.getCurrentListContext();
             
@@ -487,8 +492,47 @@ public class AppModeService {
                 logger.debug("    -> [EDT-2] Restauración de UI para " + modoAlQueSeEntra + " completada.");
             });
         });
-    } // --- Fin del método entrarModo ---
-    
+    } // --- FIN de metodo entrarModo ---
+
+    /**
+     * Reparenta el contenedor de visualización compartido (container.displaymodes)
+     * al placeholder del modo de trabajo activo. Esto permite que los paneles
+     * ImageDisplayPanel, GridDisplayPanel y PolaroidDisplayPanel sean instancias
+     * únicas reutilizadas en todos los WorkModes.
+     */
+    private void reparentSharedDisplayContainer(WorkMode modoActivo) {
+        if (modoActivo == WorkMode.DATOS || modoActivo == WorkMode.CARROUSEL) return;
+
+        JPanel sharedContainer = registry.get("container.displaymodes");
+        if (sharedContainer == null) {
+            logger.warn("  -> [Reparenting] No se encontró 'container.displaymodes' compartido.");
+            return;
+        }
+
+        String placeholderKey = switch (modoActivo) {
+            case VISUALIZADOR -> "placeholder.display.visualizador";
+            case PROYECTO -> "placeholder.display.proyecto";
+            case CLIENTE -> "placeholder.display.cliente";
+            default -> null;
+        };
+
+        if (placeholderKey == null) return;
+
+        JPanel placeholder = registry.get(placeholderKey);
+        if (placeholder == null) {
+            logger.warn("  -> [Reparenting] No se encontró placeholder '{}'.", placeholderKey);
+            return;
+        }
+
+        if (sharedContainer.getParent() == placeholder) return;
+
+        logger.debug("  -> [Reparenting] Moviendo contenedor compartido a '{}'", placeholderKey);
+        placeholder.add(sharedContainer, BorderLayout.CENTER);
+        placeholder.revalidate();
+        placeholder.repaint();
+    } // --- FIN de metodo reparentSharedDisplayContainer ---
+
+
     public void toggleModoCargaSubcarpetas() {
         // Si el servicio es el que orquesta, el flag de bloqueo debe vivir aquí dentro.
         // Esto evita que el GeneralController tenga variables de estado "sucias".
@@ -502,7 +546,7 @@ public class AppModeService {
         } finally {
             isChangingSubfolderMode = false;
         }
-    } // --- Fin del método toggleModoCargaSubcarpetas ---
+    } // --- FIN de metodo toggleModoCargaSubcarpetas ---
     
     /**
      * Método helper que gestiona el flujo cuando se intenta entrar en modo proyecto
@@ -555,7 +599,7 @@ public class AppModeService {
             logger.debug(" -> El usuario canceló la apertura del proyecto.");
             return false; // Cancelado
         }
-    } // ---FIN de metodo manejarAperturaDeProyectoVacio---
+    } // --- FIN de metodo manejarAperturaDeProyectoVacio---
 
 
 } // --- FIN de clase AppModeService ---

@@ -85,6 +85,12 @@ public class ViewBuilder {
     private Map<controlador.managers.filter.FilterCriterion.SourceType, javax.swing.Icon> typeIcons;
     private javax.swing.Icon deleteIcon;
 
+    // --- Paneles de visualización compartidos (una única instancia para todos los WorkModes) ---
+    private JPanel sharedDisplayModesContainer;
+    private ImageDisplayPanel sharedSingleImagePanel;
+    private GridDisplayPanel sharedGridPanel;
+    private PolaroidDisplayPanel sharedPolaroidPanel;
+
     public ViewBuilder(
             ComponentRegistry registry,
             VisorModel model,
@@ -117,6 +123,49 @@ public class ViewBuilder {
         this.toolbarManager = Objects.requireNonNull(toolbarManager,
                 "ToolbarManager no puede ser null en ViewBuilder.");
     } // --- Fin del método setToolbarManager ---
+
+    /**
+     * Crea los paneles de visualización compartidos (Single, Grid, Polaroid)
+     * que serán reutilizados por todos los WorkModes mediante reparenting.
+     * Se registran con claves ESTÁNDAR (no per-mode).
+     */
+    private void buildSharedDisplayPanels() {
+        logger.debug("  [ViewBuilder] Creando paneles de visualización compartidos...");
+
+        // 1. Crear el contenedor CardLayout compartido
+        sharedDisplayModesContainer = new JPanel(new CardLayout());
+        registry.register("container.displaymodes", sharedDisplayModesContainer);
+
+        // 2. ImageDisplayPanel (Vista única)
+        sharedSingleImagePanel = new ImageDisplayPanel(this.themeManager, this.model);
+        registry.register("panel.display.imagen", sharedSingleImagePanel);
+        registry.register("label.imagenPrincipal", sharedSingleImagePanel.getInternalLabel(), "WHEEL_NAVIGABLE");
+
+        // 3. GridDisplayPanel (Parrilla)
+        ThumbnailPreviewer gridPreviewer = new ThumbnailPreviewer(null, model, themeManager, null, registry);
+        sharedGridPanel = new GridDisplayPanel(this.model, this.gridThumbnailService, this.themeManager,
+                this.iconUtils, gridPreviewer, this.registry);
+        if (this.projectManager != null) {
+            sharedGridPanel.setProjectManager(this.projectManager);
+        }
+        registry.register("panel.display.grid", sharedGridPanel);
+        registry.register("scroll.grid.visualizador", sharedGridPanel.getScrollPane());
+        JList<String> gridList = sharedGridPanel.getGridList();
+        registry.register("list.grid", gridList, "WHEEL_NAVIGABLE");
+
+        // 4. PolaroidDisplayPanel
+        sharedPolaroidPanel = new PolaroidDisplayPanel(this.themeManager, this.model);
+        registry.register("panel.display.polaroid", sharedPolaroidPanel);
+        registry.register("panel.display.polaroid.image", sharedPolaroidPanel.getImagePanel());
+        registry.register("label.polaroid.imagen", sharedPolaroidPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
+
+        // 5. Añadir al CardLayout
+        sharedDisplayModesContainer.add(sharedSingleImagePanel, "VISTA_SINGLE_IMAGE");
+        sharedDisplayModesContainer.add(sharedGridPanel, "VISTA_GRID");
+        sharedDisplayModesContainer.add(sharedPolaroidPanel, "VISTA_POLAROID");
+
+        logger.debug("  [ViewBuilder] Paneles compartidos creados y registrados.");
+    } // --- FIN de metodo buildSharedDisplayPanels ---
 
     /**
      * Crea el marco principal de la aplicación, configurando su estructura general
@@ -199,6 +248,9 @@ public class ViewBuilder {
 
         JPanel bottomStatusBar = createBottomStatusBar();
         mainFrame.add(bottomStatusBar, BorderLayout.SOUTH);
+
+        // --- Crear paneles de visualización COMPARTIDOS (una única instancia) ---
+        buildSharedDisplayPanels();
 
         // --- CardLayout para MODOS DE TRABAJO (WorkModes) ---
         JPanel workModesContainer = new JPanel(new CardLayout());
@@ -587,104 +639,54 @@ public class ViewBuilder {
     } // ---FIN de metodo createLeftSplitComponent---
 
     private JPanel createRightSplitComponent() {
-        // El panel general derecho sigue usando BorderLayout. Contendrá el CardLayout y
-        // los controles inferiores.
         JPanel rightPanel = new JPanel(new BorderLayout());
         registry.register("panel.derecho.visor", rightPanel);
-
         rightPanel.setOpaque(false);
 
-        // 1. Crear el contenedor que usará CardLayout para los DisplayModes.
-        JPanel displayModesContainer = new JPanel(new CardLayout());
-        registry.register("container.displaymodes", displayModesContainer);
-
-        // 2. Crear el panel para la vista SINGLE_IMAGE (el que ya tenías).
-        ImageDisplayPanel singleImageViewPanel = new ImageDisplayPanel(this.themeManager, this.model);
-
-        // --- INICIO AÑADIDO FLECHAS NAVEGACION ---
+        // --- Configurar el panel SINGLE_IMAGE compartido (flechas, foco) ---
         if (this.actionMap != null && this.iconUtils != null) {
             javax.swing.Action prevAction = this.actionMap.get(controlador.commands.AppActionCommands.CMD_NAV_ANTERIOR);
             javax.swing.Action nextAction = this.actionMap
                     .get(controlador.commands.AppActionCommands.CMD_NAV_SIGUIENTE);
             javax.swing.Icon prevIcon = this.iconUtils.getScaledIcon("1002-anterior_48x48.png", 48, 48);
             javax.swing.Icon nextIcon = this.iconUtils.getScaledIcon("1003-siguiente_48x48.png", 48, 48);
-            singleImageViewPanel.setNavigationActions(prevAction, nextAction, prevIcon, nextIcon);
-            singleImageViewPanel.setNavigationArrowsVisible(this.configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_MOSTRAR_FLECHAS, true));
+            sharedSingleImagePanel.setNavigationActions(prevAction, nextAction, prevIcon, nextIcon);
+            sharedSingleImagePanel.setNavigationArrowsVisible(
+                this.configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_MOSTRAR_FLECHAS, true));
         }
-        // --- FIN AÑADIDO FLECHAS NAVEGACION ---
 
-        registry.register("panel.display.imagen", singleImageViewPanel);
-        registry.register("label.imagenPrincipal", singleImageViewPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
-
-        TitledBorder border = BorderFactory.createTitledBorder("");
-        singleImageViewPanel.setBorder(border);
-
-        // --- INICIO DE LA CORRECCIÓN DE FOCO ---
-        // 1. Hacemos que el panel pueda recibir el foco.
-        singleImageViewPanel.setFocusable(true);
-
-        // 2. Creamos un MouseListener para solicitar el foco al hacer clic.
+        sharedSingleImagePanel.setFocusable(true);
         java.awt.event.MouseAdapter focusRequester = new java.awt.event.MouseAdapter() {
             @Override
             public void mousePressed(java.awt.event.MouseEvent e) {
-                singleImageViewPanel.requestFocusInWindow();
+                sharedSingleImagePanel.requestFocusInWindow();
             }
         };
+        sharedSingleImagePanel.addMouseListener(focusRequester);
+        sharedSingleImagePanel.getInternalLabel().addMouseListener(focusRequester);
 
-        // 3. Añadimos el listener TANTO al panel contenedor COMO a su JLabel interno.
-        // Esto asegura que el foco se pida sin importar dónde exactamente se haga clic.
-        singleImageViewPanel.addMouseListener(focusRequester);
-        singleImageViewPanel.getInternalLabel().addMouseListener(focusRequester);
-        // --- FIN DE LA CORRECCIÓN DE FOCO ---
-
-        // 3. Crear una instancia ÚNICA del ThumbnailPreviewer para el grid.
-        // Le pasamos null como JList porque se usará con múltiples listas,
-        // y le pasamos TODAS las dependencias necesarias.
-        ThumbnailPreviewer gridPreviewer = new ThumbnailPreviewer(null, model, themeManager, null, registry);
-        // El 'null' para IViewManager es deliberado, ya que el previsualizador
-        // no necesita esta dependencia para la funcionalidad actual.
-
-        // 4. Crear una instancia del GridDisplayPanel, pasándole AHORA el previewer.
-        GridDisplayPanel gridViewPanel = new GridDisplayPanel(this.model, this.gridThumbnailService, this.themeManager,
-                this.iconUtils, gridPreviewer, this.registry);
-        gridViewPanel.setProjectManager(this.projectManager);
-
-        // --- INICIO DE LA MODIFICACIÓN: Añadir la toolbar de tamaño al grid del
-        // visualizador ---
+        // --- Configurar el GRID compartido (toolbar de tamaño) ---
         if (this.toolbarManager != null) {
-            // 1. Obtenemos solo la toolbar de tamaño.
             JToolBar tamanoToolbar = this.toolbarManager.getToolbar("barra_grid_tamano");
-
-            // 2. La metemos en una lista.
-            java.util.List<JToolBar> toolbarsParaGrid = new java.util.ArrayList<>();
-            if (tamanoToolbar != null)
+            if (tamanoToolbar != null) {
+                java.util.List<JToolBar> toolbarsParaGrid = new java.util.ArrayList<>();
                 toolbarsParaGrid.add(tamanoToolbar);
-
-            // 3. Pasamos la lista (con un solo elemento) al panel del grid.
-            if (!toolbarsParaGrid.isEmpty()) {
-                gridViewPanel.setToolbars(toolbarsParaGrid);
+                sharedGridPanel.setToolbars(toolbarsParaGrid);
             }
         }
-        // --- FIN DE LA MODIFICACIÓN ---
 
-        registry.register("panel.display.grid", gridViewPanel);
-        JList<String> gridList = gridViewPanel.getGridList();
-        registry.register("list.grid", gridList, "WHEEL_NAVIGABLE");
-        logger.debug("<<<<< DEBUG: 'GridDisplayPanel' y su 'list.grid' interna han sido registrados. >>>>>");
-
-        PolaroidDisplayPanel polaroidViewPanel = new PolaroidDisplayPanel(this.themeManager, this.model);
-        ImageDisplayPanel polaroidImagePanel = polaroidViewPanel.getImagePanel();
-
+        // --- Configurar el POLAROID compartido (flechas, foco) ---
+        ImageDisplayPanel polaroidImagePanel = sharedPolaroidPanel.getImagePanel();
         if (this.actionMap != null && this.iconUtils != null) {
             javax.swing.Action prevAction = this.actionMap.get(controlador.commands.AppActionCommands.CMD_NAV_ANTERIOR);
             javax.swing.Action nextAction = this.actionMap
                     .get(controlador.commands.AppActionCommands.CMD_NAV_SIGUIENTE);
             javax.swing.Icon prevIcon = this.iconUtils.getScaledIcon("1002-anterior_48x48.png", 48, 48);
             javax.swing.Icon nextIcon = this.iconUtils.getScaledIcon("1003-siguiente_48x48.png", 48, 48);
-            polaroidViewPanel.setNavigationActions(prevAction, nextAction, prevIcon, nextIcon);
-            polaroidViewPanel.setNavigationArrowsVisible(this.configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_MOSTRAR_FLECHAS, true));
+            sharedPolaroidPanel.setNavigationActions(prevAction, nextAction, prevIcon, nextIcon);
+            sharedPolaroidPanel.setNavigationArrowsVisible(
+                this.configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_MOSTRAR_FLECHAS, true));
         }
-
         polaroidImagePanel.setFocusable(true);
         java.awt.event.MouseAdapter polaroidFocusRequester = new java.awt.event.MouseAdapter() {
             @Override
@@ -695,17 +697,12 @@ public class ViewBuilder {
         polaroidImagePanel.addMouseListener(polaroidFocusRequester);
         polaroidImagePanel.getInternalLabel().addMouseListener(polaroidFocusRequester);
 
-        registry.register("panel.display.polaroid", polaroidViewPanel);
-        registry.register("panel.display.polaroid.image", polaroidImagePanel);
-        registry.register("label.polaroid.imagen", polaroidViewPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
+        // --- Placeholder para el contenedor compartido (soporte para reparenting) ---
+        JPanel displayPlaceholder = new JPanel(new BorderLayout());
+        registry.register("placeholder.display.visualizador", displayPlaceholder);
+        displayPlaceholder.add(sharedDisplayModesContainer, BorderLayout.CENTER);
 
-        // 5. Añadir todas las vistas al contenedor CardLayout con las claves correctas.
-        displayModesContainer.add(singleImageViewPanel, "VISTA_SINGLE_IMAGE");
-        displayModesContainer.add(gridViewPanel, "VISTA_GRID");
-        displayModesContainer.add(polaroidViewPanel, "VISTA_POLAROID");
-
-        // 6. Añadir el contenedor CardLayout al centro del panel derecho.
-        rightPanel.add(displayModesContainer, BorderLayout.CENTER);
+        rightPanel.add(displayPlaceholder, BorderLayout.CENTER);
 
         JToolBar imageControlsToolbar = createBackgroundControlPanel();
         if (imageControlsToolbar != null) {

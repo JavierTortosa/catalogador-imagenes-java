@@ -1638,25 +1638,15 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
         String panelKey;
         boolean isPolaroid = (model.getCurrentDisplayMode() == VisorModel.DisplayMode.POLAROID);
         switch (model.getCurrentWorkMode()) {
-            case VISUALIZADOR:
-                panelKey = isPolaroid ? "panel.display.polaroid.image" : "panel.display.imagen";
-                break;
-            case PROYECTO:
-                panelKey = isPolaroid ? "panel.proyecto.display.polaroid.image" : "panel.proyecto.display";
-                break;
             case CARROUSEL:
                 panelKey = "panel.display.carousel";
                 break;
             case DATOS:
                 panelKey = isPolaroid ? "panel.datamode.display.polaroid.image" : "panel.datamode.display";
                 break;
-            case CLIENTE:
-                panelKey = isPolaroid ? "panel.cliente.display" : "panel.cliente.display";
-                break;
             default:
-                logger.error("ERROR [ViewManager.getActiveDisplayPanel]: WorkMode no reconocido: "
-                        + model.getCurrentWorkMode());
-                return null;
+                panelKey = isPolaroid ? "panel.display.polaroid.image" : "panel.display.imagen";
+                break;
         }
 
         // 3. Obtener y devolver el panel desde el registro usando la clave determinada.

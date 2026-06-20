@@ -71,7 +71,7 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
      */
     public GlobalInputManager() {
         // Constructor vacío. La inicialización se hace a través de setters y el método initialize.
-    } // --- Fin del método GestorEntradaGlobal (constructor) ---
+    } // --- FIN de metodo GestorEntradaGlobal (constructor) ---
 
     // --- Setters para Inyección de Dependencias ---
     public void setModel(VisorModel model) { this.model = Objects.requireNonNull(model); }
@@ -150,7 +150,7 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
                 }
             }
         });
-    } // --- Fin del método initialize ---
+    } // --- FIN de metodo initialize ---
     
     /**
      * Configura los listeners globales de la aplicación (rueda del ratón, paneo)
@@ -171,6 +171,8 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
             Component etiquetaPolaroidProyecto = registry.get("label.proyecto.polaroid.imagen");
             Component etiquetaPolaroidDatos = registry.get("label.datamode.polaroid.imagen");
             Component etiquetaImagenDatos = registry.get("label.datamode.imagen");
+            Component etiquetaCliente = registry.get("label.cliente.imagen");
+            Component etiquetaPolaroidCliente = registry.get("label.cliente.polaroid.imagen");
             Component sourceComponent = e.getComponent();
 
             // Comprobamos si el componente que originó el evento es uno de nuestros JLabels.
@@ -181,7 +183,9 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
                                     (etiquetaImagenDatos != null && sourceComponent == etiquetaImagenDatos) ||
                                     (etiquetaPolaroid != null && sourceComponent == etiquetaPolaroid) ||
                                     (etiquetaPolaroidProyecto != null && sourceComponent == etiquetaPolaroidProyecto) ||
-                                    (etiquetaPolaroidDatos != null && sourceComponent == etiquetaPolaroidDatos);
+                                    (etiquetaPolaroidDatos != null && sourceComponent == etiquetaPolaroidDatos) ||
+                                    (etiquetaCliente != null && sourceComponent == etiquetaCliente) ||
+                                    (etiquetaPolaroidCliente != null && sourceComponent == etiquetaPolaroidCliente);
 
             JTable tablaExportacion = registry.get("tabla.exportacion");
             boolean sobreTablaExportacion = (tablaExportacion != null && SwingUtilities.isDescendingFrom(sourceComponent, tablaExportacion));
@@ -332,6 +336,8 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
         Component etiquetaPolaroidProyecto = registry.get("label.proyecto.polaroid.imagen");
         Component etiquetaPolaroidDatos = registry.get("label.datamode.polaroid.imagen");
         Component etiquetaImagenDatos = registry.get("label.datamode.imagen");
+        Component etiquetaCliente = registry.get("label.cliente.imagen");
+        Component etiquetaPolaroidCliente = registry.get("label.cliente.polaroid.imagen");
 
         if (etiquetaVisor != null) {
             etiquetaVisor.addMouseListener(paneoMouseAdapter);
@@ -361,9 +367,17 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
             etiquetaImagenDatos.addMouseListener(paneoMouseAdapter);
             etiquetaImagenDatos.addMouseMotionListener(paneoMouseMotionAdapter);
         }
+        if (etiquetaCliente != null) {
+            etiquetaCliente.addMouseListener(paneoMouseAdapter);
+            etiquetaCliente.addMouseMotionListener(paneoMouseMotionAdapter);
+        }
+        if (etiquetaPolaroidCliente != null) {
+            etiquetaPolaroidCliente.addMouseListener(paneoMouseAdapter);
+            etiquetaPolaroidCliente.addMouseMotionListener(paneoMouseMotionAdapter);
+        }
 
         logger.debug("[GestorEntradaGlobal] Listeners configurados.");
-    } // --- Fin del método configurarListeners ---
+    } // --- FIN de metodo configurarListeners ---
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent e) {
@@ -461,7 +475,7 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
         }
         
         return false;
-    } // --- Fin del método dispatchKeyEvent ---
+    } // --- FIN de metodo dispatchKeyEvent ---
 
     @Override
     public void propertyChange(java.beans.PropertyChangeEvent evt) {
@@ -496,12 +510,12 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
                 }
             }
         }
-    } // --- FIN del metodo propertyChange ---
+    } // --- FIN de metodo propertyChange ---
     
     private void navegarSiguienteOAnterior(int wheelRotation) {
         if (wheelRotation < 0) modoController.navegarAnterior();
         else modoController.navegarSiguiente();
-    } // --- FIN del metodo navegarSiguienteOAnterior ---
+    } // --- FIN de metodo navegarSiguienteOAnterior ---
 
     private void registerFocusablePanel(String registryKey) {
         javax.swing.JComponent panel = registry.get(registryKey);
@@ -512,4 +526,4 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
         }
     } // --- FIN de metodo registerFocusablePanel ---
 
-} // --- Fin de la clase GestorEntradaGlobal ---
+} // --- FIN de clase GlobalInputManager ---

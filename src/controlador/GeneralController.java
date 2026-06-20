@@ -46,6 +46,8 @@ import controlador.services.ZoomPanService;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
+import modelo.proyecto.ProjectModel;
+import modelo.proyecto.SelectionState;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import vista.components.Direction;
@@ -101,7 +103,7 @@ public class GeneralController
      */
     public GeneralController() {
         // Constructor vacío. La inicialización se delega al método initialize.
-    } // --- Fin del método GeneralController (constructor) ---
+    } // --- FIN de metodo GeneralController (constructor) ---
 
     public void initialize() {
 
@@ -224,68 +226,68 @@ public class GeneralController
                 logger.debug("[GeneralController] Registrado como oyente de estado del proyecto.");
             }
         });
-    } // --- Fin del método initialize ---
+    } // --- FIN de metodo initialize ---
 
     // --- Setters para Inyección de Dependencias ---
 
     public void setModel(VisorModel model) {
         this.model = Objects.requireNonNull(model, "VisorModel no puede ser null en GeneralController");
-    } // --- Fin del método setModel ---
+    } // --- FIN de metodo setModel ---
 
     public void setVisorController(VisorController visorController) {
         this.visorController = Objects.requireNonNull(visorController,
                 "VisorController no puede ser null en GeneralController");
-    } // --- Fin del método setVisorController ---
+    } // --- FIN de metodo setVisorController ---
 
     public void setProjectController(ProjectController projectController) {
         this.projectController = Objects.requireNonNull(projectController,
                 "ProjectController no puede ser null en GeneralController");
-    } // --- Fin del método setProjectController ---
+    } // --- FIN de metodo setProjectController ---
 
     public void setViewManager(ViewManager viewManager) {
         this.viewManager = Objects.requireNonNull(viewManager, "ViewManager no puede ser null en GeneralController");
-    } // --- Fin del método setViewManager ---
+    } // --- FIN de metodo setViewManager ---
 
     public void setActionMap(Map<String, Action> actionMap) {
         this.actionMap = Objects.requireNonNull(actionMap, "ActionMap no puede ser null en GeneralController");
-    } // --- Fin del método setActionMap ---
+    } // --- FIN de metodo setActionMap ---
 
     public VisorController getVisorController() {
         return this.visorController;
-    } // --- Fin del método getVisorController ---
+    } // --- FIN de metodo getVisorController ---
 
     public DataController getDataController() {
         return this.dataController;
-    } // --- Fin del método getDataController ---
+    } // --- FIN de metodo getDataController ---
 
     public ProjectController getProjectController() {
         return this.projectController;
-    } // --- Fin del método getProjectController ---
+    } // --- FIN de metodo getProjectController ---
     
     
 
     public void setStatusBarManager(InfobarStatusManager statusBarManager) {
         this.statusBarManager = Objects.requireNonNull(statusBarManager,
                 "InfobarStatusManager no puede ser null en GeneralController");
-    } // --- Fin del método setStatusBarManager ---
+    } // --- FIN de metodo setStatusBarManager ---
 
     public void setConfigApplicationManager(ConfigApplicationManager configAppManager) {
         this.configAppManager = Objects.requireNonNull(configAppManager,
                 "ConfigApplicationManager no puede ser null en GeneralController");
-    } // --- Fin del método setConfigApplicationManager ---
+    } // --- FIN de metodo setConfigApplicationManager ---
 
     public void setToolbarManager(ToolbarManager toolbarManager) {
         this.toolbarManager = Objects.requireNonNull(toolbarManager,
                 "ToolbarManager no puede ser null en GeneralController");
-    } // --- Fin del método setToolbarManager ---
+    } // --- FIN de metodo setToolbarManager ---
 
     public void setRegistry(ComponentRegistry registry) { // <-- NUEVO SETTER
         this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null en GeneralController");
-    } // --- Fin del método setRegistry ---
+    } // --- FIN de metodo setRegistry ---
 
     public FilterManager getFilterManager() {
         return this.filterManager;
-    } // --- Fin del método getFilterManager ---
+    } // --- FIN de metodo getFilterManager ---
 
     // ******************************************************************************************
     // Fin Setters
@@ -302,31 +304,51 @@ public class GeneralController
         } else {
             logger.error("[GeneralController] AppModeService es nulo. No se pudo actualizar el título de la ventana.");
         }
-    } // ---FIN de metodo actualizarTituloVentana---
+    }  // --- FIN de metodo actualizarTituloVentana---
 
     public void handleNewProject() {
-        projectLifecycleService.handleNewProject();
-    }
+        if (model.getCurrentWorkMode() == WorkMode.CLIENTE) {
+            clientController.solicitarNuevoPrjcl();
+        } else {
+            projectLifecycleService.handleNewProject();
+        }
+    } // --- FIN de metodo handleNewProject ---
 
     public void handleOpenProject() {
-        projectLifecycleService.handleOpenProject();
-    }
+        if (model.getCurrentWorkMode() == WorkMode.CLIENTE) {
+            clientController.manejarAbrirPrjcl();
+        } else {
+            projectLifecycleService.handleOpenProject();
+        }
+    } // --- FIN de metodo handleOpenProject ---
 
     public void handleSaveProject() {
-        projectLifecycleService.handleSaveProject();
-    }
+        if (model.getCurrentWorkMode() == WorkMode.CLIENTE) {
+            clientController.solicitarGuardarPrjcl();
+        } else {
+            projectLifecycleService.handleSaveProject();
+        }
+    } // --- FIN de metodo handleSaveProject ---
 
     public void handleSaveProjectAs() {
-        projectLifecycleService.handleSaveProjectAs();
-    }
+        if (model.getCurrentWorkMode() == WorkMode.CLIENTE) {
+            clientController.solicitarGuardarPrjclComo();
+        } else {
+            projectLifecycleService.handleSaveProjectAs();
+        }
+    } // --- FIN de metodo handleSaveProjectAs ---
 
     public void handleDeleteProject() {
-        projectLifecycleService.handleDeleteProject();
-    }
+        if (model.getCurrentWorkMode() == WorkMode.CLIENTE) {
+            logger.warn("Eliminar proyecto no soportado en modo Cliente.");
+        } else {
+            projectLifecycleService.handleDeleteProject();
+        }
+    } // --- FIN de metodo handleDeleteProject ---
 
     public void handleApplicationShutdown() {
         projectLifecycleService.handleApplicationShutdown();
-    }
+    } // --- FIN de metodo handleApplicationShutdown ---
 
     /**
      * Orquesta el guardado explícito del archivo de configuración.
@@ -357,7 +379,7 @@ public class GeneralController
                 statusBarManager.mostrarMensajeTemporal("Error al guardar configuración.", 3000);
             }
         }
-    } // ---FIN de metodo handleSaveConfiguration---
+    }  // --- FIN de metodo handleSaveConfiguration---
 
     /**
      * Orquesta la transición entre los diferentes modos de trabajo de la
@@ -426,7 +448,7 @@ public class GeneralController
         actualizarTituloVentana();
 
         logger.debug("--- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a {} ---\n", modoDestino);
-    } // --- Fin del método cambiarModoDeTrabajo ---
+    } // --- FIN de metodo cambiarModoDeTrabajo ---
 
     /**
      * Comprueba si existe una sesión de recuperación pendiente y gestiona la decisión del usuario.
@@ -485,19 +507,19 @@ public class GeneralController
             logger.debug("  -> El usuario canceló el diálogo de recuperación.");
             return false;
         }
-    } // --- Fin del método verificarYGestionarRecuperacion ---
+    } // --- FIN de metodo verificarYGestionarRecuperacion ---
 
     private void salirModo(WorkMode modo) {
     	appModeService.salirModo(modo);
-    }
+    } // --- FIN de metodo salirModo ---
 
     private void entrarModo(WorkMode modoAlQueSeEntra) {
     	appModeService.entrarModo(modoAlQueSeEntra);
-    }
+    } // --- FIN de metodo entrarModo ---
     
     private void actualizarEstadoUiParaModo(WorkMode modoActual) {
         appModeService.actualizarUiModo(modoActual, this.actionMap);
-    }
+    } // --- FIN de metodo actualizarEstadoUiParaModo ---
 
     @Override
     public void onProjectStateChanged(boolean hasUnsavedChanges) {
@@ -506,7 +528,7 @@ public class GeneralController
         logger.debug(
                 "[GeneralController] Notificación recibida: el estado del proyecto ha cambiado. Actualizando título.");
         actualizarTituloVentana();
-    } // ---FIN de metodo onProjectStateChanged---
+    }  // --- FIN de metodo onProjectStateChanged---
 
     /**
      * Orquesta la transición para entrar o salir del modo de pantalla completa.
@@ -538,7 +560,7 @@ public class GeneralController
                 fullScreenAction.putValue(Action.SELECTED_KEY, nuevoEstado);
             }
         }
-    } // --- Fin del método solicitarToggleFullScreen ---
+    } // --- FIN de metodo solicitarToggleFullScreen ---
 
     // ***********************************************************************************************************************
     // INICIO SINCRONIZACION
@@ -546,7 +568,7 @@ public class GeneralController
     
     public void sincronizarEstadoBotonesDeModo() {
         appModeService.sincronizarBotonesModo(this.actionMap);
-    }
+    } // --- FIN de metodo sincronizarEstadoBotonesDeModo ---
 
     /**
      * Orquesta una sincronización completa del estado lógico de todas las Actions
@@ -610,7 +632,7 @@ public class GeneralController
                 ((SetFilterTypeAction) action).sincronizarEstadoConControlador();
             }
         }
-    } // --- Fin del método sincronizarAccionesDeTipoFiltro ---
+    } // --- FIN de metodo sincronizarAccionesDeTipoFiltro ---
 
     // **************************************************************************************************************************
     // FIN SINCRONIZACION
@@ -624,11 +646,11 @@ public class GeneralController
      */
     public void panImageToEdge(Direction direction) {
         zoomPanService.panToEdge(direction);
-    }
+    } // --- FIN de metodo panImageToEdge ---
 
     public void panImageIncrementally(Direction direction, int amount) {
         zoomPanService.panIncrementally(direction, amount);
-    }
+    } // --- FIN de metodo panImageIncrementally ---
 
     /**
      * Actúa como un router para la acción de marcar/desmarcar una imagen.
@@ -654,10 +676,27 @@ public class GeneralController
             if (dataController != null) {
                 dataController.toggleMarcaImagenesSeleccionadas();
             }
+        } else if (model.getCurrentWorkMode() == WorkMode.CLIENTE) {
+            if (clientController != null) {
+                // En modo Cliente el toggle alterna entre selección y descarte del cliente
+                ProjectModel project = clientController.getProjectManager() != null
+                        ? clientController.getProjectManager().getCurrentProject() : null;
+                String currentKey = model.getSelectedImageKey();
+                if (project != null && currentKey != null) {
+                    SelectionState currentState = project.getClientSelection() != null
+                            ? project.getClientSelection().getImages().get(currentKey) : null;
+                    if (currentState == SelectionState.SELECTED
+                            || (currentState == null && project.getSelectedImages().containsKey(currentKey))) {
+                        clientController.moverADescartesCliente();
+                    } else {
+                        clientController.restaurarDeDescartesCliente();
+                    }
+                }
+            }
         } else {
             visorController.solicitudAlternarMarcaDeImagenActual();
         }
-    } // --- Fin del método solicitudAlternarMarcaImagenActual ---
+    } // --- FIN de metodo solicitudAlternarMarcaImagenActual ---
 
     public void solicitarEntrarEnModoProyecto() {
         logger.debug("[GeneralController] Solicitud para entrar en modo proyecto.");
@@ -674,7 +713,7 @@ public class GeneralController
         // --------------------------------------------------------
 
         cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
-    } // --- Fin del método solicitarEntrarEnModoProyecto ---
+    } // --- FIN de metodo solicitarEntrarEnModoProyecto ---
 
     // **************************************************************************************
     // IMPLEMENTACION INTERFAZ IModoController
@@ -689,7 +728,7 @@ public class GeneralController
             // Sirve tanto para VISUALIZADOR como para CARROUSEL
             visorController.aumentarTamanoMiniaturas();
         }
-    } // ---FIN de metodo aumentarTamanoMiniaturas---
+    }  // --- FIN de metodo aumentarTamanoMiniaturas---
 
     @Override
     public void reducirTamanoMiniaturas() {
@@ -701,7 +740,7 @@ public class GeneralController
             // Sirve tanto para VISUALIZADOR como para CARROUSEL
             visorController.reducirTamanoMiniaturas();
         }
-    } // ---FIN de metodo reducirTamanoMiniaturas---
+    }  // --- FIN de metodo reducirTamanoMiniaturas---
 
     /**
      * Delega una solicitud de refresco al controlador del modo de trabajo activo.
@@ -737,20 +776,20 @@ public class GeneralController
         }
         // --- FIN DE LA MODIFICACIÓN ---
 
-    } // ---FIN del metodo solicitarRefrescoDelModoActivo ---
+    }  // --- FIN de solicitarRefrescoDelModoActivo ---
 
     public void solicitarAumentoTamanoMiniaturas() {
         logger.debug("[GeneralController] Enrutando solicitud para aumentar tamaño de miniaturas.");
         // Llama al método de la interfaz IModoController.
         // El método de abajo se encargará de delegar al controlador correcto.
         aumentarTamanoMiniaturas();
-    } // ---FIN de metodo solicitarAumentoTamanoMiniaturas---
+    }  // --- FIN de metodo solicitarAumentoTamanoMiniaturas---
 
     public void solicitarReduccionTamanoMiniaturas() {
         logger.debug("[GeneralController] Enrutando solicitud para reducir tamaño de miniaturas.");
         // Llama al método de la interfaz IModoController.
         reducirTamanoMiniaturas();
-    } // ---FIN de metodo solicitarReduccionTamanoMiniaturas---
+    }  // --- FIN de metodo solicitarReduccionTamanoMiniaturas---
 
     // *************************************************************************************************************************
     // *************************************************************************
@@ -771,7 +810,7 @@ public class GeneralController
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
             dataController.navegarSiguiente();
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CLIENTE) {
-            if (clientController != null) clientController.navegarSiguiente();
+            visorController.navegarSiguiente();
         } else {
             visorController.navegarSiguiente();
         }
@@ -785,7 +824,7 @@ public class GeneralController
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
             dataController.navegarAnterior();
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CLIENTE) {
-            if (clientController != null) clientController.navegarAnterior();
+            visorController.navegarAnterior();
         } else {
             visorController.navegarAnterior();
         }
@@ -799,7 +838,7 @@ public class GeneralController
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
             dataController.navegarPrimero();
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CLIENTE) {
-            if (clientController != null) clientController.navegarPrimero();
+            visorController.navegarPrimero();
         } else {
             visorController.navegarPrimero();
         }
@@ -813,7 +852,7 @@ public class GeneralController
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
             dataController.navegarUltimo();
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CLIENTE) {
-            if (clientController != null) clientController.navegarUltimo();
+            visorController.navegarUltimo();
         } else {
             visorController.navegarUltimo();
         }
@@ -827,7 +866,7 @@ public class GeneralController
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
             dataController.navegarBloqueAnterior();
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CLIENTE) {
-            if (clientController != null) clientController.navegarBloqueAnterior();
+            visorController.navegarBloqueAnterior();
         } else {
             visorController.navegarBloqueAnterior();
         }
@@ -841,7 +880,7 @@ public class GeneralController
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
             dataController.navegarBloqueSiguiente();
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CLIENTE) {
-            if (clientController != null) clientController.navegarBloqueSiguiente();
+            visorController.navegarBloqueSiguiente();
         } else {
             visorController.navegarBloqueSiguiente();
         }
@@ -853,16 +892,17 @@ public class GeneralController
             visorController.aplicarZoomConRueda(e);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.aplicarZoomConRueda(e);
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CLIENTE) {
+            visorController.aplicarZoomConRueda(e);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CARROUSEL) {
             visorController.aplicarZoomConRueda(e);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
             visorController.aplicarZoomConRueda(e);
         }
 
-        // log [GeneralController] Delegando aplicarZoomConRueda
         logger.debug("[GeneralController] Delegando aplicarZoomConRueda a " + model.getCurrentWorkMode());
 
-    }// --- FIN del metodo aplicarZoomConRueda ---
+    } // --- FIN de metodo aplicarZoomConRueda ---
 
     @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
     public void aplicarPan(int deltaX, int deltaY) {
@@ -872,16 +912,17 @@ public class GeneralController
             visorController.aplicarPan(deltaX, deltaY);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.aplicarPan(deltaX, deltaY);
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CLIENTE) {
+            visorController.aplicarPan(deltaX, deltaY);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CARROUSEL) {
             visorController.aplicarPan(deltaX, deltaY);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
             visorController.aplicarPan(deltaX, deltaY);
         }
 
-        // log [GeneralController] Delegando aplicarPan
         logger.debug("[GeneralController] Delegando aplicarPan a " + model.getCurrentWorkMode());
 
-    }// --- FIN del metodo aplicarPan ---
+    } // --- FIN de metodo aplicarPan ---
 
     @Override
     public void iniciarPaneo(MouseEvent e) {
@@ -891,6 +932,8 @@ public class GeneralController
             visorController.iniciarPaneo(e);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.iniciarPaneo(e);
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CLIENTE) {
+            visorController.iniciarPaneo(e);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CARROUSEL) {
             visorController.iniciarPaneo(e);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
@@ -934,7 +977,7 @@ public class GeneralController
         actualizarBordeDeSincronizacion(model.isSyncVisualizadorCarrusel());
 
         logger.debug("[GeneralController] Notificación completada.");
-    } // --- Fin del método notificarAccionesSensiblesAlContexto ---
+    } // --- FIN de metodo notificarAccionesSensiblesAlContexto ---
 
     /**
      * Orquesta el cambio de modo de carga de subcarpetas para el modo Visualizador.
@@ -1049,7 +1092,7 @@ public class GeneralController
 
         logger.debug("  -> Sincronizados controles de subcarpetas. Estado actual (incluir): "
                 + estadoActualIncluyeSubcarpetas);
-    } // --- Fin del método sincronizarControlesDeSubcarpetas ---
+    } // --- FIN de metodo sincronizarControlesDeSubcarpetas ---
 
     /**
      * Punto de entrada principal para cargar una nueva carpeta sin una preselección
@@ -1062,7 +1105,7 @@ public class GeneralController
     public void solicitarCargaDesdeNuevaRaiz(Path nuevaCarpeta) {
 
         solicitarCargaDesdeNuevaRaiz(nuevaCarpeta, null);
-    } // --- Fin del método solicitarCargaDesdeNuevaRaiz (simple) ---
+    } // --- FIN de metodo solicitarCargaDesdeNuevaRaiz (simple) ---
 
     public void solicitarCargaDesdeNuevaRaiz(Path nuevaCarpeta, String claveASeleccionar) {
         logger.debug("--->>> [GeneralController] Solicitud para cargar desde nueva raíz: " + nuevaCarpeta);
@@ -1120,7 +1163,7 @@ public class GeneralController
 
         this.imageListManager.cargarListaImagenes(claveASeleccionar, accionPostCarga);
 
-    } // --- Fin del método solicitarCargaDesdeNuevaRaiz (con preselección) ---
+    } // --- FIN de metodo solicitarCargaDesdeNuevaRaiz (con preselección) ---
 
     // **********************************************************************************
     // FIN IMPLEMENTACION INTERFAZ IModoController
@@ -1130,19 +1173,19 @@ public class GeneralController
 
     public ToolbarManager getToolbarManager() {
         return this.toolbarManager;
-    }
+    } // --- FIN de metodo getToolbarManager ---
 
     public VisorModel getModel() {
         return this.model;
-    }
+    } // --- FIN de metodo getModel ---
 
     public void setDisplayModeManager(DisplayModeManager displayModeManager) {
         this.displayModeManager = Objects.requireNonNull(displayModeManager, "DisplayModeManager no puede ser nulo");
-    }
+    } // --- FIN de metodo setDisplayModeManager ---
 
     public void setConfiguration(ConfigurationManager configuration) {
         this.configuration = Objects.requireNonNull(configuration, "ConfigurationManager no puede ser nulo");
-    }
+    } // --- FIN de metodo setConfiguration ---
 
     // ******************************************************************************************************************
     // FIN GETTERS
@@ -1216,79 +1259,51 @@ public class GeneralController
 
     public void resortFileListAndSyncButton() {
         searchSortService.resortFileListAndSyncButton();
-    }
+    } // --- FIN de metodo resortFileListAndSyncButton ---
 
     public void sincronizarBotonDeOrdenacion() {
         searchSortService.sincronizarBotonDeOrdenacion();
-    }
+    } // --- FIN de metodo sincronizarBotonDeOrdenacion ---
 
     public void buscarSiguienteCoincidencia() {
         searchSortService.buscarSiguienteCoincidencia();
-    }
+    } // --- FIN de metodo buscarSiguienteCoincidencia ---
 
-    /**
-     * Es llamado por la ToggleLiveFilterAction. Delega el cambio de estado
-     * al FilterManager y luego sincroniza la UI de los controles relacionados.
-     * 
-     * @param isSelected El nuevo estado del modo filtro.
-     */
     public void onLiveFilterStateChanged(boolean isSelected) {
         searchSortService.onLiveFilterStateChanged(isSelected);
-    }
+    } // --- FIN de metodo onLiveFilterStateChanged ---
 
-    /**
-     * Es llamado por la AddFilterAction. Orquesta la adición de un nuevo filtro.
-     * 
-     * @param source La fuente del filtro (FILENAME o FOLDER_PATH).
-     * @param type   El tipo de filtro (CONTAINS o DOES_NOT_CONTAIN).
-     */
     public void solicitarAnadirFiltro(FilterSource source, FilterType type) {
         filterService.añadirFiltro(filterManager.getFiltroActivoSource(), type);
-    }
+    } // --- FIN de metodo solicitarAnadirFiltro ---
 
     public void solicitarAnadirFiltroSilencioso(String texto, FilterSource source, FilterType type) {
         filterService.añadirFiltroSilencioso(texto, source, type);
-    }
+    } // --- FIN de metodo solicitarAnadirFiltroSilencioso ---
 
     public void solicitarEliminarFiltroSeleccionado() {
         filterService.eliminarFiltroSeleccionado();
-    }
+    } // --- FIN de metodo solicitarEliminarFiltroSeleccionado ---
 
     public void solicitarLimpiarTodosLosFiltros() {
         filterService.limpiarTodosLosFiltros();
-    }
+    } // --- FIN de metodo solicitarLimpiarTodosLosFiltros ---
 
-    /**
-     * NUEVO MÉTODO HELPER.
-     * Cumple la "Regla del Reset Total": si el filtro rápido ("Tornado") está
-     * activo, lo desactiva y limpia su JTextField asociado.
-     */
     public void limpiarEstadoFiltroRapidoSiActivo() {
         searchSortService.limpiarEstadoFiltroRapidoSiActivo();
-    }
+    } // --- FIN de metodo limpiarEstadoFiltroRapidoSiActivo ---
 
-    /**
-     * Cambia el tipo de filtro que se usará al añadir un nuevo criterio.
-     * Es llamado por las Actions de los JToggleButtons de tipo de filtro.
-     * 
-     * @param nuevoSource El nuevo FilterSource a establecer como activo.
-     */
     public void solicitarCambioTipoFiltro(FilterSource nuevoSource) {
         filterService.cambiarTipoFiltro(nuevoSource);
-    }
+    } // --- FIN de metodo solicitarCambioTipoFiltro ---
 
-    /**
-     * Orquesta la conversión del filtro rápido (Tornado) en un filtro persistente.
-     * Este método es llamado por la Action del botón "hacer persistente".
-     * AÑADE el filtro del Tornado a los filtros persistentes existentes.
-     */
     public void solicitarPersistenciaDeFiltroRapido() {
         searchSortService.solicitarPersistenciaDeFiltroRapido();
-    }
+    } // --- FIN de metodo solicitarPersistenciaDeFiltroRapido ---
 
     private void sincronizarEstadoControlesTornado() {
         searchSortService.sincronizarEstadoControlesTornado();
-    }
+    } // --- FIN de metodo sincronizarEstadoControlesTornado ---
 
     public void handleFilterListClick(java.awt.event.MouseEvent e,
             controlador.managers.filter.FilterCriterion criterion) {
@@ -1331,7 +1346,7 @@ public class GeneralController
         // No hay más interacciones en la fila. Clicar en el tipo o el valor ya no hace
         // nada.
 
-    } // ---FIN de metodo handleFilterListClick---
+    }  // --- FIN de metodo handleFilterListClick---
 
     public void solicitarAnadirFiltro() {
         limpiarEstadoFiltroRapidoSiActivo();
@@ -1365,39 +1380,39 @@ public class GeneralController
                 }
             }
         }
-    } // ---FIN de metodo solicitarAnadirFiltro---
+    }  // --- FIN de metodo solicitarAnadirFiltro---
 
     public JPopupMenu crearMenuContextualParaArbol() {
         return menuPopupManager.crearMenuContextualParaArbol();
-    }
+    } // --- FIN de metodo crearMenuContextualParaArbol ---
 
     public void solicitarAbrirCarpetaDesdeArbol() {
         navigationService.abrirCarpetaDesdeArbol();
-    }
+    } // --- FIN de metodo solicitarAbrirCarpetaDesdeArbol ---
 
     public void solicitarEntrarEnCarpetaDesdeArbol() {
         navigationService.entrarEnCarpetaDesdeArbol();
-    }
+    } // --- FIN de metodo solicitarEntrarEnCarpetaDesdeArbol ---
 
     public void solicitarNavegarCarpetaAnterior() {
         navigationService.navegarCarpetaAnterior();
-    }
+    } // --- FIN de metodo solicitarNavegarCarpetaAnterior ---
 
     public void solicitarNavegarCarpetaSiguiente() {
         navigationService.navegarCarpetaSiguiente();
-    }
+    } // --- FIN de metodo solicitarNavegarCarpetaSiguiente ---
 
     public void solicitarNavegarCarpetaRaiz() {
         navigationService.navegarRaiz();
-    }
+    } // --- FIN de metodo solicitarNavegarCarpetaRaiz ---
 
     public void solicitarSalirDeSubcarpeta() {
         navigationService.salirDeSubcarpeta();
-    }
+    } // --- FIN de metodo solicitarSalirDeSubcarpeta ---
 
     public void setFolderNavigationManager(FolderNavigationManager folderNavManager) {
         this.folderNavManager = Objects.requireNonNull(folderNavManager);
-    }
+    } // --- FIN de metodo setFolderNavigationManager ---
 
     /**
      * Comanda a la VisorView para que actualice su borde visual de sincronización.
@@ -1409,7 +1424,7 @@ public class GeneralController
         if (visorController != null && visorController.getView() != null) {
             visorController.getView().actualizarBordeDeSincronizacion(activado);
         }
-    } // --- Fin del método actualizarBordeDeSincronizacion ---
+    } // --- FIN de metodo actualizarBordeDeSincronizacion ---
 
     public void setFolderTreeManager(FolderTreeManager folderTreeManager) {
         this.folderTreeManager = Objects.requireNonNull(folderTreeManager);
@@ -1418,22 +1433,22 @@ public class GeneralController
     public void setFilterManager(FilterManager filterManager) {
         this.filterManager = Objects.requireNonNull(filterManager,
                 "FilterManager no puede ser null en GeneralController");
-    } // --- Fin del método setFilterManager ---
+    } // --- FIN de metodo setFilterManager ---
 
     public ComponentRegistry getRegistry() {
         return this.registry;
-    }
+    } // --- FIN de metodo getRegistry ---
 
     public FilterSource getFiltroActivoSource() {
         return filterManager.getFiltroActivoSource();
-    } // --- Fin del método getFiltroActivoSource ---
+    } // --- FIN de metodo getFiltroActivoSource ---
 
     @Override
     public void solicitarRefresco() {
         // Esta implementación del método de la interfaz simplemente llama
         // a nuestro método "router" más descriptivo.
         solicitarRefrescoDelModoActivo();
-    }// FIN del metodo solicitarRefresco ---
+    } // --- FIN de metodo solicitarRefresco ---
 
     /**
      * Implementación de la interfaz MasterListChangeListener.
@@ -1470,54 +1485,54 @@ public class GeneralController
         } else {
             logger.error("ERROR [onMasterListChanged]: No se encontró el JList del grid para el modo {}.", currentMode);
         }
-    } // --- Fin del método onMasterListChanged ---
+    } // --- FIN de metodo onMasterListChanged ---
 
     public void setImageListManager(ImageListManager imageListManager) {
         this.imageListManager = imageListManager;
-    }
+    } // --- FIN de metodo setImageListManager ---
 
     public void setTypeIconsMap(
             Map<controlador.managers.filter.FilterCriterion.SourceType, javax.swing.Icon> typeIconsMap) {
         this.typeIconsMap = typeIconsMap;
-    }
+    } // --- FIN de metodo setTypeIconsMap ---
 
     public void setClientController(ClientController clientController) {
         this.clientController = java.util.Objects.requireNonNull(clientController, "ClientController no puede ser null");
-    }
+    } // --- FIN de metodo setClientController ---
 
     public ClientController getClientController() {
         return clientController;
-    }
+    } // --- FIN de metodo getClientController ---
 
     public void setDataController(DataController dataController) {
         this.dataController = dataController;
-    }
+    } // --- FIN de metodo setDataController ---
 
     public void setFilterService(FilterService filterService) {
         this.filterService = filterService;
-    }
+    } // --- FIN de metodo setFilterService ---
 
     public void setNavigationService(NavigationService navigationService) {
         this.navigationService = navigationService;
-    }
+    } // --- FIN de metodo setNavigationService ---
     
     public void setProjectLifecycleService(ProjectLifecycleService s) { 
     	this.projectLifecycleService = s; 
-    }
+    } // --- FIN de metodo setProjectLifecycleService ---
     
     public void setSearchSortService(SearchSortService s) { 
     	this.searchSortService = s; 
-    }
+    } // --- FIN de metodo setSearchSortService ---
     
     public void setZoomPanService(ZoomPanService s) { 
     	this.zoomPanService = s; 
-    }
+    } // --- FIN de metodo setZoomPanService ---
     
     public void setAppModeService(AppModeService s) { 
     	this.appModeService = s; 
-    }
+    } // --- FIN de metodo setAppModeService ---
     
     public void setMenuPopupManager(MenuPopupManager menuPopupManager) {
         this.menuPopupManager = menuPopupManager;
-    }
-} // --- Fin de la clase GeneralController ---
+    } // --- FIN de metodo setMenuPopupManager ---
+} // --- FIN de clase GeneralController ---

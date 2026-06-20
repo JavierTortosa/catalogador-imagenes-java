@@ -783,7 +783,16 @@ public class UIDefinitionService {
         );
 
         // --- BARRA DE BOTONES DEL MODO CLIENTE ---
-        java.util.List<ToolbarButtonDefinition> botonesCliente = new java.util.ArrayList<>();
+        java.util.List<ToolbarComponentDefinition> botonesCliente = new java.util.ArrayList<>();
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_NUEVO, "7102-nuevo_proyecto_48x48.png",
+                "Nuevo archivo .prjcl de cliente", "cliente"));
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_ABRIR, "7103-abrir_proyecto_48x48.png",
+                "Abrir archivo .prjcl del cliente", "cliente"));
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR, "7104-guardar_proyecto_48x48.png",
+                "Guardar archivo .prjcl", "cliente"));
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR_COMO, "7105-guardar_proyecto_como_48x48.png",
+                "Guardar archivo .prjcl como...", "cliente"));
+        botonesCliente.add(new SeparatorDefinition());
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_ABRIR_PRJCL, "8004-edicion_48x48.png",
                 "Abrir archivo .prjcl del cliente", "cliente"));
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB, "8004-edicion_48x48.png",
@@ -1048,7 +1057,7 @@ public class UIDefinitionService {
 
                 // Flechas de navegacion
                 new ToolbarDefinition("navegacion", "Navegación", 10,
-                        EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.CARROUSEL),
+                        EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.CARROUSEL, WorkMode.CLIENTE),
                         List.copyOf(botonesNavegacion), ToolbarAlignment.LEFT)
 
                 // Grupo Centro
@@ -1077,7 +1086,7 @@ public class UIDefinitionService {
 
                 // Botones de Refresco, Localizar, Borrar
                 ,
-                new ToolbarDefinition("control", "Utilidades", 60, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO),
+                new ToolbarDefinition("control", "Utilidades", 60, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.CLIENTE),
                         List.copyOf(botonesUtils), ToolbarAlignment.RIGHT)
 
                 // Botones de gestion de Proyecto

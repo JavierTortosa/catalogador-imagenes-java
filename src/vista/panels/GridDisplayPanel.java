@@ -33,6 +33,7 @@ public class GridDisplayPanel extends JPanel {
     private JList<String> gridList;
     private JPanel toolbarContainer;
     private GridCellRenderer renderer;
+    private JScrollPane scrollPane;
     
     /**
      * Constructor para el MODO VISUALIZADOR.
@@ -48,7 +49,7 @@ public class GridDisplayPanel extends JPanel {
     ) {
         // Llama al constructor principal pasando 'null' para el projectManager.
         this(model, gridThumbnailService, themeManager, iconUtils, gridPreviewer, null, null, registry);
-    } // ---FIN de constructor GridDisplayPanel ---
+    } // --- FIN de constructor GridDisplayPanel ---
 
     /**
      * Constructor principal y extendido para el MODO PROYECTO.
@@ -96,19 +97,12 @@ public class GridDisplayPanel extends JPanel {
         gridList.setFixedCellWidth(this.renderer.getCellSize().width);
         gridList.setFixedCellHeight(this.renderer.getCellSize().height);
 
-        JScrollPane scrollPane = new JScrollPane(gridList);
-        
-        
-        if (projectManager == null) {
-            registry.register("scroll.grid.visualizador", scrollPane);
-        } else {
-            registry.register("scroll.grid.proyecto", scrollPane);
-        }
-        
-        scrollPane.getVerticalScrollBar().setUnitIncrement(20);
+        this.scrollPane = new JScrollPane(gridList);
+
+        this.scrollPane.getVerticalScrollBar().setUnitIncrement(20);
         
         add(scrollPane, BorderLayout.CENTER);
-    } // ---FIN de Constructor GridDisplayPanel ---
+    } // --- FIN de Constructor GridDisplayPanel ---
 
     public void setProjectManager(IProjectManager pm) {
         if (this.renderer != null) {
@@ -118,7 +112,11 @@ public class GridDisplayPanel extends JPanel {
 
     public JList<String> getGridList() {
         return gridList;
-    } // ---FIN de metodo getGridList ---
+    } // --- FIN de metodo getGridList ---
+
+    public JScrollPane getScrollPane() {
+        return scrollPane;
+    } // --- FIN de metodo getScrollPane ---
 
     public void setGridCellSize(int nuevoAncho, int nuevoAlto) {
         if (gridList != null) {
@@ -128,7 +126,7 @@ public class GridDisplayPanel extends JPanel {
             gridList.repaint();
             logger.debug("Tamaño de celda del grid actualizado a: {}x{}", nuevoAncho, nuevoAlto);
         }
-    } // ---FIN de metodo setGridCellSize ---
+    } // --- FIN de metodo setGridCellSize ---
     
     
     public void setToolbars(List<JToolBar> toolbars) {
@@ -151,10 +149,10 @@ public class GridDisplayPanel extends JPanel {
         
         toolbarContainer.revalidate();
         toolbarContainer.repaint();
-    } // ---FIN de metodo setToolbars---
+    } // --- FIN de metodo setToolbars---
     
     
     
     
     
-} // --- FIN de clase ---
+} // --- FIN de clase GridDisplayPanel ---

@@ -267,63 +267,41 @@ public class ProjectBuilder implements ThemeChangeListener {
     } // --- FIN de metodo createDiscardsPanel ---
 
     private JPanel createDisplayModesContainer() {
-        JPanel displayModesContainer = new JPanel(new CardLayout());
-        registry.register("container.displaymodes.proyecto", displayModesContainer);
-        displayModesContainer.setMinimumSize(new java.awt.Dimension(200, 200));
+        JPanel displayPlaceholder = new JPanel(new CardLayout());
+        registry.register("container.displaymodes.proyecto", displayPlaceholder);
+        registry.register("placeholder.display.proyecto", displayPlaceholder);
+        displayPlaceholder.setMinimumSize(new java.awt.Dimension(200, 200));
 
-        // --- Visor de Imagen Única ---
-        ImageDisplayPanel singleImageViewPanel = new ImageDisplayPanel(this.themeManager, this.model);
+        // Registrar claves proyecto que apuntan a los paneles COMPARTIDOS
+        // (accesibles vía registry porque ViewBuilder ya los creó)
+        ImageDisplayPanel sharedImagePanel = registry.get("panel.display.imagen");
+        GridDisplayPanel sharedGridPanel = registry.get("panel.display.grid");
+        PolaroidDisplayPanel sharedPolaroidPanel = registry.get("panel.display.polaroid");
 
-        // --- INICIO AÑADIDO FLECHAS NAVEGACION ---
-        // Obtenemos las acciones y el IconUtils a través del VisorController
-        if (this.generalController != null && this.generalController.getVisorController() != null) {
-            javax.swing.Action prevAction = this.generalController.getVisorController().getActionMap()
-                    .get(AppActionCommands.CMD_NAV_ANTERIOR);
-            javax.swing.Action nextAction = this.generalController.getVisorController().getActionMap()
-                    .get(AppActionCommands.CMD_NAV_SIGUIENTE);
-            IconUtils iconUtils = this.generalController.getVisorController().getIconUtils();
-
-            if (iconUtils != null) {
-                javax.swing.Icon prevIcon = iconUtils.getScaledIcon("1002-anterior_48x48.png", 48, 48);
-                javax.swing.Icon nextIcon = iconUtils.getScaledIcon("1003-siguiente_48x48.png", 48, 48);
-                singleImageViewPanel.setNavigationActions(prevAction, nextAction, prevIcon, nextIcon);
-                singleImageViewPanel.setNavigationArrowsVisible(true);
-            }
+        if (sharedImagePanel != null) {
+            registry.register("panel.proyecto.display", sharedImagePanel);
         }
-        // --- FIN AÑADIDO FLECHAS NAVEGACION ---
+        if (sharedGridPanel != null) {
+            registry.register("panel.display.grid.proyecto", sharedGridPanel);
+            registry.register("scroll.grid.proyecto", sharedGridPanel.getScrollPane());
+            JList<String> gridList = sharedGridPanel.getGridList();
+            registry.register("list.grid.proyecto", gridList, "WHEEL_NAVIGABLE");
+        }
+        if (sharedPolaroidPanel != null) {
+            registry.register("panel.proyecto.display.polaroid", sharedPolaroidPanel);
+            registry.register("panel.proyecto.display.polaroid.image", sharedPolaroidPanel.getImagePanel());
+            registry.register("label.proyecto.polaroid.imagen", sharedPolaroidPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
+        }
 
-        registry.register("panel.proyecto.display", singleImageViewPanel);
-        registry.register("label.proyecto.imagen", singleImageViewPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
-        singleImageViewPanel.setBorder(BorderFactory.createTitledBorder(""));
-
-        // --- INICIO DE LA CORRECCIÓN DE FOCO PARA MODO PROYECTO ---
-        singleImageViewPanel.setFocusable(true);
-
-        java.awt.event.MouseAdapter focusRequester = new java.awt.event.MouseAdapter() {
-            @Override
-            public void mousePressed(java.awt.event.MouseEvent e) {
-                singleImageViewPanel.requestFocusInWindow();
-            }
-        };
-
-        singleImageViewPanel.addMouseListener(focusRequester);
-        singleImageViewPanel.getInternalLabel().addMouseListener(focusRequester);
-        // --- FIN DE LA CORRECCIÓN DE FOCO ---
-
-        // Creamos el listener una sola vez para reutilizarlo
+        // --- Context Menu para el modo proyecto (compartido en los paneles) ---
         java.awt.event.MouseAdapter sharedContextMenuListener = new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent e) {
-                if (e.isPopupTrigger())
-                    showProjectContextMenu(e);
+                if (e.isPopupTrigger()) showProjectContextMenu(e);
             }
-
             public void mouseReleased(java.awt.event.MouseEvent e) {
-                if (e.isPopupTrigger())
-                    showProjectContextMenu(e);
+                if (e.isPopupTrigger()) showProjectContextMenu(e);
             }
-
             private void showProjectContextMenu(java.awt.event.MouseEvent e) {
-                // Si el clic es en una JList, seleccionamos el item bajo el cursor solo si no está ya en la selección
                 if (e.getComponent() instanceof JList) {
                     JList<?> list = (JList<?>) e.getComponent();
                     int row = list.locationToIndex(e.getPoint());
@@ -331,7 +309,6 @@ public class ProjectBuilder implements ThemeChangeListener {
                         list.setSelectedIndex(row);
                     }
                 }
-
                 if (projectController != null) {
                     JPopupMenu menu = projectController.crearMenuContextualVisorManualmente();
                     if (menu != null && menu.getComponentCount() > 0) {
@@ -341,86 +318,19 @@ public class ProjectBuilder implements ThemeChangeListener {
             }
         };
 
-        singleImageViewPanel.addMouseListener(sharedContextMenuListener);
-        singleImageViewPanel.getInternalLabel().addMouseListener(sharedContextMenuListener);
-
-        // --- Visor de Grid ---
-        ThumbnailPreviewer projectGridPreviewer = new ThumbnailPreviewer(null, this.model, this.themeManager, null,
-                this.registry);
-        GridDisplayPanel gridViewPanel = new GridDisplayPanel(this.model,
-                generalController.getVisorController().getServicioMiniaturas(), this.themeManager,
-                generalController.getVisorController().getIconUtils(), projectGridPreviewer,
-                projectController.getProjectManager(), this.projectController, this.registry);
-
-        // --- INICIO DE LA MODIFICACIÓN: Componer toolbars para el grid de proyecto ---
-        if (this.toolbarManager != null) {
-            // 1. Obtenemos las dos toolbars que necesita este grid.
-            JToolBar proyectoToolbar = this.toolbarManager.getToolbar("barra_grid_proyecto");
-            JToolBar tamanoToolbar = this.toolbarManager.getToolbar("barra_grid_tamano");
-
-            // 2. Las añadimos a una lista.
-            java.util.List<JToolBar> toolbarsParaGrid = new java.util.ArrayList<>();
-            if (proyectoToolbar != null)
-                toolbarsParaGrid.add(proyectoToolbar);
-            if (tamanoToolbar != null)
-                toolbarsParaGrid.add(tamanoToolbar);
-
-            // 3. Pasamos la lista completa al panel del grid usando el nuevo método.
-            if (!toolbarsParaGrid.isEmpty()) {
-                gridViewPanel.setToolbars(toolbarsParaGrid);
-            }
+        if (sharedImagePanel != null) {
+            sharedImagePanel.addMouseListener(sharedContextMenuListener);
+            sharedImagePanel.getInternalLabel().addMouseListener(sharedContextMenuListener);
         }
-        // --- FIN DE LA MODIFICACIÓN ---
-
-        registry.register("panel.display.grid.proyecto", gridViewPanel);
-        JList<String> gridList = gridViewPanel.getGridList(); // Obtenemos la JList interna
-        registry.register("list.grid.proyecto", gridList, "WHEEL_NAVIGABLE");
-
-        // --- LA CLAVE: AÑADIMOS EL MISMO LISTENER AL GRID ---
-        gridList.addMouseListener(sharedContextMenuListener);
-
-        // --- Visor Polaroid ---
-        PolaroidDisplayPanel polaroidViewPanel = new PolaroidDisplayPanel(this.themeManager, this.model);
-        ImageDisplayPanel polaroidImagePanel = polaroidViewPanel.getImagePanel();
-
-        if (this.generalController != null && this.generalController.getVisorController() != null) {
-            javax.swing.Action prevAction = this.generalController.getVisorController().getActionMap()
-                    .get(AppActionCommands.CMD_NAV_ANTERIOR);
-            javax.swing.Action nextAction = this.generalController.getVisorController().getActionMap()
-                    .get(AppActionCommands.CMD_NAV_SIGUIENTE);
-            IconUtils iconUtils = this.generalController.getVisorController().getIconUtils();
-
-            if (iconUtils != null) {
-                javax.swing.Icon prevIcon = iconUtils.getScaledIcon("1002-anterior_48x48.png", 48, 48);
-                javax.swing.Icon nextIcon = iconUtils.getScaledIcon("1003-siguiente_48x48.png", 48, 48);
-                polaroidViewPanel.setNavigationActions(prevAction, nextAction, prevIcon, nextIcon);
-                polaroidViewPanel.setNavigationArrowsVisible(true);
-            }
+        if (sharedPolaroidPanel != null) {
+            sharedPolaroidPanel.getImagePanel().addMouseListener(sharedContextMenuListener);
+            sharedPolaroidPanel.getInternalLabel().addMouseListener(sharedContextMenuListener);
+        }
+        if (sharedGridPanel != null) {
+            sharedGridPanel.getGridList().addMouseListener(sharedContextMenuListener);
         }
 
-        polaroidImagePanel.setFocusable(true);
-        java.awt.event.MouseAdapter polaroidFocusRequester = new java.awt.event.MouseAdapter() {
-            @Override
-            public void mousePressed(java.awt.event.MouseEvent e) {
-                polaroidImagePanel.requestFocusInWindow();
-            }
-        };
-        polaroidImagePanel.addMouseListener(polaroidFocusRequester);
-        polaroidImagePanel.getInternalLabel().addMouseListener(polaroidFocusRequester);
-
-        polaroidImagePanel.addMouseListener(sharedContextMenuListener);
-        polaroidImagePanel.getInternalLabel().addMouseListener(sharedContextMenuListener);
-
-        registry.register("panel.proyecto.display.polaroid", polaroidViewPanel);
-        registry.register("panel.proyecto.display.polaroid.image", polaroidImagePanel);
-        registry.register("label.proyecto.polaroid.imagen", polaroidViewPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
-
-        // Ensamblaje final
-        displayModesContainer.add(singleImageViewPanel, "VISTA_SINGLE_IMAGE");
-        displayModesContainer.add(gridViewPanel, "VISTA_GRID");
-        displayModesContainer.add(polaroidViewPanel, "VISTA_POLAROID");
-
-        return displayModesContainer;
+        return displayPlaceholder;
     } // --- FIN de metodo createDisplayModesContainer ---
 
     private JPanel createRightToolsPanel() {

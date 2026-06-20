@@ -22,9 +22,13 @@ import servicios.cliente.ClientSyncService.SyncReport;
 import servicios.cliente.WebCatalogExporter;
 
 import javax.swing.DefaultListModel;
+import javax.swing.JFileChooser;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+
+import controlador.managers.interfaces.IProjectManager;
 
 /**
  * Controlador principal para el Modo Cliente.
@@ -68,6 +72,10 @@ public class ClientController implements IModoController {
     public void setProjectManager(ProjectManager projectManager) {
         this.projectManager = projectManager;
     } // --- FIN del metodo setProjectManager ---
+
+    public ProjectManager getProjectManager() {
+        return projectManager;
+    } // --- FIN del metodo getProjectManager ---
 
     public void setValidationService(ValidationService validationService) {
         this.validationService = validationService;
@@ -215,7 +223,7 @@ public class ClientController implements IModoController {
                 }
             }
         }
-    } // --- Fin del metodo refrescarListasCliente ---
+    } // --- FIN del metodo refrescarListasCliente ---
 
     /**
      * Mueve el elemento seleccionado actualmente en la vista de cliente a Descartes.
@@ -269,6 +277,87 @@ public class ClientController implements IModoController {
             activarVistaCliente();
         }
     } // --- FIN de metodo cargarPrjcl ---
+
+    /**
+     * Crea un nuevo archivo .prjcl (borra la selección de cliente actual).
+     */
+    public void solicitarNuevoPrjcl() {
+        logger.info("[ClientController] Nuevo archivo .prjcl...");
+        ProjectModel project = projectManager != null ? projectManager.getCurrentProject() : null;
+        if (project == null) {
+            logger.warn("[ClientController] No hay proyecto activo.");
+            return;
+        }
+        project.getClientSelection().getImages().clear();
+        projectManager.notificarModificacion();
+        activarVistaCliente();
+    } // --- FIN de metodo solicitarNuevoPrjcl ---
+
+    /**
+     * Abre un archivo .prjcl mediante JFileChooser.
+     */
+    public void manejarAbrirPrjcl() {
+        logger.info("[ClientController] Abrir archivo .prjcl...");
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Abrir archivo de cliente (.prjcl)");
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+                "Archivos de Cliente (*.prjcl)", "prjcl"));
+        Path dirInicial = projectManager != null
+                ? projectManager.getCarpetaBaseProyectos()
+                : Path.of(System.getProperty("user.home"));
+        fileChooser.setCurrentDirectory(dirInicial.toFile());
+
+        int result = fileChooser.showOpenDialog(visorController != null ? visorController.getView() : null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            try {
+                cargarPrjcl(fileChooser.getSelectedFile().toPath());
+            } catch (ProyectoIOException e) {
+                logger.error("Error al abrir .prjcl", e);
+                JOptionPane.showMessageDialog(visorController != null ? visorController.getView() : null,
+                        e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    } // --- FIN de metodo manejarAbrirPrjcl ---
+
+    /**
+     * Guarda la selección de cliente en el archivo .prjcl activo (o pide nombre).
+     */
+    public void solicitarGuardarPrjcl() {
+        IProjectManager pm = projectManager;
+        if (pm == null) return;
+        if (pm.getArchivoProyectoActivo() == null) {
+            solicitarGuardarPrjclComo();
+        } else {
+            pm.guardarAArchivo();
+            logger.info("[ClientController] Proyecto de cliente guardado.");
+        }
+    } // --- FIN de metodo solicitarGuardarPrjcl ---
+
+    /**
+     * Guarda la selección de cliente en un nuevo archivo .prjcl.
+     */
+    public void solicitarGuardarPrjclComo() {
+        logger.info("[ClientController] Guardar archivo .prjcl como...");
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Guardar archivo de cliente (.prjcl)");
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+                "Archivos de Cliente (*.prjcl)", "prjcl"));
+        Path dirInicial = projectManager != null
+                ? projectManager.getCarpetaBaseProyectos()
+                : Path.of(System.getProperty("user.home"));
+        fileChooser.setCurrentDirectory(dirInicial.toFile());
+
+        int result = fileChooser.showSaveDialog(visorController != null ? visorController.getView() : null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            Path archivo = fileChooser.getSelectedFile().toPath();
+            if (!archivo.getFileName().toString().toLowerCase().endsWith(".prjcl")) {
+                archivo = archivo.resolveSibling(archivo.getFileName() + ".prjcl");
+            }
+            if (projectManager != null) {
+                projectManager.guardarProyectoComo(archivo);
+            }
+        }
+    } // --- FIN de metodo solicitarGuardarPrjclComo ---
 
     /**
      * Exporta el catálogo web para enviar al cliente.
@@ -325,61 +414,61 @@ public class ClientController implements IModoController {
     @Override
     public void navegarSiguiente() {
         // Implementación futura
-    }
+    } // --- FIN de metodo navegarSiguiente ---
 
     @Override
     public void navegarAnterior() {
         // Implementación futura
-    }
+    } // --- FIN de metodo navegarAnterior ---
 
     @Override
     public void navegarPrimero() {
         // Implementación futura
-    }
+    } // --- FIN de metodo navegarPrimero ---
 
     @Override
     public void navegarUltimo() {
         // Implementación futura
-    }
+    } // --- FIN de metodo navegarUltimo ---
 
     @Override
     public void navegarBloqueAnterior() {
         // Implementación futura
-    }
+    } // --- FIN de metodo navegarBloqueAnterior ---
 
     @Override
     public void navegarBloqueSiguiente() {
         // Implementación futura
-    }
+    } // --- FIN de metodo navegarBloqueSiguiente ---
 
     @Override
     public void aplicarZoomConRueda(MouseWheelEvent e) {
         // Implementación futura
-    }
+    } // --- FIN de metodo aplicarZoomConRueda ---
 
     @Override
     public void aplicarPan(int deltaX, int deltaY) {
         // Implementación futura
-    }
+    } // --- FIN de metodo aplicarPan ---
 
     @Override
     public void iniciarPaneo(MouseEvent e) {
         // Implementación futura
-    }
+    } // --- FIN de metodo iniciarPaneo ---
 
     @Override
     public void solicitarRefresco() {
         // Implementación futura
-    }
+    } // --- FIN de metodo solicitarRefresco ---
 
     @Override
     public void aumentarTamanoMiniaturas() {
         // Implementación futura
-    }
+    } // --- FIN de metodo aumentarTamanoMiniaturas ---
 
     @Override
     public void reducirTamanoMiniaturas() {
         // Implementación futura
-    }
+    } // --- FIN de metodo reducirTamanoMiniaturas ---
 
 } // --- FIN de clase ClientController ---

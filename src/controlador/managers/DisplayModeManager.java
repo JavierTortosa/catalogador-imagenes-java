@@ -54,7 +54,7 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
     
     public DisplayModeManager() {
         logger.info("Iniciando DisplayModeManager");
-    } // end of constructor
+    } // --- FIN de constructor
 
     public void initializeListeners() {
         // --- Listener para el grid del MODO VISUALIZADOR ---
@@ -93,7 +93,7 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
         if (model != null) {
             model.addMasterListChangeListener(this);
         }
-    } // end of initializeListeners
+    } // --- FIN de initializeListeners
 
     public void switchToDisplayMode(DisplayMode newMode) {
         // Eliminamos el early return (if current == newMode return) para garantizar 
@@ -105,13 +105,11 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
         
         
         
-        String containerKey = switch (model.getCurrentWorkMode()) {
-            case PROYECTO -> "container.displaymodes.proyecto";
-            case DATOS -> "container.displaymodes.datos";
-            case CLIENTE -> "container.displaymodes.cliente";
-            default -> "container.displaymodes";
-        };
-                            
+        // El contenedor compartido (container.displaymodes) se reparenta según el WorkMode activo.
+        // Excepto DATOS que tiene su propio contenedor independiente.
+        String containerKey = model.getCurrentWorkMode() == WorkMode.DATOS
+                ? "container.displaymodes.datos"
+                : "container.displaymodes";
         logger.debug("  -> Actuando sobre el contenedor CardLayout: {}", containerKey);
 
         JPanel container = registry.get(containerKey);
@@ -215,7 +213,7 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
         }
         container.revalidate();
         container.repaint();
-    } // end of switchToDisplayMode
+    } // --- FIN de switchToDisplayMode
     
     public void poblarGridConModelo(DefaultListModel<String> modelToShow) {
         if (modelToShow == null) {
@@ -269,7 +267,7 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
                 isSyncingFromManager = false;
             }
         });
-    } // end of sincronizarSeleccionGrid
+    } // --- FIN de sincronizarSeleccionGrid
 
     private void sincronizarBotonesDeModo() {
         if (actionMap == null) return;
@@ -278,11 +276,11 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
                 ((controlador.actions.displaymode.SwitchDisplayModeAction) action).updateSelectedState(model);
             }
         }
-    } // end of sincronizarBotonesDeModo
+    } // --- FIN de sincronizarBotonesDeModo
     
     public void sincronizarEstadoBotonesDisplayMode() {
         sincronizarBotonesDeModo();
-    } // end of sincronizarEstadoBotonesDisplayMode
+    } // --- FIN de sincronizarEstadoBotonesDisplayMode
 
     @Override
     public void onThemeChanged(Tema nuevoTema) {
@@ -296,7 +294,7 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
             gridListProy.setBackground(nuevoTema.colorFondoSecundario());
             gridListProy.repaint();
         }
-    } // end of onThemeChanged
+    } // --- FIN de onThemeChanged
     
     @Override
     public void onMasterListChanged(DefaultListModel<String> newMasterList, Object source) {
@@ -317,7 +315,7 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
             // La lista ha cambiado, refrescamos el panel de info por si el idx/total ha cambiado
             actualizarPanelPolaroidActivo();
         }
-    } // end of onMasterListChanged
+    } // --- FIN de onMasterListChanged
     
     @Override
     public void onMasterSelectionChanged(int newMasterIndex, Object source) {
@@ -347,7 +345,7 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
             logger.debug("[DisplayModeManager] Selección cambiada en modo POLAROID. Actualizando panel.");
             actualizarPanelPolaroidActivo();
         }
-    } // end of onMasterSelectionChanged
+    } // --- FIN de onMasterSelectionChanged
     
     private JList<String> getActiveGridList() {
         if (model == null || registry == null) return null;
@@ -355,7 +353,7 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
         if (model.getCurrentWorkMode() == WorkMode.DATOS) return registry.get("list.datamode.grid");
         if (model.getCurrentWorkMode() == WorkMode.CLIENTE) return registry.get("list.grid.cliente");
         return registry.get("list.grid");
-    } // end of getActiveGridList
+    } // --- FIN de getActiveGridList
 
     private void actualizarPanelPolaroidActivo() {
         if (model == null || registry == null) return;
@@ -380,7 +378,7 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
         if (polaroidPanel != null) {
             polaroidPanel.actualizarInformacionDesdeModelo();
         }
-    } // end of actualizarPanelPolaroidActivo
+    } // --- FIN de actualizarPanelPolaroidActivo
 
     // --- Setters para Inyección de Dependencias (RESTAURADOS Y COMPLETOS) ---
     public void setModel(VisorModel model) { this.model = model; }
@@ -394,5 +392,5 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
     public void setToolbarManager(controlador.managers.ToolbarManager toolbarManager) { this.toolbarManager = toolbarManager; }
 
 
-} // end of class DisplayModeManager
+} // --- FIN de clase DisplayModeManager
 
