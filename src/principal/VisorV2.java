@@ -44,13 +44,15 @@ public class VisorV2 {
 
     // GENERAL
     
+    // FIXME añadir F1 para que muestre el panel de informacion
+    // FIXME añadir ctrl + 1-5 para activar el modo visor, proyecto, cliente, datos, carrousel
+    
     
     // VISUALIZADOR
     
     // TODO HACER SALTO DE CARPETA. Cuando estamos viendo una carpeta que vemos que no nos cuadra, poder saltar todas las imagenes de esa carpeta
     // TODO CTRL + SHIFT DEBE ACTIVAR EL MODO PANEO Y DESACTIVARLO CUANDO SE DEJA DE PULSAR
     
-
     
     // PROYECTO
     
@@ -73,9 +75,7 @@ public class VisorV2 {
     
     // CONFIGURACION
     // FIXME en general. los textbox de excluir carpeta y omitir directorios deberia tener el boton de seleccionar carpeta que abra el selector de carpetas
-    
     // FIXME en apariencia|personalizar tema: si customizamos un tema y vamos a salir nos tiene que avisar que el tema no se ha guardado y que la proxima vez que iniciemos la aplicacion lo hara con el tema actual
-    
     
     
     // CARROUSEL

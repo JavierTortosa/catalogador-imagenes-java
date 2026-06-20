@@ -36,6 +36,9 @@ public class ProjectManager implements IProjectManager {
 	
     private static final String SEPARADOR_ETIQUETA_LEGACY = "||";
 
+    public static final String EXTENSION_PRJ = ".prj";
+    public static final String EXTENSION_PRJCL = ".prjcl";
+
     private ConfigurationManager configManager;
 
     // --- CAMPOS PARA MULTIPROYECTO ---
@@ -360,6 +363,16 @@ public class ProjectManager implements IProjectManager {
             throw new ProyectoIOException(errorMsg);
         }
 
+        // --- Protección de extensión: rechazar .prjcl en modo proyecto normal ---
+        String fileNameLC = rutaArchivo.getFileName().toString().toLowerCase();
+        if (fileNameLC.endsWith(EXTENSION_PRJCL)) {
+            String errorMsg = "El archivo '" + rutaArchivo.getFileName()
+                    + "' es un archivo de proyecto de cliente (.prjcl).\n"
+                    + "Usa el Modo Cliente (Ctrl+3) para abrir este tipo de archivos.";
+            logger.warn(errorMsg);
+            throw new ProyectoIOException(errorMsg);
+        }
+
         cargarDesdeArchivo(rutaArchivo);
         this.lastSavedProjectState = deepCopyProjectModel(this.currentProject); 
         this.archivoProyectoActivo = rutaArchivo;
@@ -502,10 +515,10 @@ public class ProjectManager implements IProjectManager {
         if (this.archivoProyectoActivo != null) {
             Path projFileNamePath = this.archivoProyectoActivo.getFileName();
             String fileName = (projFileNamePath != null) ? projFileNamePath.toString() : this.archivoProyectoActivo.toString();
-            if (fileName.toLowerCase().endsWith(".prj")) {
+            if (fileName.toLowerCase().endsWith(EXTENSION_PRJ)) {
                 return fileName;
             }
-            return fileName + ".prj"; // Aseguramos que tenga la extensión por consistencia
+            return fileName + EXTENSION_PRJ; // Aseguramos que tenga la extensión por consistencia
         }
         
         // --- INICIO DE LA MODIFICACIÓN (FALLBACK INTELIGENTE) ---
@@ -513,8 +526,8 @@ public class ProjectManager implements IProjectManager {
         // (porque viene de un archivo de recuperación), usamos ese nombre.
         if (this.currentProject != null && this.currentProject.getProjectName() != null && !this.currentProject.getProjectName().equals("Proyecto Temporal")) {
             String projectNameFromModel = this.currentProject.getProjectName();
-            if (!projectNameFromModel.toLowerCase().endsWith(".prj")) {
-                return projectNameFromModel + ".prj";
+            if (!projectNameFromModel.toLowerCase().endsWith(EXTENSION_PRJ)) {
+                return projectNameFromModel + EXTENSION_PRJ;
             }
             return projectNameFromModel;
         }

@@ -171,6 +171,112 @@ Finalización	(No aplica)											"Cerrar y Sincronizar"→ Actualiza el .prj.
 
 *******************************************************************************************************************************************************
 *******************************************************************************************************************************************************
+
+Implementación del Modo Cliente (Fase 2)
+Habiendo superado la Fase 1 sin inconvenientes, este plan detalla los pasos a seguir para completar la Fase 2: Lógica de Negocio y Control. Esta fase es el "cerebro" del Modo Cliente e incluye la extracción de la validación, la creación del controlador específico y el servicio de sincronización.
+
+User Review Required
+Por favor, revisa esta propuesta arquitectónica para la Fase 2. Si estás de acuerdo, procederé con la creación y extracción de estas clases.
+
+Proposed Changes
+1. Extracción de Lógica de Validación (ValidationService)
+Actualmente la lógica que determina si una imagen está lista para exportar/compartir está acoplada al flujo del panel de exportación. Necesitamos extraerla para que el Modo Cliente la reuse.
+
+[NEW] 
+ValidationService.java
+Crear servicio con método público boolean isValidForExport(ExportItem item) o isValidForExport(Path image, ExportConfig config).
+Este método comprobará:
+Si tiene colisión de nombres.
+Si el estado de sus archivos comprimidos (ExportStatus) es válido (ENCONTRADO_OK, ASIGNADO_MANUAL, IGNORAR_COMPRIMIDO).
+Refactorizar el uso en los paneles actuales para que dependan de este servicio (o adaptarlo según veamos dónde vive la lógica en ExportQueueManager).
+2. Servicio de Sincronización de Cliente (ClientSyncService)
+Este servicio actuará como "Juez de Conflictos", analizando las respuestas del cliente frente al estado actual del proyecto.
+
+[NEW] 
+ClientSyncService.java
+Método mergeClientResponse(ProjectModel project, Path respuestaJson): Lee el JSON de respuesta y compara. Devuelve un reporte (lista de imágenes a mover).
+Método closeAndSync(ProjectModel project, Path prjclPath): Aplica el merge definitivo y salva al .prj original.
+Clase anidada SyncReport para resumir los conflictos.
+3. Controlador del Modo Cliente (ClientController)
+Se encargará de gestionar el flujo entre la UI del cliente y los servicios subyacentes, implementando IModoController.
+
+[NEW] 
+ClientController.java
+Implementará IModoController (con los métodos vacíos o delegados para navegación y zoom, similar a ProjectController).
+Métodos clave:
+activarVistaCliente(): Carga los paneles (Fase 3).
+updateClientSelectionState(String imageKey, SelectionState newState): Modifica el estado del modelo y avisa de cambios sin guardar.
+moverADescartesCliente(), restaurarDeDescartesCliente(): Mueve ítems de forma análoga al ProjectController.
+closeAndSyncProject(): Llama a ClientSyncService.closeAndSync.
+4. Registro y Configuración
+Integrar el nuevo controlador en el ciclo de vida de la aplicación.
+
+[MODIFY] 
+ActionFactory.java
+Registrar y crear instancia de ClientController.
+[MODIFY] 
+GeneralController.java
+Inyectar ClientController.
+Delegar eventos a ClientController cuando el modo activo sea CLIENTE.
+Verification Plan
+Automated Tests
+Compilar el proyecto para verificar que no hay errores en las firmas extraídas o en las implementaciones de interfaces.
+Manual Verification
+Comprobar que la validación extraída sigue funcionando en el Panel de Exportación actual sin romper nada.
+Revisar el log para comprobar que el ClientController se registra correctamente en el sistema de Actions.
+
+
+*********************
+
+Implementación del Modo Cliente (Fase 3)
+Con el motor lógico del Modo Cliente ya construido y verificado en la Fase 2, ahora es el momento de ponerle "cara y ojos". Esta Fase 3: Interfaz de Usuario (El Layout) se encargará de construir la interfaz gráfica que te permitirá conciliar visualmente tu proyecto con los cambios del cliente.
+
+User Review Required
+Por favor, revisa cómo estructuraremos la vista. El objetivo es que la negociación de cambios (Proyecto vs. Cliente) sea lo más clara posible. ¿Estás de acuerdo con esta distribución?
+
+Proposed Changes
+1. Construcción de la Vista Principal (ClientBuilder)
+Vamos a crear una nueva clase constructora encargada exclusivamente de ensamblar la UI cuando se active el modo CLIENTE, imitando la solidez de ProjectBuilder y DataBuilder.
+
+[NEW] 
+ClientBuilder.java
+Implementará el patrón builder para ensamblar la interfaz en una disposición de Modo Comparativo.
+Panel Izquierdo (Mi Proyecto): JSplitPane vertical con la lista de Selección actual y Descartes actuales. Reutilizará el ProjectListCellRenderer.
+Panel Derecho (El Cliente): JSplitPane vertical con la lista de Selección del Cliente y Descartes del Cliente. Usará un renderizador propio que muestre iconos de estado o texto claro sobre la decisión del cliente.
+Panel Central (Visor): Un visualizador central (CardLayout con imagen individual o grid) donde al hacer clic en cualquier ítem de los paneles laterales, se muestre la imagen. Aquí también ubicaremos un Panel de Comentarios debajo del visor para leer las notas dejadas por el cliente.
+Botonera de Acción Rápida: Botones entre los paneles para "Aceptar selección del cliente", "Mover a mi descarte", etc. (aunque estas acciones se completarán formalmente en el cierre del proyecto en la Fase 5, dejaremos la UI preparada).
+2. Panel de Control y Exportación Reutilizado
+El usuario debe poder "Compartir con el Cliente" desde el Modo Proyecto.
+
+[MODIFY] 
+ProjectBuilder.java
+Adaptar o instanciar el panel de exportación/compartición para que incluya una pestaña o botón de "Generar Enlace para Cliente".
+Comprobará que todas las imágenes estén "en verde" usando el ValidationService que extrajimos en la Fase 2.
+3. Componente Visual Tri-State y Renderizadores
+Necesitaremos indicadores visuales claros en las listas del cliente para sus 3 estados: Indefinido (pendiente), Seleccionado, Descartado.
+
+[NEW] 
+ClientListCellRenderer.java
+Extenderá DefaultListCellRenderer o implementará ListCellRenderer.
+Mostrará el nombre de la imagen y un pequeño icono o color de fondo indicando el SelectionState actual propuesto por el cliente.
+Incluirá un indicador visual (ej. icono de bocadillo de chat) si el cliente ha dejado un comentario en esa imagen.
+4. Integración en el Visor
+[MODIFY] 
+ViewBuilder.java
+ o AppInitializer
+Configurar el registro del ClientBuilder en el ViewManager y enlazarlo con el AppModeService para que al pulsar (futuro Ctrl+3 o botón de modo) se cambie correctamente la vista, mostrando los paneles de esta fase.
+Verification Plan
+Automated Tests
+Compilar el proyecto para garantizar que no haya roturas en la estructura de builders.
+Manual Verification
+Iniciar la aplicación y forzar/simular la entrada al Modo Cliente.
+Comprobar que los 4 sub-paneles laterales aparecen correctamente.
+Comprobar que al hacer clic en las listas se actualiza el visor central.
+Validar que los renderizadores se muestran con los iconos o marcas correctas incluso sin datos reales aún.
+
+
+
+
 *******************************************************************************************************************************************************
 *******************************************************************************************************************************************************
 

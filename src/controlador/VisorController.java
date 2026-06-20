@@ -769,14 +769,37 @@ public class VisorController implements IModoController, ThemeChangeListener {
             return;
         }
 
-        // --- 2. OBTENER EL PANEL DE VISUALIZACIÓN ACTIVO ---
-        ImageDisplayPanel displayPanel = (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO)
-                                       ? registry.get("panel.proyecto.display")
-                                       : registry.get("panel.display.imagen");
-        if (displayPanel == null) {
-            logger.error("ERROR CRÍTICO: No se encontró el panel de display activo.");
-            return;
-        }
+         // --- 2. OBTENER EL PANEL DE VISUALIZACIÓN ACTIVO ---
+         String panelKey;
+         boolean isPolaroid = (model.getCurrentDisplayMode() == VisorModel.DisplayMode.POLAROID);
+
+         switch (model.getCurrentWorkMode()) {
+             case VISUALIZADOR:
+                 panelKey = isPolaroid ? "panel.display.polaroid.image" : "panel.display.imagen";
+                 break;
+             case PROYECTO:
+                 panelKey = isPolaroid ? "panel.proyecto.display.polaroid.image" : "panel.proyecto.display";
+                 break;
+             case CARROUSEL:
+                 panelKey = "panel.display.carousel";
+                 break;
+             case DATOS:
+                 panelKey = isPolaroid ? "panel.datamode.display.polaroid.image" : "panel.datamode.display";
+                 break;
+             case CLIENTE:
+                 panelKey = "panel.cliente.display";
+                 break;
+             default:
+                 logger.error("ERROR CRÍTICO: WorkMode no reconocido: " + model.getCurrentWorkMode());
+                 return;
+         }
+
+         ImageDisplayPanel displayPanel = registry.get(panelKey);
+         if (displayPanel == null) {
+             logger.error("ERROR CRÍTICO: No se encontró el panel de display activo para la clave: " + panelKey);
+             return;
+         }
+
         
         // --- 3. MANEJO DEL CASO SIN SELECCIÓN ---
         if (indiceSeleccionado == -1) {
@@ -932,9 +955,18 @@ public class VisorController implements IModoController, ThemeChangeListener {
         }
 
         // 2. OBTENER EL PANEL DE VISUALIZACIÓN ACTIVO
-        ImageDisplayPanel displayPanel = (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO)
-                                       ? registry.get("panel.proyecto.display")
-                                       : registry.get("panel.display.imagen");
+        ImageDisplayPanel displayPanel;
+        switch (model.getCurrentWorkMode()) {
+            case PROYECTO:
+                displayPanel = registry.get("panel.proyecto.display");
+                break;
+            case CLIENTE:
+                displayPanel = registry.get("panel.cliente.display");
+                break;
+            default:
+                displayPanel = registry.get("panel.display.imagen");
+                break;
+        }
         
         if (displayPanel == null) {
             logger.error("ERROR CRÍTICO: No se encontró el panel de display activo en el registro.");
@@ -995,6 +1027,9 @@ public class VisorController implements IModoController, ThemeChangeListener {
                 // El resto del método SwingUtilities.invokeLater se queda exactamente igual.
                 if (finalImagenCargada != null) {
                     model.setCurrentImage(finalImagenCargada);
+                    if (claveImagen != null) {
+                        model.setSelectedImageKey(claveImagen);
+                    }
                     displayPanel.limpiar();
                     if (zoomManager != null) {
                          zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());

@@ -68,7 +68,7 @@
     <!-- =========================================================== -->
     <!-- ROOT: nivel mínimo WARN. Añade DEBUG si necesitas depurar.  -->
     <!-- =========================================================== -->
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="CONSOLE_ERROR" />
         <appender-ref ref="CONSOLE_WARN"  />
         <appender-ref ref="CONSOLE_INFO"  />

@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import controlador.GeneralController;
 import controlador.ProjectController;
+import controlador.ClientController;
 import controlador.actions.archivo.DeleteAction;
 // --- SECCIÓN 0: IMPORTS DE CLASES ACTION ESPECCÍFICAS ---
 import controlador.actions.archivo.OpenFileAction;
@@ -167,6 +168,7 @@ public class ActionFactory {
 
     private final GeneralController generalController;
     private final ProjectController projectControllerRef;
+    private ClientController clientController;
     private final ThemeManager themeManager;
 
     private CarouselManager carouselManager;
@@ -231,6 +233,10 @@ public class ActionFactory {
      * @param generalController     El controlador general de la aplicación.
      * @param projectController     El controlador específico del modo proyecto.
      */
+    public void setClientController(ClientController clientController) {
+        this.clientController = clientController;
+    }
+
     public ActionFactory(
             VisorModel model,
             VisorView view,
@@ -496,6 +502,7 @@ public class ActionFactory {
 
         actionMap.put(AppActionCommands.CMD_EXPORT_ASSIGN_PANNEL, createToggleExportViewAction());
         actionMap.put(AppActionCommands.CMD_PROYECTO_TOGGLE_LAYOUT, createToggleProjectLayoutAction());
+        actionMap.put(AppActionCommands.CMD_PROYECTO_COMPARTIR_CLIENTE, createCompartirClienteAction());
         actionMap.put(AppActionCommands.CMD_EXPORT_DETALLES_SELECCION, createToggleExportDetailsAction());
         actionMap.put(AppActionCommands.CMD_DETALLES_PDF_SELECCION, createTogglePdfDetailsTableAction());
 
@@ -661,6 +668,16 @@ public class ActionFactory {
         registerAction(AppActionCommands.CMD_MODO_CLIENTE,
                 createSwitchWorkModeAction(WorkMode.CLIENTE, AppActionCommands.CMD_MODO_CLIENTE, "Modo Cliente"));
 
+        // --- Acciones específicas del Modo Cliente ---
+        registerAction(AppActionCommands.CMD_CLIENTE_ABRIR_PRJCL,
+                createClientAbrirPrjclAction());
+        registerAction(AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB,
+                createClientExportWebAction());
+        registerAction(AppActionCommands.CMD_CLIENTE_CARGAR_RESPUESTA,
+                createClientCargarRespuestaAction());
+        registerAction(AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR,
+                createClientCerrarSincronizarAction());
+
         // --- Acciones para el Árbol de Tags (Modo Datos) ---
         registerAction(AppActionCommands.CMD_DATOS_TAGS_VISTA_LISTA, createTagViewAction(AppActionCommands.CMD_DATOS_TAGS_VISTA_LISTA, "Vista por lista"));
         registerAction(AppActionCommands.CMD_DATOS_TAGS_VISTA_ARBOL, createTagViewAction(AppActionCommands.CMD_DATOS_TAGS_VISTA_ARBOL, "Vista por árbol"));
@@ -774,6 +791,102 @@ public class ActionFactory {
     private Action createSwitchWorkModeAction(WorkMode workMode, String commandKey, String displayName) {
         ImageIcon icon = getIconForCommand(commandKey);
         return new SwitchWorkModeAction(generalController, workMode, displayName, icon, displayName, null, commandKey);
+    }
+
+    // --- Acciones del Modo Cliente ---
+
+    private Action createClientExportWebAction() {
+        return new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (clientController != null) {
+                    javax.swing.JFileChooser chooser = new javax.swing.JFileChooser();
+                    chooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
+                    chooser.setDialogTitle("Selecciona carpeta para exportar catálogo web");
+                    if (chooser.showSaveDialog(null) == javax.swing.JFileChooser.APPROVE_OPTION) {
+                        clientController.exportarParaCliente(chooser.getSelectedFile().toPath(), 1);
+                    }
+                }
+            }
+        };
+    }
+
+    private Action createClientCargarRespuestaAction() {
+        return new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (clientController != null) {
+                    javax.swing.JFileChooser chooser = new javax.swing.JFileChooser();
+                    chooser.setDialogTitle("Selecciona el JSON de respuesta del cliente");
+                    javax.swing.filechooser.FileNameExtensionFilter filter = new javax.swing.filechooser.FileNameExtensionFilter("JSON de respuesta (*.json)", "json");
+                    chooser.setFileFilter(filter);
+                    if (chooser.showOpenDialog(null) == javax.swing.JFileChooser.APPROVE_OPTION) {
+                        clientController.cargarRespuestaCliente(chooser.getSelectedFile().toPath());
+                    }
+                }
+            }
+        };
+    }
+
+    private Action createClientCerrarSincronizarAction() {
+        return new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (clientController != null) {
+                    int confirm = javax.swing.JOptionPane.showConfirmDialog(null,
+                            "¿Estás seguro de cerrar y sincronizar?\n"
+                            + "Las decisiones del cliente se aplicarán al proyecto.\n\n"
+                            + "SELECTED → Se añade a tu selección\n"
+                            + "DISCARDED → Se mueve a tus descartes\n"
+                            + "UNDEFINED → Se mantiene tu decisión actual",
+                            "Cerrar y Sincronizar",
+                            javax.swing.JOptionPane.YES_NO_OPTION,
+                            javax.swing.JOptionPane.WARNING_MESSAGE);
+                    if (confirm == javax.swing.JOptionPane.YES_OPTION) {
+                        servicios.cliente.ClientSyncService.SyncReport report = clientController.closeAndSyncProject();
+                        if (report != null) {
+                            javax.swing.JOptionPane.showMessageDialog(null,
+                                    "Sincronización completada:\n"
+                                    + "  Añadidas a selección: " + report.getAddedToSelection().size() + "\n"
+                                    + "  Movidas a descartes: " + report.getMovedToDiscard().size() + "\n"
+                                    + "  Sin cambios: " + report.getUnchangedCount() + "\n"
+                                    + "  Conflictos: " + report.getConflictedItems().size(),
+                                    "Informe de Sincronización",
+                                    javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                        }
+                    }
+                }
+            }
+        };
+    }
+
+    private Action createClientAbrirPrjclAction() {
+        return new AbstractAction("Abrir .prjcl") {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (clientController != null) {
+                    javax.swing.JFileChooser chooser = new javax.swing.JFileChooser();
+                    chooser.setDialogTitle("Selecciona un archivo .prjcl del cliente");
+                    javax.swing.filechooser.FileNameExtensionFilter filter =
+                            new javax.swing.filechooser.FileNameExtensionFilter(
+                            "Proyecto de Cliente (*.prjcl)", "prjcl");
+                    chooser.setFileFilter(filter);
+                    if (chooser.showOpenDialog(null) == javax.swing.JFileChooser.APPROVE_OPTION) {
+                        try {
+                            clientController.cargarPrjcl(chooser.getSelectedFile().toPath());
+                        } catch (Exception ex) {
+                            javax.swing.JOptionPane.showMessageDialog(null,
+                                    "Error al cargar .prjcl:\n" + ex.getMessage(),
+                                    "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                }
+            }
+        };
     }
 
     private Action createSwitchToVisualizadorAction() {
@@ -1422,6 +1535,52 @@ public class ActionFactory {
             public void actionPerformed(ActionEvent e) {
                 // El controlador debe saber qué items están marcados en la tabla
             	generalController.getProjectController().generarCatalogoPDF();
+            }
+        };
+    }
+
+    private Action createCompartirClienteAction() {
+        return new AbstractAction("Compartir al Cliente") {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (clientController != null && generalController != null) {
+                    modelo.proyecto.ProjectModel project = generalController.getProjectController().getProjectManager().getCurrentProject();
+                    if (project == null) {
+                        javax.swing.JOptionPane.showMessageDialog(null,
+                                "No hay ningún proyecto activo.",
+                                "Compartir al Cliente", javax.swing.JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+                    javax.swing.JFileChooser chooser = new javax.swing.JFileChooser();
+                    chooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
+                    chooser.setDialogTitle("Selecciona carpeta para generar catálogo del cliente");
+                    if (chooser.showSaveDialog(null) == javax.swing.JFileChooser.APPROVE_OPTION) {
+                        java.nio.file.Path outputDir = chooser.getSelectedFile().toPath();
+                        clientController.exportarParaCliente(outputDir, 1);
+                        // También guardar una copia .prjcl para el modo cliente
+                        try {
+                            java.nio.file.Path prjclFile = outputDir.resolve(
+                                project.getProjectName().replaceAll("[\\\\/:*?\"<>|]", "_") + ".prjcl");
+                            java.util.Map<String, Object> prjclData = new java.util.HashMap<>();
+                            prjclData.put("projectName", project.getProjectName());
+                            prjclData.put("selectedImages", project.getSelectedImages());
+                            prjclData.put("discardedImages", project.getDiscardedImages());
+                            if (project.hasClientSelection()) {
+                                prjclData.put("clientSelection", project.getClientSelection());
+                            }
+                            com.google.gson.Gson gson = new com.google.gson.GsonBuilder().setPrettyPrinting().create();
+                            java.nio.file.Files.writeString(prjclFile, gson.toJson(prjclData), java.nio.charset.StandardCharsets.UTF_8);
+                            javax.swing.JOptionPane.showMessageDialog(null,
+                                    "Catálogo web generado en:\n" + outputDir.toAbsolutePath()
+                                    + "\n\nArchivo .prjcl guardado:\n" + prjclFile.getFileName(),
+                                    "Exportación Completada",
+                                    javax.swing.JOptionPane.INFORMATION_MESSAGE);
+                        } catch (java.io.IOException ex) {
+                            logger.error("Error guardando .prjcl: {}", ex.getMessage(), ex);
+                        }
+                    }
+                }
             }
         };
     }

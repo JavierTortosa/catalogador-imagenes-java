@@ -1651,9 +1651,8 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
                 panelKey = isPolaroid ? "panel.datamode.display.polaroid.image" : "panel.datamode.display";
                 break;
             case CLIENTE:
-                logger.warn("WARN [ViewManager.getActiveDisplayPanel]: El modo " + model.getCurrentWorkMode()
-                        + " no tiene un ImageDisplayPanel asociado.");
-                return null;
+                panelKey = isPolaroid ? "panel.cliente.display" : "panel.cliente.display";
+                break;
             default:
                 logger.error("ERROR [ViewManager.getActiveDisplayPanel]: WorkMode no reconocido: "
                         + model.getCurrentWorkMode());

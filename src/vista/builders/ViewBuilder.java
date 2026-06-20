@@ -73,6 +73,7 @@ public class ViewBuilder {
     private final ThumbnailService gridThumbnailService;
 
     private ProjectBuilder projectBuilder;
+    private ClientBuilder clientBuilder;
     private DataBuilder dataBuilder;
 
     private Map<String, Action> actionMap;
@@ -93,7 +94,8 @@ public class ViewBuilder {
             ThumbnailService thumbnailService,
             ThumbnailService gridThumbnailService,
             IProjectManager projectManager,
-            ProjectBuilder projectBuilder) {
+            ProjectBuilder projectBuilder,
+            ClientBuilder clientBuilder) {
 
         logger.info("[ViewBuilder] Iniciando...");
 
@@ -104,6 +106,7 @@ public class ViewBuilder {
         this.iconUtils = iconUtils;
         this.projectManager = projectManager;
         this.projectBuilder = projectBuilder;
+        this.clientBuilder = clientBuilder;
         this.thumbnailService = Objects.requireNonNull(thumbnailService, "thumbnailService (global) no puede ser null");
         this.gridThumbnailService = Objects.requireNonNull(gridThumbnailService,
                 "gridThumbnailService no puede ser null");
@@ -306,10 +309,12 @@ public class ViewBuilder {
         }
         workModesContainer.add(dataWorkModePanel, "VISTA_DATOS");
 
-        JPanel clientWorkModePanel = new JPanel();
-        clientWorkModePanel.add(new JLabel("Modo Cliente en desarrollo..."));
+        
+        // Panel para el WorkMode CLIENTE
+        JPanel clientWorkModePanel = this.clientBuilder.buildClientViewPanel();
         workModesContainer.add(clientWorkModePanel, "VISTA_CLIENTE");
         registry.register("panel.workmode.cliente", clientWorkModePanel);
+
 
         // Asignar el CardLayout de WorkModes al centro del mainFrame
         mainFrame.add(workModesContainer, BorderLayout.CENTER);
@@ -1053,5 +1058,9 @@ public class ViewBuilder {
     public void setDataBuilder(DataBuilder dataBuilder) {
         this.dataBuilder = dataBuilder;
     } // ---FIN de metodo [setDataBuilder]---
+
+    public void setClientBuilder(ClientBuilder clientBuilder) {
+        this.clientBuilder = Objects.requireNonNull(clientBuilder, "ClientBuilder no puede ser null en ViewBuilder");
+    } // ---FIN de metodo [setClientBuilder]---
 
 } // --- FIN de la clase ViewBuilder ---

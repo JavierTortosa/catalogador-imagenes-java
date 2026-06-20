@@ -22,6 +22,8 @@ import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import servicios.ValidationService;
+import servicios.cliente.ClientSyncService;
 import controlador.commands.AppActionCommands;
 import controlador.factory.ActionFactory;
 import controlador.managers.BackgroundControlManager;
@@ -59,6 +61,7 @@ import servicios.db.DatabaseManager;
 import servicios.image.ThumbnailService;
 import servicios.zoom.ZoomModeEnum;
 import vista.VisorView;
+import vista.builders.ClientBuilder;
 import vista.builders.DataBuilder;
 import vista.builders.MenuBarBuilder;
 import vista.builders.ProjectBuilder;
@@ -98,11 +101,15 @@ public class AppInitializer {
     private final VisorController controller;
 
     private ProjectController projectController;
+    private ClientController clientController;
+    private ValidationService validationService;
+    private ClientSyncService clientSyncService;
     private DataController dataController;
     private GeneralController generalController;
 
     // Builders
     private ProjectBuilder projectBuilder;
+    private ClientBuilder clientBuilder;
     private DataBuilder dataBuilder;
     private ViewBuilder viewBuilder;
     private ToolbarBuilder toolbarBuilder;
@@ -227,6 +234,17 @@ public class AppInitializer {
         this.generalController = new GeneralController();
         this.globalInputManager = new GlobalInputManager();
         this.projectController = new ProjectController(); // Crear la ÚNICA instancia aquí
+        this.clientController = new ClientController();
+        this.validationService = new ValidationService();
+        this.clientSyncService = new ClientSyncService();
+        
+        this.clientController.setGeneralController(this.generalController);
+        this.clientController.setValidationService(this.validationService);
+        this.clientController.setClientSyncService(this.clientSyncService);
+        this.clientController.setProjectManager(this.projectManagerService);
+        this.clientController.setComponentRegistry(this.registry);
+        this.clientController.setVisorController(this.controller);
+        
         this.projectController.setGeneralController(this.generalController);
 
         this.filterManager = new FilterManager(this.model);
@@ -263,11 +281,16 @@ public class AppInitializer {
                         this.toolbarManager, this.projectController);
                 this.projectBuilder.setDataManager(this.dataManager);
 
+        logger.info("Inicializando ClientBuilder");
+        this.clientBuilder = new ClientBuilder(this.registry, this.model, this.themeManager, this.generalController,
+                this.toolbarManager, this.clientController, this.projectManagerService);
+
         logger.info("Inicializando Construccion del Visor");
         // Usar el projectBuilder del campo de la clase (this.projectBuilder) para el
         // ViewBuilder
         this.viewBuilder = new ViewBuilder(this.registry, this.model, this.themeManager, this.configuration,
-                this.iconUtils, this.thumbnailServiceGlobal, this.gridThumbnailService, this.projectManagerService, this.projectBuilder);
+                this.iconUtils, this.thumbnailServiceGlobal, this.gridThumbnailService, this.projectManagerService,
+                this.projectBuilder, this.clientBuilder);
 
         this.menuBuilder = new MenuBarBuilder(this.controller, this.configuration, this.viewManager, this.registry,
                 this.themeManager);
@@ -383,6 +406,7 @@ public class AppInitializer {
         viewBuilder.setFolderTreeManager(this.folderTreeManager);
         viewBuilder.setToolbarManager(this.toolbarManager);
         viewBuilder.setProjectBuilder(this.projectBuilder);
+        viewBuilder.setClientBuilder(this.clientBuilder);
 
         zoomManager.setModel(this.model);
         zoomManager.setRegistry(this.registry);
@@ -461,6 +485,7 @@ public class AppInitializer {
         this.appModeService.setVisorController(this.controller);
         this.appModeService.setProjectController(this.projectController);
         this.appModeService.setDataController(this.dataController);
+        this.appModeService.setClientController(this.clientController);
         this.appModeService.setConfiguration(this.configuration);
         this.appModeService.setRegistry(this.registry);
 
@@ -640,6 +665,7 @@ public class AppInitializer {
                 this.appModeService.setImageListManager(imageListManager);
 
                 this.actionFactory.setImageListManager(imageListManager);
+                this.actionFactory.setClientController(this.clientController);
                 this.actionFactory.initializeLateActions();
 
                 // 3.7: Ensamblaje final de la UI

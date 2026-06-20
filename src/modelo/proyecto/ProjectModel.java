@@ -38,6 +38,9 @@ public class ProjectModel {
     // --- Configuración de Exportación Global ---
     private String exportDestinationFolder;
     
+    // --- Datos del Cliente ---
+    private ClientSelection clientSelection;
+    
     
     // --- Constructor ---
     public ProjectModel() {
@@ -134,6 +137,21 @@ public class ProjectModel {
         this.exportDestinationFolder = exportDestinationFolder;
     } // ---FIN de metodo setExportDestinationFolder---
     
+    public ClientSelection getClientSelection() {
+        if (clientSelection == null) {
+            clientSelection = new ClientSelection();
+        }
+        return clientSelection;
+    } // ---FIN de metodo getClientSelection---
+
+    public void setClientSelection(ClientSelection clientSelection) {
+        this.clientSelection = clientSelection;
+    } // ---FIN de metodo setClientSelection---
+    
+    public boolean hasClientSelection() {
+        return clientSelection != null;
+    } // ---FIN de metodo hasClientSelection---
+    
     
     @Override
     public String toString() {
@@ -160,5 +178,75 @@ public class ProjectModel {
         sb.append("---------------------------------");
         return sb.toString();
     } // ---FIN de metodo toString---
+    
+    /**
+     * Contenedor para las selecciones y notas realizadas por el cliente.
+     */
+    public static class ClientSelection {
+        
+        private Map<String, SelectionState> images;
+        private Map<String, String> comments;
+        private String clientNotes;
+        private int iterationNumber;
+        private String fechaRespuesta;
+        
+        public ClientSelection() {
+            this.images = new LinkedHashMap<>();
+            this.comments = new LinkedHashMap<>();
+            this.iterationNumber = 1;
+        } // ---FIN de metodo ClientSelection---
+
+        public Map<String, SelectionState> getImages() {
+            if (images == null) {
+                images = new LinkedHashMap<>();
+            }
+            return images;
+        } // ---FIN de metodo getImages---
+
+        public void setImages(Map<String, SelectionState> images) {
+            this.images = images;
+        } // ---FIN de metodo setImages---
+
+        public Map<String, String> getComments() {
+            if (comments == null) {
+                comments = new LinkedHashMap<>();
+            }
+            return comments;
+        } // ---FIN de metodo getComments---
+
+        public void setComments(Map<String, String> comments) {
+            this.comments = comments;
+        } // ---FIN de metodo setComments---
+
+        public String getClientNotes() {
+            return clientNotes;
+        } // ---FIN de metodo getClientNotes---
+
+        public void setClientNotes(String clientNotes) {
+            this.clientNotes = clientNotes;
+        } // ---FIN de metodo setClientNotes---
+
+        public int getIterationNumber() {
+            return iterationNumber;
+        } // ---FIN de metodo getIterationNumber---
+
+        public void setIterationNumber(int iterationNumber) {
+            this.iterationNumber = iterationNumber;
+        } // ---FIN de metodo setIterationNumber---
+
+        /** Alias de setIterationNumber para uso desde el importador. */
+        public void setIteracionNumero(int n) {
+            this.iterationNumber = n;
+        } // ---FIN de metodo setIteracionNumero---
+
+        public String getFechaRespuesta() {
+            return fechaRespuesta;
+        } // ---FIN de metodo getFechaRespuesta---
+
+        public void setFechaRespuesta(String fechaRespuesta) {
+            this.fechaRespuesta = fechaRespuesta;
+        } // ---FIN de metodo setFechaRespuesta---
+        
+    } // ---FIN de clase ClientSelection---
     
 } // --- FIN de clase ProjectModel ---

@@ -782,6 +782,17 @@ public class UIDefinitionService {
 
         );
 
+        // --- BARRA DE BOTONES DEL MODO CLIENTE ---
+        java.util.List<ToolbarButtonDefinition> botonesCliente = new java.util.ArrayList<>();
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_ABRIR_PRJCL, "8004-edicion_48x48.png",
+                "Abrir archivo .prjcl del cliente", "cliente"));
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB, "8004-edicion_48x48.png",
+                "Exportar catálogo web para el cliente", "cliente"));
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CARGAR_RESPUESTA, "8004-edicion_48x48.png",
+                "Cargar respuesta del cliente (JSON)", "cliente"));
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR, "8004-edicion_48x48.png",
+                "Cerrar y Sincronizar", "cliente", ButtonType.NORMAL));
+
         // --- BARRA DE BOTONES Sync ---
         List<ToolbarButtonDefinition> botonesSincronizacion = List.of(
                 new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_SYNC_VISOR_CARRUSEL, "10001-sync_on_48x48.png",
@@ -994,7 +1005,10 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition(AppActionCommands.CMD_DETALLES_PDF_SELECCION,"21006-items_exportar_48x48.png", 
                 		"Detalles del PDF", "acciones_exportacion",ButtonType.TOGGLE),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORTAR_PDF, "21013-File-Pdf.png",
-                		"Crear PDF", "acciones_exportacion")
+                		"Crear PDF", "acciones_exportacion"),
+                new SeparatorDefinition(),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_COMPARTIR_CLIENTE, "8004-edicion_48x48.png",
+                        "Compartir al Cliente", "acciones_exportacion")
         		);
         
 
@@ -1044,19 +1058,19 @@ public class UIDefinitionService {
                         List.copyOf(botonesEdicion), ToolbarAlignment.CENTER)
 
                 // Botones de modos de zoom
-                , new ToolbarDefinition("zoom", "Zoom", 30, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.PROYECTO),
+                , new ToolbarDefinition("zoom", "Zoom", 30, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.PROYECTO, WorkMode.CLIENTE),
                         List.copyOf(botonesZoom), ToolbarAlignment.CENTER)
 
                 // Botones de DisplayMode
                 ,
                 new ToolbarDefinition("vista", "Vista", 40,
-                        EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), List.copyOf(botonesVista),
+                        EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CLIENTE), List.copyOf(botonesVista),
                         ToolbarAlignment.CENTER)
 
                 // Cambio tamaño de miniaturas
                 ,
                 new ToolbarDefinition("barra_zoom_miniaturas", "Zoom de Miniaturas", 50,
-                        EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.PROYECTO), botones_zoom_miniaturas,
+                        EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.PROYECTO, WorkMode.CLIENTE), botones_zoom_miniaturas,
                         ToolbarAlignment.CENTER)
 
                 // Grupo Derecha
@@ -1124,6 +1138,10 @@ public class UIDefinitionService {
                 // Barra específica para el Modo Datos
                 , new ToolbarDefinition("gestion_datos", "Gestión de Colección", 150, EnumSet.of(WorkMode.DATOS),
                         List.copyOf(botonesGestionDatos), ToolbarAlignment.CENTER)
+
+                // Barra específica para el Modo Cliente
+                , new ToolbarDefinition("cliente", "Cliente", 155, EnumSet.of(WorkMode.CLIENTE),
+                        List.copyOf(botonesCliente), ToolbarAlignment.CENTER)
 
                 // Barras especiales
                 ,

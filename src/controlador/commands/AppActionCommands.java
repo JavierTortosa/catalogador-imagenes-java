@@ -208,7 +208,12 @@ public interface AppActionCommands {
     public static final String CMD_VISTA_TOGGLE_MINIATURE_TEXT 		= "cmd.vista.toggle_miniature_text"; 	//Muestra el texto del nombre de las miniaturas
     public static final String CMD_VISTA_SWITCH_TO_VISUALIZADOR 	= "cmd.vista.switch_to_visualizador";
     public static final String CMD_MODO_DATOS 						= "cmd.modo.datos";
+    public static final String CMD_PROYECTO_COMPARTIR_CLIENTE		= "cmd.proyecto.compartir_cliente";
     public static final String CMD_MODO_CLIENTE 					= "cmd.modo.cliente";
+    public static final String CMD_CLIENTE_ABRIR_PRJCL 				= "cmd.cliente.abrir_prjcl";
+    public static final String CMD_CLIENTE_EXPORTAR_WEB 			= "cmd.cliente.exportar_web";
+    public static final String CMD_CLIENTE_CARGAR_RESPUESTA 		= "cmd.cliente.cargar_respuesta";
+    public static final String CMD_CLIENTE_CERRAR_SINCRONIZAR 		= "cmd.cliente.cerrar_sincronizar";
     public static final String CMD_VISTA_CAROUSEL 					= "cmd.vista.carousel";
     public static final String CMD_CONFIG_CUSTOM_THEME				= "cmd.config.custom_theme";
     public static final String CMD_CONFIG_AVANZADA					= "cmd.config.avanzada";

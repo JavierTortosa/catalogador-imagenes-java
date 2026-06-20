@@ -231,6 +231,7 @@ public class VisorModel {
     public ListContext getCurrentListContext() {
         switch (this.currentWorkMode) {
             case PROYECTO:
+            case CLIENTE:
                 return this.proyectoListContext;
             case DATOS:
                 return this.datosListContext;
@@ -245,6 +246,7 @@ public class VisorModel {
     public ZoomContext getCurrentZoomContext() {
         switch (this.currentWorkMode) {
             case PROYECTO:
+            case CLIENTE:
                 return this.proyectoZoomContext;
             case DATOS:
                 return this.datosZoomContext;

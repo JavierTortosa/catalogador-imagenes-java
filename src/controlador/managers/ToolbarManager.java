@@ -314,8 +314,8 @@ public class ToolbarManager implements ThemeChangeListener{
         boolean hasSelection = model.getSelectedImageKey() != null;
 
         // 1. Botones Single y Polaroid: Solo activos si hay selección.
-        // En modo PROYECTO siempre están activos.
-        if (model.getCurrentWorkMode() != WorkMode.PROYECTO) {
+        // En modo PROYECTO y CLIENTE siempre están activos.
+        if (model.getCurrentWorkMode() != WorkMode.PROYECTO && model.getCurrentWorkMode() != WorkMode.CLIENTE) {
             Action singleAction = actionMap.get(AppActionCommands.CMD_VISTA_SINGLE);
             Action polaroidAction = actionMap.get(AppActionCommands.CMD_VISTA_POLAROID);
             if (singleAction != null) singleAction.setEnabled(hasSelection);

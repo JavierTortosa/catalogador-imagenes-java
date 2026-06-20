@@ -103,17 +103,14 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
         logger.info("Cambiando a DisplayMode: {}", newMode);
         model.setCurrentDisplayMode(newMode);
         
-        if (model.getCurrentWorkMode() == WorkMode.CLIENTE) {
-            logger.info("El modo {} no soporta cambios de CardLayout de DisplayMode. Ignorando.", model.getCurrentWorkMode());
-            sincronizarBotonesDeModo();
-            return;
-        }
         
-        String containerKey = (model.getCurrentWorkMode() == WorkMode.PROYECTO) 
-                            ? "container.displaymodes.proyecto" 
-                            : (model.getCurrentWorkMode() == WorkMode.DATOS)
-                            ? "container.displaymodes.datos"
-                            : "container.displaymodes";
+        
+        String containerKey = switch (model.getCurrentWorkMode()) {
+            case PROYECTO -> "container.displaymodes.proyecto";
+            case DATOS -> "container.displaymodes.datos";
+            case CLIENTE -> "container.displaymodes.cliente";
+            default -> "container.displaymodes";
+        };
                             
         logger.debug("  -> Actuando sobre el contenedor CardLayout: {}", containerKey);
 
@@ -356,6 +353,7 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
         if (model == null || registry == null) return null;
         if (model.getCurrentWorkMode() == WorkMode.PROYECTO) return registry.get("list.grid.proyecto");
         if (model.getCurrentWorkMode() == WorkMode.DATOS) return registry.get("list.datamode.grid");
+        if (model.getCurrentWorkMode() == WorkMode.CLIENTE) return registry.get("list.grid.cliente");
         return registry.get("list.grid");
     } // end of getActiveGridList
 
@@ -369,6 +367,9 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
                 break;
             case DATOS:
                 panelKey = "panel.datamode.display.polaroid";
+                break;
+            case CLIENTE:
+                panelKey = "panel.cliente.display.polaroid";
                 break;
             default:
                 panelKey = "panel.display.polaroid";

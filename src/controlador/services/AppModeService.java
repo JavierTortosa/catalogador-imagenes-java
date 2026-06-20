@@ -1,5 +1,6 @@
 package controlador.services;
 
+import controlador.ClientController;
 import controlador.DataController;
 import controlador.ProjectController;
 import controlador.VisorController;
@@ -47,6 +48,7 @@ public class AppModeService {
     private VisorController visorController;
     private ProjectController projectController;
     private DataController dataController;
+    private ClientController clientController;
     private ConfigurationManager configuration;
     private ComponentRegistry registry;
     private ImageListManager imageListManager;
@@ -80,6 +82,10 @@ public class AppModeService {
     public void setDataController(DataController dataController) {
         this.dataController = dataController;
     } // --- Fin del método setDataController ---
+
+    public void setClientController(ClientController clientController) {
+        this.clientController = clientController;
+    } // --- Fin del método setClientController ---
 
 
     public void setConfiguration(ConfigurationManager configuration) {
@@ -463,6 +469,9 @@ public class AppModeService {
                         }
                         break;
                     case CLIENTE:
+                        if (clientController != null) {
+                            clientController.activarVistaCliente();
+                        }
                         break;
                 }
                 actualizarUiModo(modoAlQueSeEntra, actionMap);

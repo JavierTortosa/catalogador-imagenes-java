@@ -79,6 +79,7 @@ public class GeneralController
     private FilterManager filterManager;
     private ImageListManager imageListManager;
     private DataController dataController;
+    private ClientController clientController;
     private AppModeService appModeService;
     private MenuPopupManager menuPopupManager;
     private ProjectLifecycleService projectLifecycleService;
@@ -769,6 +770,8 @@ public class GeneralController
             projectController.navegarSiguiente();
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
             dataController.navegarSiguiente();
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CLIENTE) {
+            if (clientController != null) clientController.navegarSiguiente();
         } else {
             visorController.navegarSiguiente();
         }
@@ -781,6 +784,8 @@ public class GeneralController
             projectController.navegarAnterior();
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
             dataController.navegarAnterior();
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CLIENTE) {
+            if (clientController != null) clientController.navegarAnterior();
         } else {
             visorController.navegarAnterior();
         }
@@ -793,6 +798,8 @@ public class GeneralController
             projectController.navegarPrimero();
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
             dataController.navegarPrimero();
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CLIENTE) {
+            if (clientController != null) clientController.navegarPrimero();
         } else {
             visorController.navegarPrimero();
         }
@@ -805,6 +812,8 @@ public class GeneralController
             projectController.navegarUltimo();
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
             dataController.navegarUltimo();
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CLIENTE) {
+            if (clientController != null) clientController.navegarUltimo();
         } else {
             visorController.navegarUltimo();
         }
@@ -817,6 +826,8 @@ public class GeneralController
             projectController.navegarBloqueAnterior();
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
             dataController.navegarBloqueAnterior();
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CLIENTE) {
+            if (clientController != null) clientController.navegarBloqueAnterior();
         } else {
             visorController.navegarBloqueAnterior();
         }
@@ -829,6 +840,8 @@ public class GeneralController
             projectController.navegarBloqueSiguiente();
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.DATOS) {
             dataController.navegarBloqueSiguiente();
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CLIENTE) {
+            if (clientController != null) clientController.navegarBloqueSiguiente();
         } else {
             visorController.navegarBloqueSiguiente();
         }
@@ -1466,6 +1479,14 @@ public class GeneralController
     public void setTypeIconsMap(
             Map<controlador.managers.filter.FilterCriterion.SourceType, javax.swing.Icon> typeIconsMap) {
         this.typeIconsMap = typeIconsMap;
+    }
+
+    public void setClientController(ClientController clientController) {
+        this.clientController = java.util.Objects.requireNonNull(clientController, "ClientController no puede ser null");
+    }
+
+    public ClientController getClientController() {
+        return clientController;
     }
 
     public void setDataController(DataController dataController) {
