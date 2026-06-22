@@ -24,7 +24,8 @@ public class VisorModel {
         PROYECTO,
         DATOS,
         CLIENTE,
-        CARROUSEL
+        CARROUSEL,
+        CLIENT_REVIEW
     }
 
     public enum DisplayMode {
@@ -78,6 +79,7 @@ public class VisorModel {
     private boolean gridMuestraEstado = true;
 
     private boolean isProjectExportPanelVisible = false;
+    private boolean clienteCheckboxVisible = false;
     private Path rutaProyectoActivoConNombre;
 
     private final List<MasterListChangeListener> masterListListeners = new ArrayList<>();
@@ -232,6 +234,7 @@ public class VisorModel {
         switch (this.currentWorkMode) {
             case PROYECTO:
             case CLIENTE:
+            case CLIENT_REVIEW:
                 return this.proyectoListContext;
             case DATOS:
                 return this.datosListContext;
@@ -247,6 +250,7 @@ public class VisorModel {
         switch (this.currentWorkMode) {
             case PROYECTO:
             case CLIENTE:
+            case CLIENT_REVIEW:
                 return this.proyectoZoomContext;
             case DATOS:
                 return this.datosZoomContext;
@@ -638,6 +642,14 @@ public class VisorModel {
     public boolean isVisorFunctionalityActive() {
         return (this.currentWorkMode == WorkMode.VISUALIZADOR ||
                 this.currentWorkMode == WorkMode.CARROUSEL);
-    }
+    } // --- FIN de metodo isVisorFunctionalityActive ---
+
+    public boolean isClienteCheckboxVisible() {
+        return clienteCheckboxVisible;
+    } // --- FIN de metodo isClienteCheckboxVisible ---
+
+    public void setClienteCheckboxVisible(boolean visible) {
+        this.clienteCheckboxVisible = visible;
+    } // --- FIN de metodo setClienteCheckboxVisible ---
 
 } // --- FIN DE LA CLASE VisorModel ---

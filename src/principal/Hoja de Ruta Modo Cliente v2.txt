@@ -1,0 +1,515 @@
+el proceso seria algo asi....
+en el visor marco las imagenes que creo que le pueden interesar al cliente.
+
+modo proyecto
+-------------
+
+en el modo proyecto, tengo mi lista de seleccion y descartes normal. este es mi mundo de trabajo.... (como hasta ahora)
+refino la seleccion, exportar, pdf, y añadimos un boton de compartir al cliente. 
+
+boton compartir con el cliente
+
+es similar al boton de exportar que ya tenemos, pero en lugar de copiar los archivos lo que hace es abrir el modo cliente
+para compartir al cliente, el modo proyecto tiene que estar ok. tiene que tener todas las imagenes en verde como si fueramos a exportar
+si el panel de control de asignaciones tiene errores no podemos compartir con el cliente. primero hay que subsanar los errores
+si todo esta ok se hara lo siguiente:
+	se generaran los codigos de imagen identificativos "CXXX"
+	el proyecto se marca como compartido. a partir de ahora solo se podra modificar a traves del modo cliente
+	se bloquea el boton exportar. el proyecto no se podra exportar hasta que no este cerrado el modo cliente	
+	abre el modo cliente
+	rellena la parte de proyecto
+	selecciona la primera imagen y la muestra en el panel del visor del modo cliente
+
+
+modo cliente
+------------
+menu:
+
+Abrir	Guardar		Guardar Como...		|		Importar 	Exportar	Cerrar
+
+
+interfaz:
+
+seleccion	^	edit		update			checbox					seleccion   ^	edit
+a descartes	v				 <-			vista 		edit			a descartes v
+	
+	proyecto							visor							cliente
+panel seleccion														panel seleccion				
+panel descartes														panel descartes
+
+
+Fucnionamiento:
+
+Menu principal:
+
+Abrir			-> Abre un proyecto de cliente (.prjcl)
+Guardar			-> Guardar el proyecto del cliente (.prjcl)
+Guardar Como...	-> Guardar el proyecto del cliente pero podemos cambiar el nombre (.prjcl)
+
+Importar 		-> Importa un archivo de cliente 
+Exportar		-> Exporta el index.html para el cliente
+Cerrar			-> Cierra el modo cliente y deriva toda la informacion al modo proyecto
+
+Abrir, Guardar y Guardar Como, funcionan exactamente igual que con el modo proyecto pero sobre archivos .prjcl
+
+Importar: 
+abrira el selector de carpetas y nos permitira cargar un archivo .prjcl que sera el que nos haya mandado el cliente
+simplemente añade a la parte derecha de la interfaz los items de seleccion y descartes del cliente
+
+Exportar:
+Exportar generara el archivo index.html que le mandaremos al cliente.
+si el proyecto esta marcado como compartido, el boton de exportar del modo proyecto tiene que actuar como si fuera este
+
+hay 2 casos: que sea el primer exportar o que no. 
+
+si es el primer exportar:
+	todos los archivos de seleccion de proyecto pasan a seleccion de cliente
+	
+si es el segundo exportar en adelante:
+	primero aplica el metodo del boton update
+	añade a seleccion de proyecto lo que tenemos en seleccion del modo cliente
+	añade a descartes de proyecto lo que tenemos en descartes del modo cliente
+	
+a partir de aqui el proceso es comun en ambos casos:
+	comprueba que la asignacion en modo proyecto sigue correcta, si no detiene el proceso y nos avisa de que hay incongruencias
+	
+	crea en memoria lo que sera el archivo index.html con las siguiente instrucciones:
+		crea un listado con todas las imagenes de seleccion del lado del cliente
+		añade a todas las imagnenes de seleccion de cliente el codigo de la imagen en la esquina superior izquierda en un label con el fondo negro y las letras en blanco
+		a cada imagen le añade el codigo con la ubicacion de los checkbox, precio y comentarios en el lugar que hemos dicho en el panel de checkboxes
+		guarda el archivo .prj y .prjcl
+		genera el archivo index.html y lo guarda en la carpeta de destino del modo proyecto o lo sube directamente a google drive o servidor
+		
+
+Cerrar:
+Cierra el proyecto del cliente, bien porque el cliente ha dado el visto bueno o porque al final se ha echado atras.....
+
+el cierre de proyecto lo que tiene que hacer es:
+	primero el update.
+	seleccion de la parte de proyecto del modo cliente pasa a la parte de seleccion del modo proyecto 
+	descartes de la parte de proyecto del modo cliente pasa a la parte de descartes del modo proyecto
+	el modo cliente se vacia de datos (esto no estoy seguro pero bueno)
+	ahora en modo proyecto podemos pasar a exportar el proyecto a la carpeta de trabajo
+	
+
+pantalla principal:
+
+en la columna de la izquierda tenemos los paneles de seleccion y descartes de proyecto y a la derecha seleccion y descartes del cliente que no se podran modificar
+los paneles de seleccion y descarte de la parte de proyecto seran un grid en lugar de una lista simple con las columnas:
+tendremos un boton sobre cada columna para poder pasar de seleccion a descartes y viceversa
+tendremos un boton de editar para poder editar las columnas de seleccion y descartes, pero hay que avisar que puede que cambie las especificaciones del cliente
+	
+	codigo de imagen -> codigo que le dimos en proyecto
+	nombre -> el nombre del archivo de la imagen
+	
+los paneles se seleccion y descarte de la parte del cliente tendran un grid con las siguientes columnas
+
+	estado -> tristate-checkbox de flatlaf que nos mostrara el estado del checkbox para el cliente.  
+	codigo de imagen -> codigo que le dimos en proyecto
+	codigo de checkbox -> codigo o numero de checkbox para identificar los checkbox dentro del proyecto y de la imagen
+	nombre -> el nombre del archivo de la imagen
+	
+	en caso de tener un comentario se representara con el fondo en otro color o poniendo un icono o algo asi que haciendo doble click se abra el comentario
+
+en el centro tenemos el visor con sus modos de vista y zoom normales, tambien tendremos las opciones tipicas de zoom al cuersor y paneo con el raton
+
+encima del visor tendremos los botones:
+
+1 botones de ver checkbox, 1 boton de panel de checkbox y 1 boton de update
+
+boton de ver Checkbox:
+para ver las imagenes con los checkbox y sus estados 
+
+boton de panel de checkbox:
+para abrir un panel para editar y añadir checkbox's 
+
+boton de update:
+estara disabled hasta la primera vez que el cliente nos mande su archivo de modificaciones
+para sincronizar seleccion y descartes del cliente con el proyecto esto lo que hara sera por este orden:
+
+	antes de sincronizar:
+		Antes de que el botón Update aplique los cambios, muestra una pequeña tabla comparativa: "El cliente ha marcado X, pero tú lo tienes en Y. ¿Mantener tu criterio o aceptar el del cliente?"
+		
+	en la parte del cliente:
+	
+		en Seleccion:
+		
+		los archivos que tengan el checkbox marado como ok los deja en seleccion
+		los archivos que tengan el checkbox marado como x los pasara a descartes de cliente
+		los archivos que tengan el checkbox sin marcar no hara nada
+		
+		en Descartes
+		
+		los archivos que tengan el checkbox marado como ok los pasara a seleccion
+		los archivos que tengan el checkbox marado como x los dejara en descartes de cliente
+		los archivos que tengan el checkbox sin marcar los pasara a seleccion
+		
+
+	en la parte de proyecto:
+	
+		los archivos de seleccion y descartes en la columna de cliente pasaran a ser los mismos que en la columna de proyecto comprobando archivo por archivo
+			(mira el primer archivo de seleccion de proyecto a ver donde esta en la parte de cliente y lo pone en la misma lista de la parte de proyecto, luego el siguiente.....)
+
+
+panel para editar y añadir checkbox's:
+
+entraremos con la imagen que tenemos seleccionada en el visor del modo cliente
+en la parte de arriba centrado pondremos un label con un codigo identificador de la imagen 
+se mostraran los checkbox's que ya tenia esa imagen creados si los tuviera
+con click derecho abriremos un popup menu con las siguientes opciones:
+
+Añadir Checkbox -> añade un checkbox en la ubicacion del raton de 48x48 con la opcion de ponerlo de 32x32
+				-> el checkbox sera un tristate-checkbox de flatlaf y tendra en la parte de arriba un pequeño label con el codigo "C"+numero de imagen + nuemero de checkbox
+				-> tambien añade un item a la parte de seleccion del cliente rellenando el grid:
+						checkbox | C+numero de imagen | numero de checkbox | nombre de la imagen
+				 el checkbox estara sin marcar pero nos servira para saber si esta seleccionado o descartado en el futuro
+				
+Añadir Comentario -> nos aparecera un panel para poder introducir el comentario con los botones de aceptar y cancelar. si pulsamos aceptar añade un label con fondo negro y texto en blanco con el comentario en la ubicacion del cursor.
+
+Borrar Checkbox -> si hemos pulsado encima de un checkbox aparece esta opcion para borrar ese checkbox
+				-> tambien borra el item de la parte de seleccion/descartes del cliente de ese checkbox
+				
+Poner PVP -> si hemos pulsado encima de un checkbox nos aparecera un panel para poder introducir el precio con los botones de aceptar y cancelar. si pulsamos aceptar añade un label con fondo negro y texto en blanco junto al checkbox
+   
+el checkbox y el pvp van siempre juntos y los podremos mover por la imagen
+el comentario lo podremos mover pulsando sobre el label del comentario 
+tanto el checkbox como el pvp y el comentario guardaran en el archivo .prjcl su ubicacion y contenido y se reflejara en el archivo web que mandemos al cliente
+
+
+El index.html
+-------------
+
+tiene que ser una lista de imagenes funcional, profesional y vistoso
+tiene que ser facil marcar los checkbox
+tiene que estar claro que ese modelo tiene ese precio
+tiene que tener el codigo de la imagen que le hemos dado en la parte superior izquierda en un fondo negro con las letras en blanco
+el precio tambien tiene que estar en un fondo negro con el texto en blanco
+tiene que ser visible en el movil
+debe contener un boton para exportar el archivo de modificaciones
+el archivo de modificaciones tiene que ser un .prjcl
+junto al checkbox pondremos un icono de bocadillo para que el cliente pueda añadir algun comentario sobre ese modelo y lo asociaremos a ese checkbox
+implementaremos Thumbnailator para la exportacion de imagenes al cliente
+
+El proyecto .prjcl
+------------------
+
+debe contener todo el proyecto, la parte de proyecto y del cliente
+cada imagen tiene que tener de forma clara el codigo, los comentarios, las ubicaciones de los checkbox/precio/comentario que le hemos dado
+tiene que tener un campo timestamp para comprobar fechas y que el cliente no mando un archivo viejo por error
+el nombre tiene que ser el nombre_del_proyecto_v01.prjcl
+
+
+Peligros
+--------
+
+intentamos abrir el .prj de este proyecto: 
+	creo que lo mejor es que cuando guardemos un .prjcl se guarde un indicador que el programa detecta y en lugar de abrir el .prj abra el .prjcl previo aviso
+
+intentamos añadir una imagen al proyecto: 
+	las imagenes añadidas al proyecto compartido se tienen que avisar, y en caso de aceptar se añaden tambien en seleccion de proyecto y cliente en el modo cliente
+
+intentamos mover de descartes a seleccion en modo proyecto estando compartido:
+	lo tenemos que poder hacer pero previo aviso de que estamos modificando las especificaciones del cliente
+	esto tambien lo podemos hacer en modo cliente con el boton de editar
+	 
+
+Aclaraciones:
+-------------
+
+el boton de exportar de modo cliente genera el index.html 
+el boton de exportar de modo proyecto copia o mueve los archivos a la carpeta de trabajo
+
+el modo proyecto tiene un sistema de * para determinar que el proyecto se ha modificado y no se ha guardado, esto se tiene que aplicar tambien a cliente
+
+Cuando guardamos un .prjcl debemos asegurarnos de que el .prj tiene la marca de compartido y que no se cargara sin los datos del modo cliente
+
+cuando abrimos un .prjcl se añade la informacion al modo proyecto para que esten sincronizados
+
+las modificaciones que hacemos en modo cliente de la parte de seleccion y descartes se tiene que hacer simultaneamente en el modo proyecto
+ 
+cuando todo este correcto, podremos activar el boton de exportar que subira el index.html al servidor (google drive que es lo que tengo free ahora mismo) y me dara un enlace para que el cliente pueda abrir el html.
+
+cuando el cliente me manda el json yo lo abro en modo cliente como un proyecto normal, pero es el proyecto del cliente, no mio, por eso le damos una extension diferente como .prjcl o algo asi. asi el programa no permitira abrir un proyecto normal en modo cliente ni un proyecto de cliente en el modo proyecto normal
+
+
+
+
+Ideas y dudas:
+--------------
+
+el cliente hace sus marcas y descartes incluso se me ocurre poder añadir comentarios (el checkbox 1 tiene el comentario 1 por ej) en plan "me gusta esta figura pero en lugar de tener el puño cerrado me gustaria que tuviera un balon de blood bowl" por decir algo....
+
+podemos subir directamente el index.html a drive u otro servidor?
+tendriamos que tener un apartado de configuracon para este servidor/drive?
+
+pondrias la opcion de exportar del modo cliente en el panel de asociacion del modo proyecto ya que la comprobacion del estado de los archivos se hace en modo proyecto?
+
+
+*********************************************************************************************************************************************************
+*********************************************************************************************************************************************************
+*********************************************************************************************************************************************************
+
+
+PLAN DE IMPLEMENTACIÓN — MODO CLIENTE COMPLETO
+FASE 0: FUNDACIÓN — Modelo de datos
+0.1 ProjectModel — Estado compartido
+Archivo: src/modelo/proyecto/ProjectModel.java
+
+Añadir campos a la clase raíz:
+
+private boolean sharedWithClient;        // true si se ha compartido
+private long sharedTimestamp;            // fecha del último compartir
+private int sharedIteration;             // número de iteración (1, 2, 3...)
+private Map<String, String> imageCodes;  // ruta_imagen → "C001"
+Getter/setter para cada campo
+Inicializar en constructor: sharedWithClient = false, imageCodes = new LinkedHashMap<>()
+El timestamp se actualiza cada vez que se exporta el index.html
+0.2 SelectionState — Tristate checkbox
+Archivo: src/modelo/proyecto/SelectionState.java
+
+Ya existe SELECTED, DISCARDED, UNDEFINED. Verificar que sea usable como tristate (para el checkbox de flatlaf en la UI). Si no, añadir método:
+
+public static TristateState toTristate(SelectionState s) {
+    return switch(s) {
+        case SELECTED -> TristateState.SELECTED;
+        case DISCARDED -> TristateState.DESELECTED;
+        case UNDEFINED -> TristateState.INDETERMINATE;
+    };
+}
+0.3 ImageCheckboxOverlay — Códigos y metadatos
+Archivo: src/modelo/proyecto/ImageCheckboxOverlay.java (crear)
+
+Añadir campos:
+
+private String checkboxCode;   // "C001_01"
+private String comment;        // comentario asociado a este checkbox (no a la imagen)
+private double price;          // PVP
+private int size;              // 32 o 48 (px)
+private boolean selected;      // checked state
+Constructor con todos los campos
+Getters/setters
+0.4 ProjectManager — Persistencia de .prjcl
+Archivo: src/servicios/ProjectManager.java
+
+Asegurar que guardarAArchivo() y cargarDeArchivo() manejan correctamente la extensión .prjcl
+Añadir método isPrjclFile(Path) para detectar tipo
+Al guardar .prjcl: incluir sharedWithClient = true, sharedTimestamp, imageCodes
+Al cargar .prjcl: poblar ProjectModel con todos los campos, incluyendo ClientSelection
+FASE 1: FLUJO "COMPARTIR AL CLIENTE"
+1.1 Pre-flight check
+Archivo: src/controlador/services/proyecto/ExportPreflightService.java (o nuevo)
+
+Crear método validarAsignaciones(ProjectModel):
+
+Recorrer selectedImages, verificar que todas tengan ExportConfig con codigoCatalogo no nulo
+Si falta alguna, devolver lista de errores
+Si hay errores, mostrar diálogo y detener flujo
+1.2 Generar códigos CXXX
+Archivo: src/controlador/services/proyecto/PdfWorkflowService.java
+
+El método asignarCodigosCatalogo() ya existe. Asegurar que se llame antes de compartir (no solo al exportar PDF).
+
+1.3 Marcar proyecto como compartido
+Archivo: src/controlador/ClientController.java
+
+Crear método compartirConCliente():
+
+Llamar pre-flight check
+Si falla → mostrar errores y detener
+Si ok → asignarCodigosCatalogo()
+project.setSharedWithClient(true)
+project.setSharedTimestamp(now)
+project.setSharedIteration(1)
+Guardar .prj y .prjcl
+Cambiar WorkMode a CLIENTE
+visorController.actualizarImagenPrincipalPorPath(primeraImagen)
+1.4 Botón Compartir — Acción completa
+Archivo: src/controlador/factory/ActionFactory.java Método: createCompartirClienteAction()
+
+Modificar para que llame a clientController.compartirCliente() en lugar de (o además de) exportar web.
+
+1.5 Bloquear exportar en modo proyecto
+Archivo: src/controlador/actions/projects/IniciarExportacionAction.java
+
+Leer project.isSharedWithClient()
+Si true → deshabilitar botón con tooltip "Proyecto compartido con cliente. Cierra el modo cliente para exportar."
+FASE 2: INTERFAZ DEL MODO CLIENTE
+2.1 Reemplazar JLists por JTables
+Archivo: src/vista/builders/ClientBuilder.java Método: createListPanel()
+
+Cambiar de JList<String> a JTable con DefaultTableModel:
+
+Tabla Proyecto (izquierda): columnas [código, nombre, acciones]
+
+Botón ↑ por fila: mueve a descartes (si está en selección) o a selección (si está en descartes)
+Botón editar: permite editar el código o etiqueta (con aviso de modificar specs cliente)
+Tabla Cliente (derecha): columnas [estado, código_img, código_checkbox, nombre, comentario]
+
+Columna estado: JTristateCheckBox de FlatLaf
+Columna comentario: icono si tiene comentario, doble click abre el texto
+2.2 Modelos de tabla
+Archivo: src/vista/models/ (crear)
+
+ProyectoClienteTableModel extends AbstractTableModel
+ClienteTableModel extends AbstractTableModel
+Ambos con métodos para sincronizar con ProjectModel y ClientSelection.
+
+2.3 Cell Renderers y Editors
+CodeCellRenderer — muestra código CXXX
+TristateCellRenderer / TristateCellEditor — checkbox flatlaf de 3 estados
+CommentCellRenderer — icono + tooltip
+2.4 Mover elementos (↑↓ entre selección/descartes)
+Archivo: src/controlador/ClientController.java
+
+Implementar:
+
+moverADescartesCliente(String imageKey) — mueve de selección a descartes
+restaurarDeDescartesCliente(String imageKey) — mueve de descartes a selección
+Conectar a botones de la UI
+FASE 3: CHECKBOX SYSTEM COMPLETO
+3.1 ImageCheckboxOverlay — Completar
+Archivo: src/modelo/proyecto/ImageCheckboxOverlay.java
+
+Añadir campos que faltan según 0.3.
+
+3.2 Panel de edición de checkboxes
+Archivo: src/vista/panels/CheckboxEditorPanel.java (nuevo)
+
+Panel que se abre al pulsar "Panel de Checkbox" (botón separado del toggle):
+
+Muestra la imagen seleccionada en el visor
+Label superior: código de imagen (C001)
+Overlays: checkboxes existentes con cod + pvp + comentario
+Popup menú derecho:
+"Añadir Checkbox" → crea checkbox 48x48 (o 32x32 con submenú), asigna código "C"+nºimagen+nºcheckbox, añade fila a tabla cliente
+"Añadir Comentario" → diálogo input, coloca label en posición del ratón
+"Borrar Checkbox" → elimina si se pulsó sobre uno
+"Poner PVP" → diálogo input precio, coloca label junto al checkbox
+Drag: mover checkbox+PVP juntos; mover comentario independientemente
+3.3 Botones en la toolbar del cliente
+Archivo: src/vista/config/UIDefinitionService.java Añadir en toolbar cliente (líneas ~786-806):
+
+"Ver Checkbox" (toggle) — ya existe como CMD_CLIENTE_TOGGLE_CHECKBOX
+"Panel Checkbox" — abre CheckboxEditorPanel
+"Update" — sincroniza (Fase 4)
+3.4 Persistencia en .prjcl
+La clase ImageCheckboxOverlay ya se serializa con Gson (está en ClientSelection.imageCheckboxes). Asegurar que todos los nuevos campos (codigo, comment, price, size) se serializan correctamente.
+
+FASE 4: BOTÓN UPDATE
+4.1 Lógica de sincronización
+Archivo: src/servicios/cliente/ClientSyncService.java
+
+Implementar update():
+
+Antes: generar tabla comparativa de conflictos
+Parte Cliente:
+Selección: checked=OK → queda; checked=X → pasa a descartes; unchecked → sin cambios
+Descartes: checked=OK → pasa a selección; checked=X → queda; unchecked → pasa a selección
+Parte Proyecto: copiar estado de cada imagen de la columna cliente a la columna proyecto
+Guardar .prjcl y .prj
+4.2 Tabla comparativa de conflictos
+Archivo: src/vista/panels/SyncConflictDialog.java (nuevo)
+
+Diálogo modal con tabla de 3 columnas:
+
+Nombre imagen
+Estado actual en proyecto
+Estado propuesto por cliente
+Botones por fila: "Mantener proyecto" | "Aceptar cliente" Botón global: "Aplicar todo del cliente"
+
+4.3 Botón Update en UI
+Deshabilitado hasta que exista fechaRespuesta en ClientSelection (primera importación de respuesta). Al pulsar: mostrar diálogo de conflictos, luego aplicar sync.
+
+FASE 5: EXPORTAR INDEX.HTML
+5.1 Añadir Thumbnailator
+Archivo: pom.xml
+
+<dependency>
+    <groupId>net.coobird</groupId>
+    <artifactId>thumbnailator</artifactId>
+    <version>0.4.20</version>
+</dependency>
+5.2 Refactorizar WebCatalogExporter
+Archivo: src/servicios/cliente/WebCatalogExporter.java
+
+5.2.1 Parámetros configurables:
+
+private int thumbnailSize = 400;
+private double jpegQuality = 0.7;
+private boolean forceJpeg = true;
+5.2.2 generarMiniatura con Thumbnailator:
+
+Thumbnails.of(original)
+    .size(thumbnailSize, thumbnailSize)
+    .outputFormat("jpg")
+    .outputQuality(jpegQuality)
+    .toFile(thumbPath);
+5.2.3 Dos modos de exportación:
+
+Primer exportar: todas las imágenes de proyecto → selección cliente
+Siguientes: aplicar update primero, luego exportar
+5.2.4 Datos de checkbox en data.json: Incluir por cada imagen:
+
+"codigo": "C001",
+"checkboxes": [
+    {"codigo": "C001_01", "x": 100, "y": 200, "precio": "12.50", "comentario": "..."}
+],
+"comentario": "..."
+5.2.5 Mejorar index.html:
+
+Código de imagen esquina superior izquierda (fondo negro, texto blanco)
+Precio junto a checkbox (fondo negro, texto blanco)
+Bocadillo de comentario por checkbox
+Botón descargar .prjcl (no solo JSON)
+Mobile-friendly (ya lo es, verificar)
+FASE 6: BOTÓN CERRAR
+6.1 Flujo de cierre
+Archivo: src/controlador/ClientController.java Método: cerrarCliente()
+
+Llamar update (sync cliente → proyecto)
+project.setSharedWithClient(false)
+project.getClientSelection() → vaciar (o mantener como histórico)
+Cambiar WorkMode a PROYECTO
+Guardar .prj
+Habilitar botón exportar
+FASE 7: GUARDIAS DE SEGURIDAD
+7.1 Detectar .prjcl al abrir .prj
+Archivo: src/servicios/ProjectManager.java Método: abrirProyecto()
+
+Antes de abrir un .prj:
+
+Buscar si existe un .prjcl con el mismo nombre en la misma carpeta
+Si existe: preguntar "Este proyecto tiene una sesión de cliente activa. ¿Abrir el .prjcl en su lugar?"
+Si acepta: redirigir a cargarPrjcl()
+7.2 Añadir imágenes a proyecto compartido
+Archivo: src/controlador/ProjectController.java Método: donde se añadan imágenes
+
+Si project.isSharedWithClient():
+
+Diálogo: "El proyecto está compartido con el cliente. Las nuevas imágenes se añadirán a selección de proyecto y de cliente. ¿Continuar?"
+Si acepta: añadir a ambas selecciones
+7.3 Mover entre selección/descartes en modo compartido
+En los botones de mover ↑↓:
+
+Si isSharedWithClient(): "Estás modificando las especificaciones enviadas al cliente. ¿Continuar?"
+Aceptar → mover normalmente
+7.4 Indicador * de modificación
+Aplicar mismo sistema que modo proyecto: cuando se modifica algo en modo cliente, mostrar * en título. Ya existe lógica similar en ProjectManager.notificarModificacion().
+
+FASE 8: GOOGLE DRIVE UPLOAD (FUTURO)
+No implementar ahora. Queda pendiente para cuando se integre la API de Google Drive.
+
+DEPENDENCIAS ENTRE FASES
+Fase 0 (Fundación)
+   ↓
+Fase 1 (Compartir) ──→ Fase 2 (Interfaz)
+   ↓                        ↓
+Fase 3 (Checkboxes) ←───────┘
+   ↓
+Fase 4 (Update)
+   ↓
+Fase 5 (Export HTML) ── requiere Thumbnailator
+   ↓
+Fase 6 (Cerrar)
+   ↓
+Fase 7 (Guardias)

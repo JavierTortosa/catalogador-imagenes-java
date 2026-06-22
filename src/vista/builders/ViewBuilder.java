@@ -138,6 +138,9 @@ public class ViewBuilder {
 
         // 2. ImageDisplayPanel (Vista única)
         sharedSingleImagePanel = new ImageDisplayPanel(this.themeManager, this.model);
+        if (this.projectManager != null) {
+            sharedSingleImagePanel.setProjectManager(this.projectManager);
+        }
         registry.register("panel.display.imagen", sharedSingleImagePanel);
         registry.register("label.imagenPrincipal", sharedSingleImagePanel.getInternalLabel(), "WHEEL_NAVIGABLE");
 

@@ -214,6 +214,7 @@ public interface AppActionCommands {
     public static final String CMD_CLIENTE_EXPORTAR_WEB 			= "cmd.cliente.exportar_web";
     public static final String CMD_CLIENTE_CARGAR_RESPUESTA 		= "cmd.cliente.cargar_respuesta";
     public static final String CMD_CLIENTE_CERRAR_SINCRONIZAR 		= "cmd.cliente.cerrar_sincronizar";
+    public static final String CMD_CLIENTE_TOGGLE_CHECKBOX 		= "cmd.cliente.toggle_checkbox";
     public static final String CMD_VISTA_CAROUSEL 					= "cmd.vista.carousel";
     public static final String CMD_CONFIG_CUSTOM_THEME				= "cmd.config.custom_theme";
     public static final String CMD_CONFIG_AVANZADA					= "cmd.config.avanzada";

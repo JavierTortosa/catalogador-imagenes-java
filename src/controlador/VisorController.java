@@ -789,6 +789,10 @@ public class VisorController implements IModoController, ThemeChangeListener {
              case DATOS:
                  panelKey = isPolaroid ? "panel.datamode.display.polaroid.image" : "panel.datamode.display";
                  break;
+             case CLIENTE:
+             case CLIENT_REVIEW:
+                 panelKey = isPolaroid ? "panel.cliente.display.polaroid.image" : "panel.cliente.display";
+                 break;
              default:
                  panelKey = isPolaroid ? "panel.display.polaroid.image" : "panel.display.imagen";
                  break;
@@ -961,6 +965,7 @@ public class VisorController implements IModoController, ThemeChangeListener {
                 displayPanel = registry.get("panel.proyecto.display");
                 break;
             case CLIENTE:
+            case CLIENT_REVIEW:
                 displayPanel = registry.get("panel.cliente.display");
                 break;
             default:

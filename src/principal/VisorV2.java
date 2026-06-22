@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.37.10";
+        version = "V2.37.50";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -61,7 +61,7 @@ public class VisorV2 {
     // TODO añadir el tornado en seleccion
     // TODO en el panel de pdf, poder ordenar las imagenes mediante drag & drop o algun otro sistema
     // FIXME el panel de detalles de pdf no tiene el split para ajustar la altura
-
+    // FIXME han desaparecido los botones que añadian un comentario debajo de el thumbnail del grid y el boton que pone un marco del color del estado de la imagen segun el panel de asociaciones
     
     // TOOLBAR
     // FIXME el boton que muestra los botones ocultos por el tamaño de la ventana de la aplicacion no aparece al inicio de la aplicacion en ventana

@@ -124,6 +124,7 @@ public class AppModeService {
             case DATOS -> "VISTA_DATOS";
             case CLIENTE -> "VISTA_CLIENTE";
             case CARROUSEL -> "VISTA_CARROUSEL_WORKMODE";
+            case CLIENT_REVIEW -> "VISTA_CLIENTE";
         };
         viewManager.cambiarAVista("container.workmodes", vistaName);
         logger.debug("[AppModeService] Vista cambiada a: {}", vistaName);
@@ -251,6 +252,7 @@ public class AppModeService {
             case DATOS         -> AppActionCommands.CMD_MODO_DATOS;
             case CLIENTE       -> AppActionCommands.CMD_MODO_CLIENTE;
             case CARROUSEL     -> AppActionCommands.CMD_VISTA_CAROUSEL;
+            case CLIENT_REVIEW -> AppActionCommands.CMD_MODO_CLIENTE;
         };
 
         List<String> comandosDeModo = List.of(

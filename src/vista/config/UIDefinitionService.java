@@ -801,6 +801,9 @@ public class UIDefinitionService {
                 "Cargar respuesta del cliente (JSON)", "cliente"));
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR, "8004-edicion_48x48.png",
                 "Cerrar y Sincronizar", "cliente", ButtonType.NORMAL));
+        botonesCliente.add(new SeparatorDefinition());
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_TOGGLE_CHECKBOX, "30105-Layout-Square.png",
+                "Mostrar checkboxes en imágenes", "cliente", ButtonType.TOGGLE));
 
         // --- BARRA DE BOTONES Sync ---
         List<ToolbarButtonDefinition> botonesSincronizacion = List.of(

@@ -93,7 +93,22 @@ public class ClientBuilder {
             registry.register("label.cliente.polaroid.imagen", sharedPolaroidPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
         }
 
-        JPanel centerPanel = createCenterPanel(displayPlaceholder);
+        // Wrapper CardLayout que contiene el placeholder (normal) y el panel de revisión (checkboxes)
+        // Así no movemos el sharedImagePanel de su contenedor original.
+        JPanel displayWrapper = new JPanel(new CardLayout());
+        registry.register("container.displaymodes.cliente.wrapper", displayWrapper);
+        displayWrapper.add(displayPlaceholder, "DISPLAY_NORMAL");
+
+        // Panel de revisión de checkboxes (tarjeta alternativa)
+        vista.panels.ClientReviewPanel reviewPanel = new vista.panels.ClientReviewPanel(
+                themeManager, model, projectManager);
+        registry.register("panel.cliente.review", reviewPanel);
+        displayWrapper.add(reviewPanel, "DISPLAY_REVIEW");
+
+        // Mostrar la vista normal por defecto
+        ((CardLayout) displayWrapper.getLayout()).show(displayWrapper, "DISPLAY_NORMAL");
+
+        JPanel centerPanel = createCenterPanel(displayWrapper);
 
         // Ensamblaje (Modo Comparativo: Izquierda, Centro, Derecha)
         // Split Derecho que contiene (Centro + Derecha)

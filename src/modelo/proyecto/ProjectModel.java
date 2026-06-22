@@ -186,6 +186,7 @@ public class ProjectModel {
         
         private Map<String, SelectionState> images;
         private Map<String, String> comments;
+        private Map<String, java.util.List<ImageCheckboxOverlay>> imageCheckboxes;
         private String clientNotes;
         private int iterationNumber;
         private String fechaRespuesta;
@@ -193,6 +194,7 @@ public class ProjectModel {
         public ClientSelection() {
             this.images = new LinkedHashMap<>();
             this.comments = new LinkedHashMap<>();
+            this.imageCheckboxes = new LinkedHashMap<>();
             this.iterationNumber = 1;
         } // ---FIN de metodo ClientSelection---
 
@@ -246,7 +248,25 @@ public class ProjectModel {
         public void setFechaRespuesta(String fechaRespuesta) {
             this.fechaRespuesta = fechaRespuesta;
         } // ---FIN de metodo setFechaRespuesta---
-        
+
+        public java.util.List<ImageCheckboxOverlay> getImageCheckboxes(String imageKey) {
+            if (imageCheckboxes == null) {
+                imageCheckboxes = new LinkedHashMap<>();
+            }
+            return imageCheckboxes.computeIfAbsent(imageKey, k -> new java.util.ArrayList<>());
+        } // ---FIN de metodo getImageCheckboxes---
+
+        public Map<String, java.util.List<ImageCheckboxOverlay>> getImageCheckboxesMap() {
+            if (imageCheckboxes == null) {
+                imageCheckboxes = new LinkedHashMap<>();
+            }
+            return imageCheckboxes;
+        } // ---FIN de metodo getImageCheckboxesMap---
+
+        public void setImageCheckboxesMap(Map<String, java.util.List<ImageCheckboxOverlay>> imageCheckboxes) {
+            this.imageCheckboxes = imageCheckboxes;
+        } // ---FIN de metodo setImageCheckboxesMap---
+
     } // ---FIN de clase ClientSelection---
     
 } // --- FIN de clase ProjectModel ---

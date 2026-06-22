@@ -677,6 +677,8 @@ public class ActionFactory {
                 createClientCargarRespuestaAction());
         registerAction(AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR,
                 createClientCerrarSincronizarAction());
+        registerAction(AppActionCommands.CMD_CLIENTE_TOGGLE_CHECKBOX,
+                createToggleClienteCheckboxAction());
 
         // --- Acciones para el Árbol de Tags (Modo Datos) ---
         registerAction(AppActionCommands.CMD_DATOS_TAGS_VISTA_LISTA, createTagViewAction(AppActionCommands.CMD_DATOS_TAGS_VISTA_LISTA, "Vista por lista"));
@@ -861,7 +863,13 @@ public class ActionFactory {
                 }
             }
         };
-    }
+    } // --- FIN de metodo createClientCerrarSincronizarAction ---
+
+    private Action createToggleClienteCheckboxAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_CLIENTE_TOGGLE_CHECKBOX);
+        return new controlador.actions.cliente.ToggleClienteCheckboxAction(
+                "Checkboxes en imágenes", icon, this.model, this.registry);
+    } // --- FIN de metodo createToggleClienteCheckboxAction ---
 
     private Action createClientAbrirPrjclAction() {
         return new AbstractAction("Abrir .prjcl") {
