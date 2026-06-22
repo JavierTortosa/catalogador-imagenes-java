@@ -38,6 +38,12 @@ public class ProjectModel {
     // --- Configuración de Exportación Global ---
     private String exportDestinationFolder;
     
+    // --- Estado Compartido con el Cliente ---
+    private boolean sharedWithClient;
+    private long sharedTimestamp;
+    private int sharedIteration;
+    private Map<String, String> imageCodes;
+
     // --- Datos del Cliente ---
     private ClientSelection clientSelection;
     
@@ -49,6 +55,10 @@ public class ProjectModel {
         this.exportConfigs = new LinkedHashMap<>();
         this.creationDate = System.currentTimeMillis();
         this.lastModifiedDate = this.creationDate;
+        this.sharedWithClient = false;
+        this.sharedTimestamp = 0;
+        this.sharedIteration = 0;
+        this.imageCodes = new LinkedHashMap<>();
     } // --- Fin del método ProjectModel (constructor) ---
 
     // --- Getters y Setters ---
@@ -151,6 +161,41 @@ public class ProjectModel {
     public boolean hasClientSelection() {
         return clientSelection != null;
     } // ---FIN de metodo hasClientSelection---
+    
+    public boolean isSharedWithClient() {
+        return sharedWithClient;
+    } // ---FIN de metodo isSharedWithClient---
+
+    public void setSharedWithClient(boolean sharedWithClient) {
+        this.sharedWithClient = sharedWithClient;
+    } // ---FIN de metodo setSharedWithClient---
+
+    public long getSharedTimestamp() {
+        return sharedTimestamp;
+    } // ---FIN de metodo getSharedTimestamp---
+
+    public void setSharedTimestamp(long sharedTimestamp) {
+        this.sharedTimestamp = sharedTimestamp;
+    } // ---FIN de metodo setSharedTimestamp---
+
+    public int getSharedIteration() {
+        return sharedIteration;
+    } // ---FIN de metodo getSharedIteration---
+
+    public void setSharedIteration(int sharedIteration) {
+        this.sharedIteration = sharedIteration;
+    } // ---FIN de metodo setSharedIteration---
+
+    public Map<String, String> getImageCodes() {
+        if (imageCodes == null) {
+            imageCodes = new LinkedHashMap<>();
+        }
+        return imageCodes;
+    } // ---FIN de metodo getImageCodes---
+
+    public void setImageCodes(Map<String, String> imageCodes) {
+        this.imageCodes = imageCodes;
+    } // ---FIN de metodo setImageCodes---
     
     
     @Override

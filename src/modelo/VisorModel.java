@@ -80,7 +80,9 @@ public class VisorModel {
 
     private boolean isProjectExportPanelVisible = false;
     private boolean clienteCheckboxVisible = false;
+    private boolean clienteEditorPanelVisible = false;
     private Path rutaProyectoActivoConNombre;
+
 
     private final List<MasterListChangeListener> masterListListeners = new ArrayList<>();
 
@@ -651,5 +653,13 @@ public class VisorModel {
     public void setClienteCheckboxVisible(boolean visible) {
         this.clienteCheckboxVisible = visible;
     } // --- FIN de metodo setClienteCheckboxVisible ---
+
+    public boolean isClienteEditorPanelVisible() {
+        return clienteEditorPanelVisible;
+    } // --- FIN de metodo isClienteEditorPanelVisible ---
+
+    public void setClienteEditorPanelVisible(boolean visible) {
+        this.clienteEditorPanelVisible = visible;
+    } // --- FIN de metodo setClienteEditorPanelVisible ---
 
 } // --- FIN DE LA CLASE VisorModel ---

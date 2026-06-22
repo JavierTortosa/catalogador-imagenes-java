@@ -6,6 +6,14 @@ package modelo.proyecto;
 public enum SelectionState {
     UNDEFINED, 
     SELECTED, 
-    DISCARDED
+    DISCARDED;
+
+    public TristateState toTristate() {
+        return switch(this) {
+            case SELECTED -> TristateState.SELECTED;
+            case DISCARDED -> TristateState.DESELECTED;
+            case UNDEFINED -> TristateState.INDETERMINATE;
+        };
+    }
 
 } // --- FIN de enum SelectionState ---

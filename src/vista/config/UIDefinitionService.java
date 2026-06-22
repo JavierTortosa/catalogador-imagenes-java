@@ -793,17 +793,36 @@ public class UIDefinitionService {
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR_COMO, "7105-guardar_proyecto_como_48x48.png",
                 "Guardar archivo .prjcl como...", "cliente"));
         botonesCliente.add(new SeparatorDefinition());
-        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_ABRIR_PRJCL, "8004-edicion_48x48.png",
-                "Abrir archivo .prjcl del cliente", "cliente"));
-        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB, "8004-edicion_48x48.png",
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CARGAR_RESPUESTA, "60201-User-Followers.png",
+                "Importar respuesta del cliente (JSON)", "cliente"));
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB, "60202-User-Following.png",
                 "Exportar catálogo web para el cliente", "cliente"));
-        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CARGAR_RESPUESTA, "8004-edicion_48x48.png",
-                "Cargar respuesta del cliente (JSON)", "cliente"));
-        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR, "8004-edicion_48x48.png",
-                "Cerrar y Sincronizar", "cliente", ButtonType.NORMAL));
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_COMPARTIR_CLIENTE, "60203-User-Share.png",
+                "Compartir con el cliente", "cliente"));
         botonesCliente.add(new SeparatorDefinition());
-        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_TOGGLE_CHECKBOX, "30105-Layout-Square.png",
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EDITAR, "60204-User-Edit-Pencil.png",
+                "Editar selección", "cliente"));
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES, "60101-Rotate-X-Axis.png",
+                "Mover selección a descartes", "cliente"));
+        botonesCliente.add(new SeparatorDefinition());
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_TOGGLE_EDITOR_PANEL, "60102-Assistant-Square.png",
+                "Panel edición checkboxes y comentarios", "cliente", ButtonType.TOGGLE));
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_TOGGLE_CHECKBOX, "60206-Word-Wrap-Around-Bounding-Box.png",
                 "Mostrar checkboxes en imágenes", "cliente", ButtonType.TOGGLE));
+        botonesCliente.add(new SeparatorDefinition());
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR, "60205-User-Check-Validate.png",
+                "Cerrar y sincronizar con el cliente", "cliente"));
+
+        // --- BARRA DE BOTONES DEL EDITOR DE CHECKBOXES ---
+        List<ToolbarComponentDefinition> botonesCheckboxEditor = List.of(
+                new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CHECKBOX_ADD, "60301-Cursor-Area-Selection-1.png",
+                        "Añadir checkbox", "editor_checkboxes"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CHECKBOX_ADD_LABEL, "60302-Text-Select-Start.png",
+                        "Añadir label", "editor_checkboxes"),
+                new SeparatorDefinition(),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CHECKBOX_FIN_EDICION, "60303-Check-Square-2.png",
+                        "Finalizar edición de checkboxes", "editor_checkboxes")
+        );
 
         // --- BARRA DE BOTONES Sync ---
         List<ToolbarButtonDefinition> botonesSincronizacion = List.of(
@@ -1154,6 +1173,10 @@ public class UIDefinitionService {
                 // Barra específica para el Modo Cliente
                 , new ToolbarDefinition("cliente", "Cliente", 155, EnumSet.of(WorkMode.CLIENTE),
                         List.copyOf(botonesCliente), ToolbarAlignment.CENTER)
+
+                // Barra específica para el Editor de Checkboxes
+                , new ToolbarDefinition("editor_checkboxes", "Editor de Checkboxes", 156, EnumSet.of(WorkMode.CLIENTE, WorkMode.CLIENT_REVIEW),
+                        List.copyOf(botonesCheckboxEditor), ToolbarAlignment.CENTER)
 
                 // Barras especiales
                 ,

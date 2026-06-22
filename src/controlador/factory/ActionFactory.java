@@ -679,6 +679,16 @@ public class ActionFactory {
                 createClientCerrarSincronizarAction());
         registerAction(AppActionCommands.CMD_CLIENTE_TOGGLE_CHECKBOX,
                 createToggleClienteCheckboxAction());
+        registerAction(AppActionCommands.CMD_CLIENTE_TOGGLE_EDITOR_PANEL,
+                createToggleEditorPanelAction());
+        registerAction(AppActionCommands.CMD_CLIENTE_EDITAR,
+                createFuncionalidadPendienteAction());
+        registerAction(AppActionCommands.CMD_CLIENTE_CHECKBOX_ADD,
+                createFuncionalidadPendienteAction());
+        registerAction(AppActionCommands.CMD_CLIENTE_CHECKBOX_ADD_LABEL,
+                createFuncionalidadPendienteAction());
+        registerAction(AppActionCommands.CMD_CLIENTE_CHECKBOX_FIN_EDICION,
+                createFuncionalidadPendienteAction());
 
         // --- Acciones para el Árbol de Tags (Modo Datos) ---
         registerAction(AppActionCommands.CMD_DATOS_TAGS_VISTA_LISTA, createTagViewAction(AppActionCommands.CMD_DATOS_TAGS_VISTA_LISTA, "Vista por lista"));
@@ -870,6 +880,12 @@ public class ActionFactory {
         return new controlador.actions.cliente.ToggleClienteCheckboxAction(
                 "Checkboxes en imágenes", icon, this.model, this.registry);
     } // --- FIN de metodo createToggleClienteCheckboxAction ---
+
+    private Action createToggleEditorPanelAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_CLIENTE_TOGGLE_EDITOR_PANEL);
+        return new controlador.actions.cliente.ToggleEditorPanelAction(
+                "Editor de checkboxes", icon, this.model, this.registry);
+    }
 
     private Action createClientAbrirPrjclAction() {
         return new AbstractAction("Abrir .prjcl") {

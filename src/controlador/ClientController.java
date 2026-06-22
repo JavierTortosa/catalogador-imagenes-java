@@ -273,7 +273,7 @@ public class ClientController implements IModoController {
         }
         logger.info("[ClientController] Cargando proyecto de cliente: {}", ruta);
         if (projectManager != null) {
-            projectManager.abrirProyecto(ruta);
+            projectManager.abrirProyectoCliente(ruta);
             activarVistaCliente();
         }
     } // --- FIN de metodo cargarPrjcl ---

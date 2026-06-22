@@ -355,6 +355,16 @@ public class ProjectManager implements IProjectManager {
     } // ---FIN de metodo nuevoProyecto---
 
     
+    public static boolean isPrjclFile(Path ruta) {
+        return ruta != null && ruta.getFileName() != null
+                && ruta.getFileName().toString().toLowerCase().endsWith(EXTENSION_PRJCL);
+    }
+
+    public static boolean isPrjFile(Path ruta) {
+        return ruta != null && ruta.getFileName() != null
+                && ruta.getFileName().toString().toLowerCase().endsWith(EXTENSION_PRJ);
+    }
+
     public void abrirProyecto(Path rutaArchivo) throws ProyectoIOException {
         logger.info("[ProjectManager] Abriendo proyecto desde: {}", rutaArchivo);
         if (rutaArchivo == null || !Files.isReadable(rutaArchivo)) {
@@ -364,8 +374,7 @@ public class ProjectManager implements IProjectManager {
         }
 
         // --- Protección de extensión: rechazar .prjcl en modo proyecto normal ---
-        String fileNameLC = rutaArchivo.getFileName().toString().toLowerCase();
-        if (fileNameLC.endsWith(EXTENSION_PRJCL)) {
+        if (isPrjclFile(rutaArchivo)) {
             String errorMsg = "El archivo '" + rutaArchivo.getFileName()
                     + "' es un archivo de proyecto de cliente (.prjcl).\n"
                     + "Usa el Modo Cliente (Ctrl+3) para abrir este tipo de archivos.";
@@ -382,6 +391,21 @@ public class ProjectManager implements IProjectManager {
             modelRef.setRutaProyectoActivoConNombre(rutaArchivo);
         }
     } // ---FIN de metodo abrirProyecto---
+
+    public void abrirProyectoCliente(Path rutaArchivo) throws ProyectoIOException {
+        logger.info("[ProjectManager] Abriendo proyecto de cliente: {}", rutaArchivo);
+        if (rutaArchivo == null || !Files.isReadable(rutaArchivo)) {
+            String errorMsg = "La ruta es nula o el archivo no se puede leer. Ruta: " + rutaArchivo;
+            logger.error(errorMsg);
+            throw new ProyectoIOException(errorMsg);
+        }
+        cargarDesdeArchivo(rutaArchivo);
+        this.lastSavedProjectState = deepCopyProjectModel(this.currentProject);
+        this.archivoProyectoActivo = rutaArchivo;
+        if (modelRef != null) {
+            modelRef.setRutaProyectoActivoConNombre(rutaArchivo);
+        }
+    } // ---FIN de metodo abrirProyectoCliente---
     
 
     public void guardarProyectoComo(Path rutaArchivo) {
