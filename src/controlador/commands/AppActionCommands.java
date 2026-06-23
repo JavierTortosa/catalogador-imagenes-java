@@ -211,6 +211,7 @@ public interface AppActionCommands {
     public static final String CMD_PROYECTO_COMPARTIR_CLIENTE		= "cmd.proyecto.compartir_cliente";
     public static final String CMD_MODO_CLIENTE 					= "cmd.modo.cliente";
     public static final String CMD_CLIENTE_ABRIR_PRJCL 				= "cmd.cliente.abrir_prjcl";
+    public static final String CMD_CLIENTE_UPDATE 				= "cmd.cliente.update";
     public static final String CMD_CLIENTE_EXPORTAR_WEB 			= "cmd.cliente.exportar_web";
     public static final String CMD_CLIENTE_CARGAR_RESPUESTA 		= "cmd.cliente.cargar_respuesta";
     public static final String CMD_CLIENTE_CERRAR_SINCRONIZAR 		= "cmd.cliente.cerrar_sincronizar";

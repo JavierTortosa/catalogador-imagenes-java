@@ -23,12 +23,16 @@ import servicios.cliente.WebCatalogExporter;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import controlador.managers.interfaces.IProjectManager;
+import controlador.services.proyecto.ExportPreflightService;
+import modelo.VisorModel;
 
 /**
  * Controlador principal para el Modo Cliente.
@@ -51,39 +55,48 @@ public class ClientController implements IModoController {
 
     public ClientController() {
         // Inicialización vacía, las dependencias se inyectarán vía setters
-    } // --- FIN del constructor ---
+    } // --- Fin de metodo ClientController (constructor) ---
+
 
     public void setVisorController(VisorController visorController) {
         this.visorController = visorController;
-    } // --- FIN del metodo setVisorController ---
+    } // --- Fin de metodo setVisorController ---
+
 
     public void setComponentRegistry(ComponentRegistry registry) {
         this.registry = registry;
-    } // --- FIN del metodo setComponentRegistry ---
+    } // --- Fin de metodo setComponentRegistry ---
+
 
     public void setProjectListCoordinator(controlador.ProjectListCoordinator projectListCoordinator) {
         this.projectListCoordinator = projectListCoordinator;
-    } // --- FIN del metodo setProjectListCoordinator ---
+    } // --- Fin de metodo setProjectListCoordinator ---
+
 
     public void setGeneralController(GeneralController generalController) {
         this.generalController = generalController;
-    } // --- FIN del metodo setGeneralController ---
+    } // --- Fin de metodo setGeneralController ---
+
 
     public void setProjectManager(ProjectManager projectManager) {
         this.projectManager = projectManager;
-    } // --- FIN del metodo setProjectManager ---
+    } // --- Fin de metodo setProjectManager ---
+
 
     public ProjectManager getProjectManager() {
         return projectManager;
-    } // --- FIN del metodo getProjectManager ---
+    } // --- Fin de metodo getProjectManager ---
+
 
     public void setValidationService(ValidationService validationService) {
         this.validationService = validationService;
-    } // --- FIN del metodo setValidationService ---
+    } // --- Fin de metodo setValidationService ---
+
 
     public void setClientSyncService(ClientSyncService clientSyncService) {
         this.clientSyncService = clientSyncService;
-    } // --- FIN del metodo setClientSyncService ---
+    } // --- Fin de metodo setClientSyncService ---
+
 
     /**
      * Activa y prepara la vista para el modo cliente.
@@ -95,91 +108,66 @@ public class ClientController implements IModoController {
             logger.warn("[ClientController] No hay proyecto activo.");
             return;
         }
-
-        // 1. Obtener JLists del registro
-        JList<String> proySel = registry != null ? registry.get("list.cliente.proyecto.seleccion") : null;
-        JList<String> proyDesc = registry != null ? registry.get("list.cliente.proyecto.descartes") : null;
-        JList<String> cliSel = registry != null ? registry.get("list.cliente.cliente.seleccion") : null;
-        JList<String> cliDesc = registry != null ? registry.get("list.cliente.cliente.descartes") : null;
-
-        // 2. Poblar JLists
-        if (proySel != null) {
-            DefaultListModel<String> model = new DefaultListModel<>();
-            for (String key : project.getSelectedImages().keySet()) {
-                model.addElement(key);
-            }
-            proySel.setModel(model);
+        if (registry != null) {
+            asignarModelosTablas(project);
         }
+        logger.info("[ClientController] Tablas del Modo Cliente refrescadas.");
+    } // --- Fin de metodo activarVistaCliente ---
 
-        if (proyDesc != null) {
-            DefaultListModel<String> model = new DefaultListModel<>();
-            for (String key : project.getDiscardedImages()) {
-                model.addElement(key);
-            }
-            proyDesc.setModel(model);
+
+    private void asignarModelosTablas(ProjectModel project) {
+        JTable t;
+        t = registry.get("table.cliente.proyecto.seleccion");
+        if (t != null) {
+            t.setModel(new vista.models.ProyectoClienteTableModel(project, true));
+            t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_CODIGO)
+                    .setCellRenderer(new vista.renderers.CodeCellRenderer());
+            t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_ACCIONES)
+                    .setCellRenderer(new vista.renderers.ActionCellRenderer(true));
+            t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_CODIGO).setMaxWidth(80);
+            t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_ACCIONES).setMaxWidth(80);
         }
-
-        if (cliSel != null) cliSel.setModel(new DefaultListModel<>());
-        if (cliDesc != null) cliDesc.setModel(new DefaultListModel<>());
-
-        if (project.hasClientSelection()) {
-            java.util.Map<String, SelectionState> clientImages = project.getClientSelection().getImages();
-            DefaultListModel<String> cliSelModel = (cliSel != null) ? (DefaultListModel<String>) cliSel.getModel() : null;
-            DefaultListModel<String> cliDescModel = (cliDesc != null) ? (DefaultListModel<String>) cliDesc.getModel() : null;
-            for (java.util.Map.Entry<String, SelectionState> entry : clientImages.entrySet()) {
-                if (entry.getValue() == SelectionState.SELECTED) {
-                    if (cliSelModel != null) cliSelModel.addElement(entry.getKey());
-                } else if (entry.getValue() == SelectionState.DISCARDED) {
-                    if (cliDescModel != null) cliDescModel.addElement(entry.getKey());
-                }
-            }
+        t = registry.get("table.cliente.proyecto.descartes");
+        if (t != null) {
+            t.setModel(new vista.models.ProyectoClienteTableModel(project, false));
+            t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_CODIGO)
+                    .setCellRenderer(new vista.renderers.CodeCellRenderer());
+            t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_ACCIONES)
+                    .setCellRenderer(new vista.renderers.ActionCellRenderer(false));
+            t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_CODIGO).setMaxWidth(80);
+            t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_ACCIONES).setMaxWidth(80);
         }
-
-        // 3. Añadir Listeners
-        if (proySel != null) {
-            proySel.addListSelectionListener(e -> {
-                if (e.getValueIsAdjusting()) return;
-                String key = proySel.getSelectedValue();
-                if (key != null && visorController != null) {
-                    visorController.actualizarImagenPrincipalPorPath(Paths.get(key), key);
-                }
-            });
+        t = registry.get("table.cliente.cliente.seleccion");
+        if (t != null) {
+            t.setModel(new vista.models.ClienteTableModel(project, true));
+            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_ESTADO)
+                    .setCellRenderer(new vista.renderers.TristateCellRenderer());
+            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_ESTADO).setMaxWidth(50);
+            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_IMG).setMaxWidth(80);
+            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_IMG)
+                    .setCellRenderer(new vista.renderers.CodeCellRenderer());
+            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_CB).setMaxWidth(80);
+            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_COMENTARIO)
+                    .setCellRenderer(new vista.renderers.CommentCellRenderer());
+            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_COMENTARIO).setMaxWidth(50);
         }
-
-        if (proyDesc != null) {
-            proyDesc.addListSelectionListener(e -> {
-                if (e.getValueIsAdjusting()) return;
-                String key = proyDesc.getSelectedValue();
-                if (key != null && visorController != null) {
-                    visorController.actualizarImagenPrincipalPorPath(Paths.get(key), key);
-                }
-            });
+        t = registry.get("table.cliente.cliente.descartes");
+        if (t != null) {
+            t.setModel(new vista.models.ClienteTableModel(project, false));
+            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_ESTADO)
+                    .setCellRenderer(new vista.renderers.TristateCellRenderer());
+            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_ESTADO).setMaxWidth(50);
+            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_IMG).setMaxWidth(80);
+            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_IMG)
+                    .setCellRenderer(new vista.renderers.CodeCellRenderer());
+            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_CB).setMaxWidth(80);
+            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_COMENTARIO)
+                    .setCellRenderer(new vista.renderers.CommentCellRenderer());
+            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_COMENTARIO).setMaxWidth(50);
         }
+        refrescarTablas();
+    } // --- Fin de metodo asignarModelosTablas ---
 
-        if (cliSel != null) {
-            cliSel.addListSelectionListener(e -> {
-                if (e.getValueIsAdjusting()) return;
-                String key = cliSel.getSelectedValue();
-                if (key != null && visorController != null) {
-                    updateClientSelectionState(key, SelectionState.SELECTED);
-                    visorController.actualizarImagenPrincipalPorPath(Paths.get(key), key);
-                }
-            });
-        }
-
-        if (cliDesc != null) {
-            cliDesc.addListSelectionListener(e -> {
-                if (e.getValueIsAdjusting()) return;
-                String key = cliDesc.getSelectedValue();
-                if (key != null && visorController != null) {
-                    updateClientSelectionState(key, SelectionState.DISCARDED);
-                    visorController.actualizarImagenPrincipalPorPath(Paths.get(key), key);
-                }
-            });
-        }
-
-        logger.info("[ClientController] Listas del Modo Cliente pobladas y listeners configurados.");
-    } // --- FIN de metodo activarVistaCliente ---
 
     /**
      * Actualiza el estado de selección de una imagen por parte del cliente.
@@ -192,11 +180,91 @@ public class ClientController implements IModoController {
             if (projectManager.getCurrentProject().hasClientSelection()) {
                 projectManager.getCurrentProject().getClientSelection().getImages().put(imageKey, newState);
                 projectManager.notificarModificacion();
-                // Refresh client lists
-                refrescarListasCliente();
+                refrescarTablas();
             }
         }
-    } // --- FIN de metodo updateClientSelectionState ---
+    } // --- Fin de metodo updateClientSelectionState ---
+
+
+    public void compartirConCliente() {
+        logger.info("[ClientController] Iniciando flujo de compartir con el cliente...");
+        ProjectModel project = projectManager != null ? projectManager.getCurrentProject() : null;
+        if (project == null) {
+            JOptionPane.showMessageDialog(null, "No hay ning\u00fan proyecto activo.",
+                    "Compartir al Cliente", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        java.util.Map<String, String> selectedImages = project.getSelectedImages();
+        if (selectedImages == null || selectedImages.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "No hay im\u00e1genes seleccionadas en el proyecto.",
+                    "Compartir al Cliente", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        java.util.Map<String, String> imageCodes = project.getImageCodes();
+        imageCodes.clear();
+        int numDigitos = Math.max(3, String.valueOf(selectedImages.size()).length());
+        String formato = "C%0" + numDigitos + "d";
+        int idx = 0;
+        for (String rutaImagen : selectedImages.keySet()) {
+            String codigo = String.format(formato, ++idx);
+            imageCodes.put(rutaImagen, codigo);
+            if (project.getExportConfigs().containsKey(rutaImagen)) {
+                project.getExportConfigs().get(rutaImagen).setCodigoCatalogo(codigo);
+            }
+        }
+
+        java.util.List<String> errores = ExportPreflightService.validarAsignaciones(project);
+        if (!errores.isEmpty()) {
+            StringBuilder msg = new StringBuilder(
+                    "No se puede compartir el proyecto. Corrige los siguientes errores:\n\n");
+            for (String err : errores) {
+                msg.append(" \u2022 ").append(err).append("\n");
+            }
+            JOptionPane.showMessageDialog(null, msg.toString(), "Error al Compartir", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        project.setSharedWithClient(true);
+        project.setSharedTimestamp(System.currentTimeMillis());
+        project.setSharedIteration(1);
+
+        Path prjPath = projectManager.getArchivoProyectoActivo();
+        if (prjPath != null) {
+            projectManager.guardarAArchivo();
+        }
+
+        Path prjclPath;
+        if (prjPath != null) {
+            String prjName = prjPath.getFileName().toString();
+            prjclPath = prjPath.resolveSibling(
+                    prjName.replaceAll("(?i)\\.prj$", "") + ".prjcl");
+        } else {
+            prjclPath = projectManager.getCarpetaBaseProyectos()
+                    .resolve("compartido_" + System.currentTimeMillis() + ".prjcl");
+        }
+        projectManager.guardarProyectoComo(prjclPath);
+
+        if (generalController != null) {
+            generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.CLIENTE);
+        }
+
+        if (!selectedImages.isEmpty()) {
+            String primeraImagen = selectedImages.keySet().iterator().next();
+            if (visorController != null && primeraImagen != null) {
+                visorController.actualizarImagenPrincipalPorPath(Paths.get(primeraImagen), primeraImagen);
+            }
+        }
+
+        logger.info("[ClientController] Proyecto compartido con \u00e9xito. C\u00f3digos generados: {}",
+                selectedImages.size());
+        JOptionPane.showMessageDialog(null,
+                "Proyecto compartido con el cliente.\n\nSe han generado " + selectedImages.size()
+                        + " c\u00f3digos de cat\u00e1logo.\nModo Cliente activado.",
+                "Compartir Completado", JOptionPane.INFORMATION_MESSAGE);
+    } // --- Fin de metodo compartirConCliente ---
+
 
     /**
      * Refresca las listas de selección y descartes del cliente en la UI.
@@ -223,26 +291,183 @@ public class ClientController implements IModoController {
                 }
             }
         }
-    } // --- FIN del metodo refrescarListasCliente ---
+    } // --- Fin de metodo refrescarListasCliente ---
+
+
+    public void refrescarTablas() {
+        if (registry == null) return;
+        javax.swing.JTable t;
+        t = registry.get("table.cliente.proyecto.seleccion");
+        if (t != null && t.getModel() instanceof vista.models.ProyectoClienteTableModel pm1) pm1.refrescar();
+        t = registry.get("table.cliente.proyecto.descartes");
+        if (t != null && t.getModel() instanceof vista.models.ProyectoClienteTableModel pm2) pm2.refrescar();
+        t = registry.get("table.cliente.cliente.seleccion");
+        if (t != null && t.getModel() instanceof vista.models.ClienteTableModel cm1) cm1.refrescar();
+        t = registry.get("table.cliente.cliente.descartes");
+        if (t != null && t.getModel() instanceof vista.models.ClienteTableModel cm2) cm2.refrescar();
+    } // --- Fin de metodo refrescarTablas ---
+
+
+    public void moverADescartesCliente(String imageKey) {
+        logger.info("[ClientController] Moviendo {} a descartes (proyecto).", imageKey);
+        if (projectManager != null && projectManager.getCurrentProject() != null) {
+            ProjectModel project = projectManager.getCurrentProject();
+            if (project.getSelectedImages().containsKey(imageKey)) {
+                project.getSelectedImages().remove(imageKey);
+                if (!project.getDiscardedImages().contains(imageKey)) {
+                    project.getDiscardedImages().add(imageKey);
+                }
+                projectManager.notificarModificacion();
+                refrescarTablas();
+            }
+        }
+    } // --- Fin de metodo moverADescartesCliente ---
+
+
+    public void restaurarDeDescartesCliente(String imageKey) {
+        logger.info("[ClientController] Restaurando {} de descartes a selecci\u00f3n.", imageKey);
+        if (projectManager != null && projectManager.getCurrentProject() != null) {
+            ProjectModel project = projectManager.getCurrentProject();
+            if (project.getDiscardedImages().contains(imageKey)) {
+                project.getDiscardedImages().remove(imageKey);
+                project.getSelectedImages().putIfAbsent(imageKey, "");
+                projectManager.notificarModificacion();
+                refrescarTablas();
+            }
+        }
+    } // --- Fin de metodo restaurarDeDescartesCliente ---
+
+
+    public VisorController getVisorController() {
+        return visorController;
+    } // --- Fin de metodo getVisorController ---
+
 
     /**
-     * Mueve el elemento seleccionado actualmente en la vista de cliente a Descartes.
+     * Cierra el modo cliente: sincroniza cambios al proyecto, desactiva shared,
+     * vuelve a modo proyecto y guarda.
      */
-    public void moverADescartesCliente() {
-        // Implementación futura
-    } // --- FIN de metodo moverADescartesCliente ---
+    public void cerrarCliente() {
+        logger.info("[ClientController] Cerrando modo cliente...");
+        ProjectModel project = projectManager != null ? projectManager.getCurrentProject() : null;
+        if (project == null) {
+            JOptionPane.showMessageDialog(null, "No hay proyecto activo.",
+                    "Cerrar Cliente", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
-    /**
-     * Restaura el elemento de Descartes del cliente a Selección del cliente.
-     */
-    public void restaurarDeDescartesCliente() {
-        // Implementación futura
-    } // --- FIN de metodo restaurarDeDescartesCliente ---
+        int confirm = JOptionPane.showConfirmDialog(null,
+                "\u00bfEst\u00e1s seguro de cerrar el modo cliente?\n\n"
+                + "Los cambios del cliente se sincronizar\u00e1n con el proyecto.\n"
+                + "Se desactivar\u00e1 el modo compartido y volver\u00e1s al modo proyecto.",
+                "Cerrar Modo Cliente",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE);
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        // 1. Sync cliente → proyecto
+        if (clientSyncService != null && project.hasClientSelection()) {
+            clientSyncService.update(project);
+        }
+
+        // 2. Desactivar shared
+        project.setSharedWithClient(false);
+        project.setSharedTimestamp(0);
+        project.setSharedIteration(0);
+
+        // 3. Limpiar selecci\u00f3n de cliente
+        project.getClientSelection().getImages().clear();
+        project.getClientSelection().getComments().clear();
+        project.getClientSelection().getCommentOverlays().clear();
+        project.getClientSelection().getImageCheckboxesMap().clear();
+
+        // 4. Resetear flags de panel
+        if (generalController != null) {
+            modelo.VisorModel visorModel = generalController.getModel();
+            if (visorModel != null) {
+                visorModel.setClienteCheckboxVisible(false);
+                visorModel.setClienteEditorPanelVisible(false);
+            }
+        }
+
+        // 5. Restaurar card DISPLAY_NORMAL en el wrapper
+        if (registry != null) {
+            java.awt.Container displayWrapper = registry.get("container.displaymodes.cliente.wrapper");
+            if (displayWrapper != null && displayWrapper.getLayout() instanceof java.awt.CardLayout) {
+                ((java.awt.CardLayout) displayWrapper.getLayout()).show(displayWrapper, "DISPLAY_NORMAL");
+            }
+        }
+
+        // 6. Cambiar modo a PROYECTO
+        if (generalController != null) {
+            generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
+        }
+
+        // 7. Guardar .prj
+        projectManager.guardarAArchivo();
+        projectManager.notificarModificacion();
+
+        logger.info("[ClientController] Modo cliente cerrado. Proyecto guardado.");
+        JOptionPane.showMessageDialog(null,
+                "Modo cliente cerrado correctamente.\n"
+                + "Los cambios se han sincronizado con el proyecto.\n"
+                + "La exportaci\u00f3n ya est\u00e1 disponible.",
+                "Cliente Cerrado", JOptionPane.INFORMATION_MESSAGE);
+    } // --- Fin de metodo cerrarCliente ---
+
 
     /**
      * Cierra la revisión actual del cliente, fusionando los cambios en el proyecto.
      * @return SyncReport con el resumen de cambios, o null si no se pudo completar.
      */
+    public void solicitarUpdateCliente() {
+        logger.info("[ClientController] Solicitando update del cliente...");
+        if (projectManager == null || projectManager.getCurrentProject() == null) {
+            JOptionPane.showMessageDialog(null, "No hay proyecto activo.", "Update",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        ProjectModel project = projectManager.getCurrentProject();
+        if (!project.hasClientSelection()
+                || project.getClientSelection().getFechaRespuesta() == null
+                || project.getClientSelection().getFechaRespuesta().isBlank()) {
+            JOptionPane.showMessageDialog(null,
+                    "No hay respuesta del cliente. Importa una respuesta antes de actualizar.",
+                    "Update", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (clientSyncService == null) return;
+
+        java.util.List<servicios.cliente.ClientSyncService.ConflictEntry> conflicts =
+                clientSyncService.computeConflicts(project);
+
+        if (conflicts.isEmpty()) {
+            clientSyncService.update(project);
+            projectManager.guardarAArchivo();
+            projectManager.notificarModificacion();
+            refrescarTablas();
+            JOptionPane.showMessageDialog(null, "No hay conflictos. Proyecto actualizado.",
+                    "Update", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        JFrame owner = registry != null ? registry.get("frame.principal") : null;
+        vista.dialogos.SyncConflictDialog dialog = new vista.dialogos.SyncConflictDialog(owner, conflicts);
+        dialog.setVisible(true);
+
+        if (dialog.isAccepted()) {
+            clientSyncService.applyResolvedConflicts(project, dialog.getResolvedConflicts());
+            projectManager.guardarAArchivo();
+            projectManager.notificarModificacion();
+            refrescarTablas();
+            JOptionPane.showMessageDialog(null,
+                    "Conflictos resueltos y aplicados al proyecto.",
+                    "Update", JOptionPane.INFORMATION_MESSAGE);
+        }
+    } // --- Fin de metodo solicitarUpdateCliente ---
+
+
     public SyncReport closeAndSyncProject() {
         logger.info("Cerrando y sincronizando proyecto de cliente...");
         if (projectManager != null && projectManager.getCurrentProject() != null && clientSyncService != null) {
@@ -254,7 +479,8 @@ public class ClientController implements IModoController {
             return report;
         }
         return null;
-    } // --- FIN de metodo closeAndSyncProject ---
+    } // --- Fin de metodo closeAndSyncProject ---
+
 
     /**
      * Carga un archivo de proyecto de cliente (.prjcl) y configura el modelo.
@@ -276,7 +502,8 @@ public class ClientController implements IModoController {
             projectManager.abrirProyectoCliente(ruta);
             activarVistaCliente();
         }
-    } // --- FIN de metodo cargarPrjcl ---
+    } // --- Fin de metodo cargarPrjcl ---
+
 
     /**
      * Crea un nuevo archivo .prjcl (borra la selección de cliente actual).
@@ -291,7 +518,8 @@ public class ClientController implements IModoController {
         project.getClientSelection().getImages().clear();
         projectManager.notificarModificacion();
         activarVistaCliente();
-    } // --- FIN de metodo solicitarNuevoPrjcl ---
+    } // --- Fin de metodo solicitarNuevoPrjcl ---
+
 
     /**
      * Abre un archivo .prjcl mediante JFileChooser.
@@ -317,7 +545,8 @@ public class ClientController implements IModoController {
                         e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         }
-    } // --- FIN de metodo manejarAbrirPrjcl ---
+    } // --- Fin de metodo manejarAbrirPrjcl ---
+
 
     /**
      * Guarda la selección de cliente en el archivo .prjcl activo (o pide nombre).
@@ -331,7 +560,8 @@ public class ClientController implements IModoController {
             pm.guardarAArchivo();
             logger.info("[ClientController] Proyecto de cliente guardado.");
         }
-    } // --- FIN de metodo solicitarGuardarPrjcl ---
+    } // --- Fin de metodo solicitarGuardarPrjcl ---
+
 
     /**
      * Guarda la selección de cliente en un nuevo archivo .prjcl.
@@ -357,7 +587,8 @@ public class ClientController implements IModoController {
                 projectManager.guardarProyectoComo(archivo);
             }
         }
-    } // --- FIN de metodo solicitarGuardarPrjclComo ---
+    } // --- Fin de metodo solicitarGuardarPrjclComo ---
+
 
     /**
      * Exporta el catálogo web para enviar al cliente.
@@ -375,13 +606,69 @@ public class ClientController implements IModoController {
         if (webCatalogExporter == null) {
             webCatalogExporter = new WebCatalogExporter();
         }
-        try {
-            webCatalogExporter.exportar(project, outputDir, iteracion);
-            logger.info("[ClientController] Exportación completada.");
-        } catch (java.io.IOException e) {
-            logger.error("[ClientController] Error durante la exportación: {}", e.getMessage(), e);
-        }
-    } // --- FIN de metodo exportarParaCliente ---
+
+        javax.swing.JDialog progressDialog = new javax.swing.JDialog(
+                registry != null ? (JFrame) registry.get("frame.principal") : null,
+                "Exportando catálogo...", true);
+        progressDialog.setDefaultCloseOperation(javax.swing.JDialog.DO_NOTHING_ON_CLOSE);
+        javax.swing.JProgressBar progressBar = new javax.swing.JProgressBar(0, 100);
+        progressBar.setStringPainted(true);
+        progressBar.setString("Generando miniaturas...");
+        progressBar.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        progressDialog.add(progressBar);
+        progressDialog.setSize(350, 80);
+        progressDialog.setLocationRelativeTo(registry != null
+                ? (java.awt.Window) registry.get("frame.principal") : null);
+
+        javax.swing.SwingWorker<Void, Integer> worker = new javax.swing.SwingWorker<>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                webCatalogExporter.exportar(project, outputDir, iteracion, progress -> {
+                    publish(progress);
+                });
+                return null;
+            }
+
+            @Override
+            protected void process(java.util.List<Integer> chunks) {
+                int p = chunks.get(chunks.size() - 1);
+                progressBar.setValue(p);
+                if (p < 90) {
+                    progressBar.setString("Miniaturas: " + p + "%");
+                } else if (p < 100) {
+                    progressBar.setString("Generando archivos...");
+                } else {
+                    progressBar.setString("Completado");
+                }
+            }
+
+            @Override
+            protected void done() {
+                progressDialog.dispose();
+                try {
+                    get();
+                    logger.info("[ClientController] Exportación completada.");
+                    JOptionPane.showMessageDialog(
+                            registry != null ? (java.awt.Component) registry.get("frame.principal") : null,
+                            "Catálogo exportado correctamente a:\n" + outputDir.toAbsolutePath(),
+                            "Exportación Completada", JOptionPane.INFORMATION_MESSAGE);
+                } catch (java.util.concurrent.ExecutionException e) {
+                    logger.error("[ClientController] Error durante la exportación: {}",
+                            e.getCause() != null ? e.getCause().getMessage() : e.getMessage(), e);
+                    JOptionPane.showMessageDialog(
+                            registry != null ? (java.awt.Component) registry.get("frame.principal") : null,
+                            "Error al exportar: " + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()),
+                            "Error de Exportación", JOptionPane.ERROR_MESSAGE);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        };
+
+        worker.execute();
+        progressDialog.setVisible(true);
+    } // --- Fin de metodo exportarParaCliente ---
+
 
     /**
      * Importa el JSON de respuesta del cliente y actualiza la selección.
@@ -409,66 +696,80 @@ public class ClientController implements IModoController {
             logger.error("[ClientController] Error importando respuesta: {}", e.getMessage(), e);
             return null;
         }
-    } // --- FIN de metodo cargarRespuestaCliente ---
+    } // --- Fin de metodo cargarRespuestaCliente ---
+
 
     @Override
     public void navegarSiguiente() {
         // Implementación futura
-    } // --- FIN de metodo navegarSiguiente ---
+    } // --- Fin de metodo navegarSiguiente ---
+
 
     @Override
     public void navegarAnterior() {
         // Implementación futura
-    } // --- FIN de metodo navegarAnterior ---
+    } // --- Fin de metodo navegarAnterior ---
+
 
     @Override
     public void navegarPrimero() {
         // Implementación futura
-    } // --- FIN de metodo navegarPrimero ---
+    } // --- Fin de metodo navegarPrimero ---
+
 
     @Override
     public void navegarUltimo() {
         // Implementación futura
-    } // --- FIN de metodo navegarUltimo ---
+    } // --- Fin de metodo navegarUltimo ---
+
 
     @Override
     public void navegarBloqueAnterior() {
         // Implementación futura
-    } // --- FIN de metodo navegarBloqueAnterior ---
+    } // --- Fin de metodo navegarBloqueAnterior ---
+
 
     @Override
     public void navegarBloqueSiguiente() {
         // Implementación futura
-    } // --- FIN de metodo navegarBloqueSiguiente ---
+    } // --- Fin de metodo navegarBloqueSiguiente ---
+
 
     @Override
     public void aplicarZoomConRueda(MouseWheelEvent e) {
         // Implementación futura
-    } // --- FIN de metodo aplicarZoomConRueda ---
+    } // --- Fin de metodo aplicarZoomConRueda ---
+
 
     @Override
     public void aplicarPan(int deltaX, int deltaY) {
         // Implementación futura
-    } // --- FIN de metodo aplicarPan ---
+    } // --- Fin de metodo aplicarPan ---
+
 
     @Override
     public void iniciarPaneo(MouseEvent e) {
         // Implementación futura
-    } // --- FIN de metodo iniciarPaneo ---
+    } // --- Fin de metodo iniciarPaneo ---
+
 
     @Override
     public void solicitarRefresco() {
         // Implementación futura
-    } // --- FIN de metodo solicitarRefresco ---
+    } // --- Fin de metodo solicitarRefresco ---
+
 
     @Override
     public void aumentarTamanoMiniaturas() {
         // Implementación futura
-    } // --- FIN de metodo aumentarTamanoMiniaturas ---
+    } // --- Fin de metodo aumentarTamanoMiniaturas ---
+
 
     @Override
     public void reducirTamanoMiniaturas() {
         // Implementación futura
-    } // --- FIN de metodo reducirTamanoMiniaturas ---
+    } // --- Fin de metodo reducirTamanoMiniaturas ---
 
-} // --- FIN de clase ClientController ---
+
+} // --- Fin de clase ClientController ---
+

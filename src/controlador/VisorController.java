@@ -1041,6 +1041,13 @@ public class VisorController implements IModoController, ThemeChangeListener {
                     } else {
                          displayPanel.repaint();
                     }
+                    // Refrescar tambien el panel editor si esta activo
+                    if (model.getCurrentWorkMode() == modelo.VisorModel.WorkMode.CLIENTE
+                            && model.isClienteEditorPanelVisible()
+                            && registry != null) {
+                        java.awt.Component ed = registry.get("panel.cliente.editor");
+                        if (ed != null) ed.repaint();
+                    }
                 } else { 
                     model.setCurrentImage(null);
                     if (iconUtils != null) {

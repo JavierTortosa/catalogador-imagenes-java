@@ -675,6 +675,8 @@ public class ActionFactory {
                 createClientExportWebAction());
         registerAction(AppActionCommands.CMD_CLIENTE_CARGAR_RESPUESTA,
                 createClientCargarRespuestaAction());
+        registerAction(AppActionCommands.CMD_CLIENTE_UPDATE,
+                createClientUpdateAction());
         registerAction(AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR,
                 createClientCerrarSincronizarAction());
         registerAction(AppActionCommands.CMD_CLIENTE_TOGGLE_CHECKBOX,
@@ -842,34 +844,25 @@ public class ActionFactory {
         };
     }
 
-    private Action createClientCerrarSincronizarAction() {
+    private Action createClientUpdateAction() {
         return new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                if (clientController != null) {
+                    clientController.solicitarUpdateCliente();
+                }
+            }
+        };
+    }
+
+    private Action createClientCerrarSincronizarAction() {
+        return new AbstractAction("Cerrar modo cliente") {
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (clientController != null) {
-                    int confirm = javax.swing.JOptionPane.showConfirmDialog(null,
-                            "¿Estás seguro de cerrar y sincronizar?\n"
-                            + "Las decisiones del cliente se aplicarán al proyecto.\n\n"
-                            + "SELECTED → Se añade a tu selección\n"
-                            + "DISCARDED → Se mueve a tus descartes\n"
-                            + "UNDEFINED → Se mantiene tu decisión actual",
-                            "Cerrar y Sincronizar",
-                            javax.swing.JOptionPane.YES_NO_OPTION,
-                            javax.swing.JOptionPane.WARNING_MESSAGE);
-                    if (confirm == javax.swing.JOptionPane.YES_OPTION) {
-                        servicios.cliente.ClientSyncService.SyncReport report = clientController.closeAndSyncProject();
-                        if (report != null) {
-                            javax.swing.JOptionPane.showMessageDialog(null,
-                                    "Sincronización completada:\n"
-                                    + "  Añadidas a selección: " + report.getAddedToSelection().size() + "\n"
-                                    + "  Movidas a descartes: " + report.getMovedToDiscard().size() + "\n"
-                                    + "  Sin cambios: " + report.getUnchangedCount() + "\n"
-                                    + "  Conflictos: " + report.getConflictedItems().size(),
-                                    "Informe de Sincronización",
-                                    javax.swing.JOptionPane.INFORMATION_MESSAGE);
-                        }
-                    }
+                    clientController.cerrarCliente();
                 }
             }
         };
@@ -1568,42 +1561,8 @@ public class ActionFactory {
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (clientController != null && generalController != null) {
-                    modelo.proyecto.ProjectModel project = generalController.getProjectController().getProjectManager().getCurrentProject();
-                    if (project == null) {
-                        javax.swing.JOptionPane.showMessageDialog(null,
-                                "No hay ningún proyecto activo.",
-                                "Compartir al Cliente", javax.swing.JOptionPane.WARNING_MESSAGE);
-                        return;
-                    }
-                    javax.swing.JFileChooser chooser = new javax.swing.JFileChooser();
-                    chooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
-                    chooser.setDialogTitle("Selecciona carpeta para generar catálogo del cliente");
-                    if (chooser.showSaveDialog(null) == javax.swing.JFileChooser.APPROVE_OPTION) {
-                        java.nio.file.Path outputDir = chooser.getSelectedFile().toPath();
-                        clientController.exportarParaCliente(outputDir, 1);
-                        // También guardar una copia .prjcl para el modo cliente
-                        try {
-                            java.nio.file.Path prjclFile = outputDir.resolve(
-                                project.getProjectName().replaceAll("[\\\\/:*?\"<>|]", "_") + ".prjcl");
-                            java.util.Map<String, Object> prjclData = new java.util.HashMap<>();
-                            prjclData.put("projectName", project.getProjectName());
-                            prjclData.put("selectedImages", project.getSelectedImages());
-                            prjclData.put("discardedImages", project.getDiscardedImages());
-                            if (project.hasClientSelection()) {
-                                prjclData.put("clientSelection", project.getClientSelection());
-                            }
-                            com.google.gson.Gson gson = new com.google.gson.GsonBuilder().setPrettyPrinting().create();
-                            java.nio.file.Files.writeString(prjclFile, gson.toJson(prjclData), java.nio.charset.StandardCharsets.UTF_8);
-                            javax.swing.JOptionPane.showMessageDialog(null,
-                                    "Catálogo web generado en:\n" + outputDir.toAbsolutePath()
-                                    + "\n\nArchivo .prjcl guardado:\n" + prjclFile.getFileName(),
-                                    "Exportación Completada",
-                                    javax.swing.JOptionPane.INFORMATION_MESSAGE);
-                        } catch (java.io.IOException ex) {
-                            logger.error("Error guardando .prjcl: {}", ex.getMessage(), ex);
-                        }
-                    }
+                if (clientController != null) {
+                    clientController.compartirConCliente();
                 }
             }
         };

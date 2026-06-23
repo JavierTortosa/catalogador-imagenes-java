@@ -231,6 +231,7 @@ public class ProjectModel {
         
         private Map<String, SelectionState> images;
         private Map<String, String> comments;
+        private Map<String, CommentOverlay> commentOverlays;
         private Map<String, java.util.List<ImageCheckboxOverlay>> imageCheckboxes;
         private String clientNotes;
         private int iterationNumber;
@@ -239,6 +240,7 @@ public class ProjectModel {
         public ClientSelection() {
             this.images = new LinkedHashMap<>();
             this.comments = new LinkedHashMap<>();
+            this.commentOverlays = new LinkedHashMap<>();
             this.imageCheckboxes = new LinkedHashMap<>();
             this.iterationNumber = 1;
         } // ---FIN de metodo ClientSelection---
@@ -264,6 +266,21 @@ public class ProjectModel {
         public void setComments(Map<String, String> comments) {
             this.comments = comments;
         } // ---FIN de metodo setComments---
+
+        public Map<String, CommentOverlay> getCommentOverlays() {
+            if (commentOverlays == null) {
+                commentOverlays = new LinkedHashMap<>();
+            }
+            return commentOverlays;
+        }
+
+        public void setCommentOverlays(Map<String, CommentOverlay> commentOverlays) {
+            this.commentOverlays = commentOverlays;
+        }
+
+        public CommentOverlay getOrCreateCommentOverlay(String imageKey) {
+            return getCommentOverlays().computeIfAbsent(imageKey, k -> new CommentOverlay());
+        }
 
         public String getClientNotes() {
             return clientNotes;

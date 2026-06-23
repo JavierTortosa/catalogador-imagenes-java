@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import controlador.managers.interfaces.IProjectManager;
 import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
+import modelo.proyecto.CommentOverlay;
 import modelo.proyecto.ImageCheckboxOverlay;
 import vista.theme.ThemeManager;
 
@@ -197,12 +198,14 @@ public class ImageDisplayPanel extends JPanel {
             g2d.drawImage(imagenADibujar, at, null);
             this.currentImageTransform = new AffineTransform(at);
 
-            // --- DIBUJAR CHECKBOXES CLIENTE ---
-            if (model.getCurrentWorkMode() == WorkMode.CLIENTE && model.isClienteCheckboxVisible()
+            // --- DIBUJAR CHECKBOXES CLIENTE (modo revision o editor) ---
+            if (model.getCurrentWorkMode() == WorkMode.CLIENTE
+                    && (model.isClienteCheckboxVisible() || model.isClienteEditorPanelVisible())
                     && projectManager != null && projectManager.getCurrentProject() != null) {
                 String imageKey = getCurrentImageKey();
                 if (imageKey != null) {
-                    var overlays = projectManager.getCurrentProject().getClientSelection().getImageCheckboxes(imageKey);
+                    var clientSel = projectManager.getCurrentProject().getClientSelection();
+                    var overlays = clientSel.getImageCheckboxes(imageKey);
                     if (overlays != null && !overlays.isEmpty()) {
                         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                         for (var overlay : overlays) {
@@ -212,39 +215,107 @@ public class ImageDisplayPanel extends JPanel {
                             at.transform(src, dst);
                             int cx = (int) Math.round(dst.getX());
                             int cy = (int) Math.round(dst.getY());
-                            int halfSize = 24;
+                            int size = overlay.getSize();
+                            int halfSize = size / 2;
                             int sqX = cx - halfSize;
                             int sqY = cy - halfSize;
 
-                            g2d.setColor(new Color(255, 255, 255, 200));
-                            g2d.fillRect(sqX, sqY, halfSize * 2, halfSize * 2);
+                            // Fondo del checkbox
+                            g2d.setColor(new Color(255, 255, 255, 230));
+                            g2d.fillRect(sqX, sqY, size, size);
                             g2d.setColor(Color.BLACK);
-                            g2d.drawRect(sqX, sqY, halfSize * 2, halfSize * 2);
+                            g2d.drawRect(sqX, sqY, size, size);
 
+                            // Marca: ✓ si checked, X si no
+                            g2d.setStroke(new java.awt.BasicStroke(Math.max(2f, size / 10f)));
+                            int pad = size / 4;
                             if (overlay.isChecked()) {
-                                g2d.setStroke(new java.awt.BasicStroke(3f));
-                                int pad = 8;
-                                g2d.drawLine(sqX + pad, sqY + halfSize, sqX + halfSize - 2, sqY + halfSize * 2 - pad);
-                                g2d.drawLine(sqX + halfSize - 2, sqY + halfSize * 2 - pad, sqX + halfSize * 2 - pad, sqY + pad);
-                                g2d.setStroke(new java.awt.BasicStroke(1f));
+                                g2d.setColor(new Color(0, 140, 0));
+                                g2d.drawLine(sqX + pad, sqY + halfSize,
+                                        sqX + halfSize, sqY + size - pad);
+                                g2d.drawLine(sqX + halfSize, sqY + size - pad,
+                                        sqX + size - pad, sqY + pad);
+                            } else {
+                                g2d.setColor(new Color(160, 0, 0));
+                                g2d.drawLine(sqX + pad, sqY + pad,
+                                        sqX + size - pad, sqY + size - pad);
+                                g2d.drawLine(sqX + size - pad, sqY + pad,
+                                        sqX + pad, sqY + size - pad);
                             }
 
-                            if (overlay.getLabel() != null && !overlay.getLabel().isEmpty()) {
-                                g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 14));
-                                g2d.setColor(Color.BLACK);
+                            // Código del checkbox encima
+                            if (overlay.getCheckboxCode() != null && !overlay.getCheckboxCode().isEmpty()) {
+                                g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 11));
+                                String code = overlay.getCheckboxCode();
                                 java.awt.font.FontRenderContext frc = g2d.getFontRenderContext();
-                                java.awt.geom.Rectangle2D textBounds = g2d.getFont()
-                                        .getStringBounds(overlay.getLabel(), frc);
-                                int textX = cx + halfSize + 6;
-                                int textY = cy + (int) (textBounds.getHeight() / 2) - 2;
-                                g2d.setColor(new Color(255, 255, 255, 200));
-                                g2d.fillRect(textX - 2, textY - (int) textBounds.getHeight() + 2,
-                                        (int) textBounds.getWidth() + 4, (int) textBounds.getHeight() + 2);
+                                java.awt.geom.Rectangle2D cbBounds = g2d.getFont().getStringBounds(code, frc);
+                                int cbLabelW = (int) cbBounds.getWidth() + 8;
+                                int cbLabelH = (int) cbBounds.getHeight() + 4;
+                                int cbLabelX = cx - cbLabelW / 2;
+                                int cbLabelY = sqY - cbLabelH - 2;
                                 g2d.setColor(Color.BLACK);
-                                g2d.drawString(overlay.getLabel(), textX, textY);
+                                g2d.fillRect(cbLabelX, cbLabelY, cbLabelW, cbLabelH);
+                                g2d.setColor(Color.WHITE);
+                                g2d.drawString(code, cbLabelX + 4,
+                                        cbLabelY + (int) cbBounds.getHeight() - 2);
+                            }
+
+                            // PVP junto al checkbox
+                            if (overlay.getPrice() > 0) {
+                                g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 13));
+                                String priceStr = String.format("%.2f \u20AC", overlay.getPrice());
+                                java.awt.font.FontRenderContext frc = g2d.getFontRenderContext();
+                                java.awt.geom.Rectangle2D pBounds = g2d.getFont().getStringBounds(priceStr, frc);
+                                int pW = (int) pBounds.getWidth() + 10;
+                                int pH = (int) pBounds.getHeight() + 4;
+                                int pX = sqX + size + 4;
+                                int pY = cy - pH / 2;
+                                g2d.setColor(Color.BLACK);
+                                g2d.fillRect(pX, pY, pW, pH);
+                                g2d.setColor(Color.WHITE);
+                                g2d.drawString(priceStr, pX + 5,
+                                        pY + (int) pBounds.getHeight() - 2);
                             }
                         }
                         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
+                    }
+
+                    // --- DIBUJAR COMENTARIOS (CommentOverlay) ---
+                    var commentOverlay = clientSel.getCommentOverlays().get(imageKey);
+                    if (commentOverlay != null && commentOverlay.getText() != null
+                            && !commentOverlay.getText().isEmpty()) {
+                        java.awt.geom.Point2D src = new java.awt.geom.Point2D.Double(
+                                commentOverlay.getImageX(), commentOverlay.getImageY());
+                        java.awt.geom.Point2D dst = new java.awt.geom.Point2D.Double();
+                        at.transform(src, dst);
+                        int cx = (int) Math.round(dst.getX());
+                        int cy = (int) Math.round(dst.getY());
+
+                        g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 13));
+                        String commentText = commentOverlay.getText();
+                        java.util.List<String> lines = wrapText(commentText, g2d, 40);
+                        java.awt.font.FontRenderContext frc = g2d.getFontRenderContext();
+                        double lineH = 0;
+                        double maxW = 0;
+                        java.util.List<java.awt.geom.Rectangle2D> bounds = new java.util.ArrayList<>();
+                        for (String line : lines) {
+                            java.awt.geom.Rectangle2D lb = g2d.getFont().getStringBounds(line, frc);
+                            bounds.add(lb);
+                            maxW = Math.max(maxW, lb.getWidth());
+                            lineH = lb.getHeight();
+                        }
+                        int totalH = (int) (lineH * lines.size() + 8);
+                        int totalW = (int) maxW + 12;
+                        int textX = cx;
+                        int textY = cy;
+                        g2d.setColor(new Color(0, 0, 0, 200));
+                        g2d.fillRoundRect(textX - 4, textY - 4, totalW, totalH, 6, 6);
+                        g2d.setColor(Color.WHITE);
+                        int drawY = textY + (int) lineH - 2;
+                        for (int i = 0; i < lines.size(); i++) {
+                            g2d.drawString(lines.get(i), textX + 2, drawY);
+                            drawY += (int) lineH;
+                        }
                     }
                 }
             }
@@ -489,6 +560,28 @@ public class ImageDisplayPanel extends JPanel {
     public boolean isShowingWelcome() {
         return this.showingWelcome;
     } // ---FIN de metodo---
+
+    private static java.util.List<String> wrapText(String text, java.awt.Graphics2D g2d, int maxCharsPerLine) {
+        java.util.List<String> lines = new java.util.ArrayList<>();
+        if (text == null || text.isEmpty()) {
+            lines.add("");
+            return lines;
+        }
+        String[] words = text.split(" ");
+        StringBuilder currentLine = new StringBuilder();
+        for (String word : words) {
+            if (currentLine.length() + word.length() + 1 > maxCharsPerLine && currentLine.length() > 0) {
+                lines.add(currentLine.toString().trim());
+                currentLine.setLength(0);
+            }
+            if (currentLine.length() > 0) currentLine.append(" ");
+            currentLine.append(word);
+        }
+        if (currentLine.length() > 0) {
+            lines.add(currentLine.toString().trim());
+        }
+        return lines;
+    }
 
     /**
      * Configura botones de navegación (anterior/siguiente) superpuestos en los

@@ -687,9 +687,9 @@ public class GeneralController
                             ? project.getClientSelection().getImages().get(currentKey) : null;
                     if (currentState == SelectionState.SELECTED
                             || (currentState == null && project.getSelectedImages().containsKey(currentKey))) {
-                        clientController.moverADescartesCliente();
+                        clientController.moverADescartesCliente(currentKey);
                     } else {
-                        clientController.restaurarDeDescartesCliente();
+                        clientController.restaurarDeDescartesCliente(currentKey);
                     }
                 }
             }

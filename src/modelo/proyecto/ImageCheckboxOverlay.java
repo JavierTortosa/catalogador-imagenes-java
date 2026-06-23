@@ -1,5 +1,10 @@
 package modelo.proyecto;
 
+/**
+ * Representa un checkbox superpuesto en una imagen,
+ * con posición, estado booleano (checked), código único, comentario,
+ * precio (PVP) y tamaño configurable.
+ */
 public class ImageCheckboxOverlay {
 
     private int imageX;
@@ -14,11 +19,13 @@ public class ImageCheckboxOverlay {
 
     public ImageCheckboxOverlay() {
         this(0, 0, false, "", "", "", 0.0, 32, false);
-    }
+    } // --- Fin de metodo ImageCheckboxOverlay (constructor) ---
+
 
     public ImageCheckboxOverlay(int imageX, int imageY, boolean checked, String label) {
         this(imageX, imageY, checked, label, "", "", 0.0, 32, checked);
-    }
+    } // --- Fin de metodo ImageCheckboxOverlay (constructor con parámetros) ---
+
 
     public ImageCheckboxOverlay(int imageX, int imageY, boolean checked, String label,
                                 String checkboxCode, String comment, double price, int size, boolean selected) {
@@ -31,33 +38,96 @@ public class ImageCheckboxOverlay {
         this.price = price;
         this.size = size > 0 ? size : 32;
         this.selected = selected;
-    }
+    } // --- Fin de metodo ImageCheckboxOverlay (constructor completo) ---
 
-    public int getImageX() { return imageX; }
-    public void setImageX(int imageX) { this.imageX = imageX; }
 
-    public int getImageY() { return imageY; }
-    public void setImageY(int imageY) { this.imageY = imageY; }
+    public int getImageX() {
+        return imageX;
+    } // --- Fin de metodo getImageX ---
 
-    public boolean isChecked() { return checked; }
-    public void setChecked(boolean checked) { this.checked = checked; }
 
-    public String getLabel() { return label; }
-    public void setLabel(String label) { this.label = label != null ? label : ""; }
+    public void setImageX(int imageX) {
+        this.imageX = imageX;
+    } // --- Fin de metodo setImageX ---
 
-    public String getCheckboxCode() { return checkboxCode; }
-    public void setCheckboxCode(String checkboxCode) { this.checkboxCode = checkboxCode != null ? checkboxCode : ""; }
 
-    public String getComment() { return comment; }
-    public void setComment(String comment) { this.comment = comment != null ? comment : ""; }
+    public int getImageY() {
+        return imageY;
+    } // --- Fin de metodo getImageY ---
 
-    public double getPrice() { return price; }
-    public void setPrice(double price) { this.price = price; }
 
-    public int getSize() { return size; }
-    public void setSize(int size) { this.size = size > 0 ? size : 32; }
+    public void setImageY(int imageY) {
+        this.imageY = imageY;
+    } // --- Fin de metodo setImageY ---
 
-    public boolean isSelected() { return selected; }
-    public void setSelected(boolean selected) { this.selected = selected; }
 
-}
+    public boolean isChecked() {
+        return checked;
+    } // --- Fin de metodo isChecked ---
+
+
+    public void setChecked(boolean checked) {
+        this.checked = checked;
+    } // --- Fin de metodo setChecked ---
+
+
+    public String getLabel() {
+        return label;
+    } // --- Fin de metodo getLabel ---
+
+
+    public void setLabel(String label) {
+        this.label = label != null ? label : "";
+    } // --- Fin de metodo setLabel ---
+
+
+    public String getCheckboxCode() {
+        return checkboxCode;
+    } // --- Fin de metodo getCheckboxCode ---
+
+
+    public void setCheckboxCode(String checkboxCode) {
+        this.checkboxCode = checkboxCode != null ? checkboxCode : "";
+    } // --- Fin de metodo setCheckboxCode ---
+
+
+    public String getComment() {
+        return comment;
+    } // --- Fin de metodo getComment ---
+
+
+    public void setComment(String comment) {
+        this.comment = comment != null ? comment : "";
+    } // --- Fin de metodo setComment ---
+
+
+    public double getPrice() {
+        return price;
+    } // --- Fin de metodo getPrice ---
+
+
+    public void setPrice(double price) {
+        this.price = price;
+    } // --- Fin de metodo setPrice ---
+
+
+    public int getSize() {
+        return size;
+    } // --- Fin de metodo getSize ---
+
+
+    public void setSize(int size) {
+        this.size = size > 0 ? size : 32;
+    } // --- Fin de metodo setSize ---
+
+
+    public boolean isSelected() {
+        return selected;
+    } // --- Fin de metodo isSelected ---
+
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    } // --- Fin de metodo setSelected ---
+
+} // --- Fin de clase ImageCheckboxOverlay ---

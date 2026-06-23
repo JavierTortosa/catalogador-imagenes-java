@@ -810,6 +810,8 @@ public class UIDefinitionService {
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_TOGGLE_CHECKBOX, "60206-Word-Wrap-Around-Bounding-Box.png",
                 "Mostrar checkboxes en imágenes", "cliente", ButtonType.TOGGLE));
         botonesCliente.add(new SeparatorDefinition());
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_UPDATE, "60303-Check-Square-2.png",
+                "Actualizar proyecto con cambios del cliente", "cliente"));
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR, "60205-User-Check-Validate.png",
                 "Cerrar y sincronizar con el cliente", "cliente"));
 

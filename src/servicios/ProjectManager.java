@@ -365,6 +365,8 @@ public class ProjectManager implements IProjectManager {
                 && ruta.getFileName().toString().toLowerCase().endsWith(EXTENSION_PRJ);
     }
 
+    public static final String REDIRECT_TO_CLIENTE = "__REDIRIGIDO_A_CLIENTE__";
+
     public void abrirProyecto(Path rutaArchivo) throws ProyectoIOException {
         logger.info("[ProjectManager] Abriendo proyecto desde: {}", rutaArchivo);
         if (rutaArchivo == null || !Files.isReadable(rutaArchivo)) {
@@ -380,6 +382,27 @@ public class ProjectManager implements IProjectManager {
                     + "Usa el Modo Cliente (Ctrl+3) para abrir este tipo de archivos.";
             logger.warn(errorMsg);
             throw new ProyectoIOException(errorMsg);
+        }
+
+        // --- Fase 7: Detectar .prjcl compañero al abrir .prj ---
+        if (isPrjFile(rutaArchivo)) {
+            String baseName = rutaArchivo.getFileName().toString();
+            if (baseName.toLowerCase().endsWith(EXTENSION_PRJ)) {
+                String prjclName = baseName.substring(0, baseName.length() - 4) + EXTENSION_PRJCL;
+                Path companionPath = rutaArchivo.resolveSibling(prjclName);
+                if (Files.isReadable(companionPath)) {
+                    int option = JOptionPane.showConfirmDialog(null,
+                            "Este proyecto tiene una sesión de cliente activa.\n"
+                            + "¿Abrir el archivo de cliente (.prjcl) en su lugar?",
+                            "Sesión de Cliente Detectada",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE);
+                    if (option == JOptionPane.YES_OPTION) {
+                        abrirProyectoCliente(companionPath);
+                        throw new ProyectoIOException(REDIRECT_TO_CLIENTE);
+                    }
+                }
+            }
         }
 
         cargarDesdeArchivo(rutaArchivo);

@@ -9,23 +9,14 @@ import modelo.proyecto.ProjectModel;
 import modelo.proyecto.SelectionState;
 
 /**
- * Servicio encargado de la sincronización y resolución de conflictos 
- * entre el estado del proyecto actual y el estado propuesto por el cliente.
+ * Servicio de sincronización entre la selección del cliente y el proyecto.
+ * Proporciona merge, cómputo de conflictos, resolución, update rápido y cierre.
  */
 public class ClientSyncService {
 
-    /**
-     * Compara el proyecto actual con las respuestas del cliente en JSON (simulado por ahora usando el objeto ClientSelection cargado).
-     * @param project El modelo del proyecto actual.
-     * @param respuestaJson Ruta al JSON con la respuesta (para futuras iteraciones de carga directa, si procede).
-     * @return El reporte de sincronización.
-     */
     public SyncReport mergeClientResponse(ProjectModel project, Path respuestaJson) {
         SyncReport report = new SyncReport();
-        
-        if (!project.hasClientSelection()) {
-            return report;
-        }
+        if (!project.hasClientSelection()) return report;
 
         Map<String, SelectionState> clientImages = project.getClientSelection().getImages();
         Map<String, String> projectSelected = project.getSelectedImages();
@@ -38,7 +29,6 @@ public class ClientSyncService {
             boolean inProjectSelected = projectSelected.containsKey(imageKey);
             boolean inProjectDiscarded = projectDiscarded.contains(imageKey);
 
-            // Determinar estado actual en el proyecto
             SelectionState projectState = SelectionState.UNDEFINED;
             if (inProjectSelected) {
                 projectState = SelectionState.SELECTED;
@@ -46,30 +36,112 @@ public class ClientSyncService {
                 projectState = SelectionState.DISCARDED;
             }
 
-            // Comparar y añadir al reporte
             if (clientState != projectState) {
                 if (clientState == SelectionState.SELECTED) {
                     report.getAddedToSelection().add(imageKey);
                 } else if (clientState == SelectionState.DISCARDED) {
                     report.getMovedToDiscard().add(imageKey);
                 } else if (clientState == SelectionState.UNDEFINED) {
-                    report.getConflictedItems().add(imageKey); // o "sin resolver"
+                    report.getConflictedItems().add(imageKey);
                 }
             } else {
                 report.incrementUnchanged();
             }
         }
         return report;
-    } // --- FIN del metodo mergeClientResponse ---
+    } // --- Fin de metodo mergeClientResponse ---
 
 
     /**
-     * Aplica el merge definitivo al .prj.
+     * Genera la lista de conflictos comparando el estado del proyecto con el
+     * estado de la selección del cliente. Útil para mostrar en
+     * el diálogo de conflicto antes de aplicar.
      */
-    public void closeAndSync(ProjectModel project, Path prjclPath) {
-        if (!project.hasClientSelection()) {
-            return;
+    public List<ConflictEntry> computeConflicts(ProjectModel project) {
+        List<ConflictEntry> conflicts = new ArrayList<>();
+        if (!project.hasClientSelection()) return conflicts;
+
+        Map<String, SelectionState> clientImages = project.getClientSelection().getImages();
+        Map<String, String> projectSelected = project.getSelectedImages();
+        List<String> projectDiscarded = project.getDiscardedImages();
+
+        for (Map.Entry<String, SelectionState> entry : clientImages.entrySet()) {
+            String imageKey = entry.getKey();
+            SelectionState clientState = entry.getValue();
+
+            SelectionState projectState = SelectionState.UNDEFINED;
+            if (projectSelected.containsKey(imageKey)) {
+                projectState = SelectionState.SELECTED;
+            } else if (projectDiscarded.contains(imageKey)) {
+                projectState = SelectionState.DISCARDED;
+            }
+
+            if (clientState != projectState) {
+                conflicts.add(new ConflictEntry(imageKey, projectState, clientState));
+            }
         }
+        return conflicts;
+    } // --- Fin de metodo computeConflicts ---
+
+
+    /**
+     * Resuelve los conflictos aplicando la decisión del usuario.
+     * @param project Proyecto actual.
+     * @param resolved Lista de entradas ya resueltas (projectState actualizado según la decisión).
+     */
+    public void applyResolvedConflicts(ProjectModel project, List<ConflictEntry> resolved) {
+        Map<String, String> projectSelected = project.getSelectedImages();
+        List<String> projectDiscarded = project.getDiscardedImages();
+
+        for (ConflictEntry entry : resolved) {
+            String key = entry.imageKey;
+            SelectionState finalState = entry.resolvedState != null ? entry.resolvedState : entry.projectState;
+
+            projectSelected.remove(key);
+            projectDiscarded.remove(key);
+
+            if (finalState == SelectionState.SELECTED) {
+                projectSelected.put(key, "");
+            } else if (finalState == SelectionState.DISCARDED) {
+                if (!projectDiscarded.contains(key)) {
+                    projectDiscarded.add(key);
+                }
+            }
+        }
+    } // --- Fin de metodo applyResolvedConflicts ---
+
+
+    /**
+     * Sincronización rápida: aplica el estado del cliente al proyecto
+     * sin diálogo de conflictos.
+     */
+    public void update(ProjectModel project) {
+        if (!project.hasClientSelection()) return;
+
+        Map<String, SelectionState> clientImages = project.getClientSelection().getImages();
+        Map<String, String> projectSelected = project.getSelectedImages();
+        List<String> projectDiscarded = project.getDiscardedImages();
+
+        for (Map.Entry<String, SelectionState> entry : clientImages.entrySet()) {
+            String imageKey = entry.getKey();
+            SelectionState state = entry.getValue();
+
+            projectSelected.remove(imageKey);
+            projectDiscarded.remove(imageKey);
+
+            if (state == SelectionState.SELECTED) {
+                projectSelected.put(imageKey, "");
+            } else if (state == SelectionState.DISCARDED) {
+                if (!projectDiscarded.contains(imageKey)) {
+                    projectDiscarded.add(imageKey);
+                }
+            }
+        }
+    } // --- Fin de metodo update ---
+
+
+    public void closeAndSync(ProjectModel project, Path prjclPath) {
+        if (!project.hasClientSelection()) return;
 
         Map<String, SelectionState> clientImages = project.getClientSelection().getImages();
         Map<String, String> projectSelected = project.getSelectedImages();
@@ -81,7 +153,7 @@ public class ClientSyncService {
 
             if (clientState == SelectionState.SELECTED) {
                 if (!projectSelected.containsKey(imageKey)) {
-                    projectSelected.put(imageKey, null); // Añadimos a selección
+                    projectSelected.put(imageKey, null);
                     projectDiscarded.remove(imageKey);
                 }
             } else if (clientState == SelectionState.DISCARDED) {
@@ -91,15 +163,13 @@ public class ClientSyncService {
                 }
             }
         }
-        
-        // Limpiamos la selección de cliente tras sincronizar
+
         project.setClientSelection(null);
-        
-    } // --- FIN del metodo closeAndSync ---
+    } // --- Fin de metodo closeAndSync ---
 
 
     /**
-     * Clase anidada para resumir los conflictos y cambios.
+     * Informe de resultados de una operación de sincronización.
      */
     public static class SyncReport {
         private List<String> conflictedItems = new ArrayList<>();
@@ -107,22 +177,65 @@ public class ClientSyncService {
         private List<String> movedToDiscard = new ArrayList<>();
         private int unchangedCount = 0;
 
-        /** Retorna la lista de elementos en conflicto. */
-        public List<String> getConflictedItems() { return conflictedItems; } // --- Fin del metodo getConflictedItems ---
+        public List<String> getConflictedItems() {
+            return conflictedItems;
+        } // --- Fin de metodo getConflictedItems ---
 
-        /** Retorna la lista de elementos añadidos a selección. */
-        public List<String> getAddedToSelection() { return addedToSelection; } // --- Fin del metodo getAddedToSelection ---
+        public List<String> getAddedToSelection() {
+            return addedToSelection;
+        } // --- Fin de metodo getAddedToSelection ---
 
-        /** Retorna la lista de elementos movidos a descartes. */
-        public List<String> getMovedToDiscard() { return movedToDiscard; } // --- Fin del metodo getMovedToDiscard ---
+        public List<String> getMovedToDiscard() {
+            return movedToDiscard;
+        } // --- Fin de metodo getMovedToDiscard ---
 
-        /** Retorna el número de elementos sin cambios. */
-        public int getUnchangedCount() { return unchangedCount; } // --- Fin del metodo getUnchangedCount ---
+        public int getUnchangedCount() {
+            return unchangedCount;
+        } // --- Fin de metodo getUnchangedCount ---
 
-        /** Incrementa el contador de elementos sin cambios. */
-        public void incrementUnchanged() { unchangedCount++; } // --- Fin del metodo incrementUnchanged ---
+        public void incrementUnchanged() {
+            unchangedCount++;
+        } // --- Fin de metodo incrementUnchanged ---
 
-    } // --- FIN de clase SyncReport ---
+    } // --- Fin de clase SyncReport ---
 
 
-} // --- FIN de clase ClientSyncService ---
+    /**
+     * Representa un conflicto entre el estado del proyecto y el estado del cliente
+     * para una imagen, incluyendo la resolución elegida por el usuario.
+     */
+    public static class ConflictEntry {
+        private final String imageKey;
+        private final SelectionState projectState;
+        private final SelectionState clientState;
+        private SelectionState resolvedState;
+
+        public ConflictEntry(String imageKey, SelectionState projectState, SelectionState clientState) {
+            this.imageKey = imageKey;
+            this.projectState = projectState;
+            this.clientState = clientState;
+        } // --- Fin de metodo ConflictEntry (constructor) ---
+
+        public String getImageKey() {
+            return imageKey;
+        } // --- Fin de metodo getImageKey ---
+
+        public SelectionState getProjectState() {
+            return projectState;
+        } // --- Fin de metodo getProjectState ---
+
+        public SelectionState getClientState() {
+            return clientState;
+        } // --- Fin de metodo getClientState ---
+
+        public SelectionState getResolvedState() {
+            return resolvedState;
+        } // --- Fin de metodo getResolvedState ---
+
+        public void setResolvedState(SelectionState resolvedState) {
+            this.resolvedState = resolvedState;
+        } // --- Fin de metodo setResolvedState ---
+
+    } // --- Fin de clase ConflictEntry ---
+
+} // --- Fin de clase ClientSyncService ---

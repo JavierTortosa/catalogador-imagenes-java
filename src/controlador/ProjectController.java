@@ -909,6 +909,20 @@ public class ProjectController implements IModoController {
             return;
         }
 
+        // --- Fase 7: guardia proyecto compartido ---
+        if (projectManager.getCurrentProject() != null
+                && projectManager.getCurrentProject().isSharedWithClient()) {
+            int confirm = JOptionPane.showConfirmDialog(view,
+                    "Estás modificando las especificaciones enviadas al cliente.\n"
+                    + "¿Continuar?",
+                    "Proyecto Compartido",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
+            if (confirm != JOptionPane.YES_OPTION) {
+                return;
+            }
+        }
+
         JList<String> listaSeleccionUI = registry.get("list.proyecto.nombres");
         if (listaSeleccionUI == null) {
             return;
@@ -938,6 +952,20 @@ public class ProjectController implements IModoController {
     public void restaurarDesdeDescartes() {
         if (registry == null || projectManager == null) {
             return;
+        }
+
+        // --- Fase 7: guardia proyecto compartido ---
+        if (projectManager.getCurrentProject() != null
+                && projectManager.getCurrentProject().isSharedWithClient()) {
+            int confirm = JOptionPane.showConfirmDialog(view,
+                    "Estás modificando las especificaciones enviadas al cliente.\n"
+                    + "¿Continuar?",
+                    "Proyecto Compartido",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE);
+            if (confirm != JOptionPane.YES_OPTION) {
+                return;
+            }
         }
 
         JList<String> listaDescartesUI = registry.get("list.proyecto.descartes");
@@ -1213,13 +1241,19 @@ public class ProjectController implements IModoController {
                         item.getEstadoArchivoComprimido() == modelo.proyecto.ExportStatus.ASIGNADO_MANUAL ||
                         item.getEstadoArchivoComprimido() == modelo.proyecto.ExportStatus.IGNORAR_COMPRIMIDO);
 
-        boolean puedeExportar = carpetaOk && todosLosSeleccionadosEstanListos && seleccionados > 0 && !hayConflictos;
+        boolean proyectoCompartido = projectManager != null
+                && projectManager.getCurrentProject() != null
+                && projectManager.getCurrentProject().isSharedWithClient();
+
+        boolean puedeExportar = !proyectoCompartido && carpetaOk && todosLosSeleccionadosEstanListos && seleccionados > 0 && !hayConflictos;
 
         boolean resaltarDestino = seleccionados > 0 && !carpetaOk;
         exportPanel.resaltarRutaDestino(resaltarDestino);
 
         String mensajeResumen;
-        if (hayConflictos) {
+        if (proyectoCompartido) {
+            mensajeResumen = "Proyecto compartido con cliente. Cierra el modo cliente para exportar.";
+        } else if (hayConflictos) {
             mensajeResumen = "Conflicto de nombres detectado. Deseleccione los archivos duplicados para poder exportar.";
         } else if (!carpetaOk && seleccionados > 0) {
             mensajeResumen = "Falta carpeta destino.";
@@ -1251,9 +1285,11 @@ public class ProjectController implements IModoController {
         actualizarTooltipAccion(AppActionCommands.CMD_EXPORT_REFRESH,
                 "Vuelve a escanear el disco para actualizar el estado de los archivos");
 
-        boolean puedeExportarPDF = todosLosSeleccionadosEstanListos && seleccionados > 0 && !hayConflictos;
+        boolean puedeExportarPDF = !proyectoCompartido && todosLosSeleccionadosEstanListos && seleccionados > 0 && !hayConflictos;
         String mensajePDF;
-        if (hayConflictos) {
+        if (proyectoCompartido) {
+            mensajePDF = "Proyecto compartido con cliente. Cierra el modo cliente para exportar.";
+        } else if (hayConflictos) {
             mensajePDF = "No se puede generar PDF: hay conflictos de nombres.";
         } else if (!todosLosSeleccionadosEstanListos && seleccionados > 0) {
             mensajePDF = "No se puede generar PDF: hay imágenes con errores.";
@@ -1442,6 +1478,20 @@ public class ProjectController implements IModoController {
         if (result == JFileChooser.APPROVE_OPTION) {
             File[] selectedFiles = fileChooser.getSelectedFiles();
             if (selectedFiles != null && selectedFiles.length > 0) {
+                // --- Fase 7: guardia proyecto compartido ---
+                if (projectManager.getCurrentProject() != null
+                        && projectManager.getCurrentProject().isSharedWithClient()) {
+                    int confirm = JOptionPane.showConfirmDialog(view,
+                            "El proyecto está compartido con el cliente.\n"
+                            + "Las nuevas imágenes se añadirán a la selección del proyecto y del cliente.\n"
+                            + "¿Continuar?",
+                            "Proyecto Compartido",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE);
+                    if (confirm != JOptionPane.YES_OPTION) {
+                        return;
+                    }
+                }
                 logger.info("[ProjectController] Añadiendo {} archivos al proyecto...", selectedFiles.length);
 
                 List<Path> rutas = new ArrayList<>();
@@ -2053,11 +2103,20 @@ public class ProjectController implements IModoController {
             }
 
         } catch (java.io.IOException e) {
-            logger.error("Falló la carga del proyecto: {}", e.getMessage());
+            String msg = e.getMessage();
+            // --- Fase 7: redirigir a modo cliente si se cargó .prjcl ---
+            if (servicios.ProjectManager.REDIRECT_TO_CLIENTE.equals(msg)) {
+                logger.info("Proyecto redirigido a modo cliente por .prjcl compañero.");
+                if (generalController != null) {
+                    generalController.cambiarModoDeTrabajo(modelo.VisorModel.WorkMode.CLIENTE);
+                }
+                return;
+            }
+            logger.error("Falló la carga del proyecto: {}", msg);
             Component parentWindow = (view != null) ? view : null;
             JOptionPane.showMessageDialog(
                     parentWindow,
-                    "No se pudo abrir el archivo de proyecto.\n" + e.getMessage(),
+                    "No se pudo abrir el archivo de proyecto.\n" + msg,
                     "Error al Abrir Proyecto",
                     JOptionPane.ERROR_MESSAGE);
         }
