@@ -7,22 +7,20 @@ import java.util.Map;
 import javax.swing.table.AbstractTableModel;
 
 import modelo.proyecto.ProjectModel;
-import modelo.proyecto.SelectionState;
 
 /**
  * TableModel para las tablas de selección/descartes del proyecto
- * en modo cliente. Muestra Estado, Código, Nombre y Acciones.
+ * en modo cliente. Muestra Cod, Nombre y Acciones.
  */
 public class ProyectoClienteTableModel extends AbstractTableModel {
 
     private static final long serialVersionUID = 1L;
 
-    public static final int COL_ESTADO = 0;
-    public static final int COL_CODIGO = 1;
-    public static final int COL_NOMBRE = 2;
-    public static final int COL_ACCIONES = 3;
+    public static final int COL_CODIGO = 0;
+    public static final int COL_NOMBRE = 1;
+    public static final int COL_ACCIONES = 2;
 
-    private static final String[] COLUMNS = {"Estado", "C\u00f3digo", "Nombre", "Acciones"};
+    private static final String[] COLUMNS = {"Cod", "Nombre", "Acciones"};
 
     private final List<String> imageKeys;
     private final ProjectModel project;
@@ -38,6 +36,10 @@ public class ProyectoClienteTableModel extends AbstractTableModel {
 
     public void refrescar() {
         imageKeys.clear();
+        if (!project.isSharedWithClient()) {
+            fireTableDataChanged();
+            return;
+        }
         if (mostrarSeleccion) {
             imageKeys.addAll(project.getSelectedImages().keySet());
         } else {
@@ -76,10 +78,6 @@ public class ProyectoClienteTableModel extends AbstractTableModel {
         Map<String, String> codes = project.getImageCodes();
         String code = codes != null ? codes.getOrDefault(key, "") : "";
         switch (col) {
-            case COL_ESTADO:
-                return mostrarSeleccion
-                        ? modelo.proyecto.SelectionState.SELECTED
-                        : modelo.proyecto.SelectionState.DISCARDED;
             case COL_CODIGO: return code;
             case COL_NOMBRE: {
                 java.nio.file.Path p = java.nio.file.Paths.get(key);

@@ -10,17 +10,13 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import modelo.proyecto.SelectionState;
 
-/**
- * Renderizador de celdas para el estado del cliente (SELECTED/DISCARDED/UNDEFINED).
- * Muestra ✓ (verde), ✗ (rojo) o — (gris) según el SelectionState.
- */
 public class TristateCellRenderer extends DefaultTableCellRenderer {
 
     private static final long serialVersionUID = 1L;
 
     private static final Color GREEN = new Color(34, 139, 34);
     private static final Color RED = new Color(200, 50, 50);
-    private static final Color GRAY = Color.GRAY;
+    private static final Color GRAY = new Color(128, 128, 128);
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value,
@@ -41,8 +37,8 @@ public class TristateCellRenderer extends DefaultTableCellRenderer {
                     label.setForeground(isSelected ? label.getForeground() : RED);
                     label.setToolTipText("Descartado");
                 }
-                default -> {
-                    label.setText("\u2014");
+                case UNDEFINED -> {
+                    label.setText("\u25CB");
                     label.setForeground(isSelected ? label.getForeground() : GRAY);
                     label.setToolTipText("Sin definir");
                 }
@@ -52,6 +48,6 @@ public class TristateCellRenderer extends DefaultTableCellRenderer {
             label.setToolTipText(null);
         }
         return label;
-    } // --- Fin de metodo getTableCellRendererComponent ---
+    }
 
-} // --- Fin de clase TristateCellRenderer ---
+}

@@ -81,6 +81,7 @@ public class VisorModel {
     private boolean isProjectExportPanelVisible = false;
     private boolean clienteCheckboxVisible = false;
     private boolean clienteEditorPanelVisible = false;
+    private String selectedCheckboxCode;
     private Path rutaProyectoActivoConNombre;
 
 
@@ -661,5 +662,13 @@ public class VisorModel {
     public void setClienteEditorPanelVisible(boolean visible) {
         this.clienteEditorPanelVisible = visible;
     } // --- FIN de metodo setClienteEditorPanelVisible ---
+
+    public String getSelectedCheckboxCode() {
+        return selectedCheckboxCode;
+    } // --- FIN de metodo getSelectedCheckboxCode ---
+
+    public void setSelectedCheckboxCode(String code) {
+        this.selectedCheckboxCode = code;
+    } // --- FIN de metodo setSelectedCheckboxCode ---
 
 } // --- FIN DE LA CLASE VisorModel ---

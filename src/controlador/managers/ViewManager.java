@@ -1413,7 +1413,9 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
         }
 
         if (!"Proyecto Temporal".equals(nombreProyecto) || !projectManager.getImagenesMarcadas().isEmpty()) {
-            tituloFinal = prefijoDirty + tituloBase + " - [Proyecto: " + nombreProyecto + "]";
+            String compartido = projectManager.getCurrentProject().isSharedWithClient()
+                    ? " \u00b7 Compartido" : "";
+            tituloFinal = prefijoDirty + tituloBase + " - [Proyecto: " + nombreProyecto + compartido + "]";
         } else {
             tituloFinal = tituloBase;
         }

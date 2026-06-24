@@ -447,11 +447,6 @@ public class AppModeService {
                     case PROYECTO:
                         projectController.activarVistaProyecto();
                         projectController.configurarContextMenuTablaExportacion();
-                        if (model.isProjectExportPanelVisible()) {
-                            projectController.setExportPanelVisible(true);
-                            projectController.solicitarPreparacionColaExportacion();
-                            projectController.sincronizarSeleccionEnTablaExportacion();
-                        }
                         break;
                     case CARROUSEL:
                         ListContext contextoCarrusel = model.getCarouselListContext();

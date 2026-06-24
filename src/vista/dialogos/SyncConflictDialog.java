@@ -171,9 +171,9 @@ public class SyncConflictDialog extends JDialog {
         private String formatState(SelectionState s) {
             if (s == null) return "\u2014";
             return switch (s) {
-                case SELECTED -> "Seleccionado (\u2713)";
-                case DISCARDED -> "Descartado (\u2717)";
-                case UNDEFINED -> "\u2014";
+                case SELECTED   -> "Seleccionado (\u2713)";
+                case DISCARDED  -> "Descartado (\u2717)";
+                case UNDEFINED  -> "Sin definir (\u25CB)";
             };
         } // --- Fin de metodo formatState ---
 

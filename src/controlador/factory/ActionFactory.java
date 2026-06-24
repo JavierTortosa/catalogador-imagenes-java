@@ -673,6 +673,8 @@ public class ActionFactory {
                 createClientAbrirPrjclAction());
         registerAction(AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB,
                 createClientExportWebAction());
+        registerAction(AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML,
+                createClientExportarHtmlAction());
         registerAction(AppActionCommands.CMD_CLIENTE_CARGAR_RESPUESTA,
                 createClientCargarRespuestaAction());
         registerAction(AppActionCommands.CMD_CLIENTE_UPDATE,
@@ -821,6 +823,18 @@ public class ActionFactory {
                     if (chooser.showSaveDialog(null) == javax.swing.JFileChooser.APPROVE_OPTION) {
                         clientController.exportarParaCliente(chooser.getSelectedFile().toPath(), 1);
                     }
+                }
+            }
+        };
+    }
+
+    private Action createClientExportarHtmlAction() {
+        return new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (clientController != null) {
+                    clientController.exportarHtmlCliente();
                 }
             }
         };

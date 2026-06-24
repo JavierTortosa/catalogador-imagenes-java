@@ -4,11 +4,13 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Frame;
+import java.awt.event.ActionEvent;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -252,10 +254,17 @@ public class ProjectBuilder implements ThemeChangeListener {
                 .get(AppActionCommands.CMD_PROYECTO_ANADIR_ARCHIVOS);
 
         if (restoreAction != null && deleteAction != null) {
+            Action borrarImagenAction = new AbstractAction("Borrar imagen") {
+                private static final long serialVersionUID = 1L;
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    deleteAction.actionPerformed(e);
+                }
+            };
             descartesList.addMouseListener(createContextMenuListener(descartesList,
                     restoreAction, new JPopupMenu.Separator(), localizarAction,
                     new JPopupMenu.Separator(), vaciarAction, new JPopupMenu.Separator(), anadirArchivosAction,
-                    new JPopupMenu.Separator(), deleteAction));
+                    new JPopupMenu.Separator(), borrarImagenAction));
         }
 
         JScrollPane scrollPaneDescartes = new JScrollPane(descartesList);

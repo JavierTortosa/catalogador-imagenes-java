@@ -29,20 +29,20 @@ public class ClientSyncService {
             boolean inProjectSelected = projectSelected.containsKey(imageKey);
             boolean inProjectDiscarded = projectDiscarded.contains(imageKey);
 
-            SelectionState projectState = SelectionState.UNDEFINED;
+            SelectionState projectState = SelectionState.DISCARDED;
             if (inProjectSelected) {
                 projectState = SelectionState.SELECTED;
             } else if (inProjectDiscarded) {
                 projectState = SelectionState.DISCARDED;
             }
 
-            if (clientState != projectState) {
+            if (clientState == SelectionState.UNDEFINED) {
+                report.incrementUnchanged();
+            } else if (clientState != projectState) {
                 if (clientState == SelectionState.SELECTED) {
                     report.getAddedToSelection().add(imageKey);
-                } else if (clientState == SelectionState.DISCARDED) {
+                } else {
                     report.getMovedToDiscard().add(imageKey);
-                } else if (clientState == SelectionState.UNDEFINED) {
-                    report.getConflictedItems().add(imageKey);
                 }
             } else {
                 report.incrementUnchanged();
@@ -69,14 +69,14 @@ public class ClientSyncService {
             String imageKey = entry.getKey();
             SelectionState clientState = entry.getValue();
 
-            SelectionState projectState = SelectionState.UNDEFINED;
+            SelectionState projectState = SelectionState.DISCARDED;
             if (projectSelected.containsKey(imageKey)) {
                 projectState = SelectionState.SELECTED;
             } else if (projectDiscarded.contains(imageKey)) {
                 projectState = SelectionState.DISCARDED;
             }
 
-            if (clientState != projectState) {
+            if (clientState != SelectionState.UNDEFINED && clientState != projectState) {
                 conflicts.add(new ConflictEntry(imageKey, projectState, clientState));
             }
         }

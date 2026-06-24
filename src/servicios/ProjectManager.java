@@ -153,6 +153,12 @@ public class ProjectManager implements IProjectManager {
             return true;
         }
 
+        // Comparamos los datos del cliente (selección, checkboxes, comentarios, etc.)
+        if (!Objects.equals(this.currentProject.getClientSelection(), this.lastSavedProjectState.getClientSelection())) {
+            logger.debug("[Dirty Check] Diferencia detectada en: clientSelection");
+            return true;
+        }
+
         // Si hemos llegado hasta aquí, no hay diferencias.
         return false;
     } // ---FIN de metodo isProjectDirty---
@@ -325,12 +331,19 @@ public class ProjectManager implements IProjectManager {
         if (esGuardadoDefinitivo) {
             this.lastSavedProjectState = deepCopyProjectModel(this.currentProject);
             logger.debug("   -> Estado 'lastSavedProjectState' actualizado tras guardado definitivo.");
-            
-            // Si el estado "sucio" cambia, lo actualizamos y notificamos.
+
             if (this.hayCambiosSinGuardar) {
                 this.hayCambiosSinGuardar = false;
                 fireProjectStateChanged();
                 logger.debug("   -> [FLAG] El proyecto ha sido marcado como GUARDADO. 'hayCambiosSinGuardar' es ahora 'false'.");
+            }
+
+            if (currentProject != null && currentProject.isSharedWithClient()) {
+                String prjclName = rutaGuardado.getFileName().toString()
+                        .replaceAll("(?i)\\.prj$", "") + ".prjcl";
+                Path prjclPath = rutaGuardado.resolveSibling(prjclName);
+                saveAsCopy(prjclPath);
+                logger.debug("   -> Copia replicada a .prjcl: {}", prjclPath.getFileName());
             }
         }
     } // --- Fin del método guardarAArchivo ---
@@ -375,7 +388,6 @@ public class ProjectManager implements IProjectManager {
             throw new ProyectoIOException(errorMsg);
         }
 
-        // --- Protección de extensión: rechazar .prjcl en modo proyecto normal ---
         if (isPrjclFile(rutaArchivo)) {
             String errorMsg = "El archivo '" + rutaArchivo.getFileName()
                     + "' es un archivo de proyecto de cliente (.prjcl).\n"
@@ -384,34 +396,28 @@ public class ProjectManager implements IProjectManager {
             throw new ProyectoIOException(errorMsg);
         }
 
-        // --- Fase 7: Detectar .prjcl compañero al abrir .prj ---
-        if (isPrjFile(rutaArchivo)) {
-            String baseName = rutaArchivo.getFileName().toString();
-            if (baseName.toLowerCase().endsWith(EXTENSION_PRJ)) {
-                String prjclName = baseName.substring(0, baseName.length() - 4) + EXTENSION_PRJCL;
-                Path companionPath = rutaArchivo.resolveSibling(prjclName);
-                if (Files.isReadable(companionPath)) {
-                    int option = JOptionPane.showConfirmDialog(null,
-                            "Este proyecto tiene una sesión de cliente activa.\n"
-                            + "¿Abrir el archivo de cliente (.prjcl) en su lugar?",
-                            "Sesión de Cliente Detectada",
-                            JOptionPane.YES_NO_OPTION,
-                            JOptionPane.QUESTION_MESSAGE);
-                    if (option == JOptionPane.YES_OPTION) {
-                        abrirProyectoCliente(companionPath);
-                        throw new ProyectoIOException(REDIRECT_TO_CLIENTE);
-                    }
-                }
-            }
-        }
-
         cargarDesdeArchivo(rutaArchivo);
         this.lastSavedProjectState = deepCopyProjectModel(this.currentProject); 
         this.archivoProyectoActivo = rutaArchivo;
-        
-        // --- NUEVA LÍNEA ---
         if (modelRef != null) {
             modelRef.setRutaProyectoActivoConNombre(rutaArchivo);
+        }
+
+        if (isPrjFile(rutaArchivo) && currentProject != null && currentProject.isSharedWithClient()) {
+            String companionName = rutaArchivo.getFileName().toString()
+                    .replaceAll("(?i)\\.prj$", "") + EXTENSION_PRJCL;
+            Path companionPath = rutaArchivo.resolveSibling(companionName);
+            if (Files.isReadable(companionPath)) {
+                int option = JOptionPane.showConfirmDialog(null,
+                        "Este proyecto tiene una sesi\u00f3n de cliente activa.\n"
+                        + "\u00bfEntrar en modo cliente?",
+                        "Sesi\u00f3n de Cliente Detectada",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE);
+                if (option == JOptionPane.YES_OPTION) {
+                    throw new ProyectoIOException(REDIRECT_TO_CLIENTE);
+                }
+            }
         }
     } // ---FIN de metodo abrirProyecto---
 
@@ -441,10 +447,24 @@ public class ProjectManager implements IProjectManager {
             modelRef.setRutaProyectoActivoConNombre(rutaArchivo);
         }
 
-        // Esta llamada se encarga de guardar el contenido en la nueva ruta y de
-        // resetear el estado de "cambios sin guardar".
         guardarAArchivo(); 
     } // ---FIN de metodo guardarProyectoComo---
+    
+    
+    /**
+     * Guarda una copia del proyecto actual en la ruta indicada sin modificar
+     * el archivo activo ni el estado de cambios sin guardar. 
+     * &#00;til para guardar handshake (.prjcl) sin afectar el flujo de trabajo.
+     */
+    public void saveAsCopy(Path path) {
+        if (this.currentProject == null) return;
+        try (java.io.FileWriter writer = new java.io.FileWriter(path.toFile())) {
+            gson.toJson(this.currentProject, writer);
+            logger.info("[ProjectManager] Copia guardada en: {}", path);
+        } catch (java.io.IOException e) {
+            logger.error("[ProjectManager] Error al guardar copia en: {}", path, e);
+        }
+    } // ---FIN de metodo saveAsCopy---
     
     
     /**

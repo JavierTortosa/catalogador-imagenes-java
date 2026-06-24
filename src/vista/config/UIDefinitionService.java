@@ -738,10 +738,12 @@ public class UIDefinitionService {
                         "8001-modo_visualizador_48x48.png", "Modo Visualizador", "modo", ButtonType.TOGGLE),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR,
                         "8002-mostrar_favoritos_48x48.png", "Modo Proyecto", "modo", ButtonType.TOGGLE),
+                
+                new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_CLIENTE, "8004-edicion_48x48.png",
+                		"Modo Cliente", "modo", ButtonType.TOGGLE),
+                
                 new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_DATOS, "8003-datos_48x48.png", "Modo Datos",
                         "modo", ButtonType.TOGGLE),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_CLIENTE, "8004-edicion_48x48.png",
-                        "Modo Cliente", "modo", ButtonType.TOGGLE),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_CAROUSEL, "4005-carrousel_48x48.png",
                         "Vista Carrusel", "modo", ButtonType.TOGGLE)
         // FIN GRUPO DE BOTONES
@@ -785,18 +787,20 @@ public class UIDefinitionService {
         // --- BARRA DE BOTONES DEL MODO CLIENTE ---
         java.util.List<ToolbarComponentDefinition> botonesCliente = new java.util.ArrayList<>();
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_NUEVO, "7102-nuevo_proyecto_48x48.png",
-                "Nuevo archivo .prjcl de cliente", "cliente"));
+                "Nuevo proyecto", "cliente"));
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_ABRIR, "7103-abrir_proyecto_48x48.png",
-                "Abrir archivo .prjcl del cliente", "cliente"));
+                "Abrir proyecto", "cliente"));
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR, "7104-guardar_proyecto_48x48.png",
-                "Guardar archivo .prjcl", "cliente"));
+                "Guardar proyecto", "cliente"));
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR_COMO, "7105-guardar_proyecto_como_48x48.png",
-                "Guardar archivo .prjcl como...", "cliente"));
+                "Guardar proyecto como...", "cliente"));
         botonesCliente.add(new SeparatorDefinition());
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CARGAR_RESPUESTA, "60201-User-Followers.png",
                 "Importar respuesta del cliente (JSON)", "cliente"));
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB, "60202-User-Following.png",
                 "Exportar catálogo web para el cliente", "cliente"));
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML, "messages-bubble-text.png",
+                "Exportar HTML único para el cliente", "cliente", ButtonType.NORMAL));
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_COMPARTIR_CLIENTE, "60203-User-Share.png",
                 "Compartir con el cliente", "cliente"));
         botonesCliente.add(new SeparatorDefinition());
@@ -1040,8 +1044,12 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORTAR_PDF, "21013-File-Pdf.png",
                 		"Crear PDF", "acciones_exportacion"),
                 new SeparatorDefinition(),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_COMPARTIR_CLIENTE, "8004-edicion_48x48.png",
-                        "Compartir al Cliente", "acciones_exportacion")
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_COMPARTIR_CLIENTE, "21015-Transfer.png",
+                        "Compartir al Cliente", "acciones_exportacion"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB, "60202-User-Following.png",
+                        "Exportar catálogo web para el cliente", "acciones_exportacion")
+                
+                
         		);
         
 
@@ -1176,8 +1184,8 @@ public class UIDefinitionService {
                 , new ToolbarDefinition("cliente", "Cliente", 155, EnumSet.of(WorkMode.CLIENTE),
                         List.copyOf(botonesCliente), ToolbarAlignment.CENTER)
 
-                // Barra específica para el Editor de Checkboxes
-                , new ToolbarDefinition("editor_checkboxes", "Editor de Checkboxes", 156, EnumSet.of(WorkMode.CLIENTE, WorkMode.CLIENT_REVIEW),
+                // Barra del Editor de Checkboxes (no se muestra en toolbar principal, se coloca dentro del dialog)
+                , new ToolbarDefinition("editor_checkboxes", "Editor de Checkboxes", 156, EnumSet.noneOf(WorkMode.class),
                         List.copyOf(botonesCheckboxEditor), ToolbarAlignment.CENTER)
 
                 // Barras especiales

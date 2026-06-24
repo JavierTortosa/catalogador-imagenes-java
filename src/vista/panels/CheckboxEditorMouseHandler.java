@@ -26,7 +26,6 @@ import modelo.proyecto.ImageCheckboxOverlay;
 import modelo.proyecto.ProjectModel;
 import modelo.proyecto.SelectionState;
 
-
 /**
  * Manejador de eventos de ratón para el editor de checkboxes del modo cliente.
  * Gestiona añadir/borrar/arrastrar checkboxes, comentarios y PVP
@@ -60,7 +59,8 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
     void actualizarCabecera() {
         ProjectModel project = projectManager != null ? projectManager.getCurrentProject() : null;
         if (project != null && imagePanel.getCurrentImageKey() != null) {
-            String code = project.getImageCodes().getOrDefault(imagePanel.getCurrentImageKey(), "");
+            String code = project.getCodigoImagen(
+                    ProjectModel.normalizarClaveImagen(imagePanel.getCurrentImageKey()));
             headerLabel.setText("Imagen: " + code);
         } else {
             headerLabel.setText(" ");
@@ -118,15 +118,28 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
                 draggingComment = false;
                 return;
             }
-            // Click: toggle checkbox checked/unchecked
+            // Click: cycle overlay state UNDEFINED → SELECTED → DISCARDED → UNDEFINED
             int idx = findOverlayAt(e.getX(), e.getY());
             if (idx >= 0 && projectManager.getCurrentProject() != null) {
                 String imageKey = imagePanel.getCurrentImageKey();
                 if (imageKey != null) {
-                    var overlays = projectManager.getCurrentProject().getClientSelection().getImageCheckboxes(imageKey);
+                    String canonicalKey = ProjectModel.normalizarClaveImagen(imageKey);
+                    var overlays = projectManager.getCurrentProject().getClientSelection().getImageCheckboxes(canonicalKey);
                     if (idx < overlays.size()) {
                         var ov = overlays.get(idx);
-                        ov.setChecked(!ov.isChecked());
+                        SelectionState current = ov.getState();
+                        SelectionState next;
+                        switch (current) {
+                            case SELECTED  -> next = SelectionState.DISCARDED;
+                            case DISCARDED -> next = SelectionState.UNDEFINED;
+                            default        -> next = SelectionState.SELECTED;
+                        }
+                        ov.setState(next);
+                        String imgCode = projectManager.getCurrentProject()
+                                .getCodigoImagen(canonicalKey);
+                        String compositeKey = imgCode + "_" + ov.getCheckboxCode();
+                        projectManager.getCurrentProject().getClientSelection().getImages().put(compositeKey, next);
+                        derivarEstadoImagen(canonicalKey);
                         projectManager.notificarModificacion();
                         actualizarModeloTabla();
                         imagePanel.repaint();
@@ -308,7 +321,16 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
 
             JMenuItem removeItem = new JMenuItem("Borrar Checkbox");
             removeItem.addActionListener(ev -> {
+                var ov = overlays.get(idx);
                 overlays.remove(idx);
+                // Eliminar entrada compuesta del cliente
+                String imgCode = project.getImageCodes().getOrDefault(imageKey, "");
+                if (imgCode.isEmpty()) {
+                    imgCode = project.getCodigoImagen(ProjectModel.normalizarClaveImagen(imageKey));
+                }
+                String compositeKey = imgCode + "_" + ov.getCheckboxCode();
+                project.getClientSelection().getImages().remove(compositeKey);
+                derivarEstadoImagen(imageKey);
                 projectManager.notificarModificacion();
                 actualizarModeloTabla();
                 imagePanel.repaint();
@@ -349,19 +371,21 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
             transform.inverseTransform(invSrc, invDst);
 
             int seq = overlays.size() + 1;
-            String imgCode = project.getImageCodes().getOrDefault(imageKey, "");
-            String cbCode = "C" + imgCode + seq;
+            String canonicalKey = ProjectModel.normalizarClaveImagen(imageKey);
+            String imgCode = project.getCodigoImagen(canonicalKey);
+            String cbCode = String.format("cb%02d", seq);
 
             var ov = new ImageCheckboxOverlay(
                     (int) Math.round(invDst.getX()), (int) Math.round(invDst.getY()),
-                    false, "", cbCode, "", 0.0, size, false);
+                    SelectionState.UNDEFINED, "", cbCode, "", 0.0, size);
             overlays.add(ov);
             projectManager.notificarModificacion();
 
-            // Add to the client selection state for this image
-            if (project.getClientSelection().getImages().get(imageKey) == null) {
-                project.getClientSelection().getImages().put(imageKey, SelectionState.UNDEFINED);
-            }
+            // Añadir entrada compuesta al panel de selección del cliente: imgCode_cbCode
+            String compositeKey = imgCode + "_" + cbCode;
+            project.getClientSelection().getImages().put(compositeKey, ov.getState());
+
+            derivarEstadoImagen(canonicalKey);
 
             actualizarModeloTabla();
             imagePanel.repaint();
@@ -369,6 +393,51 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
             // ignore
         }
     } // --- FIN de metodo addCheckbox ---
+
+
+    /**
+     * Deriva el estado de la imagen a partir del estado de sus checkboxes internos.
+     * - Al menos un SELECTED → imagen SELECTED
+     * - Ningún SELECTED, al menos un UNDEFINED → imagen UNDEFINED
+     * - Todos DISCARDED → imagen DISCARDED
+     * También sincroniza las entradas compuestas (imgCode_cbCode) con el estado de cada overlay.
+     */
+    private void derivarEstadoImagen(String imageKey) {
+        if (projectManager.getCurrentProject() == null) return;
+        var clientSel = projectManager.getCurrentProject().getClientSelection();
+        if (clientSel == null) return;
+        String canonicalKey = ProjectModel.normalizarClaveImagen(imageKey);
+        var checkboxes = clientSel.getImageCheckboxes(canonicalKey);
+        if (checkboxes == null || checkboxes.isEmpty()) return;
+
+        String imgCode = projectManager.getCurrentProject()
+                .getCodigoImagen(canonicalKey);
+
+        boolean hasSelected = false;
+        boolean hasUndefined = false;
+        for (var cb : checkboxes) {
+            String compositeKey = imgCode + "_" + cb.getCheckboxCode();
+            clientSel.getImages().put(compositeKey, cb.getState());
+            clientSel.getImages().remove("_" + cb.getCheckboxCode());
+            clientSel.getImages().remove(cb.getCheckboxCode());
+
+            switch (cb.getState()) {
+                case SELECTED  -> hasSelected = true;
+                case UNDEFINED -> hasUndefined = true;
+                default -> {}
+            }
+        }
+
+        SelectionState derived;
+        if (hasSelected) {
+            derived = SelectionState.SELECTED;
+        } else if (hasUndefined) {
+            derived = SelectionState.UNDEFINED;
+        } else {
+            derived = SelectionState.DISCARDED;
+        }
+        clientSel.getImages().put(canonicalKey, derived);
+    } // --- FIN de metodo derivarEstadoImagen ---
 
 
     private void addComment(int screenX, int screenY, ProjectModel project, String imageKey) {
@@ -462,24 +531,24 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
     } // --- FIN de metodo showTextInputDialog ---
 
 
-    @SuppressWarnings("unchecked")
     private void actualizarModeloTabla() {
         if (registry == null) return;
-        try {
-            String[] tableKeys = {
-                "table.cliente.proyecto.seleccion",
-                "table.cliente.proyecto.descartes",
-                "table.cliente.cliente.seleccion",
-                "table.cliente.cliente.descartes"
-            };
-            for (String key : tableKeys) {
-                JTable table = registry.get(key);
-                if (table != null && table.getModel() instanceof javax.swing.table.AbstractTableModel) {
-                    ((javax.swing.table.AbstractTableModel) table.getModel()).fireTableDataChanged();
-                }
-            }
-        } catch (Exception ex) {
-            logger.warn("Error al actualizar tabla: {}", ex.getMessage());
+        javax.swing.JTable t;
+        t = registry.get("table.cliente.proyecto.seleccion");
+        if (t != null && t.getModel() instanceof vista.models.ProyectoClienteTableModel pm1) {
+            pm1.refrescar();
+        }
+        t = registry.get("table.cliente.proyecto.descartes");
+        if (t != null && t.getModel() instanceof vista.models.ProyectoClienteTableModel pm2) {
+            pm2.refrescar();
+        }
+        t = registry.get("table.cliente.cliente.seleccion");
+        if (t != null && t.getModel() instanceof vista.models.ClienteTableModel cm1) {
+            cm1.refrescar();
+        }
+        t = registry.get("table.cliente.cliente.descartes");
+        if (t != null && t.getModel() instanceof vista.models.ClienteTableModel cm2) {
+            cm2.refrescar();
         }
     } // --- FIN de metodo actualizarModeloTabla ---
 

@@ -19,7 +19,7 @@ import servicios.ProjectManager;
 
 /**
  * ListCellRenderer personalizado para las listas del cliente.
- * Muestra el nombre de la imagen y su estado (SELECTED, DISCARDED, UNDEFINED).
+ * Muestra el nombre de la imagen y su estado (SELECTED, DISCARDED).
  */
 public class ClientListCellRenderer extends DefaultListCellRenderer {
 
@@ -37,7 +37,7 @@ public class ClientListCellRenderer extends DefaultListCellRenderer {
 
     /**
      * Devuelve el componente renderizado para cada celda de la lista del cliente,
-     * mostrando nombre de archivo, estado (SELECTED/DISCARDED/UNDEFINED) y comentarios.
+     * mostrando nombre de archivo, estado (SELECTED/DISCARDED) y comentarios.
      */
     @Override
     public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -52,11 +52,11 @@ public class ClientListCellRenderer extends DefaultListCellRenderer {
             String fileName = (fn != null) ? fn.toString() : p.toString();
 
             ProjectModel project = projectManager.getCurrentProject();
-            SelectionState state = SelectionState.UNDEFINED;
+            SelectionState state = SelectionState.DISCARDED;
             boolean hasComment = false;
 
             if (project != null && project.hasClientSelection()) {
-                state = project.getClientSelection().getImages().getOrDefault(pathString, SelectionState.UNDEFINED);
+                state = project.getClientSelection().getImages().getOrDefault(pathString, SelectionState.DISCARDED);
                 hasComment = project.getClientSelection().getComments().containsKey(pathString) && 
                              !project.getClientSelection().getComments().get(pathString).trim().isEmpty();
             }

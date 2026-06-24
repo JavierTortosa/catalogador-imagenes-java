@@ -307,36 +307,20 @@ public class GeneralController
     }  // --- FIN de metodo actualizarTituloVentana---
 
     public void handleNewProject() {
-        if (model.getCurrentWorkMode() == WorkMode.CLIENTE) {
-            clientController.solicitarNuevoPrjcl();
-        } else {
-            projectLifecycleService.handleNewProject();
-        }
-    } // --- FIN de metodo handleNewProject ---
+        projectLifecycleService.handleNewProject();
+    }
 
     public void handleOpenProject() {
-        if (model.getCurrentWorkMode() == WorkMode.CLIENTE) {
-            clientController.manejarAbrirPrjcl();
-        } else {
-            projectLifecycleService.handleOpenProject();
-        }
-    } // --- FIN de metodo handleOpenProject ---
+        projectLifecycleService.handleOpenProject();
+    }
 
     public void handleSaveProject() {
-        if (model.getCurrentWorkMode() == WorkMode.CLIENTE) {
-            clientController.solicitarGuardarPrjcl();
-        } else {
-            projectLifecycleService.handleSaveProject();
-        }
-    } // --- FIN de metodo handleSaveProject ---
+        projectLifecycleService.handleSaveProject();
+    }
 
     public void handleSaveProjectAs() {
-        if (model.getCurrentWorkMode() == WorkMode.CLIENTE) {
-            clientController.solicitarGuardarPrjclComo();
-        } else {
-            projectLifecycleService.handleSaveProjectAs();
-        }
-    } // --- FIN de metodo handleSaveProjectAs ---
+        projectLifecycleService.handleSaveProjectAs();
+    }
 
     public void handleDeleteProject() {
         if (model.getCurrentWorkMode() == WorkMode.CLIENTE) {
@@ -402,21 +386,55 @@ public class GeneralController
             boolean hayImagenesEnProyecto = !visorController.getProjectManager().getImagenesMarcadas().isEmpty();
 
             if (!hayImagenesEnProyecto) {
-                // El proyecto está vacío. Llamamos al helper que maneja la selección de
-                // archivo.
-                // Si el helper devuelve 'false', significa que el usuario canceló,
-                // por lo tanto, debemos abortar la transición.
                 if (!appModeService.manejarAperturaDeProyectoVacio()) {
-                    sincronizarEstadoBotonesDeModo(); // Revertir el estado visual del botón
-                    return; // Abortar la transición
+                    sincronizarEstadoBotonesDeModo();
+                    return;
                 }
-                // Si el helper devuelve 'true', significa que un proyecto fue cargado
-                // exitosamente.
-                // El flujo de este método continuará para completar la transición al modo
-                // proyecto.
             }
         }
         // --- FIN DE LA PRE-VALIDACIÓN ---
+
+        // --- PRE-VALIDACIÓN PARA MODO CLIENTE ---
+        if (modoDestino == WorkMode.CLIENTE) {
+            ProjectModel proyecto = visorController.getProjectManager().getCurrentProject();
+            boolean hayDatosProyecto = !proyecto.getSelectedImages().isEmpty()
+                    || !proyecto.getDiscardedImages().isEmpty();
+            boolean hayDatosCliente = proyecto.hasClientSelection()
+                    && !proyecto.getClientSelection().getImages().isEmpty();
+
+                if (!hayDatosProyecto && !hayDatosCliente) {
+                    logger.warn("[GeneralController] Modo cliente sin datos. Solicitando abrir proyecto...");
+                    int opcion = JOptionPane.showConfirmDialog(null,
+                            "No hay datos de proyecto ni de cliente.\n"
+                            + "¿Quieres abrir un proyecto (.prj)?",
+                            "Modo Cliente - Sin datos",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE);
+                    if (opcion == JOptionPane.YES_OPTION) {
+                        handleOpenProject();
+                        proyecto = visorController.getProjectManager().getCurrentProject();
+                        hayDatosProyecto = !proyecto.getSelectedImages().isEmpty()
+                                || !proyecto.getDiscardedImages().isEmpty();
+                        if (!hayDatosProyecto) {
+                            sincronizarEstadoBotonesDeModo();
+                            return;
+                        }
+                    } else {
+                        sincronizarEstadoBotonesDeModo();
+                        return;
+                    }
+            } else if (hayDatosProyecto && !hayDatosCliente) {
+                logger.warn("[GeneralController] Intento de entrar en modo cliente sin compartir proyecto.");
+                JOptionPane.showMessageDialog(null,
+                        "El proyecto no está compartido con el cliente.\n"
+                        + "Comparte el proyecto (Compartir con Cliente) antes de entrar en modo cliente.",
+                        "Modo Cliente No Disponible",
+                        JOptionPane.WARNING_MESSAGE);
+                sincronizarEstadoBotonesDeModo();
+                return;
+            }
+        }
+        // --- FIN DE PRE-VALIDACIÓN ---
 
         logger.debug("--- [GeneralController] INICIANDO TRANSICIÓN DE MODO: {} -> {} ---", modoActual, modoDestino);
 
@@ -688,7 +706,11 @@ public class GeneralController
                     if (currentState == SelectionState.SELECTED
                             || (currentState == null && project.getSelectedImages().containsKey(currentKey))) {
                         clientController.moverADescartesCliente(currentKey);
+                    } else if (currentState == SelectionState.DISCARDED) {
+                        clientController.restaurarDeDescartesCliente(currentKey);
                     } else {
+                        // UNDEFINED o null → mover a seleccion como SELECTED
+                        clientController.updateClientSelectionState(currentKey, SelectionState.SELECTED);
                         clientController.restaurarDeDescartesCliente(currentKey);
                     }
                 }

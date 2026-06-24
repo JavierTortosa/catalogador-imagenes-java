@@ -1,0 +1,174 @@
+Este es el plan completo y detallado:
+
+Plan de Implementación
+Archivos a modificar (7)
+1. AppActionCommands.java — Nueva constante
+Añadir:
+
+public static final String CMD_CLIENTE_EXPORTAR_HTML = "cmd.cliente.exportar_html";
+2. WebCatalogExporter.java — Nuevo método exportarHtmlClienteSingleFile()
+Método que genera un único archivo .html con todo embebido:
+
+Firma:
+
+public void exportarHtmlCliente(ProjectModel project, Path outputFile, int iteracion) throws IOException
+Lógica:
+
+Recorrer project.getClientSelection().getImages() (solo imágenes, no composite keys)
+Para cada imagen:
+Cargar BufferedImage desde resolverClaveImagenCanonica()
+Calcular calidad adaptativa según número total de imágenes:
+≤ 20: max 800px, JPEG 85%
+21-50: max 600px, JPEG 75%
+50: max 400px, JPEG 60%
+
+Redimensionar manteniendo aspecto
+Codificar a JPEG base64
+Generar HTML template inline (sin archivos externos)
+Estructura del HTML:
+
+CSS oscuro responsive (similar al actual, pero optimizado)
+Galería: grid de tarjetas con:
+Miniatura (base64)
+Código catálogo
+PVP (del checkbox con precio, si hay varios se muestran todos)
+Icono burbuja si tiene comentario (messages-bubble-text como emoji/icono)
+Badge de estado
+Modal con zoom al hacer click en la imagen:
+Imagen ampliada con zoom por scroll (rueda) + pan (arrastrar)
+En móvil: doble tap para zoom + arrastrar para pan
+Estado SELECTED/DISCARDED/UNDEFINED (toggle)
+Tabla de checkboxes: Código | PVP | Marcado ☐ | Comentario cliente (textarea)
+Campo de comentario general de la imagen (textarea libre)
+Botón "Copiar respuesta": copia JSON al portapapeles (navigator.clipboard.writeText)
+Botón "Descargar respuesta": descarga respuesta_[proyecto]_iteracionN.json
+Formato JSON de respuesta:
+
+{
+  "projectName": "CuchiCuchi 2026",
+  "iteracion": 1,
+  "fechaEnvio": "2026-06-24T15:30:00",
+  "fechaRespuesta": "2026-06-25T10:00:00",
+  "respuestas": [
+    {
+      "id": "imagen1_12345",
+      "codigo": "C001",
+      "estado": "SELECTED",
+      "comentario": "me gusta esta",
+      "checkboxes": [
+        { "codigo": "CB1", "marcado": true, "comentario": "precio bien" },
+        { "codigo": "CB2", "marcado": false, "comentario": "" }
+      ]
+    }
+  ]
+}
+Base de código reutilizable: el JS del getJs() actual ya tiene lógica similar — se puede adaptar quitando la dependencia de data.js y CATALOG_DATA global, e inlineando todo.
+
+3. ClientController.java — Métodos exportarHtmlCliente() y importarRespuestaJson()
+exportarHtmlCliente():
+
+public void exportarHtmlCliente() {
+    // 1. JFileChooser para guardar el .html
+    // 2. Obtener ProjectModel, ClientSelection
+    // 3. Mostrar JProgressDialog
+    // 4. Llamar WebCatalogExporter.exportarHtmlCliente()
+    // 5. JOptionPane informativo
+}
+importarRespuestaJson() — Sobrecargar cargarRespuestaCliente():
+
+public void importarRespuestaJson(String jsonContent) {
+    // Si se pega desde portapapeles: parsear string directamente
+    // Llamar ClientResponseImporter con el contenido  
+    // El importador actual acepta Path, hay que adaptarlo
+}
+4. ClientResponseImporter.java — Nuevo método importarDesdeString()
+public ImportReport importar(ProjectModel project, String jsonContent) throws IOException {
+    // Parsear string directamente en lugar de leer archivo
+    // Misma lógica que importar(project, Path)
+}
+Además, modificar el importador actual para que el JSON de respuesta del nuevo HTML se pueda procesar correctamente (el formato es compatible con el actual).
+
+5. ActionFactory.java — Nuevas acciones
+createClientExportarHtmlAction():
+
+private Action createClientExportarHtmlAction() {
+    return new AbstractAction() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (clientController != null) {
+                clientController.exportarHtmlCliente();
+            }
+        }
+    };
+}
+createClientImportarRespuestaAction() — Modificar la existente para:
+
+Abrir JFileChooser (ya lo hace)
+Además si se detecta contenido en portapapeles (opcional), preguntar si quiere pegar
+Registrar en createCoreActions():
+
+registerAction(AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML,
+    createClientExportarHtmlAction());
+6. UIDefinitionService.java — Botón en toolbar de cliente
+En la sección botonesCliente (línea 788-818), añadir detrás del botón exportar web actual:
+
+botonesCliente.add(new SeparatorDefinition());
+botonesCliente.add(new ToolbarButtonDefinition(
+    AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML,
+    "messages-bubble-text.png",   // el icono bocadillo
+    "Exportar HTML para cliente (archivo único)", "cliente"));
+El botón se añade junto al existente, no lo sustituye. Más adelante se decide qué hacer con el viejo.
+
+7. ClientBuilder.java — Adaptar botón importar existente
+El botón "Importar respuesta del cliente (JSON)" ya existe en la toolbar (línea 798 de UIDefinitionService) y llama a CMD_CLIENTE_CARGAR_RESPUESTA. Su acción abre un JFileChooser y luego llama a clientController.cargarRespuestaCliente().
+
+Para soportar pegar desde portapapeles:
+
+Opción simple (ahora): El importador actual mediante JFileChooser ya funciona para el JSON descargado del HTML
+Opción clipboard (post‑MVP): Más adelante añadir un botón "Pegar respuesta" o un diálogo que permita pegar el JSON en un textarea
+De momento el JFileChooser es suficiente porque:
+
+El cliente puede descargar el JSON del HTML y enviarlo por WhatsApp
+Tú lo guardas en el PC y lo abres con el importador
+El HTML exportado también se puede enviar de vuelta junto con el JSON
+8. Zoom en el modal (detalle implementación JS)
+// zoom con rueda
+modalImg.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    let scale = this._scale || 1;
+    scale += e.deltaY > 0 ? -0.1 : 0.1;
+    scale = Math.max(0.5, Math.min(5, scale));
+    this._scale = scale;
+    this.style.transform = 'scale(' + scale + ')';
+    this.style.transformOrigin = 'top left';
+});
+
+// pan con arrastre
+modalImg.addEventListener('mousedown', function(e) {
+    // iniciar arrastre
+    let startX = e.clientX, startY = e.clientY;
+    let origLeft = this._panX || 0, origTop = this._panY || 0;
+    function onMove(e2) {
+        this._panX = origLeft + (e2.clientX - startX);
+        this._panY = origTop + (e2.clientY - startY);
+        this.style.left = this._panX + 'px';
+        this.style.top = this._panY + 'px';
+    }
+    // ... addEventListener mousemove/mouseup
+});
+Para móvil: eventos touch equivalentes + doble tap para toggle zoom 2×.
+
+Resumen de cambios por archivo
+Archivo	Cambio
+AppActionCommands.java	+1 constante CMD_CLIENTE_EXPORTAR_HTML
+WebCatalogExporter.java	+1 método exportarHtmlCliente() (300-400 líneas HTML/JS inline)
+ClientController.java	+1 método exportarHtmlCliente(), modificar cargarRespuestaCliente() para soportar string
+ClientResponseImporter.java	+1 sobrecarga importar(project, String)
+ActionFactory.java	+1 acción createClientExportarHtmlAction(), registrarla en core actions
+UIDefinitionService.java	+1 botón en toolbar cliente con icono bocadillo
+ClientBuilder.java	Sin cambios necesarios ahora (import ya funciona con JFileChooser)
+Lo que NO se toca ahora
+El export multi‑archivo actual (se queda como está)
+La comprobación del panel de asignaciones antes de compartir
+La marca "proyecto compartido"
+La respuesta a comentarios del cliente

@@ -37,15 +37,26 @@ public class ClientResponseImporter {
      */
     public ImportReport importar(ProjectModel project, Path respuestaJson) throws IOException {
         logger.info("[ClientResponseImporter] Importando respuesta: {}", respuestaJson);
-
         if (!Files.exists(respuestaJson)) {
             throw new IOException("El archivo de respuesta no existe: " + respuestaJson.toAbsolutePath());
         }
-
         String contenido = Files.readString(respuestaJson, StandardCharsets.UTF_8);
+        return importarDesdeString(project, contenido);
+    } // --- FIN de metodo importar ---
+
+
+    /**
+     * Importa la respuesta del cliente desde un String JSON y actualiza el ClientSelection.
+     * @param project       Proyecto activo.
+     * @param jsonContent   Contenido JSON de la respuesta.
+     * @return              Resumen de la importación.
+     * @throws IOException  Si el JSON no es válido.
+     */
+    public ImportReport importarDesdeString(ProjectModel project, String jsonContent) throws IOException {
+        logger.info("[ClientResponseImporter] Importando respuesta desde string...");
         JsonObject root;
         try {
-            root = JsonParser.parseString(contenido).getAsJsonObject();
+            root = JsonParser.parseString(jsonContent).getAsJsonObject();
         } catch (Exception e) {
             throw new IOException("El archivo no es un JSON válido: " + e.getMessage(), e);
         }
@@ -56,7 +67,11 @@ public class ClientResponseImporter {
         }
 
         // Obtener o crear la ClientSelection del proyecto
-        ClientSelection clientSelection = project.getClientSelection(); // Lazy init
+        ClientSelection clientSelection = project.getClientSelection();
+        if (clientSelection == null) {
+            clientSelection = new ClientSelection();
+            project.setClientSelection(clientSelection);
+        }
         clientSelection.setIteracionNumero(
                 root.has("iteracion") ? root.get("iteracion").getAsInt() : 1);
         clientSelection.setFechaRespuesta(
@@ -71,7 +86,7 @@ public class ClientResponseImporter {
             JsonObject resp = elem.getAsJsonObject();
 
             String id    = resp.has("id")         ? resp.get("id").getAsString()        : null;
-            String estado = resp.has("estado")    ? resp.get("estado").getAsString()     : "UNDEFINED";
+            String estado = resp.has("estado")    ? resp.get("estado").getAsString()     : "DISCARDED";
             String comment = resp.has("comentario") ? resp.get("comentario").getAsString() : "";
 
             if (id == null) {
@@ -92,8 +107,8 @@ public class ClientResponseImporter {
             try {
                 state = SelectionState.valueOf(estado);
             } catch (IllegalArgumentException e) {
-                logger.warn("[ClientResponseImporter] Estado desconocido '{}' para id '{}'. Se asigna UNDEFINED.", estado, id);
-                state = SelectionState.UNDEFINED;
+                logger.warn("[ClientResponseImporter] Estado desconocido '{}' para id '{}'. Se asigna DISCARDED.", estado, id);
+                state = SelectionState.DISCARDED;
             }
 
             clientSelection.getImages().put(rutaKey, state);

@@ -19,6 +19,8 @@ import controlador.managers.interfaces.IProjectManager;
 import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
 import modelo.proyecto.ImageCheckboxOverlay;
+import modelo.proyecto.ProjectModel;
+import modelo.proyecto.SelectionState;
 import servicios.ProjectManager;
 import vista.theme.ThemeManager;
 
@@ -100,7 +102,19 @@ public class ClientReviewPanel extends JPanel {
                             var overlays = projectManager.getCurrentProject().getClientSelection().getImageCheckboxes(imageKey);
                             if (idx < overlays.size()) {
                                 var ov = overlays.get(idx);
-                                ov.setChecked(!ov.isChecked());
+                                SelectionState current = ov.getState();
+                                SelectionState next;
+                                switch (current) {
+                                    case SELECTED  -> next = SelectionState.DISCARDED;
+                                    case DISCARDED -> next = SelectionState.UNDEFINED;
+                                    default        -> next = SelectionState.SELECTED;
+                                }
+                                ov.setState(next);
+                                // Sincronizar entrada compuesta
+                                String imgCode = projectManager.getCurrentProject()
+                                        .getCodigoImagen(ProjectModel.normalizarClaveImagen(imageKey));
+                                String compositeKey = imgCode + "_" + ov.getCheckboxCode();
+                                projectManager.getCurrentProject().getClientSelection().getImages().put(compositeKey, next);
                                 imagePanel.repaint();
                             }
                         }
@@ -201,9 +215,16 @@ public class ClientReviewPanel extends JPanel {
                 Point2D invSrc = new Point2D.Double(e.getX(), e.getY());
                 Point2D invDst = new Point2D.Double();
                 transform.inverseTransform(invSrc, invDst);
+                String imgCode = projectManager.getCurrentProject()
+                        .getCodigoImagen(ProjectModel.normalizarClaveImagen(getCurrentImageKey()));
+                int seq = overlays.size() + 1;
+                String cbCode = String.format("cb%02d", seq);
                 var ov = new ImageCheckboxOverlay(
-                        (int) Math.round(invDst.getX()), (int) Math.round(invDst.getY()), false, "");
+                        (int) Math.round(invDst.getX()), (int) Math.round(invDst.getY()),
+                        SelectionState.UNDEFINED, "", cbCode, "", 0.0, 32);
                 overlays.add(ov);
+                String compositeKey = imgCode + "_" + cbCode;
+                projectManager.getCurrentProject().getClientSelection().getImages().put(compositeKey, ov.getState());
                 imagePanel.repaint();
             } catch (NoninvertibleTransformException ex) {
                 // ignore
@@ -215,7 +236,13 @@ public class ClientReviewPanel extends JPanel {
             JMenuItem removeItem = new JMenuItem("Eliminar checkbox");
             int idx = hitIdx;
             removeItem.addActionListener(ev -> {
+                var ov = overlays.get(idx);
                 overlays.remove(idx);
+                // Eliminar entrada compuesta del cliente
+                String imgCode = projectManager.getCurrentProject()
+                        .getCodigoImagen(ProjectModel.normalizarClaveImagen(getCurrentImageKey()));
+                String compositeKey = imgCode + "_" + ov.getCheckboxCode();
+                projectManager.getCurrentProject().getClientSelection().getImages().remove(compositeKey);
                 imagePanel.repaint();
             });
             popup.add(removeItem);

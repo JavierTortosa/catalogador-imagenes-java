@@ -1,0 +1,126 @@
+{
+  "projectName": "chess miguel",
+  "projectDescription": "",
+  "creationDate": 1778532194139,
+  "lastModifiedDate": 1782201572712,
+  "selectedImages": {
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Harry+Potter+Wizards+Chess+Pieces.jpg": "",
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Chess set with storage box - 4289646.jpg": "",
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Chess+modern+smooth+light+design.png": "",
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Crown+Chess+Set.png": "",
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Fantasy+Chess+set.png": "",
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Custom+chess+set.png": ""
+  },
+  "discardedImages": [
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Chessboard.png",
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Chess+Piece+Boxes+(Flat+Surface+wood+grain+texture)_stls/Stylized+Chess+Set.png",
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Harry potter wizard chess pieces.jpg"
+  ],
+  "exportConfigs": {
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Harry+Potter+Wizards+Chess+Pieces.jpg": {
+      "exportEnabled": true,
+      "ignoreCompressed": false,
+      "status": "ENCONTRADO_OK",
+      "codigoCatalogo": "C001",
+      "piezas": 0,
+      "piezasConSoporte": 0,
+      "piezasSinSoporte": 0,
+      "associatedFiles": [
+        "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Harry+Potter+Wizards+Chess+Pieces.zip"
+      ]
+    },
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Chess set with storage box - 4289646.jpg": {
+      "exportEnabled": true,
+      "ignoreCompressed": false,
+      "status": "ENCONTRADO_OK",
+      "codigoCatalogo": "C002",
+      "piezas": 0,
+      "piezasConSoporte": 0,
+      "piezasSinSoporte": 0,
+      "associatedFiles": [
+        "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Chess set with storage box - 4289646.zip"
+      ]
+    },
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Chess+modern+smooth+light+design.png": {
+      "exportEnabled": true,
+      "ignoreCompressed": false,
+      "status": "ENCONTRADO_OK",
+      "codigoCatalogo": "C003",
+      "piezas": 0,
+      "piezasConSoporte": 0,
+      "piezasSinSoporte": 0,
+      "associatedFiles": [
+        "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Chess+modern+smooth+light+design.zip"
+      ]
+    },
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Crown+Chess+Set.png": {
+      "exportEnabled": true,
+      "ignoreCompressed": false,
+      "status": "ENCONTRADO_OK",
+      "codigoCatalogo": "C004",
+      "piezas": 0,
+      "piezasConSoporte": 0,
+      "piezasSinSoporte": 0,
+      "associatedFiles": [
+        "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Crown+Chess+Set.zip"
+      ]
+    },
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Fantasy+Chess+set.png": {
+      "exportEnabled": true,
+      "ignoreCompressed": false,
+      "status": "ENCONTRADO_OK",
+      "codigoCatalogo": "C005",
+      "piezas": 0,
+      "piezasConSoporte": 0,
+      "piezasSinSoporte": 0,
+      "associatedFiles": [
+        "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Fantasy+Chess+set.zip"
+      ]
+    },
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Custom+chess+set.png": {
+      "exportEnabled": true,
+      "ignoreCompressed": false,
+      "status": "ENCONTRADO_OK",
+      "codigoCatalogo": "C006",
+      "piezas": 0,
+      "piezasConSoporte": 0,
+      "piezasSinSoporte": 0,
+      "associatedFiles": [
+        "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Custom+chess+set.zip"
+      ]
+    }
+  },
+  "originalProjectPath": "D:\\Programacion\\Eclipse\\Workspace 2024-12R\\VisorImagenes\\.proyectos\\chess miguel.prj",
+  "exportDestinationFolder": "D:\\Compartir\\Encargos\\Chess Miguel\\exportados",
+  "sharedWithClient": true,
+  "sharedTimestamp": 1782202372307,
+  "sharedIteration": 1,
+  "imageCodes": {
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Harry+Potter+Wizards+Chess+Pieces.jpg": "C001",
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Chess set with storage box - 4289646.jpg": "C002",
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Chess+modern+smooth+light+design.png": "C003",
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Crown+Chess+Set.png": "C004",
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Fantasy+Chess+set.png": "C005",
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Custom+chess+set.png": "C006",
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Chessboard.png": "C007",
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Chess+Piece+Boxes+(Flat+Surface+wood+grain+texture)_stls/Stylized+Chess+Set.png": "C008",
+    "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Harry potter wizard chess pieces.jpg": "C009"
+  },
+  "clientSelection": {
+    "images": {
+      "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Harry+Potter+Wizards+Chess+Pieces.jpg": "SELECTED",
+      "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Chess set with storage box - 4289646.jpg": "SELECTED",
+      "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Chess+modern+smooth+light+design.png": "SELECTED",
+      "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Crown+Chess+Set.png": "SELECTED",
+      "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Fantasy+Chess+set.png": "SELECTED",
+      "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Custom+chess+set.png": "SELECTED",
+      "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Chessboard.png": "DISCARDED",
+      "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Chess+Piece+Boxes+(Flat+Surface+wood+grain+texture)_stls/Stylized+Chess+Set.png": "DISCARDED",
+      "F:/ARCHIVOS 3D/JUEGOS/Juegos de Mesa/Chess/Harry potter wizard chess pieces.jpg": "DISCARDED"
+    },
+    "comments": {},
+    "commentOverlays": {},
+    "imageCheckboxes": {},
+    "iterationNumber": 1
+  }
+}

@@ -672,6 +672,12 @@ public class ProjectController implements IModoController {
             }
 
             resetProjectViewLayout();
+
+            if (model.isProjectExportPanelVisible()) {
+                setExportPanelVisible(true);
+                solicitarPreparacionColaExportacion();
+                sincronizarSeleccionEnTablaExportacion();
+            }
         });
 
     } // --- Fin del metodo: activarVistaProyecto ---
@@ -1241,18 +1247,16 @@ public class ProjectController implements IModoController {
                         item.getEstadoArchivoComprimido() == modelo.proyecto.ExportStatus.ASIGNADO_MANUAL ||
                         item.getEstadoArchivoComprimido() == modelo.proyecto.ExportStatus.IGNORAR_COMPRIMIDO);
 
-        boolean proyectoCompartido = projectManager != null
-                && projectManager.getCurrentProject() != null
-                && projectManager.getCurrentProject().isSharedWithClient();
+        boolean enModoCliente = model != null && model.getCurrentWorkMode() == modelo.VisorModel.WorkMode.CLIENTE;
 
-        boolean puedeExportar = !proyectoCompartido && carpetaOk && todosLosSeleccionadosEstanListos && seleccionados > 0 && !hayConflictos;
+        boolean puedeExportar = !enModoCliente && carpetaOk && todosLosSeleccionadosEstanListos && seleccionados > 0 && !hayConflictos;
 
         boolean resaltarDestino = seleccionados > 0 && !carpetaOk;
         exportPanel.resaltarRutaDestino(resaltarDestino);
 
         String mensajeResumen;
-        if (proyectoCompartido) {
-            mensajeResumen = "Proyecto compartido con cliente. Cierra el modo cliente para exportar.";
+        if (enModoCliente) {
+            mensajeResumen = "En modo cliente no se puede exportar. Cierra el modo cliente para exportar.";
         } else if (hayConflictos) {
             mensajeResumen = "Conflicto de nombres detectado. Deseleccione los archivos duplicados para poder exportar.";
         } else if (!carpetaOk && seleccionados > 0) {
@@ -1285,10 +1289,10 @@ public class ProjectController implements IModoController {
         actualizarTooltipAccion(AppActionCommands.CMD_EXPORT_REFRESH,
                 "Vuelve a escanear el disco para actualizar el estado de los archivos");
 
-        boolean puedeExportarPDF = !proyectoCompartido && todosLosSeleccionadosEstanListos && seleccionados > 0 && !hayConflictos;
+        boolean puedeExportarPDF = !enModoCliente && todosLosSeleccionadosEstanListos && seleccionados > 0 && !hayConflictos;
         String mensajePDF;
-        if (proyectoCompartido) {
-            mensajePDF = "Proyecto compartido con cliente. Cierra el modo cliente para exportar.";
+        if (enModoCliente) {
+            mensajePDF = "En modo cliente no se puede exportar. Cierra el modo cliente para exportar.";
         } else if (hayConflictos) {
             mensajePDF = "No se puede generar PDF: hay conflictos de nombres.";
         } else if (!todosLosSeleccionadosEstanListos && seleccionados > 0) {

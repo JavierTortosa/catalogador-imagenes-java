@@ -61,8 +61,8 @@ public class ProjectUIManager {
         this.dataManager = dataManager;
     } // --- Fin del metodo setDataManager ---
 
-    // Mueve los paneles al layout de ASIGNACION
     public void aplicarLayoutAsignacion() {
+        if (registry.get("splitpane.proyecto.left.assignment") != null) return;
         JSplitPane mainSplit = registry.get("splitpane.proyecto.main");
         JSplitPane leftSplit = registry.get("splitpane.proyecto.left");
         JSplitPane rightSplit = registry.get("splitpane.proyecto.right");
@@ -73,19 +73,15 @@ public class ProjectUIManager {
         Component panelVisor = rightSplit.getLeftComponent();
         if (panelSeleccion == null || panelDescartes == null || panelVisor == null) return;
 
-        // 1. Quitar componentes
         mainSplit.remove(leftSplit);
         rightSplit.remove(panelVisor);
 
-        // 2. Configurar lado derecho: placeholder invisible arriba, toolsPanel abajo
         rightSplit.setLeftComponent(new JPanel());
         rightSplit.setDividerLocation(0);
         rightSplit.setResizeWeight(0.0);
 
-        // 3. Crear componentes para nuevo layout
-        // Izquierda: Visor (arriba) | Tabs: Selección, Descartes (abajo)
         JTabbedPane tabs = new JTabbedPane();
-        tabs.addTab("Selección", panelSeleccion);
+        tabs.addTab("Selecci\u00f3n", panelSeleccion);
         tabs.addTab("Descartes", panelDescartes);
 
         JSplitPane leftAssignmentSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, panelVisor, tabs);
@@ -117,14 +113,14 @@ public class ProjectUIManager {
         // 1. Quitar componentes del layout Asignación
         mainSplit.remove(leftAssignmentSplit);
 
-        // 2. Reensamblar
-        // Izquierda: Selección | Descartes
         leftSplit.setLeftComponent(panelSeleccion);
         leftSplit.setRightComponent(panelDescartes);
         mainSplit.setLeftComponent(leftSplit);
 
-        // Derecha: Visor | Export Tools
         rightSplit.setLeftComponent(panelVisor);
+
+        registry.unregister("splitpane.proyecto.left.assignment");
+        registry.unregister("tabbedpane.proyecto.left.assignment");
 
         mainSplit.revalidate();
         mainSplit.repaint();

@@ -213,6 +213,7 @@ public interface AppActionCommands {
     public static final String CMD_CLIENTE_ABRIR_PRJCL 				= "cmd.cliente.abrir_prjcl";
     public static final String CMD_CLIENTE_UPDATE 				= "cmd.cliente.update";
     public static final String CMD_CLIENTE_EXPORTAR_WEB 			= "cmd.cliente.exportar_web";
+    public static final String CMD_CLIENTE_EXPORTAR_HTML 			= "cmd.cliente.exportar_html";
     public static final String CMD_CLIENTE_CARGAR_RESPUESTA 		= "cmd.cliente.cargar_respuesta";
     public static final String CMD_CLIENTE_CERRAR_SINCRONIZAR 		= "cmd.cliente.cerrar_sincronizar";
     public static final String CMD_CLIENTE_TOGGLE_CHECKBOX 		= "cmd.cliente.toggle_checkbox";

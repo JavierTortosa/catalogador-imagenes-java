@@ -147,6 +147,8 @@ public class ClientController implements IModoController {
             t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_IMG)
                     .setCellRenderer(new vista.renderers.CodeCellRenderer());
             t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_CB).setMaxWidth(80);
+            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_CB)
+                    .setCellRenderer(new vista.renderers.CodeCellRenderer());
             t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_COMENTARIO)
                     .setCellRenderer(new vista.renderers.CommentCellRenderer());
             t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_COMENTARIO).setMaxWidth(50);
@@ -161,6 +163,8 @@ public class ClientController implements IModoController {
             t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_IMG)
                     .setCellRenderer(new vista.renderers.CodeCellRenderer());
             t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_CB).setMaxWidth(80);
+            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_CB)
+                    .setCellRenderer(new vista.renderers.CodeCellRenderer());
             t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_COMENTARIO)
                     .setCellRenderer(new vista.renderers.CommentCellRenderer());
             t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_COMENTARIO).setMaxWidth(50);
@@ -178,12 +182,60 @@ public class ClientController implements IModoController {
         logger.info("Actualizando estado de cliente para {} a {}", imageKey, newState);
         if (projectManager != null && projectManager.getCurrentProject() != null) {
             if (projectManager.getCurrentProject().hasClientSelection()) {
-                projectManager.getCurrentProject().getClientSelection().getImages().put(imageKey, newState);
+                String canonicalKey = ProjectModel.normalizarClaveImagen(imageKey);
+                projectManager.getCurrentProject().getClientSelection().getImages().put(canonicalKey, newState);
                 projectManager.notificarModificacion();
                 refrescarTablas();
             }
         }
     } // --- Fin de metodo updateClientSelectionState ---
+
+
+    /**
+     * Deriva el estado de la imagen a partir del estado de sus checkboxes internos.
+     * - Al menos un SELECTED → imagen SELECTED
+     * - Ningún SELECTED, al menos un UNDEFINED → imagen UNDEFINED
+     * - Todos DISCARDED → imagen DISCARDED
+     * También sincroniza las entradas compuestas (imgCode_cbCode) con el estado de cada overlay.
+     */
+    public void derivarEstadoImagen(String imageKey) {
+        if (projectManager == null || projectManager.getCurrentProject() == null) return;
+        var clientSel = projectManager.getCurrentProject().getClientSelection();
+        if (clientSel == null) return;
+        String canonicalKey = ProjectModel.normalizarClaveImagen(imageKey);
+        var checkboxes = clientSel.getImageCheckboxes(canonicalKey);
+        if (checkboxes == null || checkboxes.isEmpty()) return;
+
+        String imgCode = projectManager.getCurrentProject()
+                .getCodigoImagen(canonicalKey);
+
+        boolean hasSelected = false;
+        boolean hasUndefined = false;
+        for (var cb : checkboxes) {
+            String compositeKey = imgCode + "_" + cb.getCheckboxCode();
+            clientSel.getImages().put(compositeKey, cb.getState());
+            clientSel.getImages().remove("_" + cb.getCheckboxCode());
+            clientSel.getImages().remove(cb.getCheckboxCode());
+
+            switch (cb.getState()) {
+                case SELECTED  -> hasSelected = true;
+                case UNDEFINED -> hasUndefined = true;
+                default -> {}
+            }
+        }
+
+        SelectionState derived;
+        if (hasSelected) {
+            derived = SelectionState.SELECTED;
+        } else if (hasUndefined) {
+            derived = SelectionState.UNDEFINED;
+        } else {
+            derived = SelectionState.DISCARDED;
+        }
+        clientSel.getImages().put(canonicalKey, derived);
+        projectManager.notificarModificacion();
+        refrescarTablas();
+    } // --- Fin de metodo derivarEstadoImagen ---
 
 
     public void compartirConCliente() {
@@ -195,19 +247,36 @@ public class ClientController implements IModoController {
             return;
         }
 
+        if (project.isSharedWithClient()) {
+            if (generalController != null) {
+                generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.CLIENTE);
+            }
+            return;
+        }
+
         java.util.Map<String, String> selectedImages = project.getSelectedImages();
+        java.util.List<String> discardedImages = project.getDiscardedImages();
         if (selectedImages == null || selectedImages.isEmpty()) {
             JOptionPane.showMessageDialog(null, "No hay im\u00e1genes seleccionadas en el proyecto.",
                     "Compartir al Cliente", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
+        int totalImages = selectedImages.size() + discardedImages.size();
         java.util.Map<String, String> imageCodes = project.getImageCodes();
         imageCodes.clear();
-        int numDigitos = Math.max(3, String.valueOf(selectedImages.size()).length());
+        int numDigitos = Math.max(3, String.valueOf(totalImages).length());
         String formato = "C%0" + numDigitos + "d";
         int idx = 0;
+
         for (String rutaImagen : selectedImages.keySet()) {
+            String codigo = String.format(formato, ++idx);
+            imageCodes.put(rutaImagen, codigo);
+            if (project.getExportConfigs().containsKey(rutaImagen)) {
+                project.getExportConfigs().get(rutaImagen).setCodigoCatalogo(codigo);
+            }
+        }
+        for (String rutaImagen : discardedImages) {
             String codigo = String.format(formato, ++idx);
             imageCodes.put(rutaImagen, codigo);
             if (project.getExportConfigs().containsKey(rutaImagen)) {
@@ -226,25 +295,32 @@ public class ClientController implements IModoController {
             return;
         }
 
+        ProjectModel.ClientSelection clientSel = new ProjectModel.ClientSelection();
+        for (String rutaImagen : selectedImages.keySet()) {
+            clientSel.getImages().put(rutaImagen, SelectionState.UNDEFINED);
+        }
+        for (String rutaImagen : discardedImages) {
+            clientSel.getImages().put(rutaImagen, SelectionState.DISCARDED);
+        }
+        project.setClientSelection(clientSel);
+
         project.setSharedWithClient(true);
         project.setSharedTimestamp(System.currentTimeMillis());
         project.setSharedIteration(1);
 
         Path prjPath = projectManager.getArchivoProyectoActivo();
         if (prjPath != null) {
-            projectManager.guardarAArchivo();
-        }
-
-        Path prjclPath;
-        if (prjPath != null) {
             String prjName = prjPath.getFileName().toString();
-            prjclPath = prjPath.resolveSibling(
+            Path prjclPath = prjPath.resolveSibling(
                     prjName.replaceAll("(?i)\\.prj$", "") + ".prjcl");
-        } else {
-            prjclPath = projectManager.getCarpetaBaseProyectos()
-                    .resolve("compartido_" + System.currentTimeMillis() + ".prjcl");
+            projectManager.saveAsCopy(prjclPath);
         }
-        projectManager.guardarProyectoComo(prjclPath);
+        projectManager.notificarModificacion();
+
+        if (visorController != null && visorController.getStatusBarManager() != null) {
+            visorController.getStatusBarManager().mostrarMensajeTemporal(
+                    "Proyecto compartido con el cliente. Cambiando a modo cliente...", 5000);
+        }
 
         if (generalController != null) {
             generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.CLIENTE);
@@ -258,9 +334,9 @@ public class ClientController implements IModoController {
         }
 
         logger.info("[ClientController] Proyecto compartido con \u00e9xito. C\u00f3digos generados: {}",
-                selectedImages.size());
+                totalImages);
         JOptionPane.showMessageDialog(null,
-                "Proyecto compartido con el cliente.\n\nSe han generado " + selectedImages.size()
+                "Proyecto compartido con el cliente.\n\nSe han generado " + totalImages
                         + " c\u00f3digos de cat\u00e1logo.\nModo Cliente activado.",
                 "Compartir Completado", JOptionPane.INFORMATION_MESSAGE);
     } // --- Fin de metodo compartirConCliente ---
@@ -284,10 +360,13 @@ public class ClientController implements IModoController {
             DefaultListModel<String> cliSelModel = (cliSel != null) ? (DefaultListModel<String>) cliSel.getModel() : null;
             DefaultListModel<String> cliDescModel = (cliDesc != null) ? (DefaultListModel<String>) cliDesc.getModel() : null;
             for (java.util.Map.Entry<String, SelectionState> entry : clientImages.entrySet()) {
-                if (entry.getValue() == SelectionState.SELECTED) {
-                    if (cliSelModel != null) cliSelModel.addElement(entry.getKey());
-                } else if (entry.getValue() == SelectionState.DISCARDED) {
-                    if (cliDescModel != null) cliDescModel.addElement(entry.getKey());
+                switch (entry.getValue()) {
+                    case SELECTED, UNDEFINED:
+                        if (cliSelModel != null) cliSelModel.addElement(entry.getKey());
+                        break;
+                    case DISCARDED:
+                        if (cliDescModel != null) cliDescModel.addElement(entry.getKey());
+                        break;
                 }
             }
         }
@@ -358,60 +437,48 @@ public class ClientController implements IModoController {
 
         int confirm = JOptionPane.showConfirmDialog(null,
                 "\u00bfEst\u00e1s seguro de cerrar el modo cliente?\n\n"
-                + "Los cambios del cliente se sincronizar\u00e1n con el proyecto.\n"
-                + "Se desactivar\u00e1 el modo compartido y volver\u00e1s al modo proyecto.",
+                + "Los datos del cliente se conservar\u00e1n.\n"
+                + "Volver\u00e1s al modo proyecto para poder exportar.",
                 "Cerrar Modo Cliente",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE);
         if (confirm != JOptionPane.YES_OPTION) return;
 
-        // 1. Sync cliente → proyecto
         if (clientSyncService != null && project.hasClientSelection()) {
             clientSyncService.update(project);
         }
 
-        // 2. Desactivar shared
-        project.setSharedWithClient(false);
-        project.setSharedTimestamp(0);
-        project.setSharedIteration(0);
-
-        // 3. Limpiar selecci\u00f3n de cliente
-        project.getClientSelection().getImages().clear();
-        project.getClientSelection().getComments().clear();
-        project.getClientSelection().getCommentOverlays().clear();
-        project.getClientSelection().getImageCheckboxesMap().clear();
-
-        // 4. Resetear flags de panel
         if (generalController != null) {
-            modelo.VisorModel visorModel = generalController.getModel();
+            var visorModel = generalController.getModel();
             if (visorModel != null) {
                 visorModel.setClienteCheckboxVisible(false);
                 visorModel.setClienteEditorPanelVisible(false);
             }
         }
 
-        // 5. Restaurar card DISPLAY_NORMAL en el wrapper
         if (registry != null) {
             java.awt.Container displayWrapper = registry.get("container.displaymodes.cliente.wrapper");
             if (displayWrapper != null && displayWrapper.getLayout() instanceof java.awt.CardLayout) {
                 ((java.awt.CardLayout) displayWrapper.getLayout()).show(displayWrapper, "DISPLAY_NORMAL");
             }
+            java.awt.Window editorDialog = registry.get("dialog.cliente.editor");
+            if (editorDialog != null) {
+                editorDialog.setVisible(false);
+            }
         }
 
-        // 6. Cambiar modo a PROYECTO
         if (generalController != null) {
             generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
         }
 
-        // 7. Guardar .prj
         projectManager.guardarAArchivo();
         projectManager.notificarModificacion();
 
         logger.info("[ClientController] Modo cliente cerrado. Proyecto guardado.");
         JOptionPane.showMessageDialog(null,
                 "Modo cliente cerrado correctamente.\n"
-                + "Los cambios se han sincronizado con el proyecto.\n"
-                + "La exportaci\u00f3n ya est\u00e1 disponible.",
+                + "Los datos del cliente se han conservado.\n"
+                + "Puedes exportar desde el modo proyecto.",
                 "Cliente Cerrado", JOptionPane.INFORMATION_MESSAGE);
     } // --- Fin de metodo cerrarCliente ---
 
@@ -515,7 +582,9 @@ public class ClientController implements IModoController {
             logger.warn("[ClientController] No hay proyecto activo.");
             return;
         }
-        project.getClientSelection().getImages().clear();
+        if (project.hasClientSelection()) {
+            project.getClientSelection().getImages().clear();
+        }
         projectManager.notificarModificacion();
         activarVistaCliente();
     } // --- Fin de metodo solicitarNuevoPrjcl ---
@@ -668,6 +737,74 @@ public class ClientController implements IModoController {
         worker.execute();
         progressDialog.setVisible(true);
     } // --- Fin de metodo exportarParaCliente ---
+
+
+    public void exportarHtmlCliente() {
+        logger.info("[ClientController] Exportando HTML único para el cliente...");
+        ProjectModel project = projectManager != null ? projectManager.getCurrentProject() : null;
+        if (project == null) {
+            logger.error("[ClientController] No hay proyecto activo para exportar.");
+            return;
+        }
+        if (!project.hasClientSelection()) {
+            JOptionPane.showMessageDialog(null, "El proyecto no tiene selección de cliente.\n"
+                    + "Comparte primero el proyecto con el cliente.",
+                    "Exportar HTML", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Guardar catálogo HTML para el cliente");
+        chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+                "Archivo HTML (*.html)", "html"));
+        String defaultName = (project.getProjectName() != null
+                ? project.getProjectName().replaceAll("[^a-zA-Z0-9._-]", "_").toLowerCase()
+                : "proyecto")
+                + "_iteracion" + project.getSharedIteration() + ".html";
+        chooser.setSelectedFile(new java.io.File(defaultName));
+
+        if (chooser.showSaveDialog(registry != null
+                ? (java.awt.Window) registry.get("frame.principal") : null)
+                != JFileChooser.APPROVE_OPTION) return;
+
+        Path outputFile = chooser.getSelectedFile().toPath();
+        if (!outputFile.getFileName().toString().toLowerCase().endsWith(".html")) {
+            outputFile = outputFile.resolveSibling(outputFile.getFileName() + ".html");
+        }
+
+        Path finalOutput = outputFile;
+        javax.swing.SwingWorker<Void, Void> worker = new javax.swing.SwingWorker<>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                if (webCatalogExporter == null) {
+                    webCatalogExporter = new WebCatalogExporter();
+                }
+                webCatalogExporter.exportarHtmlCliente(project, finalOutput,
+                        project.getSharedIteration());
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    get();
+                    logger.info("[ClientController] HTML cliente exportado: {}", finalOutput);
+                    JOptionPane.showMessageDialog(
+                            registry != null ? (java.awt.Component) registry.get("frame.principal") : null,
+                            "Catálogo HTML exportado correctamente a:\n" + finalOutput.toAbsolutePath(),
+                            "Exportación Completada", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception e) {
+                    logger.error("[ClientController] Error exportando HTML: {}",
+                            e.getCause() != null ? e.getCause().getMessage() : e.getMessage(), e);
+                    JOptionPane.showMessageDialog(
+                            registry != null ? (java.awt.Component) registry.get("frame.principal") : null,
+                            "Error al exportar: " + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+        worker.execute();
+    } // --- Fin de metodo exportarHtmlCliente ---
 
 
     /**

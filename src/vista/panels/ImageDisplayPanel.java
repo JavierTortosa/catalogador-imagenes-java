@@ -25,6 +25,7 @@ import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
 import modelo.proyecto.CommentOverlay;
 import modelo.proyecto.ImageCheckboxOverlay;
+import modelo.proyecto.SelectionState;
 import vista.theme.ThemeManager;
 
 public class ImageDisplayPanel extends JPanel {
@@ -52,6 +53,8 @@ public class ImageDisplayPanel extends JPanel {
 
     private javax.swing.JPanel navArrowsLeftPanel;
     private javax.swing.JPanel navArrowsRightPanel;
+
+    private boolean editorOverlayInstance = false;
 
     private IProjectManager projectManager;
 
@@ -200,11 +203,12 @@ public class ImageDisplayPanel extends JPanel {
 
             // --- DIBUJAR CHECKBOXES CLIENTE (modo revision o editor) ---
             if (model.getCurrentWorkMode() == WorkMode.CLIENTE
-                    && (model.isClienteCheckboxVisible() || model.isClienteEditorPanelVisible())
+                    && (model.isClienteCheckboxVisible() || this.editorOverlayInstance)
                     && projectManager != null && projectManager.getCurrentProject() != null) {
                 String imageKey = getCurrentImageKey();
                 if (imageKey != null) {
                     var clientSel = projectManager.getCurrentProject().getClientSelection();
+                    if (clientSel == null) return;
                     var overlays = clientSel.getImageCheckboxes(imageKey);
                     if (overlays != null && !overlays.isEmpty()) {
                         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -223,24 +227,42 @@ public class ImageDisplayPanel extends JPanel {
                             // Fondo del checkbox
                             g2d.setColor(new Color(255, 255, 255, 230));
                             g2d.fillRect(sqX, sqY, size, size);
-                            g2d.setColor(Color.BLACK);
-                            g2d.drawRect(sqX, sqY, size, size);
 
-                            // Marca: ✓ si checked, X si no
+                            // Resaltar si es el checkbox seleccionado en la tabla cliente
+                            String selCbCode = model.getSelectedCheckboxCode();
+                            boolean isHighlighted = selCbCode != null
+                                    && selCbCode.equals(overlay.getCheckboxCode());
+                            if (isHighlighted) {
+                                g2d.setStroke(new java.awt.BasicStroke(3f));
+                                g2d.setColor(new Color(255, 153, 51)); // naranja
+                                g2d.drawRect(sqX - 2, sqY - 2, size + 4, size + 4);
+                                g2d.setStroke(new java.awt.BasicStroke(1f));
+                                g2d.setColor(Color.BLACK);
+                            } else {
+                                g2d.setColor(Color.BLACK);
+                                g2d.drawRect(sqX, sqY, size, size);
+                            }
+
+                            // Marca: ✓ SELECTED, ✗ DISCARDED, ○ UNDEFINED
                             g2d.setStroke(new java.awt.BasicStroke(Math.max(2f, size / 10f)));
                             int pad = size / 4;
-                            if (overlay.isChecked()) {
+                            SelectionState ovState = overlay.getState();
+                            if (ovState == SelectionState.SELECTED) {
                                 g2d.setColor(new Color(0, 140, 0));
                                 g2d.drawLine(sqX + pad, sqY + halfSize,
                                         sqX + halfSize, sqY + size - pad);
                                 g2d.drawLine(sqX + halfSize, sqY + size - pad,
                                         sqX + size - pad, sqY + pad);
-                            } else {
+                            } else if (ovState == SelectionState.DISCARDED) {
                                 g2d.setColor(new Color(160, 0, 0));
                                 g2d.drawLine(sqX + pad, sqY + pad,
                                         sqX + size - pad, sqY + size - pad);
                                 g2d.drawLine(sqX + size - pad, sqY + pad,
                                         sqX + pad, sqY + size - pad);
+                            } else {
+                                g2d.setColor(new Color(128, 128, 128));
+                                g2d.drawOval(sqX + pad / 2, sqY + pad / 2,
+                                        size - pad, size - pad);
                             }
 
                             // Código del checkbox encima
@@ -360,6 +382,14 @@ public class ImageDisplayPanel extends JPanel {
         }
         repaint();
     } // --- Fin del método setSolidBackgroundColor ---
+
+    public void setEditorOverlayInstance(boolean editorOverlayInstance) {
+        this.editorOverlayInstance = editorOverlayInstance;
+    }
+
+    public boolean isEditorOverlayInstance() {
+        return editorOverlayInstance;
+    }
 
     public void setProjectManager(IProjectManager projectManager) {
         this.projectManager = projectManager;

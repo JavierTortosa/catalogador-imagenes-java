@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Representa la estructura completa de un proyecto.
@@ -196,6 +197,60 @@ public class ProjectModel {
     public void setImageCodes(Map<String, String> imageCodes) {
         this.imageCodes = imageCodes;
     } // ---FIN de metodo setImageCodes---
+
+    /**
+     * Normaliza una ruta o clave de imagen, asegurando que use barras inclinadas hacia adelante.
+     * @param path La ruta o clave a normalizar.
+     * @return La ruta normalizada.
+     */
+    public static String normalizarClaveImagen(String path) {
+        if (path == null) return null;
+        return path.replace("\\", "/");
+    }
+
+    /**
+     * Obtiene el código de catálogo asociado a una imagen.
+     * @param imageKey La clave de la imagen (normalizada o no).
+     * @return El código de catálogo, o null si no existe.
+     */
+    public String getCodigoImagen(String imageKey) {
+        if (imageCodes == null || imageKey == null) {
+            return null;
+        }
+        return imageCodes.get(normalizarClaveImagen(imageKey));
+    }
+
+    /**
+     * Verifica si una clave corresponde a una ruta de imagen (no es una clave compuesta).
+     * @param key La clave a verificar.
+     * @return true si es una ruta de imagen, false si es una clave compuesta (ej. C001_cb01).
+     */
+    public boolean esClaveRutaImagen(String key) {
+        return key != null && !key.contains("_cb");
+    }
+
+    /**
+     * Resuelve la ruta canónica de una imagen a partir de su clave (ya sea la ruta o una clave compuesta).
+     * @param key La clave de la imagen.
+     * @return La ruta normalizada de la imagen, o null si no se pudo resolver.
+     */
+    public String resolverClaveImagenCanonica(String key) {
+        if (key == null) return null;
+        if (esClaveRutaImagen(key)) {
+            return normalizarClaveImagen(key);
+        }
+        // Es una clave compuesta (ej. C001_cb01)
+        int sep = key.lastIndexOf('_');
+        if (sep > 0) {
+            String imgCode = key.substring(0, sep);
+            for (Map.Entry<String, String> entry : imageCodes.entrySet()) {
+                if (imgCode.equals(entry.getValue())) {
+                    return normalizarClaveImagen(entry.getKey());
+                }
+            }
+        }
+        return null;
+    }
     
     
     @Override
@@ -244,6 +299,25 @@ public class ProjectModel {
             this.imageCheckboxes = new LinkedHashMap<>();
             this.iterationNumber = 1;
         } // ---FIN de metodo ClientSelection---
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ClientSelection that = (ClientSelection) o;
+            return iterationNumber == that.iterationNumber &&
+                    Objects.equals(images, that.images) &&
+                    Objects.equals(comments, that.comments) &&
+                    Objects.equals(commentOverlays, that.commentOverlays) &&
+                    Objects.equals(imageCheckboxes, that.imageCheckboxes) &&
+                    Objects.equals(clientNotes, that.clientNotes) &&
+                    Objects.equals(fechaRespuesta, that.fechaRespuesta);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(images, comments, commentOverlays, imageCheckboxes, clientNotes, iterationNumber, fechaRespuesta);
+        }
 
         public Map<String, SelectionState> getImages() {
             if (images == null) {
@@ -315,7 +389,19 @@ public class ProjectModel {
             if (imageCheckboxes == null) {
                 imageCheckboxes = new LinkedHashMap<>();
             }
-            return imageCheckboxes.computeIfAbsent(imageKey, k -> new java.util.ArrayList<>());
+            String canonical = ProjectModel.normalizarClaveImagen(imageKey);
+            if (canonical == null) {
+                return new java.util.ArrayList<>();
+            }
+            if (!imageCheckboxes.containsKey(canonical)) {
+                for (String existingKey : new java.util.ArrayList<>(imageCheckboxes.keySet())) {
+                    if (ProjectModel.normalizarClaveImagen(existingKey).equals(canonical)) {
+                        imageCheckboxes.put(canonical, imageCheckboxes.remove(existingKey));
+                        break;
+                    }
+                }
+            }
+            return imageCheckboxes.computeIfAbsent(canonical, k -> new java.util.ArrayList<>());
         } // ---FIN de metodo getImageCheckboxes---
 
         public Map<String, java.util.List<ImageCheckboxOverlay>> getImageCheckboxesMap() {
