@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.managers.interfaces.IProjectManager;
+import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
 import modelo.proyecto.ImageCheckboxOverlay;
@@ -35,15 +36,17 @@ public class ClientReviewPanel extends JPanel {
 
     private final VisorModel model;
     private final ProjectManager projectManager;
+    private final ComponentRegistry registry;
     private final ImageDisplayPanel imagePanel;
 
     private int draggingOverlayIndex = -1;
     private int dragOffsetX, dragOffsetY;
     private boolean overlayMouseListenersInitialized = false;
 
-    public ClientReviewPanel(ThemeManager themeManager, VisorModel model, ProjectManager projectManager) {
+    public ClientReviewPanel(ThemeManager themeManager, VisorModel model, ProjectManager projectManager, ComponentRegistry registry) {
         this.model = Objects.requireNonNull(model, "VisorModel no puede ser null");
         this.projectManager = Objects.requireNonNull(projectManager, "ProjectManager no puede ser null");
+        this.registry = registry;
 
         setLayout(new BorderLayout());
         setBackground(themeManager.getTemaActual().colorFondoSecundario());
@@ -115,6 +118,8 @@ public class ClientReviewPanel extends JPanel {
                                         .getCodigoImagen(ProjectModel.normalizarClaveImagen(imageKey));
                                 String compositeKey = imgCode + "_" + ov.getCheckboxCode();
                                 projectManager.getCurrentProject().getClientSelection().getImages().put(compositeKey, next);
+                                derivarEstadoImagen(imageKey);
+                                actualizarModeloTabla();
                                 imagePanel.repaint();
                             }
                         }
@@ -225,6 +230,8 @@ public class ClientReviewPanel extends JPanel {
                 overlays.add(ov);
                 String compositeKey = imgCode + "_" + cbCode;
                 projectManager.getCurrentProject().getClientSelection().getImages().put(compositeKey, ov.getState());
+                derivarEstadoImagen(getCurrentImageKey());
+                actualizarModeloTabla();
                 imagePanel.repaint();
             } catch (NoninvertibleTransformException ex) {
                 // ignore
@@ -243,6 +250,8 @@ public class ClientReviewPanel extends JPanel {
                         .getCodigoImagen(ProjectModel.normalizarClaveImagen(getCurrentImageKey()));
                 String compositeKey = imgCode + "_" + ov.getCheckboxCode();
                 projectManager.getCurrentProject().getClientSelection().getImages().remove(compositeKey);
+                derivarEstadoImagen(getCurrentImageKey());
+                actualizarModeloTabla();
                 imagePanel.repaint();
             });
             popup.add(removeItem);
@@ -282,5 +291,72 @@ public class ClientReviewPanel extends JPanel {
     public void refresh() {
         imagePanel.repaint();
     } // --- Fin del método refresh ---
+
+
+    /**
+     * Deriva el estado de la imagen a partir del estado de sus checkboxes internos.
+     * Al menos un SELECTED → imagen SELECTED.
+     * Ningún SELECTED, al menos un UNDEFINED → imagen UNDEFINED.
+     * Todos DISCARDED → imagen DISCARDED.
+     */
+    private void derivarEstadoImagen(String imageKey) {
+        if (projectManager.getCurrentProject() == null) return;
+        var clientSel = projectManager.getCurrentProject().getClientSelection();
+        if (clientSel == null) return;
+        String canonicalKey = ProjectModel.normalizarClaveImagen(imageKey);
+        var checkboxes = clientSel.getImageCheckboxes(canonicalKey);
+        if (checkboxes == null || checkboxes.isEmpty()) return;
+
+        String imgCode = projectManager.getCurrentProject()
+                .getCodigoImagen(canonicalKey);
+
+        boolean hasSelected = false;
+        boolean hasUndefined = false;
+        for (var cb : checkboxes) {
+            String compositeKey = imgCode + "_" + cb.getCheckboxCode();
+            clientSel.getImages().put(compositeKey, cb.getState());
+            switch (cb.getState()) {
+                case SELECTED  -> hasSelected = true;
+                case UNDEFINED -> hasUndefined = true;
+                default -> {}
+            }
+        }
+
+        SelectionState derived;
+        if (hasSelected) {
+            derived = SelectionState.SELECTED;
+        } else if (hasUndefined) {
+            derived = SelectionState.UNDEFINED;
+        } else {
+            derived = SelectionState.DISCARDED;
+        }
+        clientSel.getImages().put(canonicalKey, derived);
+    } // --- Fin del método derivarEstadoImagen ---
+
+
+    /**
+     * Refresca las tablas de selección/descartes del cliente.
+     */
+    private void actualizarModeloTabla() {
+        if (registry == null) return;
+        javax.swing.JTable t;
+        t = registry.get("table.cliente.proyecto.seleccion");
+        if (t != null && t.getModel() instanceof vista.models.ProyectoClienteTableModel pm1) {
+            pm1.refrescar();
+        }
+        t = registry.get("table.cliente.proyecto.descartes");
+        if (t != null && t.getModel() instanceof vista.models.ProyectoClienteTableModel pm2) {
+            pm2.refrescar();
+        }
+        t = registry.get("table.cliente.cliente.seleccion");
+        if (t != null && t.getModel() instanceof vista.models.ClienteTableModel cm1) {
+            cm1.refrescar();
+        }
+        t = registry.get("table.cliente.cliente.descartes");
+        if (t != null && t.getModel() instanceof vista.models.ClienteTableModel cm2) {
+            cm2.refrescar();
+        }
+    } // --- Fin del método actualizarModeloTabla ---
+
 
 } // --- FIN DE LA CLASE ClientReviewPanel ---

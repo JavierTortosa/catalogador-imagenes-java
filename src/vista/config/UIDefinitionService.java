@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.commands.AppActionCommands;
+import vista.config.IconScope;
 import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
 
@@ -799,7 +800,7 @@ public class UIDefinitionService {
                 "Importar respuesta del cliente (JSON)", "cliente"));
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB, "60202-User-Following.png",
                 "Exportar catálogo web para el cliente", "cliente"));
-        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML, "messages-bubble-text.png",
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML, "messages-bubble-text.png", IconScope.COMMON,
                 "Exportar HTML único para el cliente", "cliente", ButtonType.NORMAL));
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_COMPARTIR_CLIENTE, "60203-User-Share.png",
                 "Compartir con el cliente", "cliente"));

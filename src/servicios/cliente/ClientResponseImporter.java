@@ -15,6 +15,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import modelo.proyecto.ImageCheckboxOverlay;
 import modelo.proyecto.ProjectModel;
 import modelo.proyecto.ProjectModel.ClientSelection;
 import modelo.proyecto.SelectionState;
@@ -114,6 +115,44 @@ public class ClientResponseImporter {
             clientSelection.getImages().put(rutaKey, state);
             if (comment != null && !comment.trim().isEmpty()) {
                 clientSelection.getComments().put(rutaKey, comment.trim());
+            }
+
+            // Procesar estados de checkboxes individuales si la respuesta los incluye
+            if (resp.has("checkboxes")) {
+                JsonArray checkboxesArr = resp.getAsJsonArray("checkboxes");
+                var existingOverlays = clientSelection.getImageCheckboxes(rutaKey);
+                for (int ci = 0; ci < checkboxesArr.size(); ci++) {
+                    JsonObject cbResp = checkboxesArr.get(ci).getAsJsonObject();
+                    String cbCodigo = cbResp.has("codigo") ? cbResp.get("codigo").getAsString() : "";
+                    String cbEstado = cbResp.has("estado") ? cbResp.get("estado").getAsString() : "UNDEFINED";
+
+                    SelectionState cbState;
+                    try {
+                        cbState = SelectionState.valueOf(cbEstado);
+                    } catch (IllegalArgumentException e) {
+                        logger.warn("[ClientResponseImporter] Estado desconocido '{}' para checkbox '{}'. Se asigna UNDEFINED.", cbEstado, cbCodigo);
+                        cbState = SelectionState.UNDEFINED;
+                    }
+
+                    // Buscar overlay que coincida por codigo (o por indice si codigo vacio)
+                    ImageCheckboxOverlay target = null;
+                    if (!cbCodigo.isEmpty()) {
+                        for (var ov : existingOverlays) {
+                            if (cbCodigo.equals(ov.getCheckboxCode())) {
+                                target = ov;
+                                break;
+                            }
+                        }
+                    }
+                    if (target == null && ci < existingOverlays.size()) {
+                        target = existingOverlays.get(ci);
+                    }
+                    if (target != null) {
+                        target.setState(cbState);
+                    } else {
+                        logger.warn("[ClientResponseImporter] No se encontró checkbox '{}' para imagen '{}'.", cbCodigo, id);
+                    }
+                }
             }
 
             switch (state) {

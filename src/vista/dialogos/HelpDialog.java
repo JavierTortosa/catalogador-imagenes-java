@@ -89,6 +89,10 @@ public class HelpDialog extends JDialog {
         modoDatosFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Intellisense", "modo_datos/intellisense_modo_datos.html")));
         top.add(modoDatosFolder);
 
+        DefaultMutableTreeNode clienteFolder = new DefaultMutableTreeNode(new HelpPageInfo("Modo Cliente", "cliente.html"));
+        clienteFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Interfaz y Controles", "cliente.html")));
+        top.add(clienteFolder);
+
         DefaultMutableTreeNode carruselFolder = new DefaultMutableTreeNode(new HelpPageInfo("Modo Carrusel", "carrusel.html"));
         carruselFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Controles", "carrusel_controles.html")));
         top.add(carruselFolder);

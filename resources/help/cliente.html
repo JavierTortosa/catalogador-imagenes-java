@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Modo Cliente</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <h1><img src="ICON_PLACEHOLDER_60204-User-Edit-Pencil.png" class="header-icon">Modo Cliente</h1>
+
+    <p>
+        El <strong>Modo Cliente</strong> es el espacio de trabajo para gestionar la revisión y selección de imágenes
+        por parte de un cliente. Permite crear checkboxes sobre las imágenes, asignarles estados (Seleccionado,
+        Descartado, Sin Marcar), añadir comentarios, y exportar un catálogo HTML autónomo que el cliente puede
+        revisar y devolver con sus decisiones.
+    </p>
+
+    <h2>Flujo de Trabajo Típico</h2>
+    <ol>
+        <li><strong>Preparar el Proyecto:</strong> Desde el Modo Proyecto, marca las imágenes que quieres enviar al cliente.</li>
+        <li><strong>Entrar al Modo Cliente:</strong> Cambia al modo cliente desde el selector de modos.</li>
+        <li><strong>Configurar Checkboxes:</strong> Activa el panel de edición y añade checkboxes sobre cada imagen
+            definiendo código, precio y posición.</li>
+        <li><strong>Añadir Comentarios:</strong> Escribe comentarios generales para cada imagen si es necesario.</li>
+        <li><strong>Exportar:</strong> Genera un HTML único (con miniaturas base64 incrustadas) o un catálogo web
+            para enviar al cliente.</li>
+        <li><strong>Importar Respuesta:</strong> Cuando el cliente devuelva el JSON con sus decisiones, impórtalo
+            para actualizar el proyecto.</li>
+        <li><strong>Sincronizar:</strong> Actualiza el proyecto con los cambios realizados por el cliente.</li>
+    </ol>
+
+    <div class="tip-box">
+        <strong>Nota:</strong> En el Modo Cliente, por defecto no se puede modificar la selección. Es el cliente
+        quien decide. Si necesitas editar bajo tu responsabilidad, activa el botón <strong>"Editar selección"</strong>
+        (se te pedirá confirmación).
+    </div>
+
+    <h2>Interfaz del Modo Cliente</h2>
+
+    <h3>1. Barras de Herramientas (Superior)</h3>
+    <p>El modo cliente añade botones específicos a la barra de herramientas principal:</p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_7102-nuevo_proyecto_48x48.png"></td>
+            <td><strong>Nuevo Proyecto (Ctrl+N):</strong> Cierra el proyecto actual y crea uno nuevo vacío.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_7103-abrir_proyecto_48x48.png"></td>
+            <td><strong>Abrir Proyecto (Ctrl+O):</strong> Carga un archivo de proyecto <code>.prj</code> existente.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_7104-guardar_proyecto_48x48.png"></td>
+            <td><strong>Guardar Proyecto (Ctrl+S):</strong> Guarda los cambios en el archivo <code>.prj</code> actual.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_7105-guardar_proyecto_como_48x48.png"></td>
+            <td><strong>Guardar Proyecto Como (Ctrl+Shift+S):</strong> Guarda en un nuevo archivo <code>.prj</code>.</td>
+        </tr>
+        <tr><td colspan="2"><hr class="separator"></td></tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_60201-User-Followers.png"></td>
+            <td><strong>Importar respuesta del cliente (JSON):</strong> Carga el archivo JSON devuelto por el cliente
+                con sus decisiones (estados de checkboxes y comentarios).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_60202-User-Following.png"></td>
+            <td><strong>Exportar catálogo web para el cliente:</strong> Genera un catálogo web con miniaturas
+                y checkboxes para que el cliente los revise online.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_messages-bubble-text.png"></td>
+            <td><strong>Exportar HTML único para el cliente:</strong> Genera un archivo HTML autónomo con
+                miniaturas base64, CSS y JS inline. El cliente puede abrirlo en cualquier navegador, revisar
+                las imágenes, cambiar estados de checkboxes y exportar un JSON con sus decisiones.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_60203-User-Share.png"></td>
+            <td><strong>Compartir con el cliente:</strong> Prepara y comparte el catálogo con el cliente.</td>
+        </tr>
+        <tr><td colspan="2"><hr class="separator"></td></tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_60204-User-Edit-Pencil.png"></td>
+            <td><strong>Editar selección (Toggle con confirmación):</strong> Activa o desactiva la edición manual
+                de los estados en los 4 grids de selección. Al activarlo, se muestra un diálogo de confirmación.
+                Cuando está activo, puedes hacer clic en el estado de cualquier imagen para cambiar su tristate
+                (Seleccionado → Descartado → Sin Marcar) y esto cascada a todos sus checkboxes internos.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_60101-Rotate-X-Axis.png"></td>
+            <td><strong>Mover selección a descartes:</strong> Mueve las imágenes seleccionadas a la lista de descartes.</td>
+        </tr>
+        <tr><td colspan="2"><hr class="separator"></td></tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_60102-Assistant-Square.png"></td>
+            <td><strong>Panel edición checkboxes y comentarios (Toggle):</strong> Muestra u oculta el panel
+                de edición de checkboxes. En este panel puedes añadir, posicionar y configurar checkboxes
+                sobre la imagen actual, así como añadir comentarios generales.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_60206-Word-Wrap-Around-Bounding-Box.png"></td>
+            <td><strong>Mostrar checkboxes en imágenes (Toggle):</strong> Activa o desactiva la visualización
+                de los overlays de checkboxes sobre las imágenes en el visor.</td>
+        </tr>
+        <tr><td colspan="2"><hr class="separator"></td></tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_60303-Check-Square-2.png"></td>
+            <td><strong>Actualizar proyecto con cambios del cliente:</strong> Aplica al proyecto los cambios
+                realizados durante la revisión (estados de checkboxes, comentarios, etc.).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_60205-User-Check-Validate.png"></td>
+            <td><strong>Cerrar y sincronizar con el cliente:</strong> Finaliza la revisión y sincroniza
+                los cambios con el proyecto.</td>
+        </tr>
+    </table>
+
+    <h3>2. Editor de Checkboxes</h3>
+    <p>
+        Al activar el <strong>Panel de edición de checkboxes</strong>, aparece un visor con la imagen actual
+        y una barra de herramientas específica:
+    </p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_60301-Cursor-Area-Selection-1.png"></td>
+            <td><strong>Añadir checkbox:</strong> Activa el modo de inserción. Haz clic en la imagen para
+                colocar un nuevo checkbox en esa posición. Se abrirá un diálogo para configurar su código,
+                precio y estado inicial.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_60302-Text-Select-Start.png"></td>
+            <td><strong>Añadir label:</strong> Activa el modo de inserción de comentarios. Haz clic en la
+                imagen para colocar un comentario superpuesto.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_60303-Check-Square-2.png"></td>
+            <td><strong>Finalizar edición de checkboxes:</strong> Desactiva el modo de edición y guarda
+                los cambios realizados.</td>
+        </tr>
+    </table>
+
+    <h3>3. Los 4 Grids de Selección</h3>
+    <p>El modo cliente muestra 4 grids que organizan las imágenes según su origen y estado:</p>
+    <ul>
+        <li><strong>Selecciones de Proyecto:</strong> Imágenes que el proyecto tiene marcadas como seleccionadas.</li>
+        <li><strong>Descartes de Proyecto:</strong> Imágenes que el proyecto tiene marcadas como descartadas.</li>
+        <li><strong>Selecciones de Cliente:</strong> Imágenes que el cliente ha seleccionado (según el JSON importado).</li>
+        <li><strong>Descartes de Cliente:</strong> Imágenes que el cliente ha descartado.</li>
+    </ul>
+    <p>
+        Cada imagen en estos grids muestra un tristate (✓ Seleccionado / ✗ Descartado / ○ Sin Marcar)
+        que refleja el estado de la imagen. Con el botón <strong>"Editar selección"</strong> activo,
+        puedes hacer clic en el tristate para cambiar el estado, y este se propagará a todos los checkboxes
+        internos de esa imagen.
+    </p>
+
+    <h3>4. Checkboxes (Tristate)</h3>
+    <p>
+        Los checkboxes en modo cliente tienen tres estados posibles que se ciclan al hacer clic:
+    </p>
+    <ul>
+        <li><strong>✓ SELECTED (Seleccionado):</strong> El cliente quiere esta imagen/checkbox.</li>
+        <li><strong>✗ DISCARDED (Descartado):</strong> El cliente descarta esta imagen/checkbox.</li>
+        <li><strong>○ UNDEFINED (Sin Marcar):</strong> Estado pendiente, el cliente aún no ha decidido.</li>
+    </ul>
+    <p>
+        Cada checkbox puede tener: código identificador, precio (PVP), comentario, y una posición
+        (x, y) dentro de la imagen. El estado de la imagen se deriva del estado de sus checkboxes internos:
+        si al menos uno está SELECTED, la imagen es SELECTED; si todos están DISCARDED, la imagen es DISCARDED;
+        en cualquier otro caso, UNDEFINED.
+    </p>
+
+    <h3>5. Exportación HTML Único</h3>
+    <p>
+        La exportación a HTML único genera un archivo autónomo que contiene:
+    </p>
+    <ul>
+        <li>Todas las miniaturas de las imágenes incrustadas en base64.</li>
+        <li>CSS para la presentación (modo oscuro, galería responsiva).</li>
+        <li>JavaScript para la interactividad: tristates clickeables, modal con zoom/pan/pinch,
+            overlays de checkboxes posicionados sobre la imagen, burbujas de comentarios.</li>
+        <li>Botón para copiar al portapapeles o descargar un JSON con las decisiones del cliente.</li>
+    </ul>
+    <p>
+        El cliente abre el HTML en su navegador, revisa las imágenes, cambia los estados y devuelve
+        el JSON generado. Tú importas ese JSON con el botón <strong>"Importar respuesta del cliente"</strong>.
+    </p>
+
+    <div class="info-box">
+        <h3>Calidad adaptativa de miniaturas</h3>
+        <p>
+            Para mantener el HTML en un tamaño razonable, la calidad de las miniaturas se adapta:
+            ≤20 imágenes → 800px de ancho / 85% calidad; ≤50 → 600px / 75%; &gt;50 → 400px / 60%.
+        </p>
+    </div>
+
+    <hr>
+    <p>
+        Para la integración con el Modo Proyecto, consulta la sección
+        <a href="proyecto.html">Modo Proyecto</a>.
+    </p>
+
+</body>
+</html>

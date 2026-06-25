@@ -773,6 +773,19 @@ public class ClientController implements IModoController {
         }
 
         Path finalOutput = outputFile;
+        var progressDialog = new javax.swing.JDialog(
+                registry != null ? (java.awt.Window) registry.get("frame.principal") : null,
+                "Exportando catálogo HTML...", java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+        var progressBar = new javax.swing.JProgressBar(0, 100);
+        progressBar.setStringPainted(true);
+        progressBar.setString("Generando miniaturas...");
+        progressBar.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        progressDialog.add(progressBar);
+        progressDialog.setSize(350, 70);
+        progressDialog.setLocationRelativeTo(
+                registry != null ? (java.awt.Window) registry.get("frame.principal") : null);
+        progressDialog.setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
+
         javax.swing.SwingWorker<Void, Void> worker = new javax.swing.SwingWorker<>() {
             @Override
             protected Void doInBackground() throws Exception {
@@ -780,12 +793,13 @@ public class ClientController implements IModoController {
                     webCatalogExporter = new WebCatalogExporter();
                 }
                 webCatalogExporter.exportarHtmlCliente(project, finalOutput,
-                        project.getSharedIteration());
+                        project.getSharedIteration(), progress -> setProgress(progress));
                 return null;
             }
 
             @Override
             protected void done() {
+                progressDialog.dispose();
                 try {
                     get();
                     logger.info("[ClientController] HTML cliente exportado: {}", finalOutput);
@@ -803,7 +817,19 @@ public class ClientController implements IModoController {
                 }
             }
         };
+        worker.addPropertyChangeListener(evt -> {
+            if ("progress".equals(evt.getPropertyName())) {
+                int progress = (int) evt.getNewValue();
+                progressBar.setValue(progress);
+                if (progress < 100) {
+                    progressBar.setString("Generando miniaturas... " + progress + "%");
+                } else {
+                    progressBar.setString("Escribiendo archivo HTML...");
+                }
+            }
+        });
         worker.execute();
+        progressDialog.setVisible(true);
     } // --- Fin de metodo exportarHtmlCliente ---
 
 

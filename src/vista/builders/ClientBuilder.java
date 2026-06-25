@@ -115,7 +115,7 @@ public class ClientBuilder {
         registry.register("container.displaymodes.cliente.wrapper", displayWrapper);
         displayWrapper.add(displayPlaceholder, "DISPLAY_NORMAL");
 
-        ClientReviewPanel reviewPanel = new ClientReviewPanel(themeManager, model, projectManager);
+        ClientReviewPanel reviewPanel = new ClientReviewPanel(themeManager, model, projectManager, registry);
         registry.register("panel.cliente.review", reviewPanel);
         displayWrapper.add(reviewPanel, "DISPLAY_REVIEW");
 

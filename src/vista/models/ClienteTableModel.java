@@ -217,9 +217,22 @@ public class ClienteTableModel extends AbstractTableModel {
     @Override
     public void setValueAt(Object value, int row, int col) {
         String key = imageKeys.get(row);
-        if (col == COL_ESTADO && value instanceof SelectionState) {
-            project.getClientSelection().getImages().put(key, (SelectionState) value);
-            fireTableCellUpdated(row, col);
+        if (col == COL_ESTADO && value instanceof SelectionState newState) {
+            project.getClientSelection().getImages().put(key, newState);
+            // Si es imagen padre con checkboxes, cascada el estado a todos los hijos
+            if (!isChildRow(row)) {
+                String rutaCanon = project.resolverClaveImagenCanonica(key);
+                var checkboxes = project.getClientSelection().getImageCheckboxes(rutaCanon);
+                if (checkboxes != null && !checkboxes.isEmpty()) {
+                    String imgCode = project.getCodigoImagen(rutaCanon);
+                    for (var cb : checkboxes) {
+                        cb.setState(newState);
+                        String compKey = imgCode + "_" + cb.getCheckboxCode();
+                        project.getClientSelection().getImages().put(compKey, newState);
+                    }
+                }
+            }
+            fireTableDataChanged();
         } else if (col == COL_COMENTARIO && value instanceof String) {
             project.getClientSelection().getComments().put(key, (String) value);
             fireTableCellUpdated(row, col);
