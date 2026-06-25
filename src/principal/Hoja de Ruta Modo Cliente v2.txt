@@ -57,6 +57,35 @@ la parte de proyecto deberia ser mas estrecha que la parte de cliente (ya que te
 
 ----------------------------------------------
 
+comportamientos de los checkbox
+
+de una parte tenemos el checkbox (a partir de ahora el checkbox lo llamare cb para abreviar) de la imagen que es la que luego se le asociara el archivo comprimido que necesitamos
+en el grid, se tiene que mostrar el estado del cb que ha puesto el cliente 
+
+con las imagenes que tienen cb's internos, la cosa cambia un poco
+si marcamos el cb de imagen es una cosa y si marcamos el cb interno es otra
+
+marcando el cb de imagen aplica ese estado a todos los cb's internos
+
+pero si marcamos los cb's internos se revisa el conjunto:
+si un cb interno lo marcamos con v en el grid aparece con v y el cb de la imagen aparece con v. da igual lo que tengan los otros cb's internos
+si un cb interno lo marcamos con x o o revisamos todos los otros cb's internos:
+  si todos los cb's internos tienen o la imagen tiene o
+  si algun cb interno tiene x y alguno o la imagen tiene o
+  si todos los cb's internos tienen x la imagen tiene x
+
+dicho de otra manera, si necesitamos alguna figura de dentro de una imagen (algun cb interno tiene v)  la imagen la necesitamos por eso tiene v
+si no necesitamos ninguna figura de dentro de la imagen (cb internos tienen x) no necesitamos la imagen por eso tiene x
+si alguna figura tiene x o o aun no sabemos si la vamos a necesitar o no... por eso la imagen tiene o
+
+esto se tiene que reflejar en el index y en el grid de la parte de seleccion de cliente. logicamente si la imagne tiene x va a descartes, no a seleccion.... 
+
+----------------------------------------------
+
+
+
+---------------------------------------------- 
+
 
 el proceso seria algo asi....
 en el visor marco las imagenes que creo que le pueden interesar al cliente.

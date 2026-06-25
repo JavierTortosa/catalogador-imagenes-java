@@ -126,8 +126,9 @@ log.txt
 config.cfg
 
 # Archivos de datos de proyecto generados por la aplicación.
-# Ignora todos los archivos que terminen en .prj en cualquier parte del proyecto.
+# Ignora todos los archivos que terminen en .prj y .prjcl en cualquier parte del proyecto.
 *.prj
+*.prjcl
 
 # End of https://www.toptal.com/developers/gitignore/api/eclipse,java,windows
 /target/
