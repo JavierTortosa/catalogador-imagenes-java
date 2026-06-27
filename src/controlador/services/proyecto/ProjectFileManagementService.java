@@ -11,6 +11,7 @@ import controlador.managers.ExportQueueManager;
 import controlador.managers.interfaces.IProjectManager;
 import modelo.proyecto.ExportItem;
 import modelo.proyecto.ExportStatus;
+import modelo.proyecto.ProjectImage;
 import modelo.proyecto.ProjectModel;
 
 public class ProjectFileManagementService
@@ -74,23 +75,18 @@ public class ProjectFileManagementService
     public void migrarClaveEnModelo(ProjectModel projectModel, Path oldPath, Path newPath)
     {
         if (projectModel == null) return;
-        String oldKey = oldPath.toString();
-        String newKey = newPath.toString();
+        String oldNorm = ProjectModel.normalizarClaveImagen(oldPath.toString());
+        String newNorm = ProjectModel.normalizarClaveImagen(newPath.toString());
 
-        if (projectModel.getSelectedImages().containsKey(oldKey))
+        ProjectImage pi = projectModel.getMasterImages().remove(oldNorm);
+        if (pi != null)
         {
-            String tag = projectModel.getSelectedImages().remove(oldKey);
-            projectModel.getSelectedImages().put(newKey, tag);
+            pi.setRutaImagen(newNorm);
+            projectModel.getMasterImages().put(newNorm, pi);
         }
 
-        int discIdx = projectModel.getDiscardedImages().indexOf(oldKey);
-        if (discIdx != -1)
-        {
-            projectModel.getDiscardedImages().set(discIdx, newKey);
-        }
-
-        String oldClaveExport = oldKey.replace("\\", "/");
-        String newClaveExport = newKey.replace("\\", "/");
+        String oldClaveExport = oldNorm;
+        String newClaveExport = newNorm;
         if (projectModel.getExportConfigs().containsKey(oldClaveExport))
         {
             modelo.proyecto.ExportConfig cfg = projectModel.getExportConfigs().remove(oldClaveExport);

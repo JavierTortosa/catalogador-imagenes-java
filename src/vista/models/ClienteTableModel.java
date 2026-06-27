@@ -2,16 +2,23 @@ package vista.models;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.table.AbstractTableModel;
 
+import modelo.proyecto.ImageCheckboxOverlay;
+import modelo.proyecto.ProjectImage;
 import modelo.proyecto.ProjectModel;
 import modelo.proyecto.SelectionState;
 
 /**
- * TableModel para las tablas de selección/descartes del cliente.
- * Muestra Estado, Código img, Código cb, Nombre y Comentario.
+ * TableModel para las tablas de selecci&oacute;n/descartes del cliente.
+ * Fuente: project.masterImages.values().
+ * Filtro selecci&oacute;n cliente:
+ *   (pi.estadoCliente == SELECTED || pi.estadoCliente == UNDEFINED) && pi.enSeleccionProyecto == true
+ * Filtro descartes cliente:
+ *   pi.estadoCliente == DISCARDED && pi.enSeleccionProyecto == true
+ * Las filas hijas se resuelven desde pi.checkboxes.
+ * Columnas: Estado, C&oacute;d IMG, C&oacute;d CB, Comentario, Precio.
  */
 public class ClienteTableModel extends AbstractTableModel {
 
@@ -20,74 +27,101 @@ public class ClienteTableModel extends AbstractTableModel {
     public static final int COL_ESTADO = 0;
     public static final int COL_CODIGO_IMG = 1;
     public static final int COL_CODIGO_CB = 2;
-    public static final int COL_NOMBRE = 3;
-    public static final int COL_COMENTARIO = 4;
+    public static final int COL_COMENTARIO = 3;
+    public static final int COL_PRECIO = 4;
 
-    private static final String[] COLUMNS = {"Estado", "C\u00f3d IMG", "C\u00f3d CB", "Nombre", "Comentario"};
+    private static final String[] COLUMNS = {"Estado", "C\u00f3d IMG", "C\u00f3d CB", "Comentario", "Precio"};
 
-    private final List<String> imageKeys;
-    private final List<Boolean> childRows;
+    private final List<ProjectImage> parentImages;
+    private final List<Integer> checkboxIndices; // -1 para filas padre, >=0 para hijas
     private final ProjectModel project;
     private final boolean mostrarSeleccion;
+
 
     public ClienteTableModel(ProjectModel project, boolean mostrarSeleccion) {
         this.project = project;
         this.mostrarSeleccion = mostrarSeleccion;
-        this.imageKeys = new ArrayList<>();
-        this.childRows = new ArrayList<>();
+        this.parentImages = new ArrayList<>();
+        this.checkboxIndices = new ArrayList<>();
         refrescar();
     } // --- Fin de metodo ClienteTableModel (constructor) ---
 
 
     public void refrescar() {
-        imageKeys.clear();
-        childRows.clear();
-        if (!project.hasClientSelection()) return;
-        Map<String, SelectionState> clientImages = project.getClientSelection().getImages();
-        for (Map.Entry<String, SelectionState> entry : clientImages.entrySet()) {
-            String key = entry.getKey();
-            SelectionState state = entry.getValue();
-
-            // Saltar claves compuestas (C001_cb01) - se añaden como hijas de su imagen padre
-            if (!project.esClaveRutaImagen(key)) {
-                continue;
-            }
+        parentImages.clear();
+        checkboxIndices.clear();
+        if (project.getMasterImages() == null) {
+            fireTableDataChanged();
+            return;
+        }
+        for (ProjectImage pi : project.getMasterImages().values()) {
+            if (!pi.isEnSeleccionProyecto()) continue;
 
             boolean estadoOk = mostrarSeleccion
-                    ? (state == SelectionState.SELECTED || state == SelectionState.UNDEFINED)
-                    : state == SelectionState.DISCARDED;
+                    ? (pi.getEstadoCliente() == SelectionState.SELECTED
+                    || pi.getEstadoCliente() == SelectionState.UNDEFINED)
+                    : pi.getEstadoCliente() == SelectionState.DISCARDED;
             if (!estadoOk) continue;
 
-            String rutaCanon = project.resolverClaveImagenCanonica(key);
-            var checkboxes = project.getClientSelection().getImageCheckboxes(rutaCanon);
-            if (checkboxes != null && !checkboxes.isEmpty()) {
-                // Añadir imagen padre
-                imageKeys.add(key);
-                childRows.add(false);
-                // Añadir todos los checkbox como hijos (siempre con su imagen)
-                String imgCode = project.getCodigoImagen(rutaCanon);
-                for (var cb : checkboxes) {
-                    String compositeKey = imgCode + "_" + cb.getCheckboxCode();
-                    imageKeys.add(compositeKey);
-                    childRows.add(true);
+            // Fila padre
+            parentImages.add(pi);
+            checkboxIndices.add(-1);
+
+            // Filas hijas: cada checkbox interno
+            List<ImageCheckboxOverlay> cbs = pi.getCheckboxes();
+            if (cbs != null) {
+                for (int i = 0; i < cbs.size(); i++) {
+                    parentImages.add(pi);
+                    checkboxIndices.add(i);
                 }
-            } else {
-                imageKeys.add(key);
-                childRows.add(false);
             }
         }
         fireTableDataChanged();
     } // --- Fin de metodo refrescar ---
 
 
+    /**
+     * @return la ruta de la imagen a la que pertenece la fila, o null si el &iacute;ndice es inv&aacute;lido.
+     */
+    public String getImageKey(int row) {
+        if (row < 0 || row >= parentImages.size()) return null;
+        return parentImages.get(row).getRutaImagen();
+    } // --- Fin de metodo getImageKey ---
+
+
+    /**
+     * @return true si la fila corresponde a un checkbox interno (hija).
+     */
     public boolean isChildRow(int row) {
-        return row >= 0 && row < childRows.size() && childRows.get(row);
-    }
+        return row >= 0 && row < checkboxIndices.size() && checkboxIndices.get(row) >= 0;
+    } // --- Fin de metodo isChildRow ---
+
+
+    /**
+     * @return el c&oacute;digo del checkbox interno en la fila hija, o null si es fila padre.
+     */
+    public String getCheckboxCode(int row) {
+        if (!isChildRow(row)) return null;
+        ImageCheckboxOverlay cb = getCheckbox(row);
+        return cb != null ? cb.getCheckboxCode() : null;
+    } // --- Fin de metodo getCheckboxCode ---
+
+
+    private ImageCheckboxOverlay getCheckbox(int row) {
+        int idx = checkboxIndices.get(row);
+        if (idx < 0) return null;
+        ProjectImage pi = parentImages.get(row);
+        List<ImageCheckboxOverlay> cbs = pi.getCheckboxes();
+        if (cbs != null && idx < cbs.size()) {
+            return cbs.get(idx);
+        }
+        return null;
+    } // --- Fin de metodo getCheckbox ---
 
 
     @Override
     public int getRowCount() {
-        return imageKeys.size();
+        return parentImages.size();
     } // --- Fin de metodo getRowCount ---
 
 
@@ -103,169 +137,125 @@ public class ClienteTableModel extends AbstractTableModel {
     } // --- Fin de metodo getColumnName ---
 
 
-    public String getImageKey(int row) {
-        return imageKeys.get(row);
-    } // --- Fin de metodo getImageKey ---
-
-
     @Override
     public Object getValueAt(int row, int col) {
-        String key = imageKeys.get(row);
-        SelectionState state = project.hasClientSelection()
-                ? project.getClientSelection().getImages().getOrDefault(key, SelectionState.UNDEFINED)
-                : SelectionState.UNDEFINED;
-
-        FilaCliente fila = resolverFila(key);
-
+        ProjectImage pi = parentImages.get(row);
         switch (col) {
-            case COL_ESTADO: return state;
-            case COL_CODIGO_IMG: return fila.imgCode;
-            case COL_CODIGO_CB: return fila.checkboxCode;
-            case COL_NOMBRE: return fila.nombre;
-            case COL_COMENTARIO: return fila.comentario;
+            case COL_ESTADO: {
+                if (isChildRow(row)) {
+                    ImageCheckboxOverlay cb = getCheckbox(row);
+                    return cb != null ? cb.getState() : SelectionState.UNDEFINED;
+                }
+                return pi.getEstadoCliente() != null ? pi.getEstadoCliente() : SelectionState.UNDEFINED;
+            }
+            case COL_CODIGO_IMG: {
+                String code = pi.getCodigoCatalogo();
+                return code != null ? code : "";
+            }
+            case COL_CODIGO_CB: {
+                if (isChildRow(row)) {
+                    ImageCheckboxOverlay cb = getCheckbox(row);
+                    return cb != null ? cb.getCheckboxCode() : "";
+                }
+                return "";
+            }
+            case COL_COMENTARIO: {
+                if (isChildRow(row)) {
+                    ImageCheckboxOverlay cb = getCheckbox(row);
+                    String cmt = cb != null ? cb.getComment() : null;
+                    return cmt != null ? cmt : "";
+                }
+                String cmt = pi.getComment();
+                return cmt != null ? cmt : "";
+            }
+            case COL_PRECIO: {
+                if (isChildRow(row)) {
+                    ImageCheckboxOverlay cb = getCheckbox(row);
+                    return cb != null ? cb.getPrice() : 0.0;
+                }
+                return 0.0;
+            }
             default: return "";
         }
     } // --- Fin de metodo getValueAt ---
 
-    private FilaCliente resolverFila(String key) {
-        if (project.esClaveRutaImagen(key)) {
-            String ruta = project.resolverClaveImagenCanonica(key);
-            return new FilaCliente(
-                    project.getCodigoImagen(ruta),
-                    "",
-                    nombreArchivo(ruta),
-                    project.hasClientSelection()
-                            ? project.getClientSelection().getComments().getOrDefault(key, "")
-                            : "");
-        }
-
-        int sep = key.lastIndexOf('_');
-        if (sep > 0) {
-            String imgCode = key.substring(0, sep);
-            String cbCode = key.substring(sep + 1);
-            if (!imgCode.isEmpty() && cbCode.startsWith("cb")) {
-                String imagePath = buscarRutaPorCodigoImagen(imgCode);
-                return new FilaCliente(imgCode, cbCode, nombreArchivo(imagePath),
-                        comentarioDeCheckbox(imagePath, cbCode));
-            }
-        }
-
-        // Claves antiguas mal formadas (_cb01) o solo cb01: buscar en overlays
-        String cbCode = key.startsWith("_") ? key.substring(1) : key;
-        if (cbCode.startsWith("cb") && project.hasClientSelection()) {
-            for (Map.Entry<String, java.util.List<modelo.proyecto.ImageCheckboxOverlay>> entry
-                    : project.getClientSelection().getImageCheckboxesMap().entrySet()) {
-                for (var cb : entry.getValue()) {
-                    if (cbCode.equals(cb.getCheckboxCode())) {
-                        String ruta = entry.getKey();
-                        return new FilaCliente(project.getCodigoImagen(ruta), cbCode,
-                                nombreArchivo(ruta), cb.getComment() != null ? cb.getComment() : "");
-                    }
-                }
-            }
-        }
-
-        return new FilaCliente("", "", key, "");
-    } // --- Fin de metodo resolverFila ---
-
-    private String nombreArchivo(String ruta) {
-        if (ruta == null || ruta.isEmpty()) {
-            return "";
-        }
-        java.nio.file.Path fn = java.nio.file.Paths.get(ruta).getFileName();
-        return fn != null ? fn.toString() : "";
-    } // --- Fin de metodo nombreArchivo ---
-
-    private String buscarRutaPorCodigoImagen(String imgCode) {
-        if (imgCode == null || imgCode.isEmpty()) {
-            return null;
-        }
-        for (Map.Entry<String, String> entry : project.getImageCodes().entrySet()) {
-            if (imgCode.equals(entry.getValue())) {
-                return entry.getKey();
-            }
-        }
-        return null;
-    } // --- Fin de metodo buscarRutaPorCodigoImagen ---
-
-    private String comentarioDeCheckbox(String imagePath, String checkboxCode) {
-        if (!project.hasClientSelection() || imagePath == null || checkboxCode == null) {
-            return "";
-        }
-        var checkboxes = project.getClientSelection().getImageCheckboxes(imagePath);
-        if (checkboxes == null) {
-            return "";
-        }
-        for (var cb : checkboxes) {
-            if (checkboxCode.equals(cb.getCheckboxCode())) {
-                return cb.getComment() != null ? cb.getComment() : "";
-            }
-        }
-        return "";
-    } // --- Fin de metodo comentarioDeCheckbox ---
-
 
     @Override
     public boolean isCellEditable(int row, int col) {
-        if (col == COL_ESTADO && isChildRow(row)) {
-            return false;
-        }
-        return col == COL_ESTADO || col == COL_COMENTARIO;
+        if (col == COL_ESTADO) return true;
+        if (col == COL_COMENTARIO) return true;
+        return false;
     } // --- Fin de metodo isCellEditable ---
 
 
     @Override
     public void setValueAt(Object value, int row, int col) {
-        String key = imageKeys.get(row);
+        ProjectImage pi = parentImages.get(row);
         if (col == COL_ESTADO && value instanceof SelectionState newState) {
-            project.getClientSelection().getImages().put(key, newState);
-            // Si es imagen padre con checkboxes, cascada el estado a todos los hijos
-            if (!isChildRow(row)) {
-                String rutaCanon = project.resolverClaveImagenCanonica(key);
-                var checkboxes = project.getClientSelection().getImageCheckboxes(rutaCanon);
-                if (checkboxes != null && !checkboxes.isEmpty()) {
-                    String imgCode = project.getCodigoImagen(rutaCanon);
-                    for (var cb : checkboxes) {
+            if (isChildRow(row)) {
+                ImageCheckboxOverlay cb = getCheckbox(row);
+                if (cb != null) cb.setState(newState);
+            } else {
+                pi.setEstadoCliente(newState);
+                // Cascada a hijos: el estado del padre se propaga a todos los checkboxes
+                List<ImageCheckboxOverlay> cbs = pi.getCheckboxes();
+                if (cbs != null) {
+                    for (ImageCheckboxOverlay cb : cbs) {
                         cb.setState(newState);
-                        String compKey = imgCode + "_" + cb.getCheckboxCode();
-                        project.getClientSelection().getImages().put(compKey, newState);
                     }
                 }
             }
             fireTableDataChanged();
-        } else if (col == COL_COMENTARIO && value instanceof String) {
-            project.getClientSelection().getComments().put(key, (String) value);
-            fireTableCellUpdated(row, col);
+        } else if (col == COL_COMENTARIO && value instanceof String str) {
+            setComentario(row, str);
         }
     } // --- Fin de metodo setValueAt ---
 
 
+    /**
+     * @return el ProjectImage al que pertenece la fila, o null si el &iacute;ndice es inv&aacute;lido.
+     */
+    public ProjectImage getProjectImage(int row) {
+        if (row < 0 || row >= parentImages.size()) return null;
+        return parentImages.get(row);
+    } // --- Fin de metodo getProjectImage ---
+
+
+    /**
+     * Establece el comentario de la fila (padre o hija).
+     */
+    public void setComentario(int row, String comment) {
+        if (row < 0 || row >= parentImages.size()) return;
+        if (comment == null) comment = "";
+        if (isChildRow(row)) {
+            ImageCheckboxOverlay cb = getCheckbox(row);
+            if (cb != null) cb.setComment(comment);
+        } else {
+            parentImages.get(row).setComment(comment);
+        }
+        fireTableCellUpdated(row, COL_COMENTARIO);
+    } // --- Fin de metodo setComentario ---
+
+
     public SelectionState getEstado(int row) {
-        String key = imageKeys.get(row);
-        return project.hasClientSelection()
-                ? project.getClientSelection().getImages().getOrDefault(key, SelectionState.UNDEFINED)
-                : SelectionState.UNDEFINED;
+        if (row < 0 || row >= parentImages.size()) return SelectionState.UNDEFINED;
+        if (isChildRow(row)) {
+            ImageCheckboxOverlay cb = getCheckbox(row);
+            return cb != null ? cb.getState() : SelectionState.UNDEFINED;
+        }
+        return parentImages.get(row).getEstadoCliente();
     } // --- Fin de metodo getEstado ---
 
 
     public void setEstado(int row, SelectionState state) {
-        String key = imageKeys.get(row);
-        project.getClientSelection().getImages().put(key, state);
-        fireTableCellUpdated(row, COL_ESTADO);
-    } // --- Fin de metodo setEstado ---
-
-    private static final class FilaCliente {
-        final String imgCode;
-        final String checkboxCode;
-        final String nombre;
-        final String comentario;
-
-        FilaCliente(String imgCode, String checkboxCode, String nombre, String comentario) {
-            this.imgCode = imgCode != null ? imgCode : "";
-            this.checkboxCode = checkboxCode != null ? checkboxCode : "";
-            this.nombre = nombre != null ? nombre : "";
-            this.comentario = comentario != null ? comentario : "";
+        if (row < 0 || row >= parentImages.size()) return;
+        if (isChildRow(row)) {
+            ImageCheckboxOverlay cb = getCheckbox(row);
+            if (cb != null) cb.setState(state);
+        } else {
+            parentImages.get(row).setEstadoCliente(state);
         }
-    } // --- Fin de clase FilaCliente ---
+        fireTableDataChanged();
+    } // --- Fin de metodo setEstado ---
 
 } // --- Fin de clase ClienteTableModel ---

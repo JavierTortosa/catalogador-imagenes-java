@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 import javax.swing.DefaultListModel;
 
@@ -86,6 +87,8 @@ public class VisorModel {
 
 
     private final List<MasterListChangeListener> masterListListeners = new ArrayList<>();
+
+    private Consumer<String> selectedImageKeyListener;
 
     public VisorModel() {
         this.currentWorkMode = WorkMode.VISUALIZADOR;
@@ -275,9 +278,16 @@ public class VisorModel {
         return getCurrentListContext().getSelectedImageKey();
     }
 
+    public void setSelectedImageKeyListener(Consumer<String> listener) {
+        this.selectedImageKeyListener = listener;
+    } // --- Fin del metodo setSelectedImageKeyListener ---
+
     public void setSelectedImageKey(String selectedImageKey) {
         getCurrentListContext().setSelectedImageKey(selectedImageKey);
-    }
+        if (selectedImageKeyListener != null) {
+            selectedImageKeyListener.accept(selectedImageKey);
+        }
+    } // --- Fin del metodo setSelectedImageKey ---
 
     public ZoomModeEnum getCurrentZoomMode() {
         return getCurrentZoomContext().getZoomMode();

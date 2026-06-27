@@ -7,7 +7,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import modelo.proyecto.ExportConfig;
+import modelo.proyecto.ProjectImage;
 import modelo.proyecto.ProjectModel;
 
 /**
@@ -18,26 +18,24 @@ public class ExportPreflightService {
 
     private static final Logger logger = LoggerFactory.getLogger(ExportPreflightService.class);
 
-    public static List<String> validarAsignaciones(ProjectModel project) {
+    public static List<String> validarAsignaciones(Map<String, ProjectImage> masterImages) {
         List<String> errores = new ArrayList<>();
-        if (project == null) {
-            errores.add("No hay proyecto activo.");
-            return errores;
-        }
-
-        Map<String, String> selected = project.getSelectedImages();
-        if (selected == null || selected.isEmpty()) {
+        if (masterImages == null || masterImages.isEmpty()) {
             errores.add("No hay imágenes seleccionadas en el proyecto.");
             return errores;
         }
 
-        Map<String, ExportConfig> configs = project.getExportConfigs();
-
-        for (String rutaImagen : selected.keySet()) {
-            ExportConfig config = configs.get(rutaImagen);
-            if (config == null || config.getCodigoCatalogo() == null || config.getCodigoCatalogo().isBlank()) {
-                errores.add("La imagen '" + rutaImagen + "' no tiene código de catálogo asignado.");
+        boolean foundSelected = false;
+        for (ProjectImage pi : masterImages.values()) {
+            if (!pi.isEnSeleccionProyecto()) continue;
+            foundSelected = true;
+            if (pi.getCodigoCatalogo() == null || pi.getCodigoCatalogo().isBlank()) {
+                errores.add("La imagen '" + pi.getRutaImagen() + "' no tiene código de catálogo asignado.");
             }
+        }
+
+        if (!foundSelected) {
+            errores.add("No hay imágenes seleccionadas en el proyecto.");
         }
 
         return errores;

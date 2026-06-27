@@ -4,7 +4,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.BorderLayout;
-import java.util.List;
 
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -23,6 +22,7 @@ import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
 import modelo.proyecto.CommentOverlay;
 import modelo.proyecto.ImageCheckboxOverlay;
+import modelo.proyecto.ProjectImage;
 import modelo.proyecto.ProjectModel;
 import modelo.proyecto.SelectionState;
 
@@ -66,6 +66,13 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
             headerLabel.setText(" ");
         }
     } // --- FIN de metodo actualizarCabecera ---
+
+
+    private ProjectImage getProjectImage(String imageKey) {
+        if (projectManager == null || projectManager.getCurrentProject() == null || imageKey == null) return null;
+        return projectManager.getCurrentProject().getMasterImages()
+                .get(ProjectModel.normalizarClaveImagen(imageKey));
+    } // --- Fin del método getProjectImage ---
 
 
     @Override
@@ -119,32 +126,25 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
                 return;
             }
             // Click: cycle overlay state UNDEFINED → SELECTED → DISCARDED → UNDEFINED
+            String imageKey = imagePanel.getCurrentImageKey();
+            var pi = getProjectImage(imageKey);
+            if (pi == null) return;
+            var overlays = pi.getCheckboxes();
             int idx = findOverlayAt(e.getX(), e.getY());
-            if (idx >= 0 && projectManager.getCurrentProject() != null) {
-                String imageKey = imagePanel.getCurrentImageKey();
-                if (imageKey != null) {
-                    String canonicalKey = ProjectModel.normalizarClaveImagen(imageKey);
-                    var overlays = projectManager.getCurrentProject().getClientSelection().getImageCheckboxes(canonicalKey);
-                    if (idx < overlays.size()) {
-                        var ov = overlays.get(idx);
-                        SelectionState current = ov.getState();
-                        SelectionState next;
-                        switch (current) {
-                            case SELECTED  -> next = SelectionState.DISCARDED;
-                            case DISCARDED -> next = SelectionState.UNDEFINED;
-                            default        -> next = SelectionState.SELECTED;
-                        }
-                        ov.setState(next);
-                        String imgCode = projectManager.getCurrentProject()
-                                .getCodigoImagen(canonicalKey);
-                        String compositeKey = imgCode + "_" + ov.getCheckboxCode();
-                        projectManager.getCurrentProject().getClientSelection().getImages().put(compositeKey, next);
-                        derivarEstadoImagen(canonicalKey);
-                        projectManager.notificarModificacion();
-                        actualizarModeloTabla();
-                        imagePanel.repaint();
-                    }
+            if (idx >= 0 && idx < overlays.size()) {
+                var ov = overlays.get(idx);
+                SelectionState current = ov.getState();
+                SelectionState next;
+                switch (current) {
+                    case SELECTED  -> next = SelectionState.DISCARDED;
+                    case DISCARDED -> next = SelectionState.UNDEFINED;
+                    default        -> next = SelectionState.SELECTED;
                 }
+                ov.setState(next);
+                derivarEstadoImagen(imageKey);
+                projectManager.notificarModificacion();
+                actualizarModeloTabla();
+                imagePanel.repaint();
             }
         }
         draggingOverlayIndex = -1;
@@ -168,7 +168,9 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
 
 
     private void dragOverlay(java.awt.event.MouseEvent e, String imageKey) {
-        var overlays = projectManager.getCurrentProject().getClientSelection().getImageCheckboxes(imageKey);
+        var pi = getProjectImage(imageKey);
+        if (pi == null) return;
+        var overlays = pi.getCheckboxes();
         if (draggingOverlayIndex >= overlays.size()) return;
         AffineTransform transform = imagePanel.getCurrentImageTransform();
         if (transform == null) return;
@@ -188,8 +190,9 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
 
 
     private void dragComment(java.awt.event.MouseEvent e, String imageKey) {
-        var clientSel = projectManager.getCurrentProject().getClientSelection();
-        CommentOverlay co = clientSel.getCommentOverlays().get(imageKey);
+        var pi = getProjectImage(imageKey);
+        if (pi == null) return;
+        CommentOverlay co = pi.getCommentOverlay();
         if (co == null) return;
         AffineTransform transform = imagePanel.getCurrentImageTransform();
         if (transform == null) return;
@@ -213,11 +216,11 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
 
 
     private int findOverlayAt(int sx, int sy) {
-        if (projectManager.getCurrentProject() == null) return -1;
         String imageKey = imagePanel.getCurrentImageKey();
-        if (imageKey == null) return -1;
-        var overlays = projectManager.getCurrentProject().getClientSelection().getImageCheckboxes(imageKey);
-        if (overlays == null) return -1;
+        var pi = getProjectImage(imageKey);
+        if (pi == null) return -1;
+        var overlays = pi.getCheckboxes();
+        if (overlays == null || overlays.isEmpty()) return -1;
         for (int i = overlays.size() - 1; i >= 0; i--) {
             var ov = overlays.get(i);
             Point2D dst = transformPoint(ov.getImageX(), ov.getImageY());
@@ -242,10 +245,10 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
 
 
     private boolean isOverComment(int sx, int sy) {
-        if (projectManager.getCurrentProject() == null) return false;
         String imageKey = imagePanel.getCurrentImageKey();
-        if (imageKey == null) return false;
-        var co = projectManager.getCurrentProject().getClientSelection().getCommentOverlays().get(imageKey);
+        var pi = getProjectImage(imageKey);
+        if (pi == null) return false;
+        var co = pi.getCommentOverlay();
         if (co == null || co.getText() == null || co.getText().isEmpty()) return false;
         Point2D dst = transformPoint(co.getImageX(), co.getImageY());
         if (dst == null) return false;
@@ -270,10 +273,10 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
 
 
     private Point2D overlayScreenPos(int index) {
-        if (projectManager.getCurrentProject() == null) return null;
         String imageKey = imagePanel.getCurrentImageKey();
-        if (imageKey == null) return null;
-        var overlays = projectManager.getCurrentProject().getClientSelection().getImageCheckboxes(imageKey);
+        var pi = getProjectImage(imageKey);
+        if (pi == null) return null;
+        var overlays = pi.getCheckboxes();
         if (overlays == null || index >= overlays.size()) return null;
         var ov = overlays.get(index);
         return transformPoint(ov.getImageX(), ov.getImageY());
@@ -281,38 +284,33 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
 
 
     private Point2D commentScreenPos() {
-        if (projectManager.getCurrentProject() == null) return null;
         String imageKey = imagePanel.getCurrentImageKey();
-        if (imageKey == null) return null;
-        var co = projectManager.getCurrentProject().getClientSelection().getCommentOverlays().get(imageKey);
+        var pi = getProjectImage(imageKey);
+        if (pi == null) return null;
+        var co = pi.getCommentOverlay();
         if (co == null) return null;
         return transformPoint(co.getImageX(), co.getImageY());
     } // --- FIN de metodo commentScreenPos ---
 
 
     private void showPopup(java.awt.event.MouseEvent e) {
-        ProjectModel project = projectManager.getCurrentProject();
-        if (project == null) return;
         String imageKey = imagePanel.getCurrentImageKey();
-        if (imageKey == null) return;
-        var overlays = project.getClientSelection().getImageCheckboxes(imageKey);
+        var pi = getProjectImage(imageKey);
+        if (pi == null) return;
+        var overlays = pi.getCheckboxes();
         int hitIdx = findOverlayAt(e.getX(), e.getY());
         boolean overComment = isOverComment(e.getX(), e.getY());
 
         JPopupMenu popup = new JPopupMenu();
 
-        JMenuItem addItem = new JMenuItem("A\u00f1adir Checkbox (48x48)");
-        addItem.addActionListener(ev -> addCheckbox(overlays, e.getX(), e.getY(), project, imageKey, 48));
+        JMenuItem addItem = new JMenuItem("A\u00f1adir Checkbox");
+        addItem.addActionListener(ev -> addCheckbox(e.getX(), e.getY(), imageKey, 32));
         popup.add(addItem);
-
-        JMenuItem addSmallItem = new JMenuItem("A\u00f1adir Checkbox (32x32)");
-        addSmallItem.addActionListener(ev -> addCheckbox(overlays, e.getX(), e.getY(), project, imageKey, 32));
-        popup.add(addSmallItem);
 
         popup.addSeparator();
 
         JMenuItem commentItem = new JMenuItem("A\u00f1adir Comentario...");
-        commentItem.addActionListener(ev -> addComment(e.getX(), e.getY(), project, imageKey));
+        commentItem.addActionListener(ev -> addComment(e.getX(), e.getY(), imageKey));
         popup.add(commentItem);
 
         if (hitIdx >= 0) {
@@ -321,15 +319,7 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
 
             JMenuItem removeItem = new JMenuItem("Borrar Checkbox");
             removeItem.addActionListener(ev -> {
-                var ov = overlays.get(idx);
                 overlays.remove(idx);
-                // Eliminar entrada compuesta del cliente
-                String imgCode = project.getImageCodes().getOrDefault(imageKey, "");
-                if (imgCode.isEmpty()) {
-                    imgCode = project.getCodigoImagen(ProjectModel.normalizarClaveImagen(imageKey));
-                }
-                String compositeKey = imgCode + "_" + ov.getCheckboxCode();
-                project.getClientSelection().getImages().remove(compositeKey);
                 derivarEstadoImagen(imageKey);
                 projectManager.notificarModificacion();
                 actualizarModeloTabla();
@@ -345,12 +335,13 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
         if (overComment) {
             popup.addSeparator();
             JMenuItem editCommentItem = new JMenuItem("Editar comentario...");
-            editCommentItem.addActionListener(ev -> editComment(project, imageKey));
+            editCommentItem.addActionListener(ev -> editComment(imageKey));
             popup.add(editCommentItem);
 
             JMenuItem removeCommentItem = new JMenuItem("Borrar comentario");
             removeCommentItem.addActionListener(ev -> {
-                project.getClientSelection().getCommentOverlays().remove(imageKey);
+                var p = getProjectImage(imageKey);
+                if (p != null) p.setCommentOverlay(null);
                 projectManager.notificarModificacion();
                 imagePanel.repaint();
             });
@@ -361,8 +352,9 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
     } // --- FIN de metodo showPopup ---
 
 
-    private void addCheckbox(List<ImageCheckboxOverlay> overlays, int screenX, int screenY,
-                              ProjectModel project, String imageKey, int size) {
+    private void addCheckbox(int screenX, int screenY, String imageKey, int size) {
+        var pi = getProjectImage(imageKey);
+        if (pi == null) return;
         AffineTransform transform = imagePanel.getCurrentImageTransform();
         if (transform == null) return;
         try {
@@ -370,9 +362,8 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
             Point2D invDst = new Point2D.Double();
             transform.inverseTransform(invSrc, invDst);
 
+            var overlays = pi.getCheckboxes();
             int seq = overlays.size() + 1;
-            String canonicalKey = ProjectModel.normalizarClaveImagen(imageKey);
-            String imgCode = project.getCodigoImagen(canonicalKey);
             String cbCode = String.format("cb%02d", seq);
 
             var ov = new ImageCheckboxOverlay(
@@ -381,11 +372,7 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
             overlays.add(ov);
             projectManager.notificarModificacion();
 
-            // Añadir entrada compuesta al panel de selección del cliente: imgCode_cbCode
-            String compositeKey = imgCode + "_" + cbCode;
-            project.getClientSelection().getImages().put(compositeKey, ov.getState());
-
-            derivarEstadoImagen(canonicalKey);
+            derivarEstadoImagen(imageKey);
 
             actualizarModeloTabla();
             imagePanel.repaint();
@@ -403,24 +390,14 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
      * También sincroniza las entradas compuestas (imgCode_cbCode) con el estado de cada overlay.
      */
     private void derivarEstadoImagen(String imageKey) {
-        if (projectManager.getCurrentProject() == null) return;
-        var clientSel = projectManager.getCurrentProject().getClientSelection();
-        if (clientSel == null) return;
-        String canonicalKey = ProjectModel.normalizarClaveImagen(imageKey);
-        var checkboxes = clientSel.getImageCheckboxes(canonicalKey);
+        var pi = getProjectImage(imageKey);
+        if (pi == null) return;
+        var checkboxes = pi.getCheckboxes();
         if (checkboxes == null || checkboxes.isEmpty()) return;
-
-        String imgCode = projectManager.getCurrentProject()
-                .getCodigoImagen(canonicalKey);
 
         boolean hasSelected = false;
         boolean hasUndefined = false;
         for (var cb : checkboxes) {
-            String compositeKey = imgCode + "_" + cb.getCheckboxCode();
-            clientSel.getImages().put(compositeKey, cb.getState());
-            clientSel.getImages().remove("_" + cb.getCheckboxCode());
-            clientSel.getImages().remove(cb.getCheckboxCode());
-
             switch (cb.getState()) {
                 case SELECTED  -> hasSelected = true;
                 case UNDEFINED -> hasUndefined = true;
@@ -436,12 +413,13 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
         } else {
             derived = SelectionState.DISCARDED;
         }
-        clientSel.getImages().put(canonicalKey, derived);
+        pi.setEstadoCliente(derived);
     } // --- FIN de metodo derivarEstadoImagen ---
 
 
-    private void addComment(int screenX, int screenY, ProjectModel project, String imageKey) {
-        // Create a dialog for comment input
+    private void addComment(int screenX, int screenY, String imageKey) {
+        var pi = getProjectImage(imageKey);
+        if (pi == null) return;
         String text = showTextInputDialog("A\u00f1adir Comentario", "Comentario:", "");
         if (text == null || text.trim().isEmpty()) return;
 
@@ -456,7 +434,7 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
                     (int) Math.round(invDst.getX()),
                     (int) Math.round(invDst.getY()),
                     text.trim());
-            project.getClientSelection().getCommentOverlays().put(imageKey, co);
+            pi.setCommentOverlay(co);
             projectManager.notificarModificacion();
             imagePanel.repaint();
         } catch (NoninvertibleTransformException ex) {
@@ -465,14 +443,16 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
     } // --- FIN de metodo addComment ---
 
 
-    private void editComment(ProjectModel project, String imageKey) {
-        CommentOverlay co = project.getClientSelection().getCommentOverlays().get(imageKey);
+    private void editComment(String imageKey) {
+        var pi = getProjectImage(imageKey);
+        if (pi == null) return;
+        CommentOverlay co = pi.getCommentOverlay();
         if (co == null) return;
         String current = co.getText();
         String result = showTextInputDialog("Editar Comentario", "Comentario:", current);
         if (result != null) {
             if (result.trim().isEmpty()) {
-                project.getClientSelection().getCommentOverlays().remove(imageKey);
+                pi.setCommentOverlay(null);
             } else {
                 co.setText(result.trim());
             }

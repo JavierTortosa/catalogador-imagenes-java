@@ -13,6 +13,12 @@ import java.util.Objects;
  */
 public class ProjectModel {
 
+        // --- Versión del esquema de datos ---
+    private int schemaVersion = 1;
+
+    // --- Lista Maestra (v2) ---
+    private Map<String, ProjectImage> masterImages;
+
     // --- Metadatos del Proyecto ---
     private String projectName;
     private String projectDescription;
@@ -51,6 +57,7 @@ public class ProjectModel {
     
     // --- Constructor ---
     public ProjectModel() {
+        this.masterImages = new LinkedHashMap<>();
         this.selectedImages = new LinkedHashMap<>();
         this.discardedImages = new ArrayList<>();
         this.exportConfigs = new LinkedHashMap<>();
@@ -97,7 +104,15 @@ public class ProjectModel {
     } // --- FIN de metodo setLastModifiedDate ---
 
     public Map<String, String> getSelectedImages() {
-        // Asegurarse de que nunca sea nulo para evitar NullPointerExceptions
+        if (schemaVersion >= 2 && masterImages != null) {
+            Map<String, String> result = new LinkedHashMap<>();
+            for (ProjectImage pi : masterImages.values()) {
+                if (pi.isEnSeleccionProyecto()) {
+                    result.put(pi.getRutaImagen(), pi.getEtiqueta());
+                }
+            }
+            return result;
+        }
         if (selectedImages == null) {
             selectedImages = new LinkedHashMap<>();
         }
@@ -109,7 +124,15 @@ public class ProjectModel {
     } // --- FIN de metodo setSelectedImages ---
 
     public List<String> getDiscardedImages() {
-        // Asegurarse de que nunca sea nulo
+        if (schemaVersion >= 2 && masterImages != null) {
+            List<String> result = new ArrayList<>();
+            for (ProjectImage pi : masterImages.values()) {
+                if (!pi.isEnSeleccionProyecto()) {
+                    result.add(pi.getRutaImagen());
+                }
+            }
+            return result;
+        }
         if (discardedImages == null) {
             discardedImages = new ArrayList<>();
         }
@@ -148,6 +171,10 @@ public class ProjectModel {
         this.exportDestinationFolder = exportDestinationFolder;
     } // ---FIN de metodo setExportDestinationFolder---
     
+    /**
+     * @deprecated Usar masterImages directamente en lugar de ClientSelection.
+     */
+    @Deprecated
     public ClientSelection getClientSelection() {
         if (clientSelection == null) {
             clientSelection = new ClientSelection();
@@ -155,11 +182,15 @@ public class ProjectModel {
         return clientSelection;
     } // ---FIN de metodo getClientSelection---
 
+    @Deprecated
     public void setClientSelection(ClientSelection clientSelection) {
         this.clientSelection = clientSelection;
     } // ---FIN de metodo setClientSelection---
     
     public boolean hasClientSelection() {
+        if (schemaVersion >= 2) {
+            return masterImages != null && !masterImages.isEmpty();
+        }
         return clientSelection != null;
     } // ---FIN de metodo hasClientSelection---
     
@@ -170,6 +201,18 @@ public class ProjectModel {
     public void setSharedWithClient(boolean sharedWithClient) {
         this.sharedWithClient = sharedWithClient;
     } // ---FIN de metodo setSharedWithClient---
+
+    /**
+     * @return true si el proyecto est&aacute; compartido y alguna imagen seleccionada
+     *         carece de c&oacute;digo de cat&aacute;logo (requiere re-compartir).
+     */
+    public boolean hasAnyImageWithoutCode() {
+        if (!sharedWithClient) return false;
+        if (masterImages == null) return true;
+        return masterImages.values().stream()
+                .anyMatch(pi -> pi.isEnSeleccionProyecto()
+                        && (pi.getCodigoCatalogo() == null || pi.getCodigoCatalogo().trim().isEmpty()));
+    } // ---FIN de metodo hasAnyImageWithoutCode---
 
     public long getSharedTimestamp() {
         return sharedTimestamp;
@@ -253,6 +296,121 @@ public class ProjectModel {
     }
     
     
+    /**
+     * Obtiene la lista maestra de imágenes del proyecto.
+     */
+    public Map<String, ProjectImage> getMasterImages() {
+        if (masterImages == null) {
+            masterImages = new LinkedHashMap<>();
+        }
+        return masterImages;
+    } // ---FIN de metodo getMasterImages---
+
+    public void setMasterImages(Map<String, ProjectImage> masterImages) {
+        this.masterImages = masterImages;
+    } // ---FIN de metodo setMasterImages---
+
+    public int getSchemaVersion() {
+        return schemaVersion;
+    } // ---FIN de metodo getSchemaVersion---
+
+    public void setSchemaVersion(int schemaVersion) {
+        this.schemaVersion = schemaVersion;
+    } // ---FIN de metodo setSchemaVersion---
+
+    /**
+     * Migra los datos del esquema v1 (selectedImages, discardedImages, ClientSelection)
+     * al esquema v2 (masterImages). Conserva los campos v1 para compatibilidade.
+     */
+    public void migrarDesdeV1() {
+        this.masterImages = new LinkedHashMap<>();
+        String canonicalKey;
+
+        // 1. Imágenes en selección del proyecto
+        for (String ruta : getSelectedImages().keySet()) {
+            canonicalKey = normalizarClaveImagen(ruta);
+            if (canonicalKey == null) continue;
+            ProjectImage pi = new ProjectImage(canonicalKey);
+            pi.setEnSeleccionProyecto(true);
+            pi.setEtiqueta(getSelectedImages().get(ruta));
+            masterImages.put(canonicalKey, pi);
+        }
+
+        // 2. Imágenes en descartes del proyecto
+        for (String ruta : getDiscardedImages()) {
+            canonicalKey = normalizarClaveImagen(ruta);
+            if (canonicalKey == null) continue;
+            if (!masterImages.containsKey(canonicalKey)) {
+                ProjectImage pi = new ProjectImage(canonicalKey);
+                pi.setEnSeleccionProyecto(false);
+                masterImages.put(canonicalKey, pi);
+            }
+        }
+
+        // 3. Datos del cliente (ClientSelection v1)
+        if (clientSelection != null) {
+            // 3a. Estado cliente por imagen
+            for (Map.Entry<String, SelectionState> entry : clientSelection.getImages().entrySet()) {
+                String key = entry.getKey();
+                if (esClaveRutaImagen(key)) {
+                    canonicalKey = normalizarClaveImagen(key);
+                    ProjectImage pi = masterImages.get(canonicalKey);
+                    if (pi != null) {
+                        pi.setEstadoCliente(entry.getValue());
+                    }
+                }
+            }
+
+            // 3b. Checkboxes internos
+            for (Map.Entry<String, java.util.List<ImageCheckboxOverlay>> cbEntry
+                    : clientSelection.getImageCheckboxesMap().entrySet()) {
+                canonicalKey = normalizarClaveImagen(cbEntry.getKey());
+                ProjectImage pi = masterImages.get(canonicalKey);
+                if (pi != null && cbEntry.getValue() != null) {
+                    pi.setCheckboxes(new ArrayList<>(cbEntry.getValue()));
+                }
+            }
+
+            // 3c. Comentarios simples
+            for (Map.Entry<String, String> cmtEntry : clientSelection.getComments().entrySet()) {
+                canonicalKey = normalizarClaveImagen(cmtEntry.getKey());
+                ProjectImage pi = masterImages.get(canonicalKey);
+                if (pi != null) {
+                    pi.setComment(cmtEntry.getValue());
+                }
+            }
+
+            // 3d. CommentOverlays
+            for (Map.Entry<String, CommentOverlay> ovEntry : clientSelection.getCommentOverlays().entrySet()) {
+                canonicalKey = normalizarClaveImagen(ovEntry.getKey());
+                ProjectImage pi = masterImages.get(canonicalKey);
+                if (pi != null) {
+                    pi.setCommentOverlay(ovEntry.getValue());
+                }
+            }
+        }
+
+        // 4. ExportConfigs
+        for (Map.Entry<String, ExportConfig> ecEntry : getExportConfigs().entrySet()) {
+            canonicalKey = normalizarClaveImagen(ecEntry.getKey());
+            ProjectImage pi = masterImages.get(canonicalKey);
+            if (pi != null) {
+                pi.setExportConfig(ecEntry.getValue());
+            }
+        }
+
+        // 5. Códigos de catálogo
+        for (Map.Entry<String, String> codeEntry : getImageCodes().entrySet()) {
+            canonicalKey = normalizarClaveImagen(codeEntry.getKey());
+            ProjectImage pi = masterImages.get(canonicalKey);
+            if (pi != null) {
+                pi.setCodigoCatalogo(codeEntry.getValue());
+            }
+        }
+
+        this.schemaVersion = 2;
+    } // ---FIN de metodo migrarDesdeV1---
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

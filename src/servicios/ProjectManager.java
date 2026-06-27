@@ -28,6 +28,9 @@ import com.google.gson.GsonBuilder;
 import controlador.ProjectController;
 import controlador.managers.interfaces.IProjectManager;
 import modelo.VisorModel;
+import modelo.proyecto.ExportConfig;
+import modelo.proyecto.ProjectImage;
+import modelo.proyecto.ProjectModel.ClientSelection;
 import modelo.proyecto.ProjectModel;
 
 public class ProjectManager implements IProjectManager {
@@ -153,10 +156,21 @@ public class ProjectManager implements IProjectManager {
             return true;
         }
 
-        // Comparamos los datos del cliente (selección, checkboxes, comentarios, etc.)
-        if (!Objects.equals(this.currentProject.getClientSelection(), this.lastSavedProjectState.getClientSelection())) {
-            logger.debug("[Dirty Check] Diferencia detectada en: clientSelection");
-            return true;
+        // Para esquema v1, comparar el ClientSelection legacy
+        if (this.currentProject.getSchemaVersion() < 2) {
+            if (!Objects.equals(this.currentProject.getClientSelection(), this.lastSavedProjectState.getClientSelection())) {
+                logger.debug("[Dirty Check] Diferencia detectada en: clientSelection");
+                return true;
+            }
+        }
+
+        // Para esquema v2, comparar la lista maestra directamente
+        if (this.currentProject.getSchemaVersion() >= 2) {
+            if (!Objects.equals(this.currentProject.getMasterImages(),
+                                this.lastSavedProjectState.getMasterImages())) {
+                logger.debug("[Dirty Check] Diferencia detectada en: masterImages");
+                return true;
+            }
         }
 
         // Si hemos llegado hasta aquí, no hay diferencias.
@@ -187,8 +201,51 @@ public class ProjectManager implements IProjectManager {
         String jsonString = gson.toJson(original);
         return gson.fromJson(jsonString, ProjectModel.class);
     } // ---FIN de metodo deepCopyProjectModel---
-    
-    
+
+
+    /**
+     * Serializa el proyecto actual al Writer usando Gson, omitiendo los campos
+     * del esquema v1 (selectedImages, discardedImages, exportConfigs, imageCodes,
+     * clientSelection) cuando el proyecto tiene schemaVersion >= 2.
+     * Los campos se restauran en memoria tras la serializaci�n para mantener
+     * la compatibilidad hacia atr�s del objeto ProjectModel en ejecuci�n.
+     */
+    private void guardarConGsonV2(Appendable writer) {
+        if (this.currentProject.getSchemaVersion() < 2) {
+            gson.toJson(this.currentProject, writer);
+            return;
+        }
+
+        // Salvar referencias de los campos v1
+        Map<String, String> savedSelected = this.currentProject.getSelectedImages();
+        List<String> savedDiscarded = this.currentProject.getDiscardedImages();
+        Map<String, ExportConfig> savedExportConfigs = this.currentProject.getExportConfigs();
+        Map<String, String> savedImageCodes = this.currentProject.getImageCodes();
+        ClientSelection savedClientSelection = this.currentProject.hasClientSelection()
+                ? this.currentProject.getClientSelection() : null;
+
+        // Anular campos v1 para que Gson no los serialice (serializeNulls no est� activado)
+        this.currentProject.setSelectedImages(null);
+        this.currentProject.setDiscardedImages(null);
+        this.currentProject.setExportConfigs(null);
+        this.currentProject.setImageCodes(null);
+        this.currentProject.setClientSelection(null);
+
+        try {
+            gson.toJson(this.currentProject, writer);
+        } finally {
+            // Restaurar campos v1 para compatibilidad en memoria
+            this.currentProject.setSelectedImages(savedSelected);
+            this.currentProject.setDiscardedImages(savedDiscarded);
+            this.currentProject.setExportConfigs(savedExportConfigs);
+            this.currentProject.setImageCodes(savedImageCodes);
+            if (savedClientSelection != null) {
+                this.currentProject.setClientSelection(savedClientSelection);
+            }
+        }
+    } // ---FIN de metodo guardarConGsonV2---
+
+
     private void cargarDesdeArchivo(Path rutaArchivo) {
         if (!Files.exists(rutaArchivo) || !Files.isReadable(rutaArchivo)) {
             this.currentProject = new ProjectModel();
@@ -225,6 +282,13 @@ public class ProjectManager implements IProjectManager {
             ProjectModel loadedProject = gson.fromJson(reader, ProjectModel.class);
             if (loadedProject != null) {
                 this.currentProject = loadedProject;
+                // Migrar desde schema v1 si es necesario
+                if (this.currentProject.getSchemaVersion() < 2) {
+                    logger.info("Migrando proyecto desde schemaVersion {} a 2...",
+                                this.currentProject.getSchemaVersion());
+                    this.currentProject.migrarDesdeV1();
+                    logger.info("Migración a schema v2 completada.");
+                }
                 logger.debug("  [ProjectManager] Proyecto JSON cargado. Selección: {}, Descartes: {}",
                              this.currentProject.getSelectedImages().size(),
                              this.currentProject.getDiscardedImages().size());
@@ -318,7 +382,7 @@ public class ProjectManager implements IProjectManager {
         }
         
         try (FileWriter writer = new FileWriter(rutaGuardado.toFile())) {
-            gson.toJson(this.currentProject, writer);
+            guardarConGsonV2(writer);
             System.out.println(this.currentProject.toString());
             logger.debug("  [ProjectManager] Proyecto JSON guardado en {}. Selección: {}, Descartes: {}.",
                          rutaGuardado.getFileName(), 
@@ -459,7 +523,7 @@ public class ProjectManager implements IProjectManager {
     public void saveAsCopy(Path path) {
         if (this.currentProject == null) return;
         try (java.io.FileWriter writer = new java.io.FileWriter(path.toFile())) {
-            gson.toJson(this.currentProject, writer);
+            guardarConGsonV2(writer);
             logger.info("[ProjectManager] Copia guardada en: {}", path);
         } catch (java.io.IOException e) {
             logger.error("[ProjectManager] Error al guardar copia en: {}", path, e);
@@ -504,7 +568,7 @@ public class ProjectManager implements IProjectManager {
 
         // 4. Guardar el modelo en el archivo de recuperación.
         try (FileWriter writer = new FileWriter(rutaRecuperacion.toFile())) {
-            gson.toJson(this.currentProject, writer);
+            guardarConGsonV2(writer);
             logger.info("  [ProjectManager] Sesión de recuperación guardada correctamente.");
         } catch (IOException e) {
             logger.error("ERROR [ProjectManager]: No se pudo guardar el archivo de recuperación: " + rutaRecuperacion, e);
@@ -646,17 +710,26 @@ public class ProjectManager implements IProjectManager {
     public void setEtiqueta(Path rutaImagen, String etiqueta) {
         if (rutaImagen == null) return;
         String clave = rutaImagen.toString().replace("\\", "/");
-        if (this.currentProject.getSelectedImages().containsKey(clave)) {
-            // --- LÓGICA DE SEGURIDAD ---
-            // Si la nueva etiqueta es null, la guardamos como un string vacío.
-            String etiquetaAGuardar = (etiqueta == null) ? "" : etiqueta;
-            // -------------------------
+        String canonical = ProjectModel.normalizarClaveImagen(clave);
+        String etiquetaAGuardar = (etiqueta == null) ? "" : etiqueta;
 
-            this.currentProject.getSelectedImages().put(clave, etiquetaAGuardar); // <--- CAMBIO
-            notificarModificacion(); 
-            logger.debug("Etiqueta '{}' asignada a: {}", etiquetaAGuardar, rutaImagen.getFileName());
+        if (this.currentProject.getSchemaVersion() >= 2) {
+            ProjectImage pi = this.currentProject.getMasterImages().get(canonical);
+            if (pi != null && pi.isEnSeleccionProyecto()) {
+                pi.setEtiqueta(etiquetaAGuardar);
+                notificarModificacion();
+                logger.debug("Etiqueta '{}' asignada a: {} (v2)", etiquetaAGuardar, rutaImagen.getFileName());
+            } else {
+                logger.warn("Intento de etiquetar una imagen que no está en la selección actual: {}", rutaImagen.getFileName());
+            }
         } else {
-            logger.warn("Intento de etiquetar una imagen que no está en la selección actual: {}", rutaImagen.getFileName());
+            if (this.currentProject.getSelectedImages().containsKey(clave)) {
+                this.currentProject.getSelectedImages().put(clave, etiquetaAGuardar);
+                notificarModificacion();
+                logger.debug("Etiqueta '{}' asignada a: {}", etiquetaAGuardar, rutaImagen.getFileName());
+            } else {
+                logger.warn("Intento de etiquetar una imagen que no está en la selección actual: {}", rutaImagen.getFileName());
+            }
         }
     } // ---FIN de metodo setEtiqueta ---
     
@@ -757,10 +830,26 @@ public class ProjectManager implements IProjectManager {
     public void marcarImagen(Path rutaAbsoluta) {
         if (rutaAbsoluta == null) return;
         String clave = rutaAbsoluta.toString().replace("\\", "/");
-        // putIfAbsent devuelve null si la clave no existía, indicando que hubo un cambio.
-        if (this.currentProject.getSelectedImages().putIfAbsent(clave, "") == null) { // <--- CAMBIO: null por ""
-            notificarModificacion();
+        String canonical = ProjectModel.normalizarClaveImagen(clave);
+        boolean huboCambio = false;
+
+        if (this.currentProject.getSchemaVersion() >= 2) {
+            ProjectImage pi = this.currentProject.getMasterImages().get(canonical);
+            if (pi == null) {
+                pi = new ProjectImage(canonical);
+                pi.setEnSeleccionProyecto(true);
+                this.currentProject.getMasterImages().put(canonical, pi);
+                huboCambio = true;
+            } else if (!pi.isEnSeleccionProyecto()) {
+                pi.setEnSeleccionProyecto(true);
+                huboCambio = true;
+            }
+        } else {
+            if (this.currentProject.getSelectedImages().putIfAbsent(clave, "") == null) {
+                huboCambio = true;
+            }
         }
+        if (huboCambio) notificarModificacion();
     } // --- Fin del método marcarImagen ---
 
     
@@ -768,10 +857,21 @@ public class ProjectManager implements IProjectManager {
     public void desmarcarImagen(Path rutaAbsoluta) {
         if (rutaAbsoluta == null) return;
         String clave = rutaAbsoluta.toString().replace("\\", "/");
-        // remove devuelve el valor anterior si existía, indicando que hubo un cambio.
-        if (this.currentProject.getSelectedImages().remove(clave) != null) {
-            notificarModificacion();
+        boolean huboCambio = false;
+
+        if (this.currentProject.getSchemaVersion() >= 2) {
+            String canonical = ProjectModel.normalizarClaveImagen(clave);
+            ProjectImage pi = this.currentProject.getMasterImages().get(canonical);
+            if (pi != null) {
+                pi.setEnSeleccionProyecto(false);
+                huboCambio = true;
+            }
+        } else {
+            if (this.currentProject.getSelectedImages().remove(clave) != null) {
+                huboCambio = true;
+            }
         }
+        if (huboCambio) notificarModificacion();
     } // --- Fin del método desmarcarImagen ---
     
     
@@ -841,12 +941,26 @@ public class ProjectManager implements IProjectManager {
     
     
     public void vaciarDescartes() {
-        if (this.currentProject.getDiscardedImages().isEmpty()) {
-            return;
+        if (this.currentProject.getSchemaVersion() >= 2) {
+            boolean huboCambio = false;
+            for (ProjectImage pi : this.currentProject.getMasterImages().values()) {
+                if (!pi.isEnSeleccionProyecto()) {
+                    pi.setEnSeleccionProyecto(true);
+                    huboCambio = true;
+                }
+            }
+            if (huboCambio) {
+                notificarModificacion();
+                logger.debug("[ProjectManager] Lista de descartes vaciada (v2).");
+            }
+        } else {
+            if (this.currentProject.getDiscardedImages().isEmpty()) {
+                return;
+            }
+            notificarModificacion();
+            this.currentProject.getDiscardedImages().clear();
+            logger.debug("[ProjectManager] Lista de descartes vaciada.");
         }
-        notificarModificacion();
-        this.currentProject.getDiscardedImages().clear();
-        logger.debug("[ProjectManager] Lista de descartes vaciada.");
     } // --- Fin del método vaciarDescartes ---
     
     
@@ -876,12 +990,22 @@ public class ProjectManager implements IProjectManager {
                 continue;
             }
             String clave = rutaAbsolutaImagen.toString().replace("\\", "/");
-            if (this.currentProject.getSelectedImages().containsKey(clave)) {
-                this.currentProject.getSelectedImages().remove(clave);
-                if (!this.currentProject.getDiscardedImages().contains(clave)) {
-                    this.currentProject.getDiscardedImages().add(clave);
+
+            if (this.currentProject.getSchemaVersion() >= 2) {
+                String canonical = ProjectModel.normalizarClaveImagen(clave);
+                ProjectImage pi = this.currentProject.getMasterImages().get(canonical);
+                if (pi != null && pi.isEnSeleccionProyecto()) {
+                    pi.setEnSeleccionProyecto(false);
+                    movidos++;
                 }
-                movidos++;
+            } else {
+                if (this.currentProject.getSelectedImages().containsKey(clave)) {
+                    this.currentProject.getSelectedImages().remove(clave);
+                    if (!this.currentProject.getDiscardedImages().contains(clave)) {
+                        this.currentProject.getDiscardedImages().add(clave);
+                    }
+                    movidos++;
+                }
             }
         }
         if (movidos > 0) {
@@ -910,10 +1034,20 @@ public class ProjectManager implements IProjectManager {
                 continue;
             }
             String clave = rutaAbsolutaImagen.toString().replace("\\", "/");
-            if (this.currentProject.getDiscardedImages().contains(clave)) {
-                this.currentProject.getDiscardedImages().remove(clave);
-                this.currentProject.getSelectedImages().putIfAbsent(clave, "");
-                restaurados++;
+
+            if (this.currentProject.getSchemaVersion() >= 2) {
+                String canonical = ProjectModel.normalizarClaveImagen(clave);
+                ProjectImage pi = this.currentProject.getMasterImages().get(canonical);
+                if (pi != null && !pi.isEnSeleccionProyecto()) {
+                    pi.setEnSeleccionProyecto(true);
+                    restaurados++;
+                }
+            } else {
+                if (this.currentProject.getDiscardedImages().contains(clave)) {
+                    this.currentProject.getDiscardedImages().remove(clave);
+                    this.currentProject.getSelectedImages().putIfAbsent(clave, "");
+                    restaurados++;
+                }
             }
         }
         if (restaurados > 0) {
@@ -949,10 +1083,18 @@ public class ProjectManager implements IProjectManager {
                 continue;
             }
             String clave = rutaAbsolutaImagen.toString().replace("\\", "/");
-            boolean removidoDeSeleccion = this.currentProject.getSelectedImages().remove(clave) != null;
-            boolean removidoDeDescartes = this.currentProject.getDiscardedImages().remove(clave);
-            if (removidoDeSeleccion || removidoDeDescartes) {
-                eliminados++;
+
+            if (this.currentProject.getSchemaVersion() >= 2) {
+                String canonical = ProjectModel.normalizarClaveImagen(clave);
+                if (this.currentProject.getMasterImages().remove(canonical) != null) {
+                    eliminados++;
+                }
+            } else {
+                boolean removidoDeSeleccion = this.currentProject.getSelectedImages().remove(clave) != null;
+                boolean removidoDeDescartes = this.currentProject.getDiscardedImages().remove(clave);
+                if (removidoDeSeleccion || removidoDeDescartes) {
+                    eliminados++;
+                }
             }
         }
         if (eliminados > 0) {
@@ -1069,6 +1211,18 @@ public class ProjectManager implements IProjectManager {
             return;
 
         boolean modificado = false;
+
+        // v2: re-key en masterImages
+        if (this.currentProject.getSchemaVersion() >= 2) {
+            String oldCanonical = ProjectModel.normalizarClaveImagen(oldClave);
+            String newCanonical = ProjectModel.normalizarClaveImagen(newClave);
+            ProjectImage pi = this.currentProject.getMasterImages().remove(oldCanonical);
+            if (pi != null) {
+                pi.setRutaImagen(newCanonical);
+                this.currentProject.getMasterImages().put(newCanonical, pi);
+                modificado = true;
+            }
+        }
 
         // 1. Migrar de SelectedImages (mantiene la etiqueta)
         if (this.currentProject.getSelectedImages().containsKey(oldClave)) {

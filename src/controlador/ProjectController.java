@@ -1306,6 +1306,37 @@ public class ProjectController implements IModoController {
         }
         exportPanel.actualizarEstadoControles(puedeExportar, mensajeResumen, puedeExportarPDF, mensajePDF);
 
+        // Control de botones de compartir/exportar seg&uacute;n modo
+        Action accionCompartir = actionMap.get(AppActionCommands.CMD_PROYECTO_COMPARTIR_CLIENTE);
+        Action accionExportHtml = actionMap.get(AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML);
+        Action accionExportWeb = actionMap.get(AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB);
+        if (enModoCliente) {
+            // En modo cliente: solo botones de cliente si el proyecto está compartido
+            boolean compartido = projectManager != null && projectManager.getCurrentProject() != null
+                    && projectManager.getCurrentProject().isSharedWithClient();
+            if (accionCompartir != null) accionCompartir.setEnabled(false);
+            if (accionExportHtml != null) accionExportHtml.setEnabled(compartido);
+            if (accionExportWeb != null) accionExportWeb.setEnabled(compartido);
+        } else {
+            boolean puedeCompartirCliente = todosLosSeleccionadosEstanListos && seleccionados > 0 && !hayConflictos;
+            if (accionCompartir != null) accionCompartir.setEnabled(puedeCompartirCliente);
+            if (accionExportHtml != null) accionExportHtml.setEnabled(puedeCompartirCliente);
+            if (accionExportWeb != null) accionExportWeb.setEnabled(puedeCompartirCliente);
+        }
+
+        // Control del bot&oacute;n Modo Cliente: deshabilitar si el proyecto compartido tiene im&aacute;genes sin c&oacute;digo
+        Action accionModoCliente = actionMap.get(AppActionCommands.CMD_MODO_CLIENTE);
+        if (accionModoCliente != null) {
+            if (enModoCliente) {
+                accionModoCliente.setEnabled(true);
+            } else {
+                ProjectModel proyecto = projectManager != null ? projectManager.getCurrentProject() : null;
+                boolean bloquearCliente = proyecto != null && proyecto.isSharedWithClient()
+                        && proyecto.hasAnyImageWithoutCode();
+                accionModoCliente.setEnabled(!bloquearCliente);
+            }
+        }
+
         JTable tablaUI = getTablaExportacionDesdeRegistro();
         if (tablaUI != null) {
             tablaUI.repaint();

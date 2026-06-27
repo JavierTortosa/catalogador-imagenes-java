@@ -1626,6 +1626,11 @@ public class VisorController implements IModoController, ThemeChangeListener {
 			if (gridProyectoObj instanceof JList) {
 				((JList<?>) gridProyectoObj).repaint();
 			}
+			// Modo cliente
+			Object gridClienteObj = registry.get("list.grid.cliente");
+			if (gridClienteObj instanceof JList) {
+				((JList<?>) gridClienteObj).repaint();
+			}
 		}
 
 		logger.debug("  [Controller] Estado visual de 'Marcar' actualizado. Marcada: " + estaMarcada);

@@ -108,16 +108,14 @@ public class WebCatalogExporter {
                                     java.util.function.Consumer<Integer> progressCallback) throws IOException {
         logger.info("[WebCatalogExporter] Generando HTML cliente único: {}", outputFile);
 
-        if (!project.hasClientSelection()) {
-            throw new IOException("El proyecto no tiene selección de cliente.");
-        }
-        var clientSel = project.getClientSelection();
-
         java.util.List<String> imageKeys = new java.util.ArrayList<>();
-        for (String key : clientSel.getImages().keySet()) {
-            if (project.esClaveRutaImagen(key)) {
-                imageKeys.add(key);
+        for (var pi : project.getMasterImages().values()) {
+            if (pi.isEnSeleccionProyecto()) {
+                imageKeys.add(pi.getRutaImagen());
             }
+        }
+        if (imageKeys.isEmpty()) {
+            throw new IOException("El proyecto no tiene imágenes compartidas con el cliente.");
         }
 
         int total = imageKeys.size();
@@ -129,17 +127,18 @@ public class WebCatalogExporter {
 
         for (int i = 0; i < imageKeys.size(); i++) {
             String key = imageKeys.get(i);
-            String rutaCanon = project.resolverClaveImagenCanonica(key);
-            String imageCode = project.getCodigoImagen(key);
-            String comment = clientSel.getComments().getOrDefault(key, "");
-            var overlays = clientSel.getImageCheckboxes(rutaCanon);
-            var commentOverlay = clientSel.getCommentOverlays().get(key);
+            var pi = project.getMasterImages().get(key);
+            if (pi == null) continue;
+            String imageCode = pi.getCodigoCatalogo();
+            String comment = pi.getComment() != null ? pi.getComment() : "";
+            var overlays = pi.getCheckboxes();
+            var commentOverlay = pi.getCommentOverlay();
 
             int thumbW = 0, thumbH = 0;
             int origW = 1, origH = 1;
             String base64 = "";
-            if (rutaCanon != null) {
-                Path rutaImagen = Path.of(rutaCanon);
+            if (key != null) {
+                Path rutaImagen = Path.of(key);
                 try {
                     ThumbnailResult tr = generarMiniaturaBase64(rutaImagen, quality);
                     base64 = tr.base64();
@@ -162,7 +161,7 @@ public class WebCatalogExporter {
             imagesJson.append("  \"codigo\": ").append(jsonString(imageCode)).append(",\n");
             String nombre = Path.of(key).getFileName() != null ? Path.of(key).getFileName().toString() : key;
             imagesJson.append("  \"nombre\": ").append(jsonString(nombre)).append(",\n");
-            SelectionState state = clientSel.getImages().get(key);
+            SelectionState state = pi.getEstadoCliente();
             imagesJson.append("  \"estado\": ").append(jsonString(state != null ? state.name() : "UNDEFINED")).append(",\n");
             imagesJson.append("  \"comentario\": ").append(jsonString(comment)).append(",\n");
             imagesJson.append("  \"ancho\": ").append(thumbW).append(",\n");
@@ -561,7 +560,6 @@ public class WebCatalogExporter {
     }
 
     private String generarDataJson(ProjectModel project, Path thumbsDir, int iteracion) {
-        Map<String, String> selectedImages = project.getSelectedImages();
         String projectName = project.getProjectName() != null ? project.getProjectName() : "Proyecto";
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
@@ -573,10 +571,11 @@ public class WebCatalogExporter {
         sb.append("  \"imagenes\": [\n");
 
         int i = 0;
-        for (Map.Entry<String, String> entry : selectedImages.entrySet()) {
-            String rutaStr = entry.getKey();
+        for (var pi : project.getMasterImages().values()) {
+            String rutaStr = pi.getRutaImagen();
+            if (rutaStr == null) continue;
             Path rutaImagen = Path.of(rutaStr);
-            String etiqueta = entry.getValue() != null ? entry.getValue() : "";
+            String etiqueta = pi.getEtiqueta() != null ? pi.getEtiqueta() : "";
 
             int origW = 1, origH = 1;
             try {
@@ -586,12 +585,10 @@ public class WebCatalogExporter {
 
             String thumbFilename = nombreMiniatura(rutaImagen);
             String imageId = generarId(rutaImagen);
-            String imageCode = project.getImageCodes().getOrDefault(rutaStr, "");
+            String imageCode = pi.getCodigoCatalogo() != null ? pi.getCodigoCatalogo() : "";
 
-            List<ImageCheckboxOverlay> checkboxes = project.hasClientSelection()
-                    ? project.getClientSelection().getImageCheckboxes(rutaStr) : List.of();
-            String comment = project.hasClientSelection()
-                    ? project.getClientSelection().getComments().getOrDefault(rutaStr, "") : "";
+            List<ImageCheckboxOverlay> checkboxes = pi.getCheckboxes();
+            String comment = pi.getComment() != null ? pi.getComment() : "";
 
             if (i > 0) sb.append(",\n");
             sb.append("    {\n");
@@ -605,7 +602,7 @@ public class WebCatalogExporter {
             sb.append("      \"anchoOriginal\": ").append(origW).append(",\n");
             sb.append("      \"altoOriginal\": ").append(origH).append(",\n");
 
-            var commentOverlay = project.hasClientSelection() ? project.getClientSelection().getCommentOverlays().get(rutaStr) : null;
+            var commentOverlay = pi.getCommentOverlay();
             if (commentOverlay != null && commentOverlay.getText() != null && !commentOverlay.getText().isEmpty()) {
                 sb.append("      \"commentOverlay\": {\n");
                 sb.append("        \"texto\": ").append(jsonString(commentOverlay.getText())).append(",\n");
@@ -637,7 +634,6 @@ public class WebCatalogExporter {
     }
 
     private String generarRespuestaVacia(ProjectModel project, String projectSafeName, int iteracion) {
-        Map<String, String> selectedImages = project.getSelectedImages();
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
         StringBuilder sb = new StringBuilder();
@@ -649,13 +645,15 @@ public class WebCatalogExporter {
         sb.append("  \"respuestas\": [\n");
 
         int i = 0;
-        for (String rutaStr : selectedImages.keySet()) {
+        for (var pi : project.getMasterImages().values()) {
+            String rutaStr = pi.getRutaImagen();
+            if (rutaStr == null) continue;
             Path rutaImagen = Path.of(rutaStr);
             String imageId = generarId(rutaImagen);
             if (i > 0) sb.append(",\n");
             sb.append("    {\n");
             sb.append("      \"id\": ").append(jsonString(imageId)).append(",\n");
-            sb.append("      \"codigo\": ").append(jsonString(project.getImageCodes().getOrDefault(rutaStr, ""))).append(",\n");
+            sb.append("      \"codigo\": ").append(jsonString(pi.getCodigoCatalogo() != null ? pi.getCodigoCatalogo() : "")).append(",\n");
             sb.append("      \"estado\": \"DISCARDED\",\n");
             sb.append("      \"comentario\": \"\"\n");
             sb.append("    }");

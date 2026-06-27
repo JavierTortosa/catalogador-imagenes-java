@@ -45,7 +45,7 @@ public class VisorV2 {
     // GENERAL
     
     // FIXME añadir F1 para que muestre el panel de informacion
-    // FIXME añadir ctrl + 1-5 para activar el modo visor, proyecto, cliente, datos, carrousel
+    // TODO añadir ctrl + 1-5 para activar el modo visor, proyecto, cliente, datos, carrousel
     
     
     // VISUALIZADOR
@@ -62,8 +62,14 @@ public class VisorV2 {
     // TODO en el panel de pdf, poder ordenar las imagenes mediante drag & drop o algun otro sistema
     // FIXME el panel de detalles de pdf no tiene el split para ajustar la altura
     // FIXME han desaparecido los botones que añadian un comentario debajo de el thumbnail del grid y el boton que pone un marco del color del estado de la imagen segun el panel de asociaciones
+    // FIXME la barra de ubicacion del proyecto es muy alta. y no se ve el texto que contiene
+    
+    // FIXME cuando voy pulsando la barra espaciadora para pasar de seleccion a descartes en el panel de asignaciones, a veces pierde el foco y selecciona una imagen distinta de la que tocaria
+    
+    
     
     // TOOLBAR
+    
     // FIXME el boton que muestra los botones ocultos por el tamaño de la ventana de la aplicacion no aparece al inicio de la aplicacion en ventana
     
     

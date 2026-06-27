@@ -812,7 +812,7 @@ public class ActionFactory {
     // --- Acciones del Modo Cliente ---
 
     private Action createClientExportWebAction() {
-        return new AbstractAction() {
+        AbstractAction action = new AbstractAction() {
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -826,10 +826,12 @@ public class ActionFactory {
                 }
             }
         };
+        action.setEnabled(false);
+        return action;
     }
 
     private Action createClientExportarHtmlAction() {
-        return new AbstractAction() {
+        AbstractAction action = new AbstractAction() {
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -838,6 +840,8 @@ public class ActionFactory {
                 }
             }
         };
+        action.setEnabled(false);
+        return action;
     }
 
     private Action createClientCargarRespuestaAction() {
@@ -1571,7 +1575,7 @@ public class ActionFactory {
     }
 
     private Action createCompartirClienteAction() {
-        return new AbstractAction("Compartir al Cliente") {
+        AbstractAction action = new AbstractAction("Compartir al Cliente") {
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -1580,6 +1584,8 @@ public class ActionFactory {
                 }
             }
         };
+        action.setEnabled(false);
+        return action;
     }
 
     /**

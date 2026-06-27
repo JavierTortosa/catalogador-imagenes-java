@@ -13,6 +13,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 import javax.swing.UIManager;
 
+import modelo.proyecto.ProjectImage;
 import modelo.proyecto.ProjectModel;
 import modelo.proyecto.SelectionState;
 import servicios.ProjectManager;
@@ -55,10 +56,14 @@ public class ClientListCellRenderer extends DefaultListCellRenderer {
             SelectionState state = SelectionState.DISCARDED;
             boolean hasComment = false;
 
-            if (project != null && project.hasClientSelection()) {
-                state = project.getClientSelection().getImages().getOrDefault(pathString, SelectionState.DISCARDED);
-                hasComment = project.getClientSelection().getComments().containsKey(pathString) && 
-                             !project.getClientSelection().getComments().get(pathString).trim().isEmpty();
+            if (project != null) {
+                String canonical = ProjectModel.normalizarClaveImagen(pathString);
+                ProjectImage pi = project.getMasterImages().get(canonical);
+                if (pi != null) {
+                    state = pi.getEstadoCliente();
+                    String comment = pi.getComment();
+                    hasComment = comment != null && !comment.trim().isEmpty();
+                }
             }
 
             // Construir representación visual del estado

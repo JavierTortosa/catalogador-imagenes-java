@@ -46,6 +46,7 @@ import controlador.services.ZoomPanService;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
+import modelo.proyecto.ProjectImage;
 import modelo.proyecto.ProjectModel;
 import modelo.proyecto.SelectionState;
 import servicios.ConfigKeys;
@@ -390,40 +391,85 @@ public class GeneralController
                     sincronizarEstadoBotonesDeModo();
                     return;
                 }
+                // Tras cargar un proyecto, si está compartido, ofrecer modo cliente
+                // Solo si no estamos ya en modo cliente (evita loops con .prjcl redirect)
+                ProjectModel proyecto = visorController.getProjectManager().getCurrentProject();
+                if (proyecto != null && proyecto.isSharedWithClient()
+                        && model.getCurrentWorkMode() != WorkMode.CLIENTE) {
+                    int resp = JOptionPane.showConfirmDialog(null,
+                            "El proyecto está compartido con el cliente.\n"
+                            + "¿Quieres entrar en modo cliente?",
+                            "Proyecto Compartido",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE);
+                    if (resp == JOptionPane.YES_OPTION) {
+                        modoDestino = WorkMode.CLIENTE;
+                    }
+                }
             }
         }
-        // --- FIN DE LA PRE-VALIDACIÓN ---
+
+        // --- Si una llamada recursiva (.prjcl) ya cambió el modo, abortar ---
+        if (model.getCurrentWorkMode() != modoActual) {
+            logger.debug("[GeneralController] Modo ya cambiado por llamada recursiva ({}). Abortando transición original {} -> {}.",
+                    model.getCurrentWorkMode(), modoActual, modoDestino);
+            sincronizarEstadoBotonesDeModo();
+            return;
+        }
+        // --- FIN DETECCIÓN RECURSIVA ---
 
         // --- PRE-VALIDACIÓN PARA MODO CLIENTE ---
         if (modoDestino == WorkMode.CLIENTE) {
             ProjectModel proyecto = visorController.getProjectManager().getCurrentProject();
             boolean hayDatosProyecto = !proyecto.getSelectedImages().isEmpty()
                     || !proyecto.getDiscardedImages().isEmpty();
-            boolean hayDatosCliente = proyecto.hasClientSelection()
-                    && !proyecto.getClientSelection().getImages().isEmpty();
+            boolean hayDatosCliente;
+            if (proyecto.getSchemaVersion() >= 2) {
+                hayDatosCliente = proyecto.getMasterImages().values().stream()
+                        .anyMatch(pi -> pi.getEstadoCliente() != SelectionState.UNDEFINED);
+            } else {
+                hayDatosCliente = proyecto.hasClientSelection()
+                        && !proyecto.getClientSelection().getImages().isEmpty();
+            }
+            boolean isShared = proyecto.isSharedWithClient();
 
-                if (!hayDatosProyecto && !hayDatosCliente) {
-                    logger.warn("[GeneralController] Modo cliente sin datos. Solicitando abrir proyecto...");
-                    int opcion = JOptionPane.showConfirmDialog(null,
-                            "No hay datos de proyecto ni de cliente.\n"
-                            + "¿Quieres abrir un proyecto (.prj)?",
-                            "Modo Cliente - Sin datos",
-                            JOptionPane.YES_NO_OPTION,
-                            JOptionPane.QUESTION_MESSAGE);
-                    if (opcion == JOptionPane.YES_OPTION) {
-                        handleOpenProject();
-                        proyecto = visorController.getProjectManager().getCurrentProject();
-                        hayDatosProyecto = !proyecto.getSelectedImages().isEmpty()
-                                || !proyecto.getDiscardedImages().isEmpty();
-                        if (!hayDatosProyecto) {
-                            sincronizarEstadoBotonesDeModo();
-                            return;
-                        }
-                    } else {
+            // --- Bloquear si proyecto compartido pero con imágenes sin código ---
+            if (isShared && proyecto.hasAnyImageWithoutCode()) {
+                logger.warn("[GeneralController] Modo cliente bloqueado: hay imágenes sin código de catálogo.");
+                JOptionPane.showMessageDialog(null,
+                        "El proyecto está compartido pero contiene imágenes sin código de catálogo.\n"
+                        + "Ve al panel de asignaciones, verifica los archivos y vuelve a compartir\n"
+                        + "con el cliente para generar los códigos antes de entrar en modo cliente.",
+                        "Modo Cliente No Disponible",
+                        JOptionPane.WARNING_MESSAGE);
+                sincronizarEstadoBotonesDeModo();
+                return;
+            }
+            // --- FIN BLOQUEO ---
+
+            if (!hayDatosProyecto && !isShared) {
+                logger.warn("[GeneralController] Modo cliente sin datos ni compartir. Solicitando abrir proyecto...");
+                int opcion = JOptionPane.showConfirmDialog(null,
+                        "No hay datos de proyecto ni está compartido con el cliente.\n"
+                        + "¿Quieres abrir un proyecto (.prj)?",
+                        "Modo Cliente - Sin datos",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE);
+                if (opcion == JOptionPane.YES_OPTION) {
+                    handleOpenProject();
+                    proyecto = visorController.getProjectManager().getCurrentProject();
+                    hayDatosProyecto = !proyecto.getSelectedImages().isEmpty()
+                            || !proyecto.getDiscardedImages().isEmpty();
+                    isShared = proyecto.isSharedWithClient();
+                    if (!hayDatosProyecto && !isShared) {
                         sincronizarEstadoBotonesDeModo();
                         return;
                     }
-            } else if (hayDatosProyecto && !hayDatosCliente) {
+                } else {
+                    sincronizarEstadoBotonesDeModo();
+                    return;
+                }
+            } else if (hayDatosProyecto && !isShared) {
                 logger.warn("[GeneralController] Intento de entrar en modo cliente sin compartir proyecto.");
                 JOptionPane.showMessageDialog(null,
                         "El proyecto no está compartido con el cliente.\n"
@@ -696,22 +742,19 @@ public class GeneralController
             }
         } else if (model.getCurrentWorkMode() == WorkMode.CLIENTE) {
             if (clientController != null) {
-                // En modo Cliente el toggle alterna entre selección y descarte del cliente
                 ProjectModel project = clientController.getProjectManager() != null
                         ? clientController.getProjectManager().getCurrentProject() : null;
                 String currentKey = model.getSelectedImageKey();
                 if (project != null && currentKey != null) {
-                    SelectionState currentState = project.getClientSelection() != null
-                            ? project.getClientSelection().getImages().get(currentKey) : null;
-                    if (currentState == SelectionState.SELECTED
-                            || (currentState == null && project.getSelectedImages().containsKey(currentKey))) {
-                        clientController.moverADescartesCliente(currentKey);
-                    } else if (currentState == SelectionState.DISCARDED) {
-                        clientController.restaurarDeDescartesCliente(currentKey);
-                    } else {
-                        // UNDEFINED o null → mover a seleccion como SELECTED
-                        clientController.updateClientSelectionState(currentKey, SelectionState.SELECTED);
-                        clientController.restaurarDeDescartesCliente(currentKey);
+                    String canonical = ProjectModel.normalizarClaveImagen(currentKey);
+                    ProjectImage pi = project.getMasterImages().get(canonical);
+                    if (pi != null) {
+                        if (pi.getEstadoCliente() == SelectionState.SELECTED) {
+                            pi.setEstadoCliente(SelectionState.DISCARDED);
+                        } else {
+                            pi.setEstadoCliente(SelectionState.SELECTED);
+                        }
+                        clientController.getProjectManager().notificarModificacion();
                     }
                 }
             }
@@ -1493,8 +1536,9 @@ public class GeneralController
 
         if (currentMode == WorkMode.PROYECTO) {
             gridTarget = registry.get("list.grid.proyecto");
+        } else if (currentMode == WorkMode.CLIENTE) {
+            gridTarget = registry.get("list.grid.cliente");
         } else {
-            // --- CORRECCIÓN: Usamos la clave correcta "list.grid" ---
             gridTarget = registry.get("list.grid");
         }
 

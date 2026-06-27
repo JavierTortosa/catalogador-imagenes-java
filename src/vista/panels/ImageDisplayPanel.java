@@ -25,6 +25,7 @@ import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
 import modelo.proyecto.CommentOverlay;
 import modelo.proyecto.ImageCheckboxOverlay;
+import modelo.proyecto.ProjectModel;
 import modelo.proyecto.SelectionState;
 import vista.theme.ThemeManager;
 
@@ -207,9 +208,10 @@ public class ImageDisplayPanel extends JPanel {
                     && projectManager != null && projectManager.getCurrentProject() != null) {
                 String imageKey = getCurrentImageKey();
                 if (imageKey != null) {
-                    var clientSel = projectManager.getCurrentProject().getClientSelection();
-                    if (clientSel == null) return;
-                    var overlays = clientSel.getImageCheckboxes(imageKey);
+                    String canonicalKey = ProjectModel.normalizarClaveImagen(imageKey);
+                    var pi = projectManager.getCurrentProject().getMasterImages().get(canonicalKey);
+                    if (pi == null) return;
+                    var overlays = pi.getCheckboxes();
                     if (overlays != null && !overlays.isEmpty()) {
                         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                         for (var overlay : overlays) {
@@ -303,7 +305,7 @@ public class ImageDisplayPanel extends JPanel {
                     }
 
                     // --- DIBUJAR COMENTARIOS (CommentOverlay) ---
-                    var commentOverlay = clientSel.getCommentOverlays().get(imageKey);
+                    var commentOverlay = pi.getCommentOverlay();
                     if (commentOverlay != null && commentOverlay.getText() != null
                             && !commentOverlay.getText().isEmpty()) {
                         java.awt.geom.Point2D src = new java.awt.geom.Point2D.Double(
@@ -400,7 +402,8 @@ public class ImageDisplayPanel extends JPanel {
         String selectedKey = model.getSelectedImageKey();
         if (selectedKey == null) return null;
         java.nio.file.Path fullPath = model.getRutaCompleta(selectedKey);
-        return fullPath != null ? fullPath.toString() : null;
+        if (fullPath != null) return fullPath.toString();
+        return selectedKey;
     } // --- Fin del método getCurrentImageKey ---
 
     public AffineTransform getCurrentImageTransform() {

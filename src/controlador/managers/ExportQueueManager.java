@@ -52,16 +52,22 @@ public class ExportQueueManager {
         List<ExportItem> nuevaCola = new ArrayList<>();
 
         for (Path rutaImagen : rutasSeleccionadas) {
+            String claveImagen = rutaImagen.toString().replace("\\", "/");
+            modelo.proyecto.ExportConfig config = (exportConfigsFromProject != null) ? exportConfigsFromProject.get(claveImagen) : null;
+
             if (estadoAntiguo.containsKey(rutaImagen)) {
-                // Si el item ya estaba en memoria (ej. el usuario ya interactuó con él), lo preservamos.
-                nuevaCola.add(estadoAntiguo.get(rutaImagen));
+                // Preservar item en memoria pero actualizar código si el config ahora lo tiene
+                ExportItem itemPreservado = estadoAntiguo.get(rutaImagen);
+                if ((itemPreservado.getCodigoCatalogo() == null || itemPreservado.getCodigoCatalogo().isBlank())
+                        && config != null && config.getCodigoCatalogo() != null) {
+                    itemPreservado.setCodigoCatalogo(config.getCodigoCatalogo());
+                }
+                nuevaCola.add(itemPreservado);
             } else {
                 // Si es un item nuevo (ej. al cargar el proyecto), lo construimos desde cero.
                 ExportItem itemNuevo = new ExportItem(rutaImagen);
-                String claveImagen = rutaImagen.toString().replace("\\", "/");
 
                 // --- INICIO DE LA LÓGICA DE CARGA MEJORADA ---
-                modelo.proyecto.ExportConfig config = (exportConfigsFromProject != null) ? exportConfigsFromProject.get(claveImagen) : null;
 
                 if (config != null) {
                     // --- Prioridad 1: Hay configuración guardada para esta imagen ---

@@ -366,6 +366,11 @@ public class AppModeService {
             }
         }
 
+        // --- LÓGICA AL SALIR DEL MODO CLIENTE ---
+        if (modoQueSeAbandona == WorkMode.CLIENTE && clientController != null) {
+            clientController.guardarEstado();
+        }
+
         // --- LÓGICA DEL CARRUSEL (se mantiene igual) ---
         if (modoQueSeAbandona == WorkMode.CARROUSEL && !model.isSyncVisualizadorCarrusel()) {
             ListContext carruselCtx = model.getCarouselListContext();
@@ -473,6 +478,9 @@ public class AppModeService {
                     case CLIENTE:
                         if (clientController != null) {
                             clientController.activarVistaCliente();
+                        }
+                        if (projectController != null) {
+                            projectController.actualizarEstadoExportacionUI();
                         }
                         break;
                 }

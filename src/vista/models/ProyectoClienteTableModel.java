@@ -2,15 +2,18 @@ package vista.models;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.table.AbstractTableModel;
 
+import modelo.proyecto.ProjectImage;
 import modelo.proyecto.ProjectModel;
 
 /**
- * TableModel para las tablas de selección/descartes del proyecto
- * en modo cliente. Muestra Cod, Nombre y Acciones.
+ * TableModel para las tablas de selecci&oacute;n/descartes del proyecto
+ * en modo cliente. Fuente: project.masterImages.values().
+ * Filtro selecci&oacute;n: pi.isEnSeleccionProyecto() == true
+ * Filtro descartes: pi.isEnSeleccionProyecto() == false
+ * Columnas: C&oacute;digo, Nombre, Etiqueta.
  */
 public class ProyectoClienteTableModel extends AbstractTableModel {
 
@@ -18,32 +21,33 @@ public class ProyectoClienteTableModel extends AbstractTableModel {
 
     public static final int COL_CODIGO = 0;
     public static final int COL_NOMBRE = 1;
-    public static final int COL_ACCIONES = 2;
+    public static final int COL_ETIQUETA = 2;
 
-    private static final String[] COLUMNS = {"Cod", "Nombre", "Acciones"};
+    private static final String[] COLUMNS = {"Cod", "Nombre", "Etiqueta"};
 
-    private final List<String> imageKeys;
+    private final List<ProjectImage> images;
     private final ProjectModel project;
-    private final boolean mostrarSeleccion; // true=selección, false=descartes
+    private final boolean mostrarSeleccion;
+
 
     public ProyectoClienteTableModel(ProjectModel project, boolean mostrarSeleccion) {
         this.project = project;
         this.mostrarSeleccion = mostrarSeleccion;
-        this.imageKeys = new ArrayList<>();
+        this.images = new ArrayList<>();
         refrescar();
     } // --- Fin de metodo ProyectoClienteTableModel (constructor) ---
 
 
     public void refrescar() {
-        imageKeys.clear();
-        if (!project.isSharedWithClient()) {
+        images.clear();
+        if (project.getMasterImages() == null) {
             fireTableDataChanged();
             return;
         }
-        if (mostrarSeleccion) {
-            imageKeys.addAll(project.getSelectedImages().keySet());
-        } else {
-            imageKeys.addAll(project.getDiscardedImages());
+        for (ProjectImage pi : project.getMasterImages().values()) {
+            if (mostrarSeleccion == pi.isEnSeleccionProyecto()) {
+                images.add(pi);
+            }
         }
         fireTableDataChanged();
     } // --- Fin de metodo refrescar ---
@@ -51,7 +55,7 @@ public class ProyectoClienteTableModel extends AbstractTableModel {
 
     @Override
     public int getRowCount() {
-        return imageKeys.size();
+        return images.size();
     } // --- Fin de metodo getRowCount ---
 
 
@@ -67,24 +71,43 @@ public class ProyectoClienteTableModel extends AbstractTableModel {
     } // --- Fin de metodo getColumnName ---
 
 
+    /**
+     * @return la ruta de la imagen en la fila dada, o null si el &iacute;ndice es inv&aacute;lido.
+     */
     public String getImageKey(int row) {
-        return imageKeys.get(row);
+        if (row < 0 || row >= images.size()) return null;
+        return images.get(row).getRutaImagen();
     } // --- Fin de metodo getImageKey ---
+
+
+    /**
+     * @return el ProjectImage en la fila dada, o null si el &iacute;ndice es inv&aacute;lido.
+     */
+    public ProjectImage getProjectImage(int row) {
+        if (row < 0 || row >= images.size()) return null;
+        return images.get(row);
+    } // --- Fin de metodo getProjectImage ---
 
 
     @Override
     public Object getValueAt(int row, int col) {
-        String key = imageKeys.get(row);
-        Map<String, String> codes = project.getImageCodes();
-        String code = codes != null ? codes.getOrDefault(key, "") : "";
+        ProjectImage pi = images.get(row);
         switch (col) {
-            case COL_CODIGO: return code;
-            case COL_NOMBRE: {
-                java.nio.file.Path p = java.nio.file.Paths.get(key);
-                java.nio.file.Path fn = p.getFileName();
-                return fn != null ? fn.toString() : key;
+            case COL_CODIGO: {
+                String code = pi.getCodigoCatalogo();
+                return code != null ? code : "";
             }
-            case COL_ACCIONES: return key;
+            case COL_NOMBRE: {
+                String ruta = pi.getRutaImagen();
+                if (ruta == null || ruta.isEmpty()) return "";
+                java.nio.file.Path p = java.nio.file.Paths.get(ruta);
+                java.nio.file.Path fn = p.getFileName();
+                return fn != null ? fn.toString() : ruta;
+            }
+            case COL_ETIQUETA: {
+                String etiqueta = pi.getEtiqueta();
+                return etiqueta != null ? etiqueta : "";
+            }
             default: return "";
         }
     } // --- Fin de metodo getValueAt ---

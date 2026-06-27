@@ -1,6 +1,7 @@
 package controlador.services.proyecto;
 
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -12,6 +13,7 @@ import controlador.managers.ExportQueueManager;
 import controlador.managers.interfaces.IProjectManager;
 import modelo.proyecto.ExportItem;
 import modelo.proyecto.ExportStatus;
+import modelo.proyecto.ProjectImage;
 import modelo.proyecto.ProjectModel;
 
 public class ProjectSyncService
@@ -33,15 +35,38 @@ public class ProjectSyncService
     {
         if (model == null) return;
 
-        model.getSelectedImages().clear();
+        Map<String, ProjectImage> nuevas = new LinkedHashMap<>();
+        Map<String, ProjectImage> existentes = model.getMasterImages();
+
         for (String clave : elementosSeleccion)
         {
+            String canonical = ProjectModel.normalizarClaveImagen(clave);
+            ProjectImage pi = existentes.get(canonical);
+            if (pi == null) {
+                pi = new ProjectImage(canonical);
+            }
+            pi.setEnSeleccionProyecto(true);
             String etiqueta = etiquetasExistentes.get(clave);
-            model.getSelectedImages().put(clave, etiqueta);
+            if (etiqueta != null) pi.setEtiqueta(etiqueta);
+            nuevas.put(canonical, pi);
         }
 
-        model.getDiscardedImages().clear();
-        model.getDiscardedImages().addAll(elementosDescartes);
+        for (String clave : elementosDescartes)
+        {
+            String canonical = ProjectModel.normalizarClaveImagen(clave);
+            if (!nuevas.containsKey(canonical))
+            {
+                ProjectImage pi = existentes.get(canonical);
+                if (pi == null) {
+                    pi = new ProjectImage(canonical);
+                }
+                pi.setEnSeleccionProyecto(false);
+                nuevas.put(canonical, pi);
+            }
+        }
+
+        model.setMasterImages(nuevas);
+        model.setSchemaVersion(2);
     } // --- Fin del metodo: sincronizarListas ---
 
 

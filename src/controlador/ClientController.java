@@ -4,6 +4,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +22,9 @@ import servicios.ValidationService;
 import servicios.cliente.ClientResponseImporter;
 import servicios.cliente.ClientResponseImporter.ImportReport;
 import servicios.cliente.ClientSyncService;
-import servicios.cliente.ClientSyncService.SyncReport;
+import modelo.proyecto.ImageCheckboxOverlay;
+import modelo.proyecto.ExportConfig;
+import modelo.proyecto.ProjectImage;
 import servicios.cliente.WebCatalogExporter;
 
 import javax.swing.DefaultListModel;
@@ -33,6 +39,8 @@ import javax.swing.event.ListSelectionListener;
 import controlador.managers.interfaces.IProjectManager;
 import controlador.services.proyecto.ExportPreflightService;
 import modelo.VisorModel;
+import vista.models.ClienteTableModel;
+import vista.models.ProyectoClienteTableModel;
 
 /**
  * Controlador principal para el Modo Cliente.
@@ -52,6 +60,9 @@ public class ClientController implements IModoController {
     private ComponentRegistry registry;
     private VisorController visorController;
     private controlador.ProjectListCoordinator projectListCoordinator;
+    private boolean sincronizandoTablas;
+    private boolean gridListenerRegistered;
+    private String lastClientImageKey;
 
     public ClientController() {
         // Inicialización vacía, las dependencias se inyectarán vía setters
@@ -111,8 +122,68 @@ public class ClientController implements IModoController {
         if (registry != null) {
             asignarModelosTablas(project);
         }
+        // Registrar listener para sincronizar tablas cuando cambia la imagen desde el display
+        if (visorController != null && visorController.getModel() != null) {
+            visorController.getModel().setSelectedImageKeyListener(this::sincronizarSeleccionEnTablas);
+        }
+        // Registrar listener de selección en el grid del modo cliente
+        javax.swing.JList<String> gridList = registry != null ? registry.get("list.grid.cliente") : null;
+        if (gridList != null && !gridListenerRegistered) {
+            gridList.addListSelectionListener(e -> {
+                if (!e.getValueIsAdjusting()) {
+                    int idx = gridList.getLeadSelectionIndex();
+                    if (idx >= 0 && idx < gridList.getModel().getSize()) {
+                        String key = gridList.getModel().getElementAt(idx);
+                        if (key != null && visorController != null && visorController.getModel() != null) {
+                            Path fullPath = visorController.getModel().getRutaCompleta(key);
+                            if (fullPath != null) {
+                                visorController.actualizarImagenPrincipalPorPath(fullPath, key);
+                            }
+                        }
+                    }
+                }
+            });
+            gridListenerRegistered = true;
+        }
+
+        // Restaurar imagen seleccionada anteriormente, o seleccionar primera fila
+        restaurarOIniciarSeleccion();
         logger.info("[ClientController] Tablas del Modo Cliente refrescadas.");
     } // --- Fin de metodo activarVistaCliente ---
+
+
+    /**
+     * Restaura la &uacute;ltima imagen seleccionada en modo cliente,
+     * o si es la primera vez, selecciona la primera fila de la tabla de
+     * selecci&oacute;n del proyecto para mostrar una imagen en el visor.
+     */
+    private void restaurarOIniciarSeleccion() {
+        JTable t = registry != null ? registry.get("table.cliente.proyecto.seleccion") : null;
+        if (t == null || t.getRowCount() == 0) return;
+
+        String targetKey = lastClientImageKey;
+        if (targetKey != null) {
+            String canonicalTarget = ProjectModel.normalizarClaveImagen(targetKey);
+            for (int viewRow = 0; viewRow < t.getRowCount(); viewRow++) {
+                int modelRow = t.convertRowIndexToModel(viewRow);
+                javax.swing.table.TableModel m = t.getModel();
+                String rowKey = null;
+                if (m instanceof ProyectoClienteTableModel pctm) {
+                    rowKey = pctm.getImageKey(modelRow);
+                } else if (m instanceof ClienteTableModel ctm) {
+                    rowKey = ctm.getImageKey(modelRow);
+                }
+                if (canonicalTarget != null && canonicalTarget.equals(rowKey)) {
+                    t.setRowSelectionInterval(viewRow, viewRow);
+                    t.scrollRectToVisible(t.getCellRect(viewRow, 0, true));
+                    return;
+                }
+            }
+        }
+        // No hay imagen previa o no se encontró: seleccionar primera fila
+        t.setRowSelectionInterval(0, 0);
+        t.scrollRectToVisible(t.getCellRect(0, 0, true));
+    } // --- Fin de metodo restaurarOIniciarSeleccion ---
 
 
     private void asignarModelosTablas(ProjectModel project) {
@@ -122,20 +193,14 @@ public class ClientController implements IModoController {
             t.setModel(new vista.models.ProyectoClienteTableModel(project, true));
             t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_CODIGO)
                     .setCellRenderer(new vista.renderers.CodeCellRenderer());
-            t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_ACCIONES)
-                    .setCellRenderer(new vista.renderers.ActionCellRenderer(true));
             t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_CODIGO).setMaxWidth(80);
-            t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_ACCIONES).setMaxWidth(80);
         }
         t = registry.get("table.cliente.proyecto.descartes");
         if (t != null) {
             t.setModel(new vista.models.ProyectoClienteTableModel(project, false));
             t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_CODIGO)
                     .setCellRenderer(new vista.renderers.CodeCellRenderer());
-            t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_ACCIONES)
-                    .setCellRenderer(new vista.renderers.ActionCellRenderer(false));
             t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_CODIGO).setMaxWidth(80);
-            t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_ACCIONES).setMaxWidth(80);
         }
         t = registry.get("table.cliente.cliente.seleccion");
         if (t != null) {
@@ -170,25 +235,30 @@ public class ClientController implements IModoController {
             t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_COMENTARIO).setMaxWidth(50);
         }
         refrescarTablas();
-    } // --- Fin de metodo asignarModelosTablas ---
 
-
-    /**
-     * Actualiza el estado de selección de una imagen por parte del cliente.
-     * @param imageKey La ruta/clave de la imagen.
-     * @param newState El nuevo estado (SELECTED, DISCARDED, UNDEFINED).
-     */
-    public void updateClientSelectionState(String imageKey, SelectionState newState) {
-        logger.info("Actualizando estado de cliente para {} a {}", imageKey, newState);
-        if (projectManager != null && projectManager.getCurrentProject() != null) {
-            if (projectManager.getCurrentProject().hasClientSelection()) {
-                String canonicalKey = ProjectModel.normalizarClaveImagen(imageKey);
-                projectManager.getCurrentProject().getClientSelection().getImages().put(canonicalKey, newState);
-                projectManager.notificarModificacion();
-                refrescarTablas();
+        // Poblar el grid del modo cliente con las imágenes seleccionadas del proyecto
+        // usando las claves del VisorModel para que el GridCellRenderer pueda resolverlas
+        javax.swing.JList<String> gridCliente = registry.get("list.grid.cliente");
+        if (gridCliente != null && visorController != null && visorController.getModel() != null) {
+            DefaultListModel<String> gridModel = new DefaultListModel<>();
+            Map<String, Path> rutaCompletaMap = visorController.getModel().getRutaCompletaMap();
+            if (project.getMasterImages() != null && rutaCompletaMap != null) {
+                for (modelo.proyecto.ProjectImage pi : project.getMasterImages().values()) {
+                    if (!pi.isEnSeleccionProyecto()) continue;
+                    String canonicalPath = pi.getRutaImagen();
+                    // Buscar la clave del VisorModel cuya ruta completa coincida
+                    for (Map.Entry<String, Path> entry : rutaCompletaMap.entrySet()) {
+                        if (entry.getValue() != null && canonicalPath != null
+                                && entry.getValue().toString().replace("\\", "/").equals(canonicalPath)) {
+                            gridModel.addElement(entry.getKey());
+                            break;
+                        }
+                    }
+                }
             }
+            gridCliente.setModel(gridModel);
         }
-    } // --- Fin de metodo updateClientSelectionState ---
+    } // --- Fin de metodo asignarModelosTablas ---
 
 
     /**
@@ -200,23 +270,16 @@ public class ClientController implements IModoController {
      */
     public void derivarEstadoImagen(String imageKey) {
         if (projectManager == null || projectManager.getCurrentProject() == null) return;
-        var clientSel = projectManager.getCurrentProject().getClientSelection();
-        if (clientSel == null) return;
+        ProjectModel project = projectManager.getCurrentProject();
         String canonicalKey = ProjectModel.normalizarClaveImagen(imageKey);
-        var checkboxes = clientSel.getImageCheckboxes(canonicalKey);
+        ProjectImage pi = project.getMasterImages().get(canonicalKey);
+        if (pi == null) return;
+        List<ImageCheckboxOverlay> checkboxes = pi.getCheckboxes();
         if (checkboxes == null || checkboxes.isEmpty()) return;
-
-        String imgCode = projectManager.getCurrentProject()
-                .getCodigoImagen(canonicalKey);
 
         boolean hasSelected = false;
         boolean hasUndefined = false;
-        for (var cb : checkboxes) {
-            String compositeKey = imgCode + "_" + cb.getCheckboxCode();
-            clientSel.getImages().put(compositeKey, cb.getState());
-            clientSel.getImages().remove("_" + cb.getCheckboxCode());
-            clientSel.getImages().remove(cb.getCheckboxCode());
-
+        for (ImageCheckboxOverlay cb : checkboxes) {
             switch (cb.getState()) {
                 case SELECTED  -> hasSelected = true;
                 case UNDEFINED -> hasUndefined = true;
@@ -232,7 +295,7 @@ public class ClientController implements IModoController {
         } else {
             derived = SelectionState.DISCARDED;
         }
-        clientSel.getImages().put(canonicalKey, derived);
+        pi.setEstadoCliente(derived);
         projectManager.notificarModificacion();
         refrescarTablas();
     } // --- Fin de metodo derivarEstadoImagen ---
@@ -242,49 +305,75 @@ public class ClientController implements IModoController {
         logger.info("[ClientController] Iniciando flujo de compartir con el cliente...");
         ProjectModel project = projectManager != null ? projectManager.getCurrentProject() : null;
         if (project == null) {
-            JOptionPane.showMessageDialog(null, "No hay ning\u00fan proyecto activo.",
+            JOptionPane.showMessageDialog(null, "No hay ningún proyecto activo.",
                     "Compartir al Cliente", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         if (project.isSharedWithClient()) {
-            if (generalController != null) {
-                generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.CLIENTE);
-            }
+            // === ITERACIÓN: proyecto ya compartido ===
+            compartirIteracion(project);
             return;
         }
 
-        java.util.Map<String, String> selectedImages = project.getSelectedImages();
-        java.util.List<String> discardedImages = project.getDiscardedImages();
+        // === PRIMERA VEZ ===
+        Map<String, String> selectedImages = project.getSelectedImages();
+        List<String> discardedImages = project.getDiscardedImages();
         if (selectedImages == null || selectedImages.isEmpty()) {
-            JOptionPane.showMessageDialog(null, "No hay im\u00e1genes seleccionadas en el proyecto.",
+            JOptionPane.showMessageDialog(null, "No hay imágenes seleccionadas en el proyecto.",
                     "Compartir al Cliente", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         int totalImages = selectedImages.size() + discardedImages.size();
-        java.util.Map<String, String> imageCodes = project.getImageCodes();
-        imageCodes.clear();
+
+        // 1. Preparar masterImages localmente (sin tocar el proyecto aún)
+        Map<String, ProjectImage> master = new LinkedHashMap<>();
+        for (String ruta : selectedImages.keySet()) {
+            String canonical = ProjectModel.normalizarClaveImagen(ruta);
+            ProjectImage pi = null;
+            // Preservar datos existentes si ya hay masterImages
+            if (project.getMasterImages() != null && project.getMasterImages().containsKey(canonical)) {
+                pi = project.getMasterImages().get(canonical);
+                pi.setEstadoCliente(SelectionState.UNDEFINED);
+            }
+            if (pi == null) {
+                pi = new ProjectImage(canonical);
+                pi.setEnSeleccionProyecto(true);
+                pi.setEstadoCliente(SelectionState.UNDEFINED);
+                String etiqueta = selectedImages.get(ruta);
+                if (etiqueta != null && !etiqueta.isEmpty()) {
+                    pi.setEtiqueta(etiqueta);
+                }
+            }
+            master.put(canonical, pi);
+        }
+        for (String ruta : discardedImages) {
+            String canonical = ProjectModel.normalizarClaveImagen(ruta);
+            ProjectImage pi = null;
+            if (project.getMasterImages() != null && project.getMasterImages().containsKey(canonical)) {
+                pi = project.getMasterImages().get(canonical);
+                pi.setEstadoCliente(SelectionState.UNDEFINED);
+                pi.setEnSeleccionProyecto(false);
+            }
+            if (pi == null) {
+                pi = new ProjectImage(canonical);
+                pi.setEnSeleccionProyecto(false);
+                pi.setEstadoCliente(SelectionState.UNDEFINED);
+            }
+            master.put(canonical, pi);
+        }
+
+        // 2. Generar códigos correlativos localmente
         int numDigitos = Math.max(3, String.valueOf(totalImages).length());
         String formato = "C%0" + numDigitos + "d";
         int idx = 0;
-
-        for (String rutaImagen : selectedImages.keySet()) {
-            String codigo = String.format(formato, ++idx);
-            imageCodes.put(rutaImagen, codigo);
-            if (project.getExportConfigs().containsKey(rutaImagen)) {
-                project.getExportConfigs().get(rutaImagen).setCodigoCatalogo(codigo);
-            }
-        }
-        for (String rutaImagen : discardedImages) {
-            String codigo = String.format(formato, ++idx);
-            imageCodes.put(rutaImagen, codigo);
-            if (project.getExportConfigs().containsKey(rutaImagen)) {
-                project.getExportConfigs().get(rutaImagen).setCodigoCatalogo(codigo);
-            }
+        for (ProjectImage pi : master.values()) {
+            pi.setCodigoCatalogo(String.format(formato, ++idx));
         }
 
-        java.util.List<String> errores = ExportPreflightService.validarAsignaciones(project);
+        // 3. Validar localmente
+        List<String> errores = ExportPreflightService.validarAsignaciones(master);
         if (!errores.isEmpty()) {
             StringBuilder msg = new StringBuilder(
                     "No se puede compartir el proyecto. Corrige los siguientes errores:\n\n");
@@ -292,21 +381,17 @@ public class ClientController implements IModoController {
                 msg.append(" \u2022 ").append(err).append("\n");
             }
             JOptionPane.showMessageDialog(null, msg.toString(), "Error al Compartir", JOptionPane.ERROR_MESSAGE);
-            return;
+            return; // NO se modifica el proyecto, no hace falta rollback
         }
 
-        ProjectModel.ClientSelection clientSel = new ProjectModel.ClientSelection();
-        for (String rutaImagen : selectedImages.keySet()) {
-            clientSel.getImages().put(rutaImagen, SelectionState.UNDEFINED);
-        }
-        for (String rutaImagen : discardedImages) {
-            clientSel.getImages().put(rutaImagen, SelectionState.DISCARDED);
-        }
-        project.setClientSelection(clientSel);
-
+        // 4. Commit: Aplicar cambios al proyecto
+        project.setMasterImages(master);
         project.setSharedWithClient(true);
         project.setSharedTimestamp(System.currentTimeMillis());
         project.setSharedIteration(1);
+        if (project.getSchemaVersion() < 2) {
+            project.setSchemaVersion(2);
+        }
 
         Path prjPath = projectManager.getArchivoProyectoActivo();
         if (prjPath != null) {
@@ -316,6 +401,15 @@ public class ClientController implements IModoController {
             projectManager.saveAsCopy(prjclPath);
         }
         projectManager.notificarModificacion();
+
+        // Sincronizar códigos de catálogo de ProjectImage → ExportConfig para que el panel de asignaciones los muestre
+        Map<String, ExportConfig> configs = project.getExportConfigs();
+        for (ProjectImage pi : project.getMasterImages().values()) {
+            String code = pi.getCodigoCatalogo();
+            if (code != null && !code.trim().isEmpty()) {
+                configs.computeIfAbsent(pi.getRutaImagen(), k -> new ExportConfig()).setCodigoCatalogo(code);
+            }
+        }
 
         if (visorController != null && visorController.getStatusBarManager() != null) {
             visorController.getStatusBarManager().mostrarMensajeTemporal(
@@ -342,6 +436,101 @@ public class ClientController implements IModoController {
     } // --- Fin de metodo compartirConCliente ---
 
 
+    private void compartirIteracion(ProjectModel project) {
+        Map<String, ProjectImage> masterActual = project.getMasterImages();
+        Map<String, String> selectedImages = project.getSelectedImages();
+        List<String> discardedImages = project.getDiscardedImages();
+
+        // Crear copia local para preparación atómica
+        Map<String, ProjectImage> nuevasMaster = new LinkedHashMap<>(masterActual);
+
+        // Detectar nuevas imgenes en el proyecto no presentes en masterImages
+        int newCount = 0;
+        for (String ruta : selectedImages.keySet()) {
+            String canonical = ProjectModel.normalizarClaveImagen(ruta);
+            if (!nuevasMaster.containsKey(canonical)) {
+                ProjectImage pi = new ProjectImage(canonical);
+                pi.setEnSeleccionProyecto(true);
+                pi.setEstadoCliente(SelectionState.UNDEFINED);
+                nuevasMaster.put(canonical, pi);
+                newCount++;
+            }
+        }
+        for (String ruta : discardedImages) {
+            String canonical = ProjectModel.normalizarClaveImagen(ruta);
+            if (!nuevasMaster.containsKey(canonical)) {
+                ProjectImage pi = new ProjectImage(canonical);
+                pi.setEnSeleccionProyecto(false);
+                pi.setEstadoCliente(SelectionState.DISCARDED);
+                nuevasMaster.put(canonical, pi);
+                newCount++;
+            }
+        }
+
+        // Generar códigos para todas las imágenes que no tengan (nuevas o añadidas desde el visor)
+        int maxCode = 0;
+        for (ProjectImage pi : nuevasMaster.values()) {
+            String code = pi.getCodigoCatalogo();
+            if (code != null && code.startsWith("C")) {
+                try {
+                    int num = Integer.parseInt(code.substring(1));
+                    maxCode = Math.max(maxCode, num);
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        int numDigitos = Math.max(3, String.valueOf(nuevasMaster.size()).length());
+        String formato = "C%0" + numDigitos + "d";
+        int idx = maxCode;
+        for (ProjectImage pi : nuevasMaster.values()) {
+            if (pi.getCodigoCatalogo() == null || pi.getCodigoCatalogo().isEmpty()) {
+                pi.setCodigoCatalogo(String.format(formato, ++idx));
+            }
+        }
+
+        // Validar localmente
+        List<String> errores = ExportPreflightService.validarAsignaciones(nuevasMaster);
+        if (!errores.isEmpty()) {
+            StringBuilder msg = new StringBuilder(
+                    "No se puede compartir la nueva iteración. Corrige los siguientes errores:\n\n");
+            for (String err : errores) {
+                msg.append(" \u2022 ").append(err).append("\n");
+            }
+            JOptionPane.showMessageDialog(null, msg.toString(), "Error al Compartir Iteración", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Commit: Aplicar cambios al proyecto
+        project.setMasterImages(nuevasMaster);
+        project.setSharedIteration(project.getSharedIteration() + 1);
+
+        Path prjPath = projectManager.getArchivoProyectoActivo();
+        if (prjPath != null) {
+            String prjName = prjPath.getFileName().toString();
+            Path prjclPath = prjPath.resolveSibling(
+                    prjName.replaceAll("(?i)\\.prj$", "") + ".prjcl");
+            projectManager.saveAsCopy(prjclPath);
+        }
+        projectManager.notificarModificacion();
+
+        // Sincronizar códigos de catálogo de ProjectImage → ExportConfig para que el panel de asignaciones los muestre
+        Map<String, ExportConfig> configsIter = project.getExportConfigs();
+        for (ProjectImage pi : project.getMasterImages().values()) {
+            String code = pi.getCodigoCatalogo();
+            if (code != null && !code.trim().isEmpty()) {
+                configsIter.computeIfAbsent(pi.getRutaImagen(), k -> new ExportConfig()).setCodigoCatalogo(code);
+            }
+        }
+
+        if (generalController != null) {
+            generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.CLIENTE);
+        }
+
+        JOptionPane.showMessageDialog(null,
+                "Nueva iteracion compartida con exito.\n" + (newCount > 0 ? "Se han generado codigos para " + newCount + " imagenes nuevas." : "No hubo imagenes nuevas."),
+                "Compartir Iteracion", JOptionPane.INFORMATION_MESSAGE);
+    } // --- Fin de metodo compartirIteracion ---
+
+
     /**
      * Refresca las listas de selección y descartes del cliente en la UI.
      */
@@ -355,19 +544,18 @@ public class ClientController implements IModoController {
         if (cliSel != null) cliSel.setModel(new DefaultListModel<>());
         if (cliDesc != null) cliDesc.setModel(new DefaultListModel<>());
 
-        if (project.hasClientSelection()) {
-            java.util.Map<String, SelectionState> clientImages = project.getClientSelection().getImages();
-            DefaultListModel<String> cliSelModel = (cliSel != null) ? (DefaultListModel<String>) cliSel.getModel() : null;
-            DefaultListModel<String> cliDescModel = (cliDesc != null) ? (DefaultListModel<String>) cliDesc.getModel() : null;
-            for (java.util.Map.Entry<String, SelectionState> entry : clientImages.entrySet()) {
-                switch (entry.getValue()) {
-                    case SELECTED, UNDEFINED:
-                        if (cliSelModel != null) cliSelModel.addElement(entry.getKey());
-                        break;
-                    case DISCARDED:
-                        if (cliDescModel != null) cliDescModel.addElement(entry.getKey());
-                        break;
-                }
+        DefaultListModel<String> cliSelModel = (cliSel != null) ? (DefaultListModel<String>) cliSel.getModel() : null;
+        DefaultListModel<String> cliDescModel = (cliDesc != null) ? (DefaultListModel<String>) cliDesc.getModel() : null;
+        for (var pi : project.getMasterImages().values()) {
+            String ruta = pi.getRutaImagen();
+            if (ruta == null) continue;
+            switch (pi.getEstadoCliente()) {
+                case SELECTED, UNDEFINED:
+                    if (cliSelModel != null) cliSelModel.addElement(ruta);
+                    break;
+                case DISCARDED:
+                    if (cliDescModel != null) cliDescModel.addElement(ruta);
+                    break;
             }
         }
     } // --- Fin de metodo refrescarListasCliente ---
@@ -387,35 +575,60 @@ public class ClientController implements IModoController {
     } // --- Fin de metodo refrescarTablas ---
 
 
-    public void moverADescartesCliente(String imageKey) {
-        logger.info("[ClientController] Moviendo {} a descartes (proyecto).", imageKey);
-        if (projectManager != null && projectManager.getCurrentProject() != null) {
-            ProjectModel project = projectManager.getCurrentProject();
-            if (project.getSelectedImages().containsKey(imageKey)) {
-                project.getSelectedImages().remove(imageKey);
-                if (!project.getDiscardedImages().contains(imageKey)) {
-                    project.getDiscardedImages().add(imageKey);
+    /**
+     * Sincroniza la selecci&oacute;n de todas las tablas del modo cliente
+     * para que coincidan con la imagen actualmente mostrada en el display.
+     * Se ejecuta cuando el usuario navega desde el panel de visualizaci&oacute;n.
+     *
+     * @param imageKey clave normalizada de la imagen a seleccionar en las tablas.
+     */
+    public void sincronizarSeleccionEnTablas(String imageKey) {
+        if (sincronizandoTablas || registry == null || imageKey == null) return;
+        sincronizandoTablas = true;
+        try {
+            String canonicalKey = ProjectModel.normalizarClaveImagen(imageKey);
+            String[] tableNames = {
+                    "table.cliente.proyecto.seleccion",
+                    "table.cliente.proyecto.descartes",
+                    "table.cliente.cliente.seleccion",
+                    "table.cliente.cliente.descartes"
+            };
+            for (String name : tableNames) {
+                JTable t = registry.get(name);
+                if (t == null) continue;
+                javax.swing.table.TableModel m = t.getModel();
+                for (int viewRow = 0; viewRow < t.getRowCount(); viewRow++) {
+                    int modelRow = t.convertRowIndexToModel(viewRow);
+                    String rowKey = null;
+                    if (m instanceof ProyectoClienteTableModel pctm) {
+                        rowKey = pctm.getImageKey(modelRow);
+                    } else if (m instanceof ClienteTableModel ctm) {
+                        rowKey = ctm.getImageKey(modelRow);
+                    }
+                    if (canonicalKey != null && canonicalKey.equals(rowKey)) {
+                        t.setRowSelectionInterval(viewRow, viewRow);
+                        t.scrollRectToVisible(t.getCellRect(viewRow, 0, true));
+                        break;
+                    }
                 }
-                projectManager.notificarModificacion();
-                refrescarTablas();
             }
-        }
-    } // --- Fin de metodo moverADescartesCliente ---
 
-
-    public void restaurarDeDescartesCliente(String imageKey) {
-        logger.info("[ClientController] Restaurando {} de descartes a selecci\u00f3n.", imageKey);
-        if (projectManager != null && projectManager.getCurrentProject() != null) {
-            ProjectModel project = projectManager.getCurrentProject();
-            if (project.getDiscardedImages().contains(imageKey)) {
-                project.getDiscardedImages().remove(imageKey);
-                project.getSelectedImages().putIfAbsent(imageKey, "");
-                projectManager.notificarModificacion();
-                refrescarTablas();
+            // Sincronizar selección del grid del modo cliente
+            JList<String> gridCliente = registry.get("list.grid.cliente");
+            if (gridCliente != null) {
+                DefaultListModel<String> gridModel = (DefaultListModel<String>) gridCliente.getModel();
+                for (int i = 0; i < gridModel.size(); i++) {
+                    if (canonicalKey.equals(gridModel.get(i))) {
+                        gridCliente.setSelectedIndex(i);
+                        gridCliente.ensureIndexIsVisible(i);
+                        break;
+                    }
+                }
             }
+        } finally {
+            sincronizandoTablas = false;
         }
-    } // --- Fin de metodo restaurarDeDescartesCliente ---
-
+    } // --- Fin de metodo sincronizarSeleccionEnTablas ---
 
     public VisorController getVisorController() {
         return visorController;
@@ -426,8 +639,20 @@ public class ClientController implements IModoController {
      * Cierra el modo cliente: sincroniza cambios al proyecto, desactiva shared,
      * vuelve a modo proyecto y guarda.
      */
+    /**
+     * Guarda el estado actual de la vista cliente (imagen seleccionada)
+     * para restaurarlo al reingresar.
+     */
+    public void guardarEstado() {
+        if (visorController != null && visorController.getModel() != null) {
+            lastClientImageKey = visorController.getModel().getSelectedImageKey();
+        }
+    } // --- Fin de metodo guardarEstado ---
+
+
     public void cerrarCliente() {
         logger.info("[ClientController] Cerrando modo cliente...");
+        guardarEstado();
         ProjectModel project = projectManager != null ? projectManager.getCurrentProject() : null;
         if (project == null) {
             JOptionPane.showMessageDialog(null, "No hay proyecto activo.",
@@ -445,7 +670,7 @@ public class ClientController implements IModoController {
         if (confirm != JOptionPane.YES_OPTION) return;
 
         if (clientSyncService != null && project.hasClientSelection()) {
-            clientSyncService.update(project);
+            clientSyncService.closeAndSync(project);
         }
 
         if (generalController != null) {
@@ -467,6 +692,10 @@ public class ClientController implements IModoController {
             }
         }
 
+        if (visorController != null && visorController.getModel() != null) {
+            visorController.getModel().setSelectedImageKeyListener(null);
+        }
+
         if (generalController != null) {
             generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
         }
@@ -483,10 +712,6 @@ public class ClientController implements IModoController {
     } // --- Fin de metodo cerrarCliente ---
 
 
-    /**
-     * Cierra la revisión actual del cliente, fusionando los cambios en el proyecto.
-     * @return SyncReport con el resumen de cambios, o null si no se pudo completar.
-     */
     public void solicitarUpdateCliente() {
         logger.info("[ClientController] Solicitando update del cliente...");
         if (projectManager == null || projectManager.getCurrentProject() == null) {
@@ -495,7 +720,7 @@ public class ClientController implements IModoController {
             return;
         }
         ProjectModel project = projectManager.getCurrentProject();
-        if (!project.hasClientSelection()
+        if (project.getClientSelection() == null
                 || project.getClientSelection().getFechaRespuesta() == null
                 || project.getClientSelection().getFechaRespuesta().isBlank()) {
             JOptionPane.showMessageDialog(null,
@@ -504,13 +729,32 @@ public class ClientController implements IModoController {
             return;
         }
 
-        if (clientSyncService == null) return;
+        // Construir filas de conflicto desde masterImages
+        List<vista.dialogos.SyncConflictDialog.FilaConflicto> conflictRows = new ArrayList<>();
+        for (ProjectImage pi : project.getMasterImages().values()) {
+            SelectionState clientState = pi.getEstadoCliente();
+            if (clientState == SelectionState.UNDEFINED) continue;
+            SelectionState projectState = pi.isEnSeleccionProyecto()
+                    ? SelectionState.SELECTED : SelectionState.DISCARDED;
+            if (clientState != projectState) {
+                String nombre = pi.getRutaImagen() != null
+                        ? java.nio.file.Paths.get(pi.getRutaImagen()).getFileName().toString() : "";
+                conflictRows.add(new vista.dialogos.SyncConflictDialog.FilaConflicto(
+                        pi.getRutaImagen(),
+                        pi.getCodigoCatalogo() != null ? pi.getCodigoCatalogo() : "",
+                        nombre, projectState, clientState));
+            }
+        }
 
-        java.util.List<servicios.cliente.ClientSyncService.ConflictEntry> conflicts =
-                clientSyncService.computeConflicts(project);
-
-        if (conflicts.isEmpty()) {
-            clientSyncService.update(project);
+        if (conflictRows.isEmpty()) {
+            // Sin conflictos: aplicar estado del cliente directamente
+            for (ProjectImage pi : project.getMasterImages().values()) {
+                if (pi.getEstadoCliente() == SelectionState.SELECTED) {
+                    pi.setEnSeleccionProyecto(true);
+                } else if (pi.getEstadoCliente() == SelectionState.DISCARDED) {
+                    pi.setEnSeleccionProyecto(false);
+                }
+            }
             projectManager.guardarAArchivo();
             projectManager.notificarModificacion();
             refrescarTablas();
@@ -520,11 +764,17 @@ public class ClientController implements IModoController {
         }
 
         JFrame owner = registry != null ? registry.get("frame.principal") : null;
-        vista.dialogos.SyncConflictDialog dialog = new vista.dialogos.SyncConflictDialog(owner, conflicts);
+        vista.dialogos.SyncConflictDialog dialog = new vista.dialogos.SyncConflictDialog(owner, conflictRows);
         dialog.setVisible(true);
 
         if (dialog.isAccepted()) {
-            clientSyncService.applyResolvedConflicts(project, dialog.getResolvedConflicts());
+            Map<String, Boolean> resolved = dialog.getResolvedConflicts();
+            for (Map.Entry<String, Boolean> entry : resolved.entrySet()) {
+                ProjectImage pi = project.getMasterImages().get(entry.getKey());
+                if (pi != null) {
+                    pi.setEnSeleccionProyecto(entry.getValue());
+                }
+            }
             projectManager.guardarAArchivo();
             projectManager.notificarModificacion();
             refrescarTablas();
@@ -535,17 +785,14 @@ public class ClientController implements IModoController {
     } // --- Fin de metodo solicitarUpdateCliente ---
 
 
-    public SyncReport closeAndSyncProject() {
+    public void closeAndSyncProject() {
         logger.info("Cerrando y sincronizando proyecto de cliente...");
         if (projectManager != null && projectManager.getCurrentProject() != null && clientSyncService != null) {
             ProjectModel project = projectManager.getCurrentProject();
-            SyncReport report = clientSyncService.mergeClientResponse(project, null);
-            clientSyncService.closeAndSync(project, null);
+            clientSyncService.closeAndSync(project);
             projectManager.guardarAArchivo();
             projectManager.notificarModificacion();
-            return report;
         }
-        return null;
     } // --- Fin de metodo closeAndSyncProject ---
 
 
@@ -582,8 +829,9 @@ public class ClientController implements IModoController {
             logger.warn("[ClientController] No hay proyecto activo.");
             return;
         }
-        if (project.hasClientSelection()) {
-            project.getClientSelection().getImages().clear();
+        for (var pi : project.getMasterImages().values()) {
+            pi.setEstadoCliente(SelectionState.UNDEFINED);
+            pi.setEstadoClienteOriginal(SelectionState.UNDEFINED);
         }
         projectManager.notificarModificacion();
         activarVistaCliente();

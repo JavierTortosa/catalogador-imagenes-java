@@ -342,331 +342,214 @@ pondrias la opcion de exportar del modo cliente en el panel de asociacion del mo
 *********************************************************************************************************************************************************
 
 
-PLAN DE IMPLEMENTACIÓN — MODO CLIENTE COMPLETO
+[x] 1. Nuevos archivos
 
-FASE 0.0 Iconos para las toolbars
+1.1 modelo/proyecto/ProjectImage.java
+Entrada única de la lista maestra. Campos:
 
-TOOLBAR DE MODO CLIENTE
------------------------
-
-60101-Rotate-X-Axis.png                 -> pasar de seleccion a descartes
-
-60102-Assistant-Square.png              -> panel edicion checkbox y comentarios
-60206-Word-Wrap-Around-Bounding-Box.png	-> Mostrar Checkboxes y comentarios en imagen
-
-60201-User-Followers.png				-> Importar
-60202-User-Following.png                -> Exportar
-60203-User-Share.png                    -> Compartir
-60204-User-Edit-Pencil.png              -> Editar
-60205-User-Check-Validate.png           -> Cerrar
+String rutaImagen — path normalizado (clave primaria)
+String etiqueta — label del usuario
+boolean enSeleccionProyecto — true = selección, false = descarte
+SelectionState estadoCliente — SELECTED / DISCARDED / UNDEFINED
+SelectionState estadoClienteOriginal — snapshot pre-import para detectar conflictos
+String codigoCatalogo — C001, C002...
+ExportConfig exportConfig — exportación y asignaciones
+List<ImageCheckboxOverlay> checkboxes — checkboxes internos (cada uno con su propio SelectionState)
+CommentOverlay commentOverlay — comentario posicionado
+String comment — comentario simple
 
 
-TOOLBAR DEL PANEL DE EDICION DE CHECKBOXS
------------------------------------------
+[x] 2. Modificaciones a ProjectModel.java
 
-60301-Cursor-Area-Selection-1.png       -> añadir checkbox
-60302-Text-Select-Start.png             -> añadir label
-60303-Check-Square-2.png                -> fin del panel de edicion
+Añadir int schemaVersion = 2
+Añadir Map<String, ProjectImage> masterImages (LinkedHashMap para orden predecible)
+Añadir método migrarDesdeV1():
+Recorrer selectedImages → crear ProjectImage con enSeleccionProyecto=true
+Recorrer discardedImages → crear ProjectImage con enSeleccionProyecto=false
+Si hasClientSelection():
+Migrar clientSelection.images → ProjectImage.estadoCliente
+Migrar imageCheckboxes → ProjectImage.checkboxes
+Migrar comments → ProjectImage.comment
+Migrar commentOverlays → ProjectImage.commentOverlay
+Migrar exportConfigs → ProjectImage.exportConfig
+Migrar imageCodes → ProjectImage.codigoCatalogo
+Marcar schemaVersion = 2
+Añadir getters de conveniencia:
+getSelectedImages() → filtro enSeleccionProyecto==true sobre masterImages (mantener firma para compatibilidad temporal)
+getDiscardedImages() → filtro enSeleccionProyecto==false
+hasClientSelection() → masterImages != null && !masterImages.isEmpty()
+getClientSelection() → deprecado, se mantiene como wrapper
 
 
-FASE 0: FUNDACIÓN — Modelo de datos
-0.1 ProjectModel — Estado compartido
-Archivo: src/modelo/proyecto/ProjectModel.java
+[x] 3. ProjectManager.java — Persistencia
 
-Añadir campos a la clase raíz:
-
-private boolean sharedWithClient;        // true si se ha compartido
-private long sharedTimestamp;            // fecha del último compartir
-private int sharedIteration;             // número de iteración (1, 2, 3...)
-private Map<String, String> imageCodes;  // ruta_imagen → "C001"
-Getter/setter para cada campo
-Inicializar en constructor: sharedWithClient = false, imageCodes = new LinkedHashMap<>()
-El timestamp se actualiza cada vez que se exporta el index.html
-
-0.2 SelectionState — Tristate checkbox
-Archivo: src/modelo/proyecto/SelectionState.java
-
-Ya existe SELECTED, DISCARDED, UNDEFINED. Verificar que sea usable como tristate (para el checkbox de flatlaf en la UI). Si no, añadir método:
-
-public static TristateState toTristate(SelectionState s) {
-    return switch(s) {
-        case SELECTED -> TristateState.SELECTED;
-        case DISCARDED -> TristateState.DESELECTED;
-        case UNDEFINED -> TristateState.INDETERMINATE;
-    };
+Al cargar (abrirProyecto):
+if (project.schemaVersion < 2) {
+    project.migrarDesdeV1();
+    project.schemaVersion = 2;
 }
-
-0.3 ImageCheckboxOverlay — Códigos y metadatos
-Archivo: src/modelo/proyecto/ImageCheckboxOverlay.java (crear)
-
-Añadir campos:
-
-private String checkboxCode;   // "C001_01"
-private String comment;        // comentario asociado a este checkbox (no a la imagen)
-private double price;          // PVP
-private int size;              // 32 o 48 (px)
-private boolean selected;      // checked state
-Constructor con todos los campos
-Getters/setters
-
-0.4 ProjectManager — Persistencia de .prjcl
-Archivo: src/servicios/ProjectManager.java
-
-Asegurar que guardarAArchivo() y cargarDeArchivo() manejan correctamente la extensión .prjcl
-Añadir método isPrjclFile(Path) para detectar tipo
-Al guardar .prjcl: incluir sharedWithClient = true, sharedTimestamp, imageCodes
-Al cargar .prjcl: poblar ProjectModel con todos los campos, incluyendo ClientSelection
-
-
-FASE 1: FLUJO "COMPARTIR AL CLIENTE"
-
-1.1 Pre-flight check
-Archivo: src/controlador/services/proyecto/ExportPreflightService.java (o nuevo)
-
-Crear método validarAsignaciones(ProjectModel):
-
-Recorrer selectedImages, verificar que todas tengan ExportConfig con codigoCatalogo no nulo
-Si falta alguna, devolver lista de errores
-Si hay errores, mostrar diálogo y detener flujo
-
-1.2 Generar códigos CXXX
-Archivo: src/controlador/services/proyecto/PdfWorkflowService.java
-
-El método asignarCodigosCatalogo() ya existe. Asegurar que se llame antes de compartir (no solo al exportar PDF).
-
-1.3 Marcar proyecto como compartido
-Archivo: src/controlador/ClientController.java
-
-Crear método compartirConCliente():
-
-Llamar pre-flight check
-Si falla → mostrar errores y detener
-Si ok → asignarCodigosCatalogo()
-project.setSharedWithClient(true)
-project.setSharedTimestamp(now)
-project.setSharedIteration(1)
-Guardar .prj y .prjcl
-Cambiar WorkMode a CLIENTE
-visorController.actualizarImagenPrincipalPorPath(primeraImagen)
-
-1.4 Botón Compartir — Acción completa
-Archivo: src/controlador/factory/ActionFactory.java Método: createCompartirClienteAction()
-
-Modificar para que llame a clientController.compartirCliente() en lugar de (o además de) exportar web.
-
-1.5 Bloquear exportar en modo proyecto
-Archivo: src/controlador/actions/projects/IniciarExportacionAction.java
-
-Leer project.isSharedWithClient()
-Si true → deshabilitar botón con tooltip "Proyecto compartido con cliente. Cierra el modo cliente para exportar."
-
-
-FASE 2: INTERFAZ DEL MODO CLIENTE
-
-2.1 Reemplazar JLists por JTables
-Archivo: src/vista/builders/ClientBuilder.java Método: createListPanel()
-
-Cambiar de JList<String> a JTable con DefaultTableModel:
-
-Tabla Proyecto (izquierda): columnas [código, nombre, acciones]
-
-Botón ↑ por fila: mueve a descartes (si está en selección) o a selección (si está en descartes)
-Botón editar: permite editar el código o etiqueta (con aviso de modificar specs cliente)
-Tabla Cliente (derecha): columnas [estado, código_img, código_checkbox, nombre, comentario]
-
-Columna estado: JTristateCheckBox de FlatLaf
-Columna comentario: icono si tiene comentario, doble click abre el texto
-
-2.2 Modelos de tabla
-Archivo: src/vista/models/ (crear)
-
-ProyectoClienteTableModel extends AbstractTableModel
-ClienteTableModel extends AbstractTableModel
-Ambos con métodos para sincronizar con ProjectModel y ClientSelection.
-
-2.3 Cell Renderers y Editors
-CodeCellRenderer — muestra código CXXX
-TristateCellRenderer / TristateCellEditor — checkbox flatlaf de 3 estados
-CommentCellRenderer — icono + tooltip
-
-2.4 Mover elementos (↑↓ entre selección/descartes)
-Archivo: src/controlador/ClientController.java
-
-Implementar:
-
-moverADescartesCliente(String imageKey) — mueve de selección a descartes
-restaurarDeDescartesCliente(String imageKey) — mueve de descartes a selección
-Conectar a botones de la UI
-
-
-FASE 3: CHECKBOX SYSTEM COMPLETO
-
-3.1 ImageCheckboxOverlay — Completar
-Archivo: src/modelo/proyecto/ImageCheckboxOverlay.java
-
-Añadir campos que faltan según 0.3.
-
-3.2 Panel de edición de checkboxes
-Archivo: src/vista/panels/CheckboxEditorPanel.java (nuevo)
-
-Panel que se abre al pulsar "Panel de Checkbox" (botón separado del toggle):
-
-Muestra la imagen seleccionada en el visor
-Label superior: código de imagen (C001)
-Overlays: checkboxes existentes con cod + pvp + comentario
-Popup menú derecho:
-"Añadir Checkbox" → crea checkbox 48x48 (o 32x32 con submenú), asigna código "C"+nºimagen+nºcheckbox, añade fila a tabla cliente
-"Añadir Comentario" → diálogo input, coloca label en posición del ratón
-"Borrar Checkbox" → elimina si se pulsó sobre uno
-"Poner PVP" → diálogo input precio, coloca label junto al checkbox
-Drag: mover checkbox+PVP juntos; mover comentario independientemente
-
-3.3 Botones en la toolbar del cliente
-Archivo: src/vista/config/UIDefinitionService.java Añadir en toolbar cliente (líneas ~786-806):
-
-"Ver Checkbox" (toggle) — ya existe como CMD_CLIENTE_TOGGLE_CHECKBOX
-"Panel Checkbox" — abre CheckboxEditorPanel
-"Update" — sincroniza (Fase 4)
-
-3.4 Persistencia en .prjcl
-La clase ImageCheckboxOverlay ya se serializa con Gson (está en ClientSelection.imageCheckboxes). Asegurar que todos los nuevos campos (codigo, comment, price, size) se serializan correctamente.
-
-
-FASE 4: BOTÓN UPDATE
-
-4.1 Lógica de sincronización
-Archivo: src/servicios/cliente/ClientSyncService.java
-
-Implementar update():
-
-Antes: generar tabla comparativa de conflictos
-Parte Cliente:
-Selección: checked=OK → queda; checked=X → pasa a descartes; unchecked → sin cambios
-Descartes: checked=OK → pasa a selección; checked=X → queda; unchecked → pasa a selección
-Parte Proyecto: copiar estado de cada imagen de la columna cliente a la columna proyecto
-Guardar .prjcl y .prj
-
-4.2 Tabla comparativa de conflictos
-Archivo: src/vista/panels/SyncConflictDialog.java (nuevo)
-
-Diálogo modal con tabla de 3 columnas:
-
-Nombre imagen
-Estado actual en proyecto
-Estado propuesto por cliente
-Botones por fila: "Mantener proyecto" | "Aceptar cliente" Botón global: "Aplicar todo del cliente"
-
-4.3 Botón Update en UI
-Deshabilitado hasta que exista fechaRespuesta en ClientSelection (primera importación de respuesta). Al pulsar: mostrar diálogo de conflictos, luego aplicar sync.
-
-FASE 5: EXPORTAR INDEX.HTML
-
-5.1 Añadir Thumbnailator
-Archivo: pom.xml
-
-<dependency>
-    <groupId>net.coobird</groupId>
-    <artifactId>thumbnailator</artifactId>
-    <version>0.4.20</version>
-</dependency>
-
-5.2 Refactorizar WebCatalogExporter
-Archivo: src/servicios/cliente/WebCatalogExporter.java
-
-5.2.1 Parámetros configurables:
-
-private int thumbnailSize = 400;
-private double jpegQuality = 0.7;
-private boolean forceJpeg = true;
-
-5.2.2 generarMiniatura con Thumbnailator:
-
-Thumbnails.of(original)
-    .size(thumbnailSize, thumbnailSize)
-    .outputFormat("jpg")
-    .outputQuality(jpegQuality)
-    .toFile(thumbPath);
-
-5.2.3 Dos modos de exportación:
-
-Primer exportar: todas las imágenes de proyecto → selección cliente
-Siguientes: aplicar update primero, luego exportar
-
-5.2.4 Datos de checkbox en data.json: Incluir por cada imagen:
-
-"codigo": "C001",
-"checkboxes": [
-    {"codigo": "C001_01", "x": 100, "y": 200, "precio": "12.50", "comentario": "..."}
-],
-"comentario": "..."
-
-5.2.5 Mejorar index.html:
-
-Código de imagen esquina superior izquierda (fondo negro, texto blanco)
-Precio junto a checkbox (fondo negro, texto blanco)
-Bocadillo de comentario por checkbox
-Botón descargar .prjcl (no solo JSON)
-Mobile-friendly (ya lo es, verificar)
-
-
-FASE 6: BOTÓN CERRAR
-
-6.1 Flujo de cierre
-Archivo: src/controlador/ClientController.java Método: cerrarCliente()
-
-Llamar update (sync cliente → proyecto)
-project.setSharedWithClient(false)
-project.getClientSelection() → vaciar (o mantener como histórico)
-Cambiar WorkMode a PROYECTO
-Guardar .prj
-Habilitar botón exportar
-
-
-FASE 7: GUARDIAS DE SEGURIDAD
-
-7.1 Detectar .prjcl al abrir .prj
-Archivo: src/servicios/ProjectManager.java Método: abrirProyecto()
-
-Antes de abrir un .prj:
-
-Buscar si existe un .prjcl con el mismo nombre en la misma carpeta
-Si existe: preguntar "Este proyecto tiene una sesión de cliente activa. ¿Abrir el .prjcl en su lugar?"
-Si acepta: redirigir a cargarPrjcl()
-
-7.2 Añadir imágenes a proyecto compartido
-Archivo: src/controlador/ProjectController.java Método: donde se añadan imágenes
-
-Si project.isSharedWithClient():
-
-Diálogo: "El proyecto está compartido con el cliente. Las nuevas imágenes se añadirán a selección de proyecto y de cliente. ¿Continuar?"
-Si acepta: añadir a ambas selecciones
-
-7.3 Mover entre selección/descartes en modo compartido
-En los botones de mover ↑↓:
-
-Si isSharedWithClient(): "Estás modificando las especificaciones enviadas al cliente. ¿Continuar?"
-Aceptar → mover normalmente
-
-7.4 Indicador * de modificación
-Aplicar mismo sistema que modo proyecto: cuando se modifica algo en modo cliente, mostrar * en título. Ya existe lógica similar en ProjectManager.notificarModificacion().
-
-
-FASE 8: GOOGLE DRIVE UPLOAD (FUTURO)
-
-No implementar ahora. Queda pendiente para cuando se integre la API de Google Drive.
-
-
-DEPENDENCIAS ENTRE FASES
-Fase 0 (Fundación)
-   ↓
-Fase 1 (Compartir) ──→ Fase 2 (Interfaz)
-   ↓                        ↓
-Fase 3 (Checkboxes) ←───────┘
-   ↓
-Fase 4 (Update)
-   ↓
-Fase 5 (Export HTML) ── requiere Thumbnailator
-   ↓
-Fase 6 (Cerrar)
-   ↓
-Fase 7 (Guardias)
+Al guardar (guardarAArchivo):
+Serializar solo masterImages (y metadatos del proyecto)
+No serializar selectedImages, discardedImages, ClientSelection (campos v1)
+Si aún se necesita .prjcl, usar masterImages como fuente
+
+
+[x] 4. Vistas filtradas (los 4 grids)
+
+ProyectoClienteTableModel.java
+Fuente: project.masterImages.values()
+Filtro selección: pi.enSeleccionProyecto == true
+Filtro descartes: pi.enSeleccionProyecto == false
+Columnas: código, nombre, etiqueta
+ClienteTableModel.java
+Fuente: project.masterImages.values()
+Filtro selección cliente: (pi.estadoCliente == SELECTED || pi.estadoCliente == UNDEFINED) && pi.enSeleccionProyecto == true
+Filtro descartes cliente: pi.estadoCliente == DISCARDED && pi.enSeleccionProyecto == true
+Filas hijas (checkboxes internos): se resuelven desde pi.checkboxes en lugar de claves compuestas imgCode_cbCode
+Columnas: estado (tristate), código img, código cb, comentario, precio
+
+
+[x] 5. ClientSyncService.java — Simplificación drástica (262→40 líneas)
+
+Métodos a eliminar:
+mergeClientResponse() — reemplazado por lógica inline en ClientController
+computeConflicts() — reemplazado por filtro directo sobre masterImages
+applyResolvedConflicts() — reemplazado por asignación directa por imagen
+update() — reemplazado por lógica inline
+Método a mantener/modificar:
+closeAndSync(): iterar masterImages con enSeleccionProyecto==true:
+Si estadoCliente==SELECTED (o algún checkbox interno SELECTED) → se queda en selección
+Si estadoCliente==DISCARDED || UNDEFINED (y ningún checkbox SELECTED) → enSeleccionProyecto = false
+Final: project.setSharedWithClient(false)
+
+
+[x] 6. ClientController.java
+
+compartirConCliente() (modificar para iteraciones)
+1ª vez (proyecto no compartido):
+
+Validar asignaciones (ExportPreflightService)
+Crear masterImages desde proyecto
+Nuevas imágenes → estadoCliente = UNDEFINED
+Generar códigos correlativos
+Guardar .prjcl
+sharedIteration = 1
+Cambiar a modo cliente
+Iteraciones (proyecto ya compartido):
+
+NO resetear estados cliente existentes
+Detectar imágenes en proyecto NO presentes en masterImages:
+Si enSeleccionProyecto==true → añadir con estadoCliente=UNDEFINED
+Si enSeleccionProyecto==false → añadir con estadoCliente=DISCARDED
+Generar códigos solo para las nuevas
+Incrementar sharedIteration
+Validar asignaciones
+Guardar nuevo .prjcl
+cerrarCliente() (modificar)
+Llamar a closeAndSync() (nueva versión)
+Ocultar paneles cliente
+Cambiar a modo proyecto
+Guardar
+solicitarUpdateCliente() (modificar)
+Sin cambios funcionales: sigue aplicando estadoCliente al proyecto
+Pero ahora opera directamente sobre masterImages: enSeleccionProyecto = (estadoCliente == SELECTED)
+Eliminar:
+updateClientSelectionState() — redundante, se hace vía tabla
+moverADescartesCliente() / restaurarDeDescartesCliente() — opera sobre masterImages directamente
+
+
+[x] 7. ClientResponseImporter.java — Merge por código
+
+for (respuesta in json.respuestas) {
+    // Buscar por código de catálogo
+    ProjectImage pi = masterImages.values().stream()
+        .filter(p -> p.codigoCatalogo.equals(respuesta.codigo))
+        .findFirst().orElse(null);
+    if (pi == null) continue; // imagen eliminada del proyecto
+
+    pi.estadoClienteOriginal = pi.estadoCliente;
+    pi.estadoCliente = respuesta.estado;
+    pi.comment = respuesta.comentario;
+
+    for (cbResp in respuesta.checkboxes) {
+        ImageCheckboxOverlay cb = pi.checkboxes.stream()
+            .filter(c -> c.getCheckboxCode().equals(cbResp.codigo))
+            .findFirst().orElse(null);
+        if (cb != null) cb.setState(cbResp.estado);
+    }
+}
+Regla de oro: Nunca toca enSeleccionProyecto.
+
+
+[x] 8. SyncConflictDialog.java — Conflicto imagen por imagen
+
+Estado actual:
+Diálogo que muestra lista de conflictos
+Botón global "Aceptar cliente" / "Mantener proyecto"
+Nuevo diseño:
+Tabla con columnas: | Código | Nombre | Estado Proyecto | Estado Cliente | Resolución |
+En la columna "Resolución": JComboBox por fila con opciones:
+"Respetar proyecto" (default): mantiene enSeleccionProyecto=false
+"Aceptar cliente": cambia enSeleccionProyecto=true
+Botones: Aplicar / Cancelar
+getResolvedConflicts() devuelve Map<String, Boolean> (imageKey → nuevo enSeleccionProyecto)
+
+
+[x] 9. Paneles y handlers de overlays
+
+ClientReviewPanel.java
+Sustituir getClientSelection().getImageCheckboxes(key) → masterImages.get(key).checkboxes
+Sustituir getClientSelection().getImages() → masterImages
+derivarEstadoImagen() se simplifica: opera sobre ProjectImage
+CheckboxEditorMouseHandler.java
+Sustituir accesos a clientSelection por masterImages
+Añadir/editar checkboxes sobre ProjectImage.checkboxes
+ImageDisplayPanel.java
+Leer overlays de ProjectImage.checkboxes en lugar de ClientSelection
+
+
+[x] 10. Servicios de proyecto (simplificar)
+
+ExportPreflightService.java
+Validar masterImages.values() donde enSeleccionProyecto==true
+ProjectSyncService.java
+Eliminar o simplificar drásticamente (ya no hay que sincronizar dos listas)
+ProjectIntegrityService.java
+Detectar huérfanos sobre masterImages en vez de selectedImages + discardedImages
+ProjectFileManagementService.java
+Migrar claves sobre masterImages
+
+
+[x] 11. Archivos sin cambios
+
+Archivo	Razón
+SelectionState.java	Se mantiene exactamente igual
+ImageCheckboxOverlay.java	Sin cambios
+CommentOverlay.java	Sin cambios
+ExportConfig.java	Sin cambios
+AppActionCommands.java	Los comandos no cambian
+ConfigKeys.java	Sin cambios
+ActionFactory.java	Sigue llamando a los mismos comandos
+ViewManager.java	Sin cambios funcionales
+WebCatalogExporter.java	Solo cambiar fuente de datos a masterImages
+
+
+[x] 12. Resumen del flujo completo
+
+VISOR → marco imágenes
+  ↓
+PROYECTO → refino (selección/descarte), panel asignaciones
+  ↓
+COMPARTIR → crea masterImages (nuevas → UNDEFINED, preserva existentes)
+  ↓
+MODO CLIENTE → exporto HTML, reviso checkboxes
+  ↓
+IMPORTAR JSON → merge por código, solo actualiza estadoCliente
+  ↓
+¿Segunda iteración? → VISOR → PROYECTO → ASIGNACIONES → COMPARTIR (merge)
+  ↓
+ACTUALIZAR → (opcional) aplica estadoCliente a enSeleccionProyecto
+  ↓
+CERRAR → UNDEFINED/DISCARDED sin checkbox SELECTED → descartes. Vuelve a PROYECTO.
+  ↓
+EXPORTACIÓN FINAL → STLs + imágenes a carpeta de trabajo

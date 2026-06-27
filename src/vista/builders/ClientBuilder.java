@@ -33,7 +33,9 @@ import controlador.GeneralController;
 import controlador.managers.ToolbarManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
+import modelo.proyecto.ProjectImage;
 import modelo.proyecto.ProjectModel;
+import modelo.proyecto.SelectionState;
 import servicios.ProjectManager;
 import vista.models.ClienteTableModel;
 import vista.models.ProyectoClienteTableModel;
@@ -42,7 +44,6 @@ import vista.panels.GridDisplayPanel;
 import vista.panels.CheckboxEditorPanel;
 import vista.panels.ImageDisplayPanel;
 import vista.panels.PolaroidDisplayPanel;
-import vista.renderers.ActionCellRenderer;
 import vista.renderers.CodeCellRenderer;
 import vista.renderers.CommentCellRenderer;
 import vista.renderers.TristateCellRenderer;
@@ -205,11 +206,7 @@ public class ClientBuilder {
 
         table.getColumnModel().getColumn(ProyectoClienteTableModel.COL_CODIGO)
                 .setCellRenderer(new CodeCellRenderer());
-        table.getColumnModel().getColumn(ProyectoClienteTableModel.COL_ACCIONES)
-                .setCellRenderer(new ActionCellRenderer(isSeleccion));
-
         table.getColumnModel().getColumn(ProyectoClienteTableModel.COL_CODIGO).setMaxWidth(40);
-        table.getColumnModel().getColumn(ProyectoClienteTableModel.COL_ACCIONES).setMaxWidth(70);
 
         table.getColumnModel().getColumn(ProyectoClienteTableModel.COL_NOMBRE).setMinWidth(320);
 
@@ -217,20 +214,23 @@ public class ClientBuilder {
             @Override
             public void mouseClicked(MouseEvent e) {
                 int col = table.columnAtPoint(e.getPoint());
-                int row = table.rowAtPoint(e.getPoint());
-                if (row < 0) return;
+                int viewRow = table.rowAtPoint(e.getPoint());
+                if (viewRow < 0) return;
+                int modelRow = table.convertRowIndexToModel(viewRow);
                 ProyectoClienteTableModel model = (ProyectoClienteTableModel) table.getModel();
-                if (col == ProyectoClienteTableModel.COL_ACCIONES) {
-                    String key = model.getImageKey(row);
-                    String code = model.getValueAt(row, ProyectoClienteTableModel.COL_CODIGO).toString();
-                    String nuevo = JOptionPane.showInputDialog(table,
-                            "Editar c\u00f3digo de cat\u00e1logo:", code);
-                    if (nuevo != null && !nuevo.trim().isEmpty()) {
-                        projectManager.getCurrentProject().getImageCodes().put(key, nuevo.trim());
-                        model.refrescar();
+                if (col == ProyectoClienteTableModel.COL_ETIQUETA) {
+                    ProjectImage pi = model.getProjectImage(modelRow);
+                    if (pi != null) {
+                        String actual = pi.getCodigoCatalogo() != null ? pi.getCodigoCatalogo() : "";
+                        String nuevo = JOptionPane.showInputDialog(table,
+                                "Editar c\u00f3digo de cat\u00e1logo:", actual);
+                        if (nuevo != null && !nuevo.trim().isEmpty()) {
+                            pi.setCodigoCatalogo(nuevo.trim());
+                            model.refrescar();
+                        }
                     }
                 } else {
-                    String key = model.getImageKey(row);
+                    String key = model.getImageKey(modelRow);
                     if (key != null && clientController.getVisorController() != null) {
                         clientController.getVisorController()
                                 .actualizarImagenPrincipalPorPath(Paths.get(key), key);
@@ -241,19 +241,20 @@ public class ClientBuilder {
 
         table.addMouseWheelListener(e -> {
             ProyectoClienteTableModel model = (ProyectoClienteTableModel) table.getModel();
-            int total = model.getRowCount();
+            int total = table.getRowCount();
             if (total == 0) return;
-            int row = table.getSelectedRow();
-            int newRow;
+            int viewRow = table.getSelectedRow();
+            int newViewRow;
             if (e.getWheelRotation() < 0) {
-                newRow = (row <= 0) ? 0 : row - 1;
+                newViewRow = (viewRow <= 0) ? 0 : viewRow - 1;
             } else {
-                newRow = (row < 0) ? 0 : Math.min(total - 1, row + 1);
+                newViewRow = (viewRow < 0) ? 0 : Math.min(total - 1, viewRow + 1);
             }
-            if (newRow != row) {
-                table.setRowSelectionInterval(newRow, newRow);
-                table.scrollRectToVisible(table.getCellRect(newRow, 0, true));
-                String key = model.getImageKey(newRow);
+            if (newViewRow != viewRow) {
+                table.setRowSelectionInterval(newViewRow, newViewRow);
+                table.scrollRectToVisible(table.getCellRect(newViewRow, 0, true));
+                int modelRow = table.convertRowIndexToModel(newViewRow);
+                String key = model.getImageKey(modelRow);
                 if (key != null && clientController.getVisorController() != null) {
                     clientController.getVisorController()
                             .actualizarImagenPrincipalPorPath(Paths.get(key), key);
@@ -265,10 +266,11 @@ public class ClientBuilder {
         // Navegación con teclado (flechas arriba/abajo)
         table.getSelectionModel().addListSelectionListener(ev -> {
             if (ev.getValueIsAdjusting()) return;
-            int row = table.getSelectedRow();
-            if (row < 0) return;
+            int viewRow = table.getSelectedRow();
+            if (viewRow < 0) return;
+            int modelRow = table.convertRowIndexToModel(viewRow);
             ProyectoClienteTableModel m = (ProyectoClienteTableModel) table.getModel();
-            String key = m.getImageKey(row);
+            String key = m.getImageKey(modelRow);
             if (key != null && clientController.getVisorController() != null) {
                 clientController.getVisorController()
                         .actualizarImagenPrincipalPorPath(Paths.get(key), key);
@@ -286,21 +288,33 @@ public class ClientBuilder {
                 if (e.isPopupTrigger()) showPopup(e);
             }
             private void showPopup(MouseEvent e) {
-                int row = table.rowAtPoint(e.getPoint());
-                if (row >= 0) table.setRowSelectionInterval(row, row);
-                String key = ((ProyectoClienteTableModel) table.getModel()).getImageKey(table.getSelectedRow());
+                int viewRow = table.rowAtPoint(e.getPoint());
+                if (viewRow >= 0) table.setRowSelectionInterval(viewRow, viewRow);
+                int selViewRow = table.getSelectedRow();
+                int modelRow = table.convertRowIndexToModel(selViewRow);
+                String key = ((ProyectoClienteTableModel) table.getModel()).getImageKey(modelRow);
                 if (key == null) return;
                 JPopupMenu popup = new JPopupMenu();
                 if (isSeleccion) {
                     JMenuItem moverADescartes = new JMenuItem("Mover a descartes");
                     moverADescartes.addActionListener(ev -> {
-                        clientController.moverADescartesCliente(key);
+                        ProjectImage pi = projectManager.getCurrentProject().getMasterImages().get(key);
+                        if (pi != null) {
+                            pi.setEnSeleccionProyecto(false);
+                            projectManager.notificarModificacion();
+                            ((ProyectoClienteTableModel) table.getModel()).refrescar();
+                        }
                     });
                     popup.add(moverADescartes);
                 } else {
                     JMenuItem moverASeleccion = new JMenuItem("Mover a selección");
                     moverASeleccion.addActionListener(ev -> {
-                        clientController.restaurarDeDescartesCliente(key);
+                        ProjectImage pi = projectManager.getCurrentProject().getMasterImages().get(key);
+                        if (pi != null) {
+                            pi.setEnSeleccionProyecto(true);
+                            projectManager.notificarModificacion();
+                            ((ProyectoClienteTableModel) table.getModel()).refrescar();
+                        }
                     });
                     popup.add(moverASeleccion);
                     popup.add(new JPopupMenu.Separator());
@@ -379,42 +393,31 @@ public class ClientBuilder {
         TableColumn commentCol = table.getColumnModel().getColumn(ClienteTableModel.COL_COMENTARIO);
         commentCol.setCellRenderer(new CommentCellRenderer());
 
-        table.getColumnModel().getColumn(ClienteTableModel.COL_NOMBRE).setMinWidth(330);
-
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 int col = table.columnAtPoint(e.getPoint());
-                int row = table.rowAtPoint(e.getPoint());
-                if (row < 0) return;
+                int viewRow = table.rowAtPoint(e.getPoint());
+                if (viewRow < 0) return;
+                int modelRow = table.convertRowIndexToModel(viewRow);
                 ClienteTableModel model = (ClienteTableModel) table.getModel();
-                String key = model.getImageKey(row);
+                String key = model.getImageKey(modelRow);
 
                 if (col == ClienteTableModel.COL_COMENTARIO && e.getClickCount() >= 2) {
-                    ProjectModel currentProject = projectManager.getCurrentProject();
-                    String actual = currentProject != null && currentProject.hasClientSelection()
-                            ? currentProject.getClientSelection().getComments().getOrDefault(key, "")
-                            : "";
+                    String actual = model.getValueAt(modelRow, col).toString();
                     String nuevo = JOptionPane.showInputDialog(table,
                             "Comentario para esta imagen:", actual);
-                    if (nuevo != null && currentProject != null) {
-                        currentProject.getClientSelection().getComments().put(key, nuevo);
-                        model.refrescar();
+                    if (nuevo != null) {
+                        model.setComentario(modelRow, nuevo);
+                        model.fireTableDataChanged();
                     }
                 } else if (col != ClienteTableModel.COL_ESTADO && col != ClienteTableModel.COL_COMENTARIO) {
-                    if (key != null && clientController.getVisorController() != null) {
-                        ProjectModel curProject = projectManager.getCurrentProject();
-                        String resolvedPath = curProject != null ? curProject.resolverClaveImagenCanonica(key) : null;
-                        if (resolvedPath != null) {
-                            String cbCode = null;
-                            int sep = key.lastIndexOf('_');
-                            if (sep > 0 && key.substring(sep + 1).startsWith("cb")) {
-                                cbCode = key.substring(sep + 1);
-                            }
-                            ClientBuilder.this.model.setSelectedCheckboxCode(cbCode);
-                            clientController.getVisorController()
-                                    .actualizarImagenPrincipalPorPath(Paths.get(resolvedPath), resolvedPath);
-                        }
+                    String cbCode = model.isChildRow(modelRow) ? model.getCheckboxCode(modelRow) : null;
+                    ClientBuilder.this.model.setSelectedCheckboxCode(cbCode);
+                    // Solo filas padre navegan a la imagen
+                    if (key != null && clientController.getVisorController() != null && !model.isChildRow(modelRow)) {
+                        clientController.getVisorController()
+                                .actualizarImagenPrincipalPorPath(Paths.get(key), key);
                     }
                 }
             }
@@ -422,56 +425,46 @@ public class ClientBuilder {
 
         table.addMouseWheelListener(e -> {
             ClienteTableModel model = (ClienteTableModel) table.getModel();
-            int total = model.getRowCount();
+            int total = table.getRowCount();
             if (total == 0) return;
-            int row = table.getSelectedRow();
-            int newRow;
+            int viewRow = table.getSelectedRow();
+            int newViewRow;
             if (e.getWheelRotation() < 0) {
-                newRow = (row <= 0) ? 0 : row - 1;
+                newViewRow = (viewRow <= 0) ? 0 : viewRow - 1;
             } else {
-                newRow = (row < 0) ? 0 : Math.min(total - 1, row + 1);
+                newViewRow = (viewRow < 0) ? 0 : Math.min(total - 1, viewRow + 1);
             }
-            if (newRow != row) {
-                table.setRowSelectionInterval(newRow, newRow);
-                table.scrollRectToVisible(table.getCellRect(newRow, 0, true));
-                String key = model.getImageKey(newRow);
+            if (newViewRow != viewRow) {
+                table.setRowSelectionInterval(newViewRow, newViewRow);
+                table.scrollRectToVisible(table.getCellRect(newViewRow, 0, true));
+                int modelRow = table.convertRowIndexToModel(newViewRow);
+                String key = model.getImageKey(modelRow);
                 if (key != null && clientController.getVisorController() != null) {
-                    ProjectModel curProject = projectManager.getCurrentProject();
-                    String resolvedPath = curProject != null ? curProject.resolverClaveImagenCanonica(key) : null;
-                    if (resolvedPath != null) {
-                        String cbCode = null;
-                        int sep = key.lastIndexOf('_');
-                        if (sep > 0 && key.substring(sep + 1).startsWith("cb")) {
-                            cbCode = key.substring(sep + 1);
-                        }
-                        ClientBuilder.this.model.setSelectedCheckboxCode(cbCode);
+                    String cbCode = model.isChildRow(modelRow) ? model.getCheckboxCode(modelRow) : null;
+                    ClientBuilder.this.model.setSelectedCheckboxCode(cbCode);
+                    if (!model.isChildRow(modelRow)) {
                         clientController.getVisorController()
-                                .actualizarImagenPrincipalPorPath(Paths.get(resolvedPath), resolvedPath);
+                                .actualizarImagenPrincipalPorPath(Paths.get(key), key);
                     }
                 }
             }
             e.consume();
         });
 
-        // Navegación con teclado (flechas arriba/abajo)
+        // Navegación con teclado (flechas arriba/abajo) — solo filas padre navegan a la imagen
         table.getSelectionModel().addListSelectionListener(ev -> {
             if (ev.getValueIsAdjusting()) return;
-            int row = table.getSelectedRow();
-            if (row < 0) return;
+            int viewRow = table.getSelectedRow();
+            if (viewRow < 0) return;
+            int modelRow = table.convertRowIndexToModel(viewRow);
             ClienteTableModel m = (ClienteTableModel) table.getModel();
-            String key = m.getImageKey(row);
+            String key = m.getImageKey(modelRow);
             if (key != null && clientController.getVisorController() != null) {
-                ProjectModel curProject = projectManager.getCurrentProject();
-                String resolvedPath = curProject != null ? curProject.resolverClaveImagenCanonica(key) : null;
-                if (resolvedPath != null) {
-                    String cbCode = null;
-                    int sep = key.lastIndexOf('_');
-                    if (sep > 0 && key.substring(sep + 1).startsWith("cb")) {
-                        cbCode = key.substring(sep + 1);
-                    }
-                    ClientBuilder.this.model.setSelectedCheckboxCode(cbCode);
+                String cbCode = m.isChildRow(modelRow) ? m.getCheckboxCode(modelRow) : null;
+                ClientBuilder.this.model.setSelectedCheckboxCode(cbCode);
+                if (!m.isChildRow(modelRow)) {
                     clientController.getVisorController()
-                            .actualizarImagenPrincipalPorPath(Paths.get(resolvedPath), resolvedPath);
+                            .actualizarImagenPrincipalPorPath(Paths.get(key), key);
                 }
             }
         });
@@ -487,18 +480,21 @@ public class ClientBuilder {
                 if (e.isPopupTrigger()) showPopup(e);
             }
             private void showPopup(MouseEvent e) {
-                int row = table.rowAtPoint(e.getPoint());
-                if (row >= 0) table.setRowSelectionInterval(row, row);
+                int viewRow = table.rowAtPoint(e.getPoint());
+                if (viewRow >= 0) table.setRowSelectionInterval(viewRow, viewRow);
                 ClienteTableModel m = (ClienteTableModel) table.getModel();
-                String key = m.getImageKey(table.getSelectedRow());
+                int selViewRow = table.getSelectedRow();
+                int modelRow = table.convertRowIndexToModel(selViewRow);
+                String key = m.getImageKey(modelRow);
                 if (key == null) return;
                 JPopupMenu popup = new JPopupMenu();
                 if (isSeleccion) {
                     JMenuItem moverADescartes = new JMenuItem("Mover a descartes");
                     moverADescartes.addActionListener(ev -> {
-                        if (projectManager.getCurrentProject() != null
-                                && projectManager.getCurrentProject().hasClientSelection()) {
-                            clientController.moverADescartesCliente(key);
+                        ProjectImage pi = projectManager.getCurrentProject().getMasterImages().get(key);
+                        if (pi != null) {
+                            pi.setEnSeleccionProyecto(false);
+                            projectManager.notificarModificacion();
                             m.refrescar();
                         }
                     });
@@ -506,9 +502,10 @@ public class ClientBuilder {
                 } else {
                     JMenuItem moverASeleccion = new JMenuItem("Mover a selección");
                     moverASeleccion.addActionListener(ev -> {
-                        if (projectManager.getCurrentProject() != null
-                                && projectManager.getCurrentProject().hasClientSelection()) {
-                            clientController.restaurarDeDescartesCliente(key);
+                        ProjectImage pi = projectManager.getCurrentProject().getMasterImages().get(key);
+                        if (pi != null) {
+                            pi.setEnSeleccionProyecto(true);
+                            projectManager.notificarModificacion();
                             m.refrescar();
                         }
                     });
@@ -516,13 +513,17 @@ public class ClientBuilder {
                     popup.add(new JPopupMenu.Separator());
                     JMenuItem borrar = new JMenuItem("Borrar imagen");
                     borrar.addActionListener(ev -> {
-                        if (key != null && projectManager.getCurrentProject() != null
-                                && projectManager.getCurrentProject().hasClientSelection()) {
+                        if (key != null && projectManager.getCurrentProject() != null) {
                             int confirm = JOptionPane.showConfirmDialog(table,
                                     "¿Seguro que quieres eliminar esta imagen de la selección del cliente?",
                                     "Confirmar", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                             if (confirm == JOptionPane.YES_OPTION) {
-                                projectManager.getCurrentProject().getClientSelection().getImages().remove(key);
+                                String canonical = ProjectModel.normalizarClaveImagen(key);
+                                var pi = projectManager.getCurrentProject().getMasterImages().get(canonical);
+                                if (pi != null) {
+                                    pi.setEnSeleccionProyecto(false);
+                                    pi.setEstadoCliente(SelectionState.UNDEFINED);
+                                }
                                 projectManager.notificarModificacion();
                                 m.refrescar();
                             }

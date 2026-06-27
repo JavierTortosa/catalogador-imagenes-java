@@ -20,6 +20,7 @@ import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
 import modelo.proyecto.ImageCheckboxOverlay;
+import modelo.proyecto.ProjectImage;
 import modelo.proyecto.ProjectModel;
 import modelo.proyecto.SelectionState;
 import servicios.ProjectManager;
@@ -98,31 +99,24 @@ public class ClientReviewPanel extends JPanel {
                         draggingOverlayIndex = -1;
                         return;
                     }
+                    String imageKey = getCurrentImageKey();
+                    var pi = getProjectImage(imageKey);
+                    if (pi == null) return;
+                    var overlays = pi.getCheckboxes();
                     int idx = findOverlayAt(e.getX(), e.getY());
-                    if (idx >= 0 && projectManager.getCurrentProject() != null) {
-                        String imageKey = getCurrentImageKey();
-                        if (imageKey != null) {
-                            var overlays = projectManager.getCurrentProject().getClientSelection().getImageCheckboxes(imageKey);
-                            if (idx < overlays.size()) {
-                                var ov = overlays.get(idx);
-                                SelectionState current = ov.getState();
-                                SelectionState next;
-                                switch (current) {
-                                    case SELECTED  -> next = SelectionState.DISCARDED;
-                                    case DISCARDED -> next = SelectionState.UNDEFINED;
-                                    default        -> next = SelectionState.SELECTED;
-                                }
-                                ov.setState(next);
-                                // Sincronizar entrada compuesta
-                                String imgCode = projectManager.getCurrentProject()
-                                        .getCodigoImagen(ProjectModel.normalizarClaveImagen(imageKey));
-                                String compositeKey = imgCode + "_" + ov.getCheckboxCode();
-                                projectManager.getCurrentProject().getClientSelection().getImages().put(compositeKey, next);
-                                derivarEstadoImagen(imageKey);
-                                actualizarModeloTabla();
-                                imagePanel.repaint();
-                            }
+                    if (idx >= 0 && idx < overlays.size()) {
+                        var ov = overlays.get(idx);
+                        SelectionState current = ov.getState();
+                        SelectionState next;
+                        switch (current) {
+                            case SELECTED  -> next = SelectionState.DISCARDED;
+                            case DISCARDED -> next = SelectionState.UNDEFINED;
+                            default        -> next = SelectionState.SELECTED;
                         }
+                        ov.setState(next);
+                        derivarEstadoImagen(imageKey);
+                        actualizarModeloTabla();
+                        imagePanel.repaint();
                     }
                 }
                 draggingOverlayIndex = -1;
@@ -131,10 +125,10 @@ public class ClientReviewPanel extends JPanel {
             @Override
             public void mouseDragged(MouseEvent e) {
                 if (!isActive() || draggingOverlayIndex < 0) return;
-                if (projectManager.getCurrentProject() == null) return;
                 String imageKey = getCurrentImageKey();
-                if (imageKey == null) return;
-                var overlays = projectManager.getCurrentProject().getClientSelection().getImageCheckboxes(imageKey);
+                var pi = getProjectImage(imageKey);
+                if (pi == null) return;
+                var overlays = pi.getCheckboxes();
                 if (draggingOverlayIndex >= overlays.size()) return;
                 AffineTransform transform = getImageTransform();
                 if (transform == null) return;
@@ -170,12 +164,18 @@ public class ClientReviewPanel extends JPanel {
         return imagePanel.getCurrentImageTransform();
     } // --- Fin del método getImageTransform ---
 
+    private ProjectImage getProjectImage(String imageKey) {
+        if (projectManager == null || projectManager.getCurrentProject() == null || imageKey == null) return null;
+        return projectManager.getCurrentProject().getMasterImages()
+                .get(ProjectModel.normalizarClaveImagen(imageKey));
+    } // --- Fin del método getProjectImage ---
+
     private int findOverlayAt(int sx, int sy) {
-        if (projectManager.getCurrentProject() == null) return -1;
         String imageKey = getCurrentImageKey();
-        if (imageKey == null) return -1;
-        var overlays = projectManager.getCurrentProject().getClientSelection().getImageCheckboxes(imageKey);
-        if (overlays == null) return -1;
+        var pi = getProjectImage(imageKey);
+        if (pi == null) return -1;
+        var overlays = pi.getCheckboxes();
+        if (overlays == null || overlays.isEmpty()) return -1;
         for (int i = overlays.size() - 1; i >= 0; i--) {
             Point2D dst = overlayScreenPos(i);
             if (dst == null) continue;
@@ -190,10 +190,10 @@ public class ClientReviewPanel extends JPanel {
     } // --- Fin del método findOverlayAt ---
 
     private Point2D overlayScreenPos(int index) {
-        if (projectManager.getCurrentProject() == null) return null;
         String imageKey = getCurrentImageKey();
-        if (imageKey == null) return null;
-        var overlays = projectManager.getCurrentProject().getClientSelection().getImageCheckboxes(imageKey);
+        var pi = getProjectImage(imageKey);
+        if (pi == null) return null;
+        var overlays = pi.getCheckboxes();
         if (overlays == null || index >= overlays.size()) return null;
         AffineTransform transform = getImageTransform();
         if (transform == null) return null;
@@ -205,10 +205,10 @@ public class ClientReviewPanel extends JPanel {
     } // --- Fin del método overlayScreenPos ---
 
     private void showOverlayPopup(MouseEvent e) {
-        if (projectManager.getCurrentProject() == null) return;
         String imageKey = getCurrentImageKey();
-        if (imageKey == null) return;
-        var overlays = projectManager.getCurrentProject().getClientSelection().getImageCheckboxes(imageKey);
+        var pi = getProjectImage(imageKey);
+        if (pi == null) return;
+        var overlays = pi.getCheckboxes();
         int hitIdx = findOverlayAt(e.getX(), e.getY());
         JPopupMenu popup = new JPopupMenu();
 
@@ -220,17 +220,13 @@ public class ClientReviewPanel extends JPanel {
                 Point2D invSrc = new Point2D.Double(e.getX(), e.getY());
                 Point2D invDst = new Point2D.Double();
                 transform.inverseTransform(invSrc, invDst);
-                String imgCode = projectManager.getCurrentProject()
-                        .getCodigoImagen(ProjectModel.normalizarClaveImagen(getCurrentImageKey()));
                 int seq = overlays.size() + 1;
                 String cbCode = String.format("cb%02d", seq);
                 var ov = new ImageCheckboxOverlay(
                         (int) Math.round(invDst.getX()), (int) Math.round(invDst.getY()),
                         SelectionState.UNDEFINED, "", cbCode, "", 0.0, 32);
                 overlays.add(ov);
-                String compositeKey = imgCode + "_" + cbCode;
-                projectManager.getCurrentProject().getClientSelection().getImages().put(compositeKey, ov.getState());
-                derivarEstadoImagen(getCurrentImageKey());
+                derivarEstadoImagen(imageKey);
                 actualizarModeloTabla();
                 imagePanel.repaint();
             } catch (NoninvertibleTransformException ex) {
@@ -243,14 +239,8 @@ public class ClientReviewPanel extends JPanel {
             JMenuItem removeItem = new JMenuItem("Eliminar checkbox");
             int idx = hitIdx;
             removeItem.addActionListener(ev -> {
-                var ov = overlays.get(idx);
                 overlays.remove(idx);
-                // Eliminar entrada compuesta del cliente
-                String imgCode = projectManager.getCurrentProject()
-                        .getCodigoImagen(ProjectModel.normalizarClaveImagen(getCurrentImageKey()));
-                String compositeKey = imgCode + "_" + ov.getCheckboxCode();
-                projectManager.getCurrentProject().getClientSelection().getImages().remove(compositeKey);
-                derivarEstadoImagen(getCurrentImageKey());
+                derivarEstadoImagen(imageKey);
                 actualizarModeloTabla();
                 imagePanel.repaint();
             });
@@ -271,12 +261,12 @@ public class ClientReviewPanel extends JPanel {
 
         JMenuItem commentItem = new JMenuItem("Añadir comentario...");
         commentItem.addActionListener(ev -> {
-            String currentComment = projectManager.getCurrentProject().getClientSelection()
-                    .getComments().getOrDefault(imageKey, "");
+            String currentComment = pi.getComment();
+            if (currentComment == null) currentComment = "";
             String result = JOptionPane.showInputDialog(this,
                     "Comentario para esta imagen:", currentComment);
             if (result != null) {
-                projectManager.getCurrentProject().getClientSelection().getComments().put(imageKey, result);
+                pi.setComment(result);
                 imagePanel.repaint();
             }
         });
@@ -300,21 +290,14 @@ public class ClientReviewPanel extends JPanel {
      * Todos DISCARDED → imagen DISCARDED.
      */
     private void derivarEstadoImagen(String imageKey) {
-        if (projectManager.getCurrentProject() == null) return;
-        var clientSel = projectManager.getCurrentProject().getClientSelection();
-        if (clientSel == null) return;
-        String canonicalKey = ProjectModel.normalizarClaveImagen(imageKey);
-        var checkboxes = clientSel.getImageCheckboxes(canonicalKey);
+        var pi = getProjectImage(imageKey);
+        if (pi == null) return;
+        var checkboxes = pi.getCheckboxes();
         if (checkboxes == null || checkboxes.isEmpty()) return;
-
-        String imgCode = projectManager.getCurrentProject()
-                .getCodigoImagen(canonicalKey);
 
         boolean hasSelected = false;
         boolean hasUndefined = false;
         for (var cb : checkboxes) {
-            String compositeKey = imgCode + "_" + cb.getCheckboxCode();
-            clientSel.getImages().put(compositeKey, cb.getState());
             switch (cb.getState()) {
                 case SELECTED  -> hasSelected = true;
                 case UNDEFINED -> hasUndefined = true;
@@ -330,7 +313,7 @@ public class ClientReviewPanel extends JPanel {
         } else {
             derived = SelectionState.DISCARDED;
         }
-        clientSel.getImages().put(canonicalKey, derived);
+        pi.setEstadoCliente(derived);
     } // --- Fin del método derivarEstadoImagen ---
 
 
