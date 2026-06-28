@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -15,8 +16,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 
 import modelo.proyecto.ImageCheckboxOverlay;
+import modelo.proyecto.Mensaje;
 import modelo.proyecto.ProjectImage;
 import modelo.proyecto.ProjectModel;
 import modelo.proyecto.SelectionState;
@@ -85,7 +88,7 @@ public class ClientResponseImporter {
 
             String codigo = resp.has("codigo") ? resp.get("codigo").getAsString() : null;
             String estado = resp.has("estado") ? resp.get("estado").getAsString() : "DISCARDED";
-            String comment = resp.has("comentario") ? resp.get("comentario").getAsString() : "";
+            JsonElement commentEl = resp.has("comentario") ? resp.get("comentario") : null;
 
             if (codigo == null || codigo.isEmpty()) {
                 countIgnored++;
@@ -118,8 +121,29 @@ public class ClientResponseImporter {
             }
             pi.setEstadoCliente(state);
 
-            if (comment != null && !comment.trim().isEmpty()) {
-                pi.setComment(comment.trim());
+            if (commentEl != null && !commentEl.isJsonNull()) {
+                if (commentEl.isJsonObject()) {
+                    JsonObject commentObj = commentEl.getAsJsonObject();
+                    if (commentObj.has("hilo")) {
+                        JsonArray hilo = commentObj.getAsJsonArray("hilo");
+                        List<Mensaje> thread = new ArrayList<>();
+                        for (var me : hilo) {
+                            JsonObject mObj = me.getAsJsonObject();
+                            String de = mObj.has("de") ? mObj.get("de").getAsString() : "cliente";
+                            String txt = mObj.has("texto") ? mObj.get("texto").getAsString() : "";
+                            thread.add(new Mensaje(de, txt));
+                        }
+                        pi.setCommentThread(thread);
+                        if (!thread.isEmpty()) {
+                            pi.setComment(thread.get(thread.size() - 1).texto());
+                        }
+                    }
+                } else if (commentEl.isJsonPrimitive()) {
+                    String comment = commentEl.getAsString();
+                    if (comment != null && !comment.trim().isEmpty()) {
+                        pi.setComment(comment.trim());
+                    }
+                }
             }
 
             // Procesar checkboxes internos
@@ -130,6 +154,7 @@ public class ClientResponseImporter {
                     JsonObject cbResp = checkboxesArr.get(ci).getAsJsonObject();
                     String cbCodigo = cbResp.has("codigo") ? cbResp.get("codigo").getAsString() : "";
                     String cbEstado = cbResp.has("estado") ? cbResp.get("estado").getAsString() : "UNDEFINED";
+                    JsonElement cbCommentEl = cbResp.has("comentario") ? cbResp.get("comentario") : null;
 
                     SelectionState cbState;
                     try {
@@ -151,6 +176,30 @@ public class ClientResponseImporter {
                     }
                     if (target != null) {
                         target.setState(cbState);
+                        if (cbCommentEl != null && !cbCommentEl.isJsonNull()) {
+                            if (cbCommentEl.isJsonObject()) {
+                                JsonObject cbObj = cbCommentEl.getAsJsonObject();
+                                if (cbObj.has("hilo")) {
+                                    JsonArray hilo = cbObj.getAsJsonArray("hilo");
+                                    List<Mensaje> thread = new ArrayList<>();
+                                    for (var me : hilo) {
+                                        JsonObject mObj = me.getAsJsonObject();
+                                        String de = mObj.has("de") ? mObj.get("de").getAsString() : "cliente";
+                                        String txt = mObj.has("texto") ? mObj.get("texto").getAsString() : "";
+                                        thread.add(new Mensaje(de, txt));
+                                    }
+                                    target.setCommentThread(thread);
+                                    if (!thread.isEmpty()) {
+                                        target.setComment(thread.get(thread.size() - 1).texto());
+                                    }
+                                }
+                            } else if (cbCommentEl.isJsonPrimitive()) {
+                                String cbComment = cbCommentEl.getAsString();
+                                if (cbComment != null && !cbComment.trim().isEmpty()) {
+                                    target.setComment(cbComment.trim());
+                                }
+                            }
+                        }
                     } else {
                         logger.warn("[ClientResponseImporter] No se encontr\u00f3 checkbox '{}' en imagen con c\u00f3digo '{}'.", cbCodigo, codigo);
                     }

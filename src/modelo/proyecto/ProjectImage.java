@@ -22,6 +22,7 @@ public class ProjectImage {
     private List<ImageCheckboxOverlay> checkboxes;
     private CommentOverlay commentOverlay;
     private String comment;
+    private List<Mensaje> commentThread;
 
     public ProjectImage() {
         this.estadoCliente = SelectionState.UNDEFINED;
@@ -111,11 +112,37 @@ public class ProjectImage {
     }
 
     public String getComment() {
-        return comment;
+        if (comment != null && !comment.isEmpty()) return comment;
+        if (commentThread != null && !commentThread.isEmpty()) {
+            return commentThread.get(commentThread.size() - 1).texto();
+        }
+        return null;
     }
 
     public void setComment(String comment) {
         this.comment = comment;
+    }
+
+    public List<Mensaje> getCommentThread() {
+        if (commentThread == null) {
+            commentThread = new ArrayList<>();
+            if (comment != null && !comment.isEmpty()) {
+                commentThread.add(new Mensaje("nosotros", comment));
+            }
+        }
+        return commentThread;
+    }
+
+    public void setCommentThread(List<Mensaje> thread) {
+        this.commentThread = thread;
+    }
+
+    public void addMensaje(String de, String texto) {
+        getCommentThread().add(new Mensaje(de, texto));
+    }
+
+    public boolean hasThreadMessages() {
+        return commentThread != null && !commentThread.isEmpty();
     }
 
     @Override
@@ -132,14 +159,15 @@ public class ProjectImage {
                 && Objects.equals(exportConfig, that.exportConfig)
                 && Objects.equals(checkboxes, that.checkboxes)
                 && Objects.equals(commentOverlay, that.commentOverlay)
-                && Objects.equals(comment, that.comment);
+                && Objects.equals(comment, that.comment)
+                && Objects.equals(commentThread, that.commentThread);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(rutaImagen, etiqueta, enSeleccionProyecto,
                 estadoCliente, estadoClienteOriginal, codigoCatalogo,
-                exportConfig, checkboxes, commentOverlay, comment);
+                exportConfig, checkboxes, commentOverlay, comment, commentThread);
     }
 
 } // --- Fin de la clase ProjectImage ---

@@ -5,9 +5,11 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Objects;
 
 import javax.swing.BorderFactory;
@@ -33,16 +35,19 @@ import controlador.GeneralController;
 import controlador.managers.ToolbarManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
+import modelo.proyecto.ImageCheckboxOverlay;
+import modelo.proyecto.Mensaje;
 import modelo.proyecto.ProjectImage;
 import modelo.proyecto.ProjectModel;
 import modelo.proyecto.SelectionState;
 import servicios.ProjectManager;
 import vista.models.ClienteTableModel;
 import vista.models.ProyectoClienteTableModel;
+import vista.panels.CheckboxEditorPanel;
 import vista.panels.ClientReviewPanel;
 import vista.panels.GridDisplayPanel;
-import vista.panels.CheckboxEditorPanel;
 import vista.panels.ImageDisplayPanel;
+import vista.panels.MsgPopupDialog;
 import vista.panels.PolaroidDisplayPanel;
 import vista.renderers.CodeCellRenderer;
 import vista.renderers.CommentCellRenderer;
@@ -390,8 +395,11 @@ public class ClientBuilder {
                     }
                 });
 
+        table.getColumnModel().getColumn(ClienteTableModel.COL_PRECIO).setMaxWidth(40);
+
         TableColumn commentCol = table.getColumnModel().getColumn(ClienteTableModel.COL_COMENTARIO);
         commentCol.setCellRenderer(new CommentCellRenderer());
+        commentCol.setMinWidth(120);
 
         table.addMouseListener(new MouseAdapter() {
             @Override
@@ -404,20 +412,35 @@ public class ClientBuilder {
                 String key = model.getImageKey(modelRow);
 
                 if (col == ClienteTableModel.COL_COMENTARIO && e.getClickCount() >= 2) {
-                    String actual = model.getValueAt(modelRow, col).toString();
-                    String nuevo = JOptionPane.showInputDialog(table,
-                            "Comentario para esta imagen:", actual);
-                    if (nuevo != null) {
-                        model.setComentario(modelRow, nuevo);
-                        model.fireTableDataChanged();
+                    ProjectImage pi = model.getProjectImage(modelRow);
+                    if (pi == null) return;
+                    String title;
+                    List<Mensaje> thread;
+                    if (model.isChildRow(modelRow)) {
+                        ImageCheckboxOverlay cb = model.getCheckbox(modelRow);
+                        if (cb == null) return;
+                        thread = cb.getCommentThread();
+                        title = "Mensajes del checkbox " + cb.getCheckboxCode();
+                    } else {
+                        thread = pi.getCommentThread();
+                        title = "Mensajes de la imagen";
                     }
+                    Window owner = javax.swing.SwingUtilities.getWindowAncestor(table);
+                    if (owner == null) {
+                        owner = (Window) registry.get("frame.principal");
+                    }
+                    MsgPopupDialog dlg = new MsgPopupDialog(owner, title, thread,
+                            projectManager, model::fireTableDataChanged);
+                    dlg.setVisible(true);
                 } else if (col != ClienteTableModel.COL_ESTADO && col != ClienteTableModel.COL_COMENTARIO) {
                     String cbCode = model.isChildRow(modelRow) ? model.getCheckboxCode(modelRow) : null;
                     ClientBuilder.this.model.setSelectedCheckboxCode(cbCode);
-                    // Solo filas padre navegan a la imagen
-                    if (key != null && clientController.getVisorController() != null && !model.isChildRow(modelRow)) {
+                    if (key != null && clientController.getVisorController() != null) {
                         clientController.getVisorController()
                                 .actualizarImagenPrincipalPorPath(Paths.get(key), key);
+                        if (model.isChildRow(modelRow)) {
+                            mostrarCheckboxesEnVisor();
+                        }
                     }
                 }
             }
@@ -442,9 +465,10 @@ public class ClientBuilder {
                 if (key != null && clientController.getVisorController() != null) {
                     String cbCode = model.isChildRow(modelRow) ? model.getCheckboxCode(modelRow) : null;
                     ClientBuilder.this.model.setSelectedCheckboxCode(cbCode);
-                    if (!model.isChildRow(modelRow)) {
-                        clientController.getVisorController()
-                                .actualizarImagenPrincipalPorPath(Paths.get(key), key);
+                    clientController.getVisorController()
+                            .actualizarImagenPrincipalPorPath(Paths.get(key), key);
+                    if (model.isChildRow(modelRow)) {
+                        mostrarCheckboxesEnVisor();
                     }
                 }
             }
@@ -462,9 +486,10 @@ public class ClientBuilder {
             if (key != null && clientController.getVisorController() != null) {
                 String cbCode = m.isChildRow(modelRow) ? m.getCheckboxCode(modelRow) : null;
                 ClientBuilder.this.model.setSelectedCheckboxCode(cbCode);
-                if (!m.isChildRow(modelRow)) {
-                    clientController.getVisorController()
-                            .actualizarImagenPrincipalPorPath(Paths.get(key), key);
+                clientController.getVisorController()
+                        .actualizarImagenPrincipalPorPath(Paths.get(key), key);
+                if (m.isChildRow(modelRow)) {
+                    mostrarCheckboxesEnVisor();
                 }
             }
         });
@@ -564,5 +589,11 @@ public class ClientBuilder {
 
         return centerPanel;
     } // --- FIN de metodo createCenterPanel ---
+
+    private void mostrarCheckboxesEnVisor() {
+        if (!model.isClienteCheckboxVisible()) {
+            model.setClienteCheckboxVisible(true);
+        }
+    }
 
 } // --- FIN de clase ClientBuilder ---

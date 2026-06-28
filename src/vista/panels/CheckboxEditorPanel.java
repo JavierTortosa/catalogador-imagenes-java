@@ -28,6 +28,7 @@ public class CheckboxEditorPanel extends JPanel {
     private final ComponentRegistry registry;
     private final ImageDisplayPanel imagePanel;
     private final JLabel headerLabel;
+    private final JLabel zoomLabel;
 
     private final CheckboxEditorMouseHandler mouseHandler;
 
@@ -50,6 +51,10 @@ public class CheckboxEditorPanel extends JPanel {
         headerLabel.setBorder(new EmptyBorder(4, 0, 4, 0));
         topPanel.add(headerLabel, BorderLayout.CENTER);
 
+        zoomLabel = new JLabel("Z: 100%", SwingConstants.RIGHT);
+        zoomLabel.setBorder(new EmptyBorder(4, 4, 4, 4));
+        topPanel.add(zoomLabel, BorderLayout.EAST);
+
         if (editorToolbar != null) {
             editorToolbar.setFloatable(false);
             editorToolbar.setOpaque(false);
@@ -61,12 +66,27 @@ public class CheckboxEditorPanel extends JPanel {
         this.imagePanel = new ImageDisplayPanel(themeManager, model);
         this.imagePanel.setProjectManager(projectManager);
         this.imagePanel.setEditorOverlayInstance(true);
+        this.imagePanel.setUseEditorZoom(true);
         add(imagePanel, BorderLayout.CENTER);
 
         this.mouseHandler = new CheckboxEditorMouseHandler(
                 model, projectManager, registry, imagePanel, headerLabel);
         imagePanel.addMouseListener(mouseHandler);
         imagePanel.addMouseMotionListener(mouseHandler);
+        imagePanel.addMouseWheelListener(e -> {
+            if (!mouseHandler.isActive()) return;
+            int notches = e.getWheelRotation();
+            double factor = imagePanel.getEditorZoomFactor();
+            factor *= (notches < 0) ? 1.15 : 1 / 1.15;
+            factor = Math.max(0.1, Math.min(10.0, factor));
+            imagePanel.setEditorZoomFactor(factor);
+            actualizarZoomLabel();
+        });
+    }
+
+    private void actualizarZoomLabel() {
+        int pct = (int) Math.round(imagePanel.getEditorZoomFactor() * 100);
+        zoomLabel.setText("Z: " + pct + "%");
     }
 
     public void actualizarCabecera() {

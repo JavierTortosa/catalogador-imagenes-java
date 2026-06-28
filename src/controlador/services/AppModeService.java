@@ -404,6 +404,11 @@ public class AppModeService {
                 contextoDestino.setDisplayMode(DisplayMode.GRID);
             }
             
+            // El modo CLIENTE siempre debe arrancar en SINGLE_IMAGE para que la toolbar de zoom sea visible
+            if (modoAlQueSeEntra == WorkMode.CLIENTE) {
+                contextoDestino.setDisplayMode(DisplayMode.SINGLE_IMAGE);
+            }
+            
             DisplayMode modoGuardado = contextoDestino.getDisplayMode();
             displayModeManager.switchToDisplayMode(modoGuardado);
         }

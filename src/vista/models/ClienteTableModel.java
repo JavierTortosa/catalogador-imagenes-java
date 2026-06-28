@@ -18,7 +18,7 @@ import modelo.proyecto.SelectionState;
  * Filtro descartes cliente:
  *   pi.estadoCliente == DISCARDED && pi.enSeleccionProyecto == true
  * Las filas hijas se resuelven desde pi.checkboxes.
- * Columnas: Estado, C&oacute;d IMG, C&oacute;d CB, Comentario, Precio.
+ * Columnas: Estado, C&oacute;d IMG, C&oacute;d CB, Precio, Comentario.
  */
 public class ClienteTableModel extends AbstractTableModel {
 
@@ -27,10 +27,10 @@ public class ClienteTableModel extends AbstractTableModel {
     public static final int COL_ESTADO = 0;
     public static final int COL_CODIGO_IMG = 1;
     public static final int COL_CODIGO_CB = 2;
-    public static final int COL_COMENTARIO = 3;
-    public static final int COL_PRECIO = 4;
+    public static final int COL_PRECIO = 3;
+    public static final int COL_COMENTARIO = 4;
 
-    private static final String[] COLUMNS = {"Estado", "C\u00f3d IMG", "C\u00f3d CB", "Comentario", "Precio"};
+    private static final String[] COLUMNS = {"Estado", "C\u00f3d IMG", "C\u00f3d CB", "Precio", "Comentario"};
 
     private final List<ProjectImage> parentImages;
     private final List<Integer> checkboxIndices; // -1 para filas padre, >=0 para hijas
@@ -107,7 +107,7 @@ public class ClienteTableModel extends AbstractTableModel {
     } // --- Fin de metodo getCheckboxCode ---
 
 
-    private ImageCheckboxOverlay getCheckbox(int row) {
+    public ImageCheckboxOverlay getCheckbox(int row) {
         int idx = checkboxIndices.get(row);
         if (idx < 0) return null;
         ProjectImage pi = parentImages.get(row);
@@ -159,6 +159,13 @@ public class ClienteTableModel extends AbstractTableModel {
                 }
                 return "";
             }
+            case COL_PRECIO: {
+                if (isChildRow(row)) {
+                    ImageCheckboxOverlay cb = getCheckbox(row);
+                    return cb != null ? cb.getPrice() : 0.0;
+                }
+                return 0.0;
+            }
             case COL_COMENTARIO: {
                 if (isChildRow(row)) {
                     ImageCheckboxOverlay cb = getCheckbox(row);
@@ -168,13 +175,6 @@ public class ClienteTableModel extends AbstractTableModel {
                 String cmt = pi.getComment();
                 return cmt != null ? cmt : "";
             }
-            case COL_PRECIO: {
-                if (isChildRow(row)) {
-                    ImageCheckboxOverlay cb = getCheckbox(row);
-                    return cb != null ? cb.getPrice() : 0.0;
-                }
-                return 0.0;
-            }
             default: return "";
         }
     } // --- Fin de metodo getValueAt ---
@@ -183,7 +183,7 @@ public class ClienteTableModel extends AbstractTableModel {
     @Override
     public boolean isCellEditable(int row, int col) {
         if (col == COL_ESTADO) return true;
-        if (col == COL_COMENTARIO) return true;
+        // COL_COMENTARIO se edita via MsgPopupDialog (doble-click)
         return false;
     } // --- Fin de metodo isCellEditable ---
 

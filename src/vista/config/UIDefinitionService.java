@@ -796,14 +796,14 @@ public class UIDefinitionService {
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR_COMO, "7105-guardar_proyecto_como_48x48.png",
                 "Guardar proyecto como...", "cliente"));
         botonesCliente.add(new SeparatorDefinition());
+
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CARGAR_RESPUESTA, "60201-User-Followers.png",
                 "Importar respuesta del cliente (JSON)", "cliente"));
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB, "60202-User-Following.png",
                 "Exportar catálogo web para el cliente", "cliente"));
-        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML, "messages-bubble-text.png", IconScope.COMMON,
-                "Exportar HTML único para el cliente", "cliente", ButtonType.NORMAL));
-        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_COMPARTIR_CLIENTE, "60203-User-Share.png",
-                "Compartir con el cliente", "cliente"));
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML, "60203-User-Share.png",
+                "Exportar HTML único para el cliente", "cliente"));
+        
         botonesCliente.add(new SeparatorDefinition());
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EDITAR, "60204-User-Edit-Pencil.png",
                 "Editar selección", "cliente"));
@@ -1045,12 +1045,13 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORTAR_PDF, "21013-File-Pdf.png",
                 		"Crear PDF", "acciones_exportacion"),
                 new SeparatorDefinition(),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_COMPARTIR_CLIENTE, "21015-Transfer.png",
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_COMPARTIR_CLIENTE, "21016-Ar-Environment.png",
                         "Compartir al Cliente", "acciones_exportacion"),
+                new SeparatorDefinition(),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB, "60202-User-Following.png",
-                        "Exportar catálogo web para el cliente", "acciones_exportacion")
-                
-                
+                        "Exportar catálogo web para el cliente", "acciones_exportacion"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML, "60203-User-Share.png", 
+                        "Exportar HTML único para el cliente", "acciones_exportacion")
         		);
         
 
@@ -1196,7 +1197,7 @@ public class UIDefinitionService {
                 new ToolbarDefinition("acciones_det_exportacion", "Detalles de Exportación", 1550,
                         EnumSet.of(WorkMode.PROYECTO), componentesDetallesExportacion, ToolbarAlignment.FREE),
                 new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 1600,
-                        EnumSet.of(WorkMode.VISUALIZADOR), List.copyOf(botonesControlesImagenInferior),
+                        EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CLIENTE), List.copyOf(botonesControlesImagenInferior),
                         ToolbarAlignment.FREE),
                 new ToolbarDefinition("barra_estado_controles", "Controles de Estado", 1650,
                         EnumSet.allOf(WorkMode.class), componentesBarraEstado, ToolbarAlignment.FREE),

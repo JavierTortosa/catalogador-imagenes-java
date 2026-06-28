@@ -56,6 +56,10 @@ public class ImageDisplayPanel extends JPanel {
     private javax.swing.JPanel navArrowsRightPanel;
 
     private boolean editorOverlayInstance = false;
+    private boolean useEditorZoom = false;
+    private double editorZoomFactor = 1.0;
+    private double editorOffsetX = 0;
+    private double editorOffsetY = 0;
 
     private IProjectManager projectManager;
 
@@ -190,12 +194,20 @@ public class ImageDisplayPanel extends JPanel {
                 scaleY = (double) panelAlto / imagenADibujar.getHeight();
                 at.scale(scaleX, scaleY);
             } else {
-                scaleX = model.getZoomFactor();
-                scaleY = model.getZoomFactor();
-                double xBase = (double) (panelAncho - imagenADibujar.getWidth() * scaleX) / 2;
-                double yBase = (double) (panelAlto - imagenADibujar.getHeight() * scaleY) / 2;
-                at.translate(xBase, yBase);
-                at.translate(model.getImageOffsetX(), model.getImageOffsetY());
+                if (useEditorZoom) {
+                    scaleX = editorZoomFactor;
+                    scaleY = editorZoomFactor;
+                    double xBase = (double) (panelAncho - imagenADibujar.getWidth() * scaleX) / 2;
+                    double yBase = (double) (panelAlto - imagenADibujar.getHeight() * scaleY) / 2;
+                    at.translate(xBase + editorOffsetX, yBase + editorOffsetY);
+                } else {
+                    scaleX = model.getZoomFactor();
+                    scaleY = model.getZoomFactor();
+                    double xBase = (double) (panelAncho - imagenADibujar.getWidth() * scaleX) / 2;
+                    double yBase = (double) (panelAlto - imagenADibujar.getHeight() * scaleY) / 2;
+                    at.translate(xBase, yBase);
+                    at.translate(model.getImageOffsetX(), model.getImageOffsetY());
+                }
                 at.scale(scaleX, scaleY);
             }
 
@@ -391,6 +403,32 @@ public class ImageDisplayPanel extends JPanel {
 
     public boolean isEditorOverlayInstance() {
         return editorOverlayInstance;
+    }
+
+    public void setUseEditorZoom(boolean useEditorZoom) {
+        this.useEditorZoom = useEditorZoom;
+    }
+
+    public void setEditorZoomFactor(double factor) {
+        this.editorZoomFactor = Math.max(0.1, Math.min(10.0, factor));
+        repaint();
+    }
+
+    public double getEditorZoomFactor() {
+        return editorZoomFactor;
+    }
+
+    public void setEditorOffset(double dx, double dy) {
+        this.editorOffsetX += dx;
+        this.editorOffsetY += dy;
+        repaint();
+    }
+
+    public void resetEditorZoom() {
+        this.editorZoomFactor = 1.0;
+        this.editorOffsetX = 0;
+        this.editorOffsetY = 0;
+        repaint();
     }
 
     public void setProjectManager(IProjectManager projectManager) {

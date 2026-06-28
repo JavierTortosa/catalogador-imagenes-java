@@ -587,6 +587,7 @@ public class ClientController implements IModoController {
         sincronizandoTablas = true;
         try {
             String canonicalKey = ProjectModel.normalizarClaveImagen(imageKey);
+            String selCbCode = visorController != null ? visorController.getModel().getSelectedCheckboxCode() : null;
             String[] tableNames = {
                     "table.cliente.proyecto.seleccion",
                     "table.cliente.proyecto.descartes",
@@ -597,6 +598,7 @@ public class ClientController implements IModoController {
                 JTable t = registry.get(name);
                 if (t == null) continue;
                 javax.swing.table.TableModel m = t.getModel();
+                int bestViewRow = -1;
                 for (int viewRow = 0; viewRow < t.getRowCount(); viewRow++) {
                     int modelRow = t.convertRowIndexToModel(viewRow);
                     String rowKey = null;
@@ -604,12 +606,19 @@ public class ClientController implements IModoController {
                         rowKey = pctm.getImageKey(modelRow);
                     } else if (m instanceof ClienteTableModel ctm) {
                         rowKey = ctm.getImageKey(modelRow);
+                        if (canonicalKey != null && canonicalKey.equals(rowKey) && selCbCode != null
+                                && ctm.isChildRow(modelRow) && selCbCode.equals(ctm.getCheckboxCode(modelRow))) {
+                            bestViewRow = viewRow;
+                            break;
+                        }
                     }
-                    if (canonicalKey != null && canonicalKey.equals(rowKey)) {
-                        t.setRowSelectionInterval(viewRow, viewRow);
-                        t.scrollRectToVisible(t.getCellRect(viewRow, 0, true));
-                        break;
+                    if (canonicalKey != null && canonicalKey.equals(rowKey) && bestViewRow < 0) {
+                        bestViewRow = viewRow;
                     }
+                }
+                if (bestViewRow >= 0) {
+                    t.setRowSelectionInterval(bestViewRow, bestViewRow);
+                    t.scrollRectToVisible(t.getCellRect(bestViewRow, 0, true));
                 }
             }
 

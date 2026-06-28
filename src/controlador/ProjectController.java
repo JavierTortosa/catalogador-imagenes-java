@@ -946,9 +946,30 @@ public class ProjectController implements IModoController {
             return;
         }
 
+        // Preservar selección de la tabla de exportación antes del refresco
+        int exportViewRow = -1;
+        JTable tablaExport = getTablaExportacionDesdeRegistro();
+        if (tablaExport != null) {
+            exportViewRow = tablaExport.getSelectionModel().getLeadSelectionIndex();
+        }
+
         logger.debug("  [ProjectController] {} imagen(es) movida(s) a descartes.", movidos);
         refrescarVistaProyectoCompleta();
         reubicarSeleccionTrasOperacionEnLista(registry.get("list.proyecto.nombres"), indiceAncla, "seleccion");
+
+        // Restaurar selección en la misma posición visual del orden actual
+        final int exportViewRowFinal = exportViewRow;
+        final JTable tablaExportFinal = tablaExport;
+        if (tablaExportFinal != null && exportViewRowFinal >= 0) {
+            SwingUtilities.invokeLater(() -> {
+                int maxRow = tablaExportFinal.getRowCount() - 1;
+                int rowToSelect = Math.min(exportViewRowFinal, maxRow);
+                if (rowToSelect >= 0) {
+                    tablaExportFinal.setRowSelectionInterval(rowToSelect, rowToSelect);
+                    tablaExportFinal.scrollRectToVisible(tablaExportFinal.getCellRect(rowToSelect, 0, true));
+                }
+            });
+        }
     } // --- Fin del metodo: moverSeleccionActualADescartes ---
 
 
@@ -991,8 +1012,29 @@ public class ProjectController implements IModoController {
             return;
         }
 
+        // Preservar selección de la tabla de exportación antes del refresco
+        int exportViewRow = -1;
+        JTable tablaExport = getTablaExportacionDesdeRegistro();
+        if (tablaExport != null) {
+            exportViewRow = tablaExport.getSelectionModel().getLeadSelectionIndex();
+        }
+
         logger.debug("  [ProjectController] {} imagen(es) restaurada(s) desde descartes.", restaurados);
         refrescarVistaProyectoCompleta();
+
+        // Restaurar selección en la misma posición visual del orden actual
+        final int rowToPreserve = exportViewRow;
+        final JTable exportTableRef = tablaExport;
+        if (exportTableRef != null && rowToPreserve >= 0) {
+            SwingUtilities.invokeLater(() -> {
+                int maxRow = exportTableRef.getRowCount() - 1;
+                int rowToSelect = Math.min(rowToPreserve, maxRow);
+                if (rowToSelect >= 0) {
+                    exportTableRef.setRowSelectionInterval(rowToSelect, rowToSelect);
+                    exportTableRef.scrollRectToVisible(exportTableRef.getCellRect(rowToSelect, 0, true));
+                }
+            });
+        }
 
         SwingUtilities.invokeLater(() -> {
             JList<String> listaActualizada = registry.get("list.proyecto.descartes");
@@ -1311,12 +1353,10 @@ public class ProjectController implements IModoController {
         Action accionExportHtml = actionMap.get(AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML);
         Action accionExportWeb = actionMap.get(AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB);
         if (enModoCliente) {
-            // En modo cliente: solo botones de cliente si el proyecto está compartido
-            boolean compartido = projectManager != null && projectManager.getCurrentProject() != null
-                    && projectManager.getCurrentProject().isSharedWithClient();
+            // En modo cliente: exportar web/HTML siempre activo; compartir no aplica
             if (accionCompartir != null) accionCompartir.setEnabled(false);
-            if (accionExportHtml != null) accionExportHtml.setEnabled(compartido);
-            if (accionExportWeb != null) accionExportWeb.setEnabled(compartido);
+            if (accionExportHtml != null) accionExportHtml.setEnabled(true);
+            if (accionExportWeb != null) accionExportWeb.setEnabled(true);
         } else {
             boolean puedeCompartirCliente = todosLosSeleccionadosEstanListos && seleccionados > 0 && !hayConflictos;
             if (accionCompartir != null) accionCompartir.setEnabled(puedeCompartirCliente);
@@ -2230,9 +2270,15 @@ public class ProjectController implements IModoController {
         sincronizarModeloConUI();
         sincronizarArchivosAsociadosConModelo();
         sincronizarDescripcionDesdeUI();
+
+        // Primero se establece la nueva ruta activa...
+        projectManager.guardarProyectoComo(archivoDestino);
+
+        // ...y DESPUÉS se actualiza el nombre del proyecto a partir de la nueva ruta.
         sincronizarMetadatosParaGuardado();
 
-        projectManager.guardarProyectoComo(archivoDestino);
+        // Se re-guarda con el nombre correcto.
+        projectManager.guardarAArchivo();
         projectManager.limpiarArchivoTemporal();
         projectManager.markProjectAsSaved();
         generalController.actualizarTituloVentana();
@@ -2301,6 +2347,13 @@ public class ProjectController implements IModoController {
         JList<String> listaDescartesUI = registry.get("list.proyecto.descartes");
         List<String> elementosDescartes = listaDescartesUI != null && listaDescartesUI.getModel() != null
                 ? listModelToList(listaDescartesUI.getModel()) : List.of();
+
+        // Si ambas listas de UI están vacías (modo cliente, .prjcl directo, etc.)
+        // NO reemplazar masterImages para evitar borrar los datos del proyecto.
+        if (elementosSeleccion.isEmpty() && elementosDescartes.isEmpty()) {
+            logger.info("[sincronizarModeloConUI]: Listas de UI vacías, se omite sincronización para preservar masterImages.");
+            return;
+        }
 
         syncService.sincronizarListas(modeloActual, elementosSeleccion, elementosDescartes, etiquetasExistentes);
     } // --- Fin del metodo: sincronizarModeloConUI ---

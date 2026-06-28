@@ -1,5 +1,7 @@
 package modelo.proyecto;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -15,6 +17,7 @@ public class ImageCheckboxOverlay {
     private String label;
     private String checkboxCode;
     private String comment;
+    private List<Mensaje> commentThread;
     private double price;
     private int size;
 
@@ -79,11 +82,37 @@ public class ImageCheckboxOverlay {
     }
 
     public String getComment() {
-        return comment;
+        if (comment != null && !comment.isEmpty()) return comment;
+        if (commentThread != null && !commentThread.isEmpty()) {
+            return commentThread.get(commentThread.size() - 1).texto();
+        }
+        return "";
     }
 
     public void setComment(String comment) {
         this.comment = comment != null ? comment : "";
+    }
+
+    public List<Mensaje> getCommentThread() {
+        if (commentThread == null) {
+            commentThread = new ArrayList<>();
+            if (comment != null && !comment.isEmpty()) {
+                commentThread.add(new Mensaje("nosotros", comment));
+            }
+        }
+        return commentThread;
+    }
+
+    public void setCommentThread(List<Mensaje> thread) {
+        this.commentThread = thread;
+    }
+
+    public void addMensaje(String de, String texto) {
+        getCommentThread().add(new Mensaje(de, texto));
+    }
+
+    public boolean hasThreadMessages() {
+        return commentThread != null && !commentThread.isEmpty();
     }
 
     public double getPrice() {
@@ -110,12 +139,12 @@ public class ImageCheckboxOverlay {
         return imageX == that.imageX && imageY == that.imageY && size == that.size &&
                 Double.compare(that.price, price) == 0 && Objects.equals(state, that.state) &&
                 Objects.equals(label, that.label) && Objects.equals(checkboxCode, that.checkboxCode) &&
-                Objects.equals(comment, that.comment);
+                Objects.equals(comment, that.comment) && Objects.equals(commentThread, that.commentThread);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(imageX, imageY, state, label, checkboxCode, comment, price, size);
+        return Objects.hash(imageX, imageY, state, label, checkboxCode, comment, commentThread, price, size);
     }
 
 }
