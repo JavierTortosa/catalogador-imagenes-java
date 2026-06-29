@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.42.10";
+        version = "V2.44.10";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -62,9 +62,6 @@ public class VisorV2 {
     // TODO en el panel de pdf, poder ordenar las imagenes mediante drag & drop o algun otro sistema
     // FIXME el panel de detalles de pdf no tiene el split para ajustar la altura
     // FIXME han desaparecido los botones que añadian un comentario debajo de el thumbnail del grid y el boton que pone un marco del color del estado de la imagen segun el panel de asociaciones
-    // FIXME la barra de ubicacion del proyecto es muy alta. y no se ve el texto que contiene
-    
-    // FIXME los botones CMD_CLIENTE_EXPORTAR_WEB y CMD_CLIENTE_EXPORTAR_HTML se activan antes de compartir el proyecto con el cliente. si no compartimos no podemos exportar
     
     
     // CLIENTE
@@ -85,9 +82,7 @@ public class VisorV2 {
      		Precio		maxWidth 40   
      		Comentario	sin restricción (rellena)     
      */
-    // TODO añadir un icono de mostrar u ocultar arbol (para mostrar los checkbox hijos) (he subido el icono: 60401-Hierarchy.png"
-    // FIXME no se para que sirve la columna de Etiqueta de la parte de proyecto. si no sirve para nada hay que eliminarla y dar ese espacio al nombre
-    // FIXME cuando he guardado el proyecto desde el mdoo cliente se ha vaciado el .prj
+    //"60401-Hierarchy.png"
     
     
     

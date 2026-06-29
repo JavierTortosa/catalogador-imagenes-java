@@ -391,21 +391,9 @@ public class GeneralController
                     sincronizarEstadoBotonesDeModo();
                     return;
                 }
-                // Tras cargar un proyecto, si está compartido, ofrecer modo cliente
-                // Solo si no estamos ya en modo cliente (evita loops con .prjcl redirect)
-                ProjectModel proyecto = visorController.getProjectManager().getCurrentProject();
-                if (proyecto != null && proyecto.isSharedWithClient()
-                        && model.getCurrentWorkMode() != WorkMode.CLIENTE) {
-                    int resp = JOptionPane.showConfirmDialog(null,
-                            "El proyecto está compartido con el cliente.\n"
-                            + "¿Quieres entrar en modo cliente?",
-                            "Proyecto Compartido",
-                            JOptionPane.YES_NO_OPTION,
-                            JOptionPane.QUESTION_MESSAGE);
-                    if (resp == JOptionPane.YES_OPTION) {
-                        modoDestino = WorkMode.CLIENTE;
-                    }
-                }
+                // Nota: si el proyecto cargado está compartido y tiene .prjcl,
+                // ProjectManager.abrirProyecto() ya preguntó si entrar en modo cliente.
+                // No repetir la pregunta aquí.
             }
         }
 
@@ -461,7 +449,24 @@ public class GeneralController
                     hayDatosProyecto = !proyecto.getSelectedImages().isEmpty()
                             || !proyecto.getDiscardedImages().isEmpty();
                     isShared = proyecto.isSharedWithClient();
-                    if (!hayDatosProyecto && !isShared) {
+                    if (isShared) {
+                        // Proyecto compartido, se continúa a modo cliente
+                    } else if (hayDatosProyecto) {
+                        // Proyecto con datos pero no compartido → ofrecer modo proyecto
+                        logger.warn("[GeneralController] El proyecto abierto no está compartido con el cliente.");
+                        int resp = JOptionPane.showConfirmDialog(null,
+                                "El proyecto no está compartido con el cliente.\n"
+                                + "¿Quieres abrirlo en modo proyecto?",
+                                "Modo Cliente No Disponible",
+                                JOptionPane.YES_NO_OPTION,
+                                JOptionPane.QUESTION_MESSAGE);
+                        if (resp == JOptionPane.YES_OPTION) {
+                            modoDestino = WorkMode.PROYECTO;
+                        } else {
+                            sincronizarEstadoBotonesDeModo();
+                            return;
+                        }
+                    } else {
                         sincronizarEstadoBotonesDeModo();
                         return;
                     }
@@ -521,7 +526,7 @@ public class GeneralController
      * @return {@code true} si se puede proceder con la acción original, 
      *         {@code false} si el usuario canceló la operación de recuperación.
      */
-    private boolean verificarYGestionarRecuperacion() {
+    private boolean gestionarRecuperacionAlEntrarModo(WorkMode modoDestino) {
         IProjectManager pm = projectController.getProjectManager();
         if (pm == null || !pm.hasPendingRecovery()) {
             return true; // No hay nada que recuperar, flujo normal.
@@ -537,11 +542,11 @@ public class GeneralController
             logger.error("Error al guardar la configuración tras limpiar la clave de recuperación.", e);
         }
 
-        String[] opciones = {"Restaurar Sesión", "Empezar de Cero", "Cancelar"};
+        String[] opciones = {"Restaurar Sesión", "Abrir un Proyecto", "Cancelar"};
         int seleccion = JOptionPane.showOptionDialog(
                 null,
                 "<html>Se ha detectado una sesión anterior con cambios sin guardar.<br>" +
-                "¿Deseas <b>restaurar</b> el trabajo de la sesión anterior o empezar un <b>proyecto nuevo</b>?</html>",
+                "¿Deseas <b>restaurar</b> el trabajo de la sesión anterior o <b>abrir otro proyecto</b>?</html>",
                 "Recuperación de Proyecto",
                 JOptionPane.YES_NO_CANCEL_OPTION,
                 JOptionPane.QUESTION_MESSAGE,
@@ -554,24 +559,31 @@ public class GeneralController
                 pm.cargarDesdeRecuperacion(pm.getArchivoRecuperacionPath());
                 logger.info("  -> Sesión de recuperación restaurada con éxito.");
                 // Si restauramos con éxito, ya no hay recuperación pendiente (se borra al cargar o guardar)
-                pm.eliminarSesionDeRecuperacion(); 
+                pm.eliminarSesionDeRecuperacion();
+                // Restaurar el modo de trabajo guardado en la sesión de recuperación
                 return true;
             } catch (Exception e) {
                 logger.error("Error al restaurar la sesión de recuperación.", e);
                 JOptionPane.showMessageDialog(null, "No se pudo restaurar la sesión anterior.", "Error de Recuperación", JOptionPane.ERROR_MESSAGE);
                 return false;
             }
-        } else if (seleccion == 1) { // Empezar de Cero
-            logger.info("  -> El usuario decidió descartar la recuperación y empezar de cero.");
+        } else if (seleccion == 1) { // Abrir un Proyecto
+            logger.info("  -> El usuario decidió descartar la recuperación y abrir un proyecto.");
             pm.eliminarSesionDeRecuperacion();
-            pm.nuevoProyecto(); // Aseguramos estado limpio
+            handleOpenProject(); // Abre el selector de proyectos
+            IProjectManager pm2 = projectController.getProjectManager();
+            boolean proyectoAbierto = pm2 != null && pm2.getArchivoProyectoActivo() != null;
+            if (!proyectoAbierto) {
+                logger.debug("  -> El usuario no seleccionó ningún proyecto. Se cancela la entrada al modo.");
+                return false;
+            }
             return true;
         } else {
             // Cancelar (seleccion == 2 o cerrar el diálogo)
             logger.debug("  -> El usuario canceló el diálogo de recuperación.");
             return false;
         }
-    } // --- FIN de metodo verificarYGestionarRecuperacion ---
+    } // --- FIN de metodo gestionarRecuperacionAlEntrarModo ---
 
     private void salirModo(WorkMode modo) {
     	appModeService.salirModo(modo);
@@ -727,7 +739,7 @@ public class GeneralController
         // --- NUEVA LÓGICA DE SEGURIDAD: Recuperación de sesión ---
         // Si no estamos en modo proyecto y hay una recuperación pendiente, preguntamos ANTES de marcar.
         if (!model.isEnModoProyecto()) {
-            if (!verificarYGestionarRecuperacion()) {
+            if (!gestionarRecuperacionAlEntrarModo(WorkMode.PROYECTO)) {
                 logger.debug("  -> Acción de marcar cancelada por el usuario en el diálogo de recuperación.");
                 return;
             }
@@ -766,19 +778,26 @@ public class GeneralController
     public void solicitarEntrarEnModoProyecto() {
         logger.debug("[GeneralController] Solicitud para entrar en modo proyecto.");
         
-        // --- NUEVA LÓGICA DE SEGURIDAD: Recuperación de sesión ---
-        if (!model.isEnModoProyecto()) {
-            if (!verificarYGestionarRecuperacion()) {
-                logger.debug("  -> Cambio a modo proyecto cancelado por el usuario en el diálogo de recuperación.");
-                // Sincronizar el estado de los botones (por si venimos de un ToggleButton)
-                sincronizarEstadoBotonesDeModo();
-                return;
-            }
+        if (!gestionarRecuperacionAlEntrarModo(WorkMode.PROYECTO)) {
+            logger.debug("  -> Cambio a modo proyecto cancelado por el usuario en el diálogo de recuperación.");
+            sincronizarEstadoBotonesDeModo();
+            return;
         }
-        // --------------------------------------------------------
 
         cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
     } // --- FIN de metodo solicitarEntrarEnModoProyecto ---
+
+    public void solicitarEntrarEnModoCliente() {
+        logger.debug("[GeneralController] Solicitud para entrar en modo cliente.");
+        
+        if (!gestionarRecuperacionAlEntrarModo(WorkMode.CLIENTE)) {
+            logger.debug("  -> Cambio a modo cliente cancelado por el usuario en el diálogo de recuperación.");
+            sincronizarEstadoBotonesDeModo();
+            return;
+        }
+
+        cambiarModoDeTrabajo(VisorModel.WorkMode.CLIENTE);
+    } // --- FIN de metodo solicitarEntrarEnModoCliente ---
 
     // **************************************************************************************
     // IMPLEMENTACION INTERFAZ IModoController

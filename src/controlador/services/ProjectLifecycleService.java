@@ -197,6 +197,9 @@ public class ProjectLifecycleService {
 
         if (choice == UserChoice.DONT_SAVE && pm.hayCambiosSinGuardar()) {
             logger.info("  -> Usuario eligió no guardar. Creando sesión de recuperación...");
+            if (pm.getCurrentProject() != null) {
+                pm.getCurrentProject().setLastWorkMode(model.getCurrentWorkMode().name());
+            }
             Path recoveryPath = pm.guardarSesionDeRecuperacion();
             if (recoveryPath != null) {
                 configuration.setString(ConfigKeys.PROYECTO_RECUPERACION_PENDIENTE,

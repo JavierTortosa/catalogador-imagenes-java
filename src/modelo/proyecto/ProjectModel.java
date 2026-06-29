@@ -41,12 +41,15 @@ public class ProjectModel {
     // Guarda la ruta del archivo de proyecto original cuando este modelo se guarda
     // como un archivo de recuperación temporal. Es nulo en un guardado normal.
     private String originalProjectPath;
+    // Último modo de trabajo activo (PROYECTO o CLIENTE) para restauración de sesión.
+    private String lastWorkMode = "PROYECTO";
     
     // --- Configuración de Exportación Global ---
     private String exportDestinationFolder;
     
     // --- Estado Compartido con el Cliente ---
     private boolean sharedWithClient;
+    private boolean clientModeClosed;
     private long sharedTimestamp;
     private int sharedIteration;
     private Map<String, String> imageCodes;
@@ -64,6 +67,7 @@ public class ProjectModel {
         this.creationDate = System.currentTimeMillis();
         this.lastModifiedDate = this.creationDate;
         this.sharedWithClient = false;
+        this.clientModeClosed = false;
         this.sharedTimestamp = 0;
         this.sharedIteration = 0;
         this.imageCodes = new LinkedHashMap<>();
@@ -163,6 +167,14 @@ public class ProjectModel {
         this.originalProjectPath = originalProjectPath;
     } // ---FIN de metodo setOriginalProjectPath---
     
+    public String getLastWorkMode() {
+        return lastWorkMode;
+    } // ---FIN de metodo getLastWorkMode---
+    
+    public void setLastWorkMode(String lastWorkMode) {
+        this.lastWorkMode = lastWorkMode;
+    } // ---FIN de metodo setLastWorkMode---
+    
     public String getExportDestinationFolder() {
         return exportDestinationFolder;
     } // ---FIN de metodo getExportDestinationFolder---
@@ -201,6 +213,14 @@ public class ProjectModel {
     public void setSharedWithClient(boolean sharedWithClient) {
         this.sharedWithClient = sharedWithClient;
     } // ---FIN de metodo setSharedWithClient---
+
+    public boolean isClientModeClosed() {
+        return clientModeClosed;
+    } // ---FIN de metodo isClientModeClosed---
+
+    public void setClientModeClosed(boolean clientModeClosed) {
+        this.clientModeClosed = clientModeClosed;
+    } // ---FIN de metodo setClientModeClosed---
 
     /**
      * @return true si el proyecto est&aacute; compartido y alguna imagen seleccionada
@@ -447,7 +467,6 @@ public class ProjectModel {
         private Map<String, CommentOverlay> commentOverlays;
         private Map<String, java.util.List<ImageCheckboxOverlay>> imageCheckboxes;
         private String clientNotes;
-        private int iterationNumber;
         private String fechaRespuesta;
         
         public ClientSelection() {
@@ -455,7 +474,6 @@ public class ProjectModel {
             this.comments = new LinkedHashMap<>();
             this.commentOverlays = new LinkedHashMap<>();
             this.imageCheckboxes = new LinkedHashMap<>();
-            this.iterationNumber = 1;
         } // ---FIN de metodo ClientSelection---
 
         @Override
@@ -463,8 +481,7 @@ public class ProjectModel {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             ClientSelection that = (ClientSelection) o;
-            return iterationNumber == that.iterationNumber &&
-                    Objects.equals(images, that.images) &&
+            return Objects.equals(images, that.images) &&
                     Objects.equals(comments, that.comments) &&
                     Objects.equals(commentOverlays, that.commentOverlays) &&
                     Objects.equals(imageCheckboxes, that.imageCheckboxes) &&
@@ -474,7 +491,7 @@ public class ProjectModel {
 
         @Override
         public int hashCode() {
-            return Objects.hash(images, comments, commentOverlays, imageCheckboxes, clientNotes, iterationNumber, fechaRespuesta);
+            return Objects.hash(images, comments, commentOverlays, imageCheckboxes, clientNotes, fechaRespuesta);
         }
 
         public Map<String, SelectionState> getImages() {
@@ -521,19 +538,6 @@ public class ProjectModel {
         public void setClientNotes(String clientNotes) {
             this.clientNotes = clientNotes;
         } // ---FIN de metodo setClientNotes---
-
-        public int getIterationNumber() {
-            return iterationNumber;
-        } // ---FIN de metodo getIterationNumber---
-
-        public void setIterationNumber(int iterationNumber) {
-            this.iterationNumber = iterationNumber;
-        } // ---FIN de metodo setIterationNumber---
-
-        /** Alias de setIterationNumber para uso desde el importador. */
-        public void setIteracionNumero(int n) {
-            this.iterationNumber = n;
-        } // ---FIN de metodo setIteracionNumero---
 
         public String getFechaRespuesta() {
             return fechaRespuesta;

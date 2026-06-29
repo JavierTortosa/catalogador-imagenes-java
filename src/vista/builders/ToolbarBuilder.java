@@ -138,7 +138,7 @@ public class ToolbarBuilder {
         }
 
         // La lista ahora es 'vista', 'zoom' y 'modo'
-        List<String> groupToolbarKeys = List.of("vista", "zoom", "modo");
+        List<String> groupToolbarKeys = List.of("vista", "zoom", "modo", "visor_editor");
 
         ButtonGroup group = null;
         if (groupToolbarKeys.contains(toolbarDef.claveBarra())) {

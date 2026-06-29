@@ -1,0 +1,70 @@
+Plan final consolidado
+
+
+1. Modelo — ProjectModel.java
+
+Nuevo campo boolean clientModeClosed, getter isClientModeClosed(), setter setClientModeClosed(boolean).
+
+
+2. Cierre — ClientController.cerrarCliente()
+
+UNDEFINED → DISCARDED (imagen + sus checkboxes)
+Sync: SELECTED → conserva enSeleccionProyecto; DISCARDED → enSeleccionProyecto = false
+project.setClientModeClosed(true) — no tocar sharedWithClient
+Refrescar modelos de tabla, mostrar cambios en UI
+Barra de estado: "Modo cliente cerrado — Solo lectura"
+
+
+3. ClientSyncService.closeAndSync()
+
+Eliminar project.setSharedWithClient(false) (el cierre se gestiona desde el controller)
+Dejar la lógica de enSeleccionProyecto igual
+
+
+4. Toolbar — estado según clientModeClosed
+
+Cerrado (deshabilitados): CMD_CLIENTE_CARGAR_RESPUESTA, CMD_CLIENTE_EXPORTAR_WEB, CMD_CLIENTE_EXPORTAR_HTML, CMD_CLIENTE_UPDATE, CMD_CLIENTE_CERRAR_SINCRONIZAR, CMD_CLIENTE_TOGGLE_EDITOR_PANEL, CMD_PROYECTO_MOVER_A_DESCARTES
+
+Habilitados siempre: CMD_CLIENTE_VIEW_VISOR, CMD_PROYECTO_GUARDAR_COMO, CMD_CLIENTE_EDITAR
+
+Abierto: mismos que cerrado + se habilitan CARGAR_RESPUESTA, EXPORTAR_*, UPDATE, CERRAR_SINCRONIZAR
+
+Editando: todo habilitado
+
+
+5. Popups — 3 niveles
+
+Estado	Popups visibles	Acciones de popup
+Cerrado	❌ No	—
+Abierto	✅ Sí	❌ Inactivas (no hacen nada)
+Editando	✅ Sí	✅ Activas + "Mover a descartes del proyecto"
+
+
+6. CMD_CLIENTE_EDITAR (reemplazar placeholder)
+
+Estado actual	Diálogo	Resultado
+Cerrado	"El proyecto está cerrado. ¿Reabrirlo para editar?"	clientModeClosed=false, popups visibles pero inactivos, toolbar habilita export/import
+Abierto	"Vas a activar el modo edición. Es una operación delicada que permite modificar las decisiones del cliente. ¿Continuar?"	popups activos + opción mover a descartes del proyecto
+Editando	(no hace nada, ya está activo)	—
+El modo edición no se persiste: al cerrar app o recargar modo cliente, siempre empieza desactivado.
+
+
+7. Nuevo popup "Mover a descartes del proyecto"
+
+En tabla Cliente Descartes solo cuando editando == true:
+
+pi.setEnSeleccionProyecto(false) — preserva estadoCliente, checkboxes[], precio, commentOverlay
+Para rectificar: ir a "Proyecto Descartes" → "Mover a selección" → enSeleccionProyecto=true → imagen reaparece en cliente (con su X intacta)
+
+
+8. Bloqueo desde modo proyecto
+
+Cuando sharedWithClient && clientModeClosed:
+
+Botón COMPARTIR_CLIENTE deshabilitado en toolbar de proyecto
+Si se pulsa, mensaje: "El proyecto está cerrado. Ve al modo cliente y usa 'Editar' para reabrirlo."
+
+
+9. modo proyecto. Exportar/Importar bloqueados desde el modo proyecto si el proyecto está cerrado. 
+si el proyecto está abierto, se puede exportar desde el modo proyecto. 
+pero solo cuando el proyecto está cerrado, no se puede exportar ni importar desde el modo proyecto.

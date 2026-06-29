@@ -13,7 +13,7 @@ import modelo.proyecto.ProjectModel;
  * en modo cliente. Fuente: project.masterImages.values().
  * Filtro selecci&oacute;n: pi.isEnSeleccionProyecto() == true
  * Filtro descartes: pi.isEnSeleccionProyecto() == false
- * Columnas: C&oacute;digo, Nombre, Etiqueta.
+ * Columnas: C&oacute;digo, Nombre.
  */
 public class ProyectoClienteTableModel extends AbstractTableModel {
 
@@ -21,9 +21,8 @@ public class ProyectoClienteTableModel extends AbstractTableModel {
 
     public static final int COL_CODIGO = 0;
     public static final int COL_NOMBRE = 1;
-    public static final int COL_ETIQUETA = 2;
 
-    private static final String[] COLUMNS = {"Cod", "Nombre", "Etiqueta"};
+    private static final String[] COLUMNS = {"Cod", "Nombre"};
 
     private final List<ProjectImage> images;
     private final ProjectModel project;
@@ -103,10 +102,6 @@ public class ProyectoClienteTableModel extends AbstractTableModel {
                 java.nio.file.Path p = java.nio.file.Paths.get(ruta);
                 java.nio.file.Path fn = p.getFileName();
                 return fn != null ? fn.toString() : ruta;
-            }
-            case COL_ETIQUETA: {
-                String etiqueta = pi.getEtiqueta();
-                return etiqueta != null ? etiqueta : "";
             }
             default: return "";
         }

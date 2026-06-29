@@ -667,6 +667,7 @@ public class AppInitializer {
 
                 this.actionFactory.setImageListManager(imageListManager);
                 this.actionFactory.setClientController(this.clientController);
+                this.clientController.setActionFactory(this.actionFactory);
                 this.actionFactory.initializeLateActions();
 
                 // 3.7: Ensamblaje final de la UI

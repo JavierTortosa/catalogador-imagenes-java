@@ -10,11 +10,11 @@ import modelo.proyecto.SelectionState;
 public class ClientSyncService {
 
     /**
-     * Cierra la sesi&oacute;n de cliente sincronizando el estado del cliente
-     * con el proyecto. Itera masterImages con enSeleccionProyecto==true:
+     * Sincroniza el estado del cliente con el proyecto.
+     * Itera masterImages con enSeleccionProyecto==true:
      * - Si estadoCliente == SELECTED (o alg&uacute;n checkbox interno SELECTED) → se queda
-     * - Si estadoCliente == DISCARDED || UNDEFINED (y ning&uacute;n checkbox SELECTED) → enSeleccionProyecto = false
-     * Finaliza marcando sharedWithClient = false.
+     * - Si estadoCliente == DISCARDED (y ning&uacute;n checkbox SELECTED) → enSeleccionProyecto = false
+     * No modifica sharedWithClient ni clientModeClosed (lo gestiona el llamante).
      */
     public void closeAndSync(ProjectModel project) {
         if (project.getMasterImages() == null) return;
@@ -39,8 +39,6 @@ public class ClientSyncService {
                 pi.setEnSeleccionProyecto(false);
             }
         }
-
-        project.setSharedWithClient(false);
     } // --- Fin de metodo closeAndSync ---
 
 

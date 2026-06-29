@@ -216,7 +216,7 @@ public interface AppActionCommands {
     public static final String CMD_CLIENTE_EXPORTAR_HTML 			= "cmd.cliente.exportar_html";
     public static final String CMD_CLIENTE_CARGAR_RESPUESTA 		= "cmd.cliente.cargar_respuesta";
     public static final String CMD_CLIENTE_CERRAR_SINCRONIZAR 		= "cmd.cliente.cerrar_sincronizar";
-    public static final String CMD_CLIENTE_TOGGLE_CHECKBOX 		= "cmd.cliente.toggle_checkbox";
+    public static final String CMD_CLIENTE_VIEW_VISOR 			    = "cmd.cliente.view_visor";
     public static final String CMD_CLIENTE_TOGGLE_EDITOR_PANEL 	= "cmd.cliente.toggle_editor_panel";
     public static final String CMD_CLIENTE_EDITAR 				= "cmd.cliente.editar";
     public static final String CMD_CLIENTE_CHECKBOX_ADD 			= "cmd.cliente.checkbox.add";

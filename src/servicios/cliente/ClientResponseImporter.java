@@ -77,7 +77,8 @@ public class ClientResponseImporter {
                     LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         }
         if (root.has("iteracion")) {
-            project.setSharedIteration(root.get("iteracion").getAsInt());
+            int it = root.get("iteracion").getAsInt();
+            project.setSharedIteration(it + 1);
         }
 
         JsonArray respuestas = root.getAsJsonArray("respuestas");

@@ -13,14 +13,17 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.swing.BorderFactory;
+import javax.swing.DefaultCellEditor;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
@@ -44,7 +47,6 @@ import servicios.ProjectManager;
 import vista.models.ClienteTableModel;
 import vista.models.ProyectoClienteTableModel;
 import vista.panels.CheckboxEditorPanel;
-import vista.panels.ClientReviewPanel;
 import vista.panels.GridDisplayPanel;
 import vista.panels.ImageDisplayPanel;
 import vista.panels.MsgPopupDialog;
@@ -96,6 +98,7 @@ public class ClientBuilder {
         JSplitPane rightPanel = createClientTablesPanel();
 
         JPanel displayPlaceholder = new JPanel(new CardLayout());
+        displayPlaceholder.setBorder(BorderFactory.createTitledBorder("Visor (Comparativa)"));
         registry.register("container.displaymodes.cliente", displayPlaceholder);
         registry.register("placeholder.display.cliente", displayPlaceholder);
 
@@ -121,30 +124,12 @@ public class ClientBuilder {
         registry.register("container.displaymodes.cliente.wrapper", displayWrapper);
         displayWrapper.add(displayPlaceholder, "DISPLAY_NORMAL");
 
-        ClientReviewPanel reviewPanel = new ClientReviewPanel(themeManager, model, projectManager, registry);
-        registry.register("panel.cliente.review", reviewPanel);
-        displayWrapper.add(reviewPanel, "DISPLAY_REVIEW");
-
-        ((CardLayout) displayWrapper.getLayout()).show(displayWrapper, "DISPLAY_NORMAL");
-
         JToolBar editorToolbar = toolbarManager.getToolbar("editor_checkboxes");
         CheckboxEditorPanel checkboxEditorPanel = new CheckboxEditorPanel(themeManager, model, projectManager, registry, editorToolbar);
         registry.register("panel.cliente.editor", checkboxEditorPanel);
-        java.awt.Window mainWindow = registry.get("frame.main");
-        javax.swing.JDialog editorDialog = new javax.swing.JDialog(
-                mainWindow instanceof java.awt.Frame ? (java.awt.Frame) mainWindow : null,
-                "Editor de Checkboxes", false);
-        editorDialog.setDefaultCloseOperation(javax.swing.JDialog.HIDE_ON_CLOSE);
-        editorDialog.setContentPane(checkboxEditorPanel);
-        editorDialog.setSize(900, 700);
-        editorDialog.setLocationRelativeTo(mainWindow);
-        editorDialog.addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override
-            public void windowClosing(java.awt.event.WindowEvent e) {
-                model.setClienteEditorPanelVisible(false);
-            }
-        });
-        registry.register("dialog.cliente.editor", editorDialog);
+        displayWrapper.add(checkboxEditorPanel, "DISPLAY_EDITOR");
+
+        ((CardLayout) displayWrapper.getLayout()).show(displayWrapper, "DISPLAY_NORMAL");
 
         JPanel centerPanel = createCenterPanel(displayWrapper);
 
@@ -213,33 +198,19 @@ public class ClientBuilder {
                 .setCellRenderer(new CodeCellRenderer());
         table.getColumnModel().getColumn(ProyectoClienteTableModel.COL_CODIGO).setMaxWidth(40);
 
-        table.getColumnModel().getColumn(ProyectoClienteTableModel.COL_NOMBRE).setMinWidth(320);
+        table.getColumnModel().getColumn(ProyectoClienteTableModel.COL_NOMBRE).setMinWidth(400);
 
         table.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                int col = table.columnAtPoint(e.getPoint());
                 int viewRow = table.rowAtPoint(e.getPoint());
                 if (viewRow < 0) return;
                 int modelRow = table.convertRowIndexToModel(viewRow);
                 ProyectoClienteTableModel model = (ProyectoClienteTableModel) table.getModel();
-                if (col == ProyectoClienteTableModel.COL_ETIQUETA) {
-                    ProjectImage pi = model.getProjectImage(modelRow);
-                    if (pi != null) {
-                        String actual = pi.getCodigoCatalogo() != null ? pi.getCodigoCatalogo() : "";
-                        String nuevo = JOptionPane.showInputDialog(table,
-                                "Editar c\u00f3digo de cat\u00e1logo:", actual);
-                        if (nuevo != null && !nuevo.trim().isEmpty()) {
-                            pi.setCodigoCatalogo(nuevo.trim());
-                            model.refrescar();
-                        }
-                    }
-                } else {
-                    String key = model.getImageKey(modelRow);
-                    if (key != null && clientController.getVisorController() != null) {
-                        clientController.getVisorController()
-                                .actualizarImagenPrincipalPorPath(Paths.get(key), key);
-                    }
+                String key = model.getImageKey(modelRow);
+                if (key != null && clientController.getVisorController() != null) {
+                    clientController.getVisorController()
+                            .actualizarImagenPrincipalPorPath(Paths.get(key), key);
                 }
             }
         });
@@ -293,6 +264,7 @@ public class ClientBuilder {
                 if (e.isPopupTrigger()) showPopup(e);
             }
             private void showPopup(MouseEvent e) {
+                if (!clientController.isEditingActive()) return;
                 int viewRow = table.rowAtPoint(e.getPoint());
                 if (viewRow >= 0) table.setRowSelectionInterval(viewRow, viewRow);
                 int selViewRow = table.getSelectedRow();
@@ -305,7 +277,12 @@ public class ClientBuilder {
                     moverADescartes.addActionListener(ev -> {
                         ProjectImage pi = projectManager.getCurrentProject().getMasterImages().get(key);
                         if (pi != null) {
-                            pi.setEnSeleccionProyecto(false);
+                            pi.setEstadoCliente(SelectionState.DISCARDED);
+                            if (pi.getCheckboxes() != null) {
+                                for (ImageCheckboxOverlay cb : pi.getCheckboxes()) {
+                                    cb.setState(SelectionState.DISCARDED);
+                                }
+                            }
                             projectManager.notificarModificacion();
                             ((ProyectoClienteTableModel) table.getModel()).refrescar();
                         }
@@ -316,7 +293,12 @@ public class ClientBuilder {
                     moverASeleccion.addActionListener(ev -> {
                         ProjectImage pi = projectManager.getCurrentProject().getMasterImages().get(key);
                         if (pi != null) {
-                            pi.setEnSeleccionProyecto(true);
+                            pi.setEstadoCliente(SelectionState.UNDEFINED);
+                            if (pi.getCheckboxes() != null) {
+                                for (ImageCheckboxOverlay cb : pi.getCheckboxes()) {
+                                    cb.setState(SelectionState.UNDEFINED);
+                                }
+                            }
                             projectManager.notificarModificacion();
                             ((ProyectoClienteTableModel) table.getModel()).refrescar();
                         }
@@ -354,13 +336,93 @@ public class ClientBuilder {
 
         ProjectModel project = projectManager.getCurrentProject();
         ClienteTableModel tableModel = new ClienteTableModel(project, isSeleccion);
-        JTable table = new JTable(tableModel);
+        
+        
+//        JTable table = new JTable(tableModel) {
+//            private static final long serialVersionUID = 1L;
+//            @Override
+//            public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+//                Component c = super.prepareRenderer(renderer, row, column);
+//                if (!isRowSelected(row)) {
+//                    ClienteTableModel m = (ClienteTableModel) getModel();
+//                    int modelRow = convertRowIndexToModel(row);
+//                    if (m.isChildRow(modelRow)) {
+//                        c.setBackground(new Color(245, 245, 250));
+//                    } else {
+//                        c.setBackground(getBackground());
+//                    }
+//                }
+//                return c;
+//            }
+//        };
+        	JTable table = new JTable(tableModel) {
+            private static final long serialVersionUID = 1L;
+            
+            @Override
+            public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
+                Component c = super.prepareRenderer(renderer, row, column);
+                
+                if (!isRowSelected(row)) {
+                    ClienteTableModel m = (ClienteTableModel) getModel();
+                    int modelRow = convertRowIndexToModel(row);
+                    
+                    if (m.isChildRow(modelRow)) {
+                        // Generamos un color dinámico mezclando un 95% del fondo y un 5% del texto
+                        java.awt.Color bg = getBackground();
+                        java.awt.Color fg = getForeground();
+                        java.awt.Color childBg = new java.awt.Color(
+                            (int)(bg.getRed() * 0.95 + fg.getRed() * 0.05),
+                            (int)(bg.getGreen() * 0.95 + fg.getGreen() * 0.05),
+                            (int)(bg.getBlue() * 0.95 + fg.getBlue() * 0.05)
+                        );
+                        c.setBackground(childBg);
+                    } else {
+                        c.setBackground(getBackground()); // Fila Padre (normal)
+                    }
+                }
+                return c;
+            }
+        };
+        
+        
+        
+        
         table.setName(tableName);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         table.setRowHeight(28);
         table.setFillsViewportHeight(true);
         table.getTableHeader().setReorderingAllowed(false);
         table.setAutoCreateRowSorter(true);
+
+        // Columna de colapso (COL_COLLAPSE)
+        TableColumn collapseCol = table.getColumnModel().getColumn(ClienteTableModel.COL_COLLAPSE);
+        collapseCol.setCellRenderer(new DefaultTableCellRenderer() {
+            private static final long serialVersionUID = 1L;
+            private final Color collapseColor = new Color(0, 120, 60);
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                JLabel label = (JLabel) super.getTableCellRendererComponent(
+                        t, value, isSelected, hasFocus, row, column);
+                ClienteTableModel m = (ClienteTableModel) t.getModel();
+                int modelRow = t.convertRowIndexToModel(row);
+                if (m.isParentRow(modelRow)) {
+                    label.setText(value != null ? value.toString() : "");
+                    label.setFont(label.getFont().deriveFont(Font.BOLD, 11f));
+                    if (!isSelected) {
+                        label.setForeground(collapseColor);
+                    }
+                    label.setHorizontalAlignment(JLabel.CENTER);
+                    label.setBorder(null);
+                } else {
+                    label.setText("");
+                    label.setBorder(null);
+                }
+                return label;
+            }
+        });
+        collapseCol.setMaxWidth(35);
+        collapseCol.setResizable(false);
 
         TableColumn estadoCol = table.getColumnModel().getColumn(ClienteTableModel.COL_ESTADO);
         estadoCol.setCellRenderer(new TristateCellRenderer());
@@ -395,7 +457,25 @@ public class ClientBuilder {
                     }
                 });
 
-        table.getColumnModel().getColumn(ClienteTableModel.COL_PRECIO).setMaxWidth(40);
+        TableColumn precioCol = table.getColumnModel().getColumn(ClienteTableModel.COL_PRECIO);
+        precioCol.setCellRenderer(new DefaultTableCellRenderer() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                JLabel label = (JLabel) super.getTableCellRendererComponent(
+                        t, value, isSelected, hasFocus, row, column);
+                label.setHorizontalAlignment(JLabel.RIGHT);
+                if (value instanceof Number n) {
+                    label.setText(n.doubleValue() == 0.0 ? "" : String.format("%.2f", n.doubleValue()));
+                }
+                return label;
+            }
+        });
+        JTextField precioEditor = new JTextField();
+        precioEditor.setHorizontalAlignment(JTextField.RIGHT);
+        precioCol.setCellEditor(new DefaultCellEditor(precioEditor));
+        precioCol.setMaxWidth(80);
 
         TableColumn commentCol = table.getColumnModel().getColumn(ClienteTableModel.COL_COMENTARIO);
         commentCol.setCellRenderer(new CommentCellRenderer());
@@ -410,6 +490,12 @@ public class ClientBuilder {
                 int modelRow = table.convertRowIndexToModel(viewRow);
                 ClienteTableModel model = (ClienteTableModel) table.getModel();
                 String key = model.getImageKey(modelRow);
+
+                // Toggle collapse en COL_COLLAPSE de fila padre
+                if (col == ClienteTableModel.COL_COLLAPSE && model.isParentRow(modelRow)) {
+                    model.cycleCollapseFilter(modelRow);
+                    return;
+                }
 
                 if (col == ClienteTableModel.COL_COMENTARIO && e.getClickCount() >= 2) {
                     ProjectImage pi = model.getProjectImage(modelRow);
@@ -438,9 +524,7 @@ public class ClientBuilder {
                     if (key != null && clientController.getVisorController() != null) {
                         clientController.getVisorController()
                                 .actualizarImagenPrincipalPorPath(Paths.get(key), key);
-                        if (model.isChildRow(modelRow)) {
-                            mostrarCheckboxesEnVisor();
-                        }
+                        mostrarCheckboxesEnVisor();
                     }
                 }
             }
@@ -467,9 +551,7 @@ public class ClientBuilder {
                     ClientBuilder.this.model.setSelectedCheckboxCode(cbCode);
                     clientController.getVisorController()
                             .actualizarImagenPrincipalPorPath(Paths.get(key), key);
-                    if (model.isChildRow(modelRow)) {
-                        mostrarCheckboxesEnVisor();
-                    }
+                    mostrarCheckboxesEnVisor();
                 }
             }
             e.consume();
@@ -488,9 +570,7 @@ public class ClientBuilder {
                 ClientBuilder.this.model.setSelectedCheckboxCode(cbCode);
                 clientController.getVisorController()
                         .actualizarImagenPrincipalPorPath(Paths.get(key), key);
-                if (m.isChildRow(modelRow)) {
-                    mostrarCheckboxesEnVisor();
-                }
+                mostrarCheckboxesEnVisor();
             }
         });
 
@@ -505,6 +585,7 @@ public class ClientBuilder {
                 if (e.isPopupTrigger()) showPopup(e);
             }
             private void showPopup(MouseEvent e) {
+                if (!clientController.isEditingActive()) return;
                 int viewRow = table.rowAtPoint(e.getPoint());
                 if (viewRow >= 0) table.setRowSelectionInterval(viewRow, viewRow);
                 ClienteTableModel m = (ClienteTableModel) table.getModel();
@@ -518,7 +599,12 @@ public class ClientBuilder {
                     moverADescartes.addActionListener(ev -> {
                         ProjectImage pi = projectManager.getCurrentProject().getMasterImages().get(key);
                         if (pi != null) {
-                            pi.setEnSeleccionProyecto(false);
+                            pi.setEstadoCliente(SelectionState.DISCARDED);
+                            if (pi.getCheckboxes() != null) {
+                                for (ImageCheckboxOverlay cb : pi.getCheckboxes()) {
+                                    cb.setState(SelectionState.DISCARDED);
+                                }
+                            }
                             projectManager.notificarModificacion();
                             m.refrescar();
                         }
@@ -529,12 +615,32 @@ public class ClientBuilder {
                     moverASeleccion.addActionListener(ev -> {
                         ProjectImage pi = projectManager.getCurrentProject().getMasterImages().get(key);
                         if (pi != null) {
-                            pi.setEnSeleccionProyecto(true);
+                            pi.setEstadoCliente(SelectionState.UNDEFINED);
+                            if (pi.getCheckboxes() != null) {
+                                for (ImageCheckboxOverlay cb : pi.getCheckboxes()) {
+                                    cb.setState(SelectionState.UNDEFINED);
+                                }
+                            }
                             projectManager.notificarModificacion();
                             m.refrescar();
                         }
                     });
                     popup.add(moverASeleccion);
+                    popup.add(new JPopupMenu.Separator());
+                    JMenuItem moverADescartesProy = new JMenuItem("Mover a descartes del proyecto");
+                    moverADescartesProy.addActionListener(ev2 -> {
+                        if (key != null && projectManager.getCurrentProject() != null) {
+                            String canonical = ProjectModel.normalizarClaveImagen(key);
+                            var pi = projectManager.getCurrentProject().getMasterImages().get(canonical);
+                            if (pi != null) {
+                                pi.setEnSeleccionProyecto(false);
+                                // conserva estadoCliente, checkboxes, precio, comentarios
+                            }
+                            projectManager.notificarModificacion();
+                            ((ClienteTableModel) table.getModel()).refrescar();
+                        }
+                    });
+                    popup.add(moverADescartesProy);
                     popup.add(new JPopupMenu.Separator());
                     JMenuItem borrar = new JMenuItem("Borrar imagen");
                     borrar.addActionListener(ev -> {
@@ -570,22 +676,19 @@ public class ClientBuilder {
 
     private JPanel createCenterPanel(JPanel displayModesContainer) {
         JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.setBorder(BorderFactory.createTitledBorder("Visor (Comparativa)"));
+        centerPanel.setBorder(null);
 
         if (displayModesContainer != null) {
             centerPanel.add(displayModesContainer, BorderLayout.CENTER);
         }
 
-        JPanel commentsPanel = new JPanel(new BorderLayout());
-        commentsPanel.setBorder(BorderFactory.createTitledBorder("Comentarios del Cliente"));
-        javax.swing.JTextArea txtComments = new javax.swing.JTextArea(3, 20);
-        txtComments.setEditable(false);
-        txtComments.setLineWrap(true);
-        txtComments.setWrapStyleWord(true);
-        registry.register("textarea.cliente.comentarios", txtComments);
-        commentsPanel.add(new JScrollPane(txtComments), BorderLayout.CENTER);
-
-        centerPanel.add(commentsPanel, BorderLayout.SOUTH);
+        JPanel statusPanel = new JPanel(new BorderLayout());
+        statusPanel.setBorder(BorderFactory.createTitledBorder("Estado"));
+        JLabel lblEstado = new JLabel("Modo cliente abierto");
+        lblEstado.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        registry.register("label.cliente.estado", lblEstado);
+        statusPanel.add(lblEstado, BorderLayout.CENTER);
+        centerPanel.add(statusPanel, BorderLayout.SOUTH);
 
         return centerPanel;
     } // --- FIN de metodo createCenterPanel ---

@@ -15,6 +15,7 @@ public class ProjectImage {
     private String rutaImagen;
     private String etiqueta;
     private boolean enSeleccionProyecto;
+    private double price = 0.0;
     private SelectionState estadoCliente;
     private SelectionState estadoClienteOriginal;
     private String codigoCatalogo;
@@ -58,6 +59,14 @@ public class ProjectImage {
 
     public void setEnSeleccionProyecto(boolean enSeleccionProyecto) {
         this.enSeleccionProyecto = enSeleccionProyecto;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
     }
 
     public SelectionState getEstadoCliente() {
@@ -151,6 +160,7 @@ public class ProjectImage {
         if (o == null || getClass() != o.getClass()) return false;
         ProjectImage that = (ProjectImage) o;
         return enSeleccionProyecto == that.enSeleccionProyecto
+                && Double.compare(that.price, price) == 0
                 && Objects.equals(rutaImagen, that.rutaImagen)
                 && Objects.equals(etiqueta, that.etiqueta)
                 && estadoCliente == that.estadoCliente
@@ -165,7 +175,7 @@ public class ProjectImage {
 
     @Override
     public int hashCode() {
-        return Objects.hash(rutaImagen, etiqueta, enSeleccionProyecto,
+        return Objects.hash(rutaImagen, etiqueta, enSeleccionProyecto, price,
                 estadoCliente, estadoClienteOriginal, codigoCatalogo,
                 exportConfig, checkboxes, commentOverlay, comment, commentThread);
     }

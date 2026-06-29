@@ -9,11 +9,26 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.DefaultListModel;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JTable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import controlador.commands.AppActionCommands;
+import controlador.factory.ActionFactory;
 import controlador.interfaces.IModoController;
+import controlador.managers.interfaces.IProjectManager;
+import controlador.services.proyecto.ExportPreflightService;
 import controlador.utils.ComponentRegistry;
+import modelo.VisorModel;
+import modelo.proyecto.ExportConfig;
+import modelo.proyecto.ImageCheckboxOverlay;
+import modelo.proyecto.ProjectImage;
 import modelo.proyecto.ProjectModel;
 import modelo.proyecto.SelectionState;
 import servicios.ProjectManager;
@@ -22,23 +37,7 @@ import servicios.ValidationService;
 import servicios.cliente.ClientResponseImporter;
 import servicios.cliente.ClientResponseImporter.ImportReport;
 import servicios.cliente.ClientSyncService;
-import modelo.proyecto.ImageCheckboxOverlay;
-import modelo.proyecto.ExportConfig;
-import modelo.proyecto.ProjectImage;
 import servicios.cliente.WebCatalogExporter;
-
-import javax.swing.DefaultListModel;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JTable;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-
-import controlador.managers.interfaces.IProjectManager;
-import controlador.services.proyecto.ExportPreflightService;
-import modelo.VisorModel;
 import vista.models.ClienteTableModel;
 import vista.models.ProyectoClienteTableModel;
 
@@ -62,7 +61,9 @@ public class ClientController implements IModoController {
     private controlador.ProjectListCoordinator projectListCoordinator;
     private boolean sincronizandoTablas;
     private boolean gridListenerRegistered;
+    private boolean editingActive;
     private String lastClientImageKey;
+    private ActionFactory actionFactory;
 
     public ClientController() {
         // Inicialización vacía, las dependencias se inyectarán vía setters
@@ -82,6 +83,18 @@ public class ClientController implements IModoController {
     public void setProjectListCoordinator(controlador.ProjectListCoordinator projectListCoordinator) {
         this.projectListCoordinator = projectListCoordinator;
     } // --- Fin de metodo setProjectListCoordinator ---
+
+    public void setActionFactory(ActionFactory actionFactory) {
+        this.actionFactory = actionFactory;
+    } // --- Fin de metodo setActionFactory ---
+
+    public boolean isEditingActive() {
+        return editingActive;
+    } // --- Fin de metodo isEditingActive ---
+
+    public void setEditingActive(boolean editingActive) {
+        this.editingActive = editingActive;
+    } // --- Fin de metodo setEditingActive ---
 
 
     public void setGeneralController(GeneralController generalController) {
@@ -119,6 +132,7 @@ public class ClientController implements IModoController {
             logger.warn("[ClientController] No hay proyecto activo.");
             return;
         }
+        editingActive = false;
         if (registry != null) {
             asignarModelosTablas(project);
         }
@@ -126,7 +140,7 @@ public class ClientController implements IModoController {
         if (visorController != null && visorController.getModel() != null) {
             visorController.getModel().setSelectedImageKeyListener(this::sincronizarSeleccionEnTablas);
         }
-        // Registrar listener de selección en el grid del modo cliente
+        // Registrar listener de selecci�n en el grid del modo cliente
         javax.swing.JList<String> gridList = registry != null ? registry.get("list.grid.cliente") : null;
         if (gridList != null && !gridListenerRegistered) {
             gridList.addListSelectionListener(e -> {
@@ -148,6 +162,11 @@ public class ClientController implements IModoController {
 
         // Restaurar imagen seleccionada anteriormente, o seleccionar primera fila
         restaurarOIniciarSeleccion();
+
+        // Ajustar botones y barra seg�n el estado del proyecto
+        ajustarBotonesSegunEstado();
+        actualizarBarraEstado();
+
         logger.info("[ClientController] Tablas del Modo Cliente refrescadas.");
     } // --- Fin de metodo activarVistaCliente ---
 
@@ -575,6 +594,49 @@ public class ClientController implements IModoController {
     } // --- Fin de metodo refrescarTablas ---
 
 
+    public void ajustarBotonesSegunEstado() {
+        if (actionFactory == null || actionFactory.getActionMap() == null) return;
+        var map = actionFactory.getActionMap();
+        ProjectModel project = projectManager != null ? projectManager.getCurrentProject() : null;
+        boolean closed = project != null && project.isClientModeClosed();
+        boolean shared = project != null && project.isSharedWithClient();
+
+        // Botones que se deshabilitan cuando el modo cliente est� cerrado
+        String[] disableWhenClosed = {
+            AppActionCommands.CMD_CLIENTE_CARGAR_RESPUESTA,
+            AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB,
+            AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML,
+            AppActionCommands.CMD_CLIENTE_UPDATE,
+            AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR,
+            AppActionCommands.CMD_CLIENTE_TOGGLE_EDITOR_PANEL,
+            AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES,
+        };
+        for (String cmd : disableWhenClosed) {
+            javax.swing.Action a = map.get(cmd);
+            if (a != null) a.setEnabled(!closed);
+        }
+    } // --- Fin de metodo ajustarBotonesSegunEstado ---
+
+
+    public void actualizarBarraEstado() {
+        if (registry == null) return;
+        javax.swing.JLabel lbl = registry.get("label.cliente.estado");
+        if (lbl == null) return;
+        ProjectModel project = projectManager != null ? projectManager.getCurrentProject() : null;
+        if (project == null) return;
+
+        String text;
+        if (project.isClientModeClosed()) {
+            text = "Modo cliente cerrado \u2014 Solo lectura";
+        } else if (editingActive) {
+            text = "Modo cliente abierto \u2014 Edici\u00f3n activa";
+        } else {
+            text = "Modo cliente abierto \u2014 Iteraci\u00f3n " + project.getSharedIteration();
+        }
+        lbl.setText(text);
+    } // --- Fin de metodo actualizarBarraEstado ---
+
+
     /**
      * Sincroniza la selecci&oacute;n de todas las tablas del modo cliente
      * para que coincidan con la imagen actualmente mostrada en el display.
@@ -671,17 +733,41 @@ public class ClientController implements IModoController {
 
         int confirm = JOptionPane.showConfirmDialog(null,
                 "\u00bfEst\u00e1s seguro de cerrar el modo cliente?\n\n"
-                + "Los datos del cliente se conservar\u00e1n.\n"
-                + "Volver\u00e1s al modo proyecto para poder exportar.",
+                + "Las im\u00e1genes sin marcar (O) se tratar\u00e1n como descartadas.\n"
+                + "Las im\u00e1genes marcadas con (V) se conservar\u00e1n en la selecci\u00f3n del proyecto.",
                 "Cerrar Modo Cliente",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE);
         if (confirm != JOptionPane.YES_OPTION) return;
 
+        // Paso 1: UNDEFINED → DISCARDED (im�genes sin marcar se tratan como descartadas)
+        if (project.getMasterImages() != null) {
+            for (ProjectImage pi : project.getMasterImages().values()) {
+                if (!pi.isEnSeleccionProyecto()) continue;
+                if (pi.getEstadoCliente() == SelectionState.UNDEFINED) {
+                    pi.setEstadoCliente(SelectionState.DISCARDED);
+                    if (pi.getCheckboxes() != null) {
+                        for (ImageCheckboxOverlay cb : pi.getCheckboxes()) {
+                            if (cb.getState() == SelectionState.UNDEFINED) {
+                                cb.setState(SelectionState.DISCARDED);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Paso 2: sincronizar con el proyecto (SELECTED → se queda, DISCARDED → sale)
         if (clientSyncService != null && project.hasClientSelection()) {
             clientSyncService.closeAndSync(project);
         }
 
+        // Paso 3: marcar como cerrado (sharedWithClient NO se toca)
+        project.setClientModeClosed(true);
+        project.setSharedWithClient(true); // asegurar que se mantiene compartido
+        editingActive = false;
+
+        // Paso 4: ocultar overlays y editor
         if (generalController != null) {
             var visorModel = generalController.getModel();
             if (visorModel != null) {
@@ -701,13 +787,14 @@ public class ClientController implements IModoController {
             }
         }
 
-        if (visorController != null && visorController.getModel() != null) {
-            visorController.getModel().setSelectedImageKeyListener(null);
-        }
+        // Paso 5: actualizar estado de botones del toolbar
+        ajustarBotonesSegunEstado();
 
-        if (generalController != null) {
-            generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
-        }
+        // Paso 6: refrescar tablas para reflejar los cambios
+        refrescarTablas();
+
+        // Paso 7: actualizar barra de estado
+        actualizarBarraEstado();
 
         projectManager.guardarAArchivo();
         projectManager.notificarModificacion();
@@ -716,7 +803,7 @@ public class ClientController implements IModoController {
         JOptionPane.showMessageDialog(null,
                 "Modo cliente cerrado correctamente.\n"
                 + "Los datos del cliente se han conservado.\n"
-                + "Puedes exportar desde el modo proyecto.",
+                + "Usa el bot\u00f3n 'Editar' para reabrir si necesitas hacer cambios.",
                 "Cliente Cerrado", JOptionPane.INFORMATION_MESSAGE);
     } // --- Fin de metodo cerrarCliente ---
 
@@ -1010,6 +1097,19 @@ public class ClientController implements IModoController {
             return;
         }
 
+        // Diálogo de iteración
+        int iteracion = project.getSharedIteration();
+        String input = JOptionPane.showInputDialog(
+                registry != null ? (java.awt.Component) registry.get("frame.principal") : null,
+                "N\u00famero de iteraci\u00f3n:", String.valueOf(iteracion));
+        if (input == null) return;
+        try {
+            iteracion = Integer.parseInt(input.trim());
+        } catch (NumberFormatException e) {
+            return;
+        }
+        if (iteracion < 1) iteracion = 1;
+
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Guardar catálogo HTML para el cliente");
         chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
@@ -1017,7 +1117,7 @@ public class ClientController implements IModoController {
         String defaultName = (project.getProjectName() != null
                 ? project.getProjectName().replaceAll("[^a-zA-Z0-9._-]", "_").toLowerCase()
                 : "proyecto")
-                + "_iteracion" + project.getSharedIteration() + ".html";
+                + "_iteracion" + iteracion + ".html";
         chooser.setSelectedFile(new java.io.File(defaultName));
 
         if (chooser.showSaveDialog(registry != null
@@ -1029,7 +1129,17 @@ public class ClientController implements IModoController {
             outputFile = outputFile.resolveSibling(outputFile.getFileName() + ".html");
         }
 
+        // Confirmar sobrescritura
         Path finalOutput = outputFile;
+        if (java.nio.file.Files.exists(finalOutput)) {
+            int overwrite = JOptionPane.showConfirmDialog(
+                    registry != null ? (java.awt.Component) registry.get("frame.principal") : null,
+                    "El archivo ya existe.\n\u00bfDeseas sobrescribirlo?",
+                    "Confirmar sobrescritura", JOptionPane.YES_NO_OPTION);
+            if (overwrite != JOptionPane.YES_OPTION) return;
+        }
+
+        final int iteracionFinal = iteracion;
         var progressDialog = new javax.swing.JDialog(
                 registry != null ? (java.awt.Window) registry.get("frame.principal") : null,
                 "Exportando catálogo HTML...", java.awt.Dialog.ModalityType.APPLICATION_MODAL);
@@ -1050,7 +1160,7 @@ public class ClientController implements IModoController {
                     webCatalogExporter = new WebCatalogExporter();
                 }
                 webCatalogExporter.exportarHtmlCliente(project, finalOutput,
-                        project.getSharedIteration(), progress -> setProgress(progress));
+                        iteracionFinal, progress -> setProgress(progress));
                 return null;
             }
 

@@ -235,13 +235,18 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
         // 1a. La nueva etiqueta para el campo de texto
         JLabel lblCarpetaDestino = new JLabel("Carpeta de Destino:");
         lblCarpetaDestino.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 5)); // Margen derecho
-        destinationPanel.add(lblCarpetaDestino, BorderLayout.WEST);
+        JPanel labelWrapper = new JPanel(new BorderLayout());
+        labelWrapper.add(lblCarpetaDestino, BorderLayout.NORTH);
+        destinationPanel.add(labelWrapper, BorderLayout.WEST);
 
         // 1b. El campo de texto en sí
         this.txtCarpetaDestino = (JTextField) projectController.getGeneralController().getRegistry().get("textfield.export.destino");
         if (this.txtCarpetaDestino != null) {
             this.originalTextFieldBorder = this.txtCarpetaDestino.getBorder();
-            destinationPanel.add(this.txtCarpetaDestino, BorderLayout.CENTER);
+            // Wrap en un panel para evitar que BorderLayout.CENTER estire verticalmente el textfield
+            JPanel wrapper = new JPanel(new BorderLayout());
+            wrapper.add(this.txtCarpetaDestino, BorderLayout.NORTH);
+            destinationPanel.add(wrapper, BorderLayout.CENTER);
         }
         
         // 1c. El botón del selector de carpetas
@@ -459,10 +464,8 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
     public void resaltarRutaDestino(boolean resaltar) {
         if (txtCarpetaDestino != null) {
             if (resaltar) {
-                txtCarpetaDestino.setBackground(new Color(255, 220, 220));
-                txtCarpetaDestino.setBorder(javax.swing.BorderFactory.createLineBorder(UIManager.getColor("Component.error.borderColor"), 2));
+                txtCarpetaDestino.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(200, 40, 40), 3));
             } else {
-                txtCarpetaDestino.setBackground(UIManager.getColor("TextField.background"));
                 txtCarpetaDestino.setBorder(originalTextFieldBorder);
             }
         }

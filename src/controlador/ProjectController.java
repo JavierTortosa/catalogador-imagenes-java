@@ -1360,8 +1360,12 @@ public class ProjectController implements IModoController {
         } else {
             boolean puedeCompartirCliente = todosLosSeleccionadosEstanListos && seleccionados > 0 && !hayConflictos;
             if (accionCompartir != null) accionCompartir.setEnabled(puedeCompartirCliente);
-            if (accionExportHtml != null) accionExportHtml.setEnabled(puedeCompartirCliente);
-            if (accionExportWeb != null) accionExportWeb.setEnabled(puedeCompartirCliente);
+            // Export buttons only if project is shared with client
+            ProjectModel proyecto = projectManager != null ? projectManager.getCurrentProject() : null;
+            boolean proyectoCompartido = proyecto != null && proyecto.isSharedWithClient();
+            boolean puedeExportarCliente = puedeCompartirCliente && proyectoCompartido;
+            if (accionExportHtml != null) accionExportHtml.setEnabled(puedeExportarCliente);
+            if (accionExportWeb != null) accionExportWeb.setEnabled(puedeExportarCliente);
         }
 
         // Control del bot&oacute;n Modo Cliente: deshabilitar si el proyecto compartido tiene im&aacute;genes sin c&oacute;digo

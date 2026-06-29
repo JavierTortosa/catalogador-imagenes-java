@@ -76,6 +76,7 @@ import controlador.actions.projects.CleanMissingFilesAction;
 import controlador.actions.projects.DeleteAssociatedFileAction;
 import controlador.actions.projects.EliminarProyectoAction;
 import controlador.actions.projects.GestionarProyectoAction;
+import controlador.actions.workmode.SolicitarModoClienteAction;
 import controlador.actions.projects.GuardarProyectoAction;
 import controlador.actions.projects.GuardarProyectoComoAction;
 import controlador.actions.projects.LocateAssociatedFileAction;
@@ -132,6 +133,7 @@ import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import modelo.VisorModel.DisplayMode;
 import modelo.VisorModel.WorkMode;
+import modelo.proyecto.ProjectModel;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import servicios.zoom.ZoomModeEnum;
@@ -165,6 +167,7 @@ public class ActionFactory {
     private FileOperationsManager fileOperationsManager;
     private IZoomManager zoomManager;
     private IViewManager viewManager;
+    private IProjectManager projectManager;
 
     private final GeneralController generalController;
     private final ProjectController projectControllerRef;
@@ -274,6 +277,7 @@ public class ActionFactory {
         this.zoomManager = zoomManager;
         this.fileOperationsManager = fileOperationsManager;
         this.viewManager = viewManager;
+        this.projectManager = projectService;
         this.editionManager = editionManager;
         this.contextSensitiveActions = new ArrayList<>();
 
@@ -666,7 +670,7 @@ public class ActionFactory {
         registerAction(AppActionCommands.CMD_MODO_DATOS,
                 createSwitchWorkModeAction(WorkMode.DATOS, AppActionCommands.CMD_MODO_DATOS, "Modo Datos"));
         registerAction(AppActionCommands.CMD_MODO_CLIENTE,
-                createSwitchWorkModeAction(WorkMode.CLIENTE, AppActionCommands.CMD_MODO_CLIENTE, "Modo Cliente"));
+                createSolicitarModoClienteAction());
 
         // --- Acciones específicas del Modo Cliente ---
         registerAction(AppActionCommands.CMD_CLIENTE_ABRIR_PRJCL,
@@ -681,12 +685,12 @@ public class ActionFactory {
                 createClientUpdateAction());
         registerAction(AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR,
                 createClientCerrarSincronizarAction());
-        registerAction(AppActionCommands.CMD_CLIENTE_TOGGLE_CHECKBOX,
-                createToggleClienteCheckboxAction());
+        registerAction(AppActionCommands.CMD_CLIENTE_VIEW_VISOR,
+                createSelectVisorAction());
         registerAction(AppActionCommands.CMD_CLIENTE_TOGGLE_EDITOR_PANEL,
-                createToggleEditorPanelAction());
+                createSelectEditorAction());
         registerAction(AppActionCommands.CMD_CLIENTE_EDITAR,
-                createFuncionalidadPendienteAction());
+                createClientEditarAction());
         registerAction(AppActionCommands.CMD_CLIENTE_CHECKBOX_ADD,
                 createFuncionalidadPendienteAction());
         registerAction(AppActionCommands.CMD_CLIENTE_CHECKBOX_ADD_LABEL,
@@ -821,7 +825,10 @@ public class ActionFactory {
                     chooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
                     chooser.setDialogTitle("Selecciona carpeta para exportar catálogo web");
                     if (chooser.showSaveDialog(null) == javax.swing.JFileChooser.APPROVE_OPTION) {
-                        clientController.exportarParaCliente(chooser.getSelectedFile().toPath(), 1);
+                        clientController.exportarParaCliente(chooser.getSelectedFile().toPath(),
+                                ActionFactory.this.projectManager != null
+                                        ? ActionFactory.this.projectManager.getCurrentProject().getSharedIteration()
+                                        : 1);
                     }
                 }
             }
@@ -840,7 +847,6 @@ public class ActionFactory {
                 }
             }
         };
-        action.setEnabled(false);
         return action;
     }
 
@@ -886,16 +892,57 @@ public class ActionFactory {
         };
     } // --- FIN de metodo createClientCerrarSincronizarAction ---
 
-    private Action createToggleClienteCheckboxAction() {
-        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_CLIENTE_TOGGLE_CHECKBOX);
-        return new controlador.actions.cliente.ToggleClienteCheckboxAction(
-                "Checkboxes en imágenes", icon, this.model, this.registry);
-    } // --- FIN de metodo createToggleClienteCheckboxAction ---
+    private Action createClientEditarAction() {
+        return new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (clientController == null) return;
+                ProjectModel project = projectManager != null
+                        ? projectManager.getCurrentProject() : null;
+                if (project == null) return;
 
-    private Action createToggleEditorPanelAction() {
+                if (project.isClientModeClosed()) {
+                    int resp = JOptionPane.showConfirmDialog(null,
+                            "El proyecto est\u00e1 cerrado. \u00bfReabrirlo para editar?",
+                            "Reabrir modo cliente",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE);
+                    if (resp == JOptionPane.YES_OPTION) {
+                        project.setClientModeClosed(false);
+                        clientController.setEditingActive(false);
+                        clientController.ajustarBotonesSegunEstado();
+                        clientController.actualizarBarraEstado();
+                        clientController.refrescarTablas();
+                    }
+                } else {
+                    int resp = JOptionPane.showConfirmDialog(null,
+                            "Vas a activar el modo edici\u00f3n.\n"
+                            + "Es una operaci\u00f3n delicada que permite modificar\n"
+                            + "las decisiones del cliente. \u00bfContinuar?",
+                            "Activar edici\u00f3n",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE);
+                    if (resp == JOptionPane.YES_OPTION) {
+                        clientController.setEditingActive(true);
+                        clientController.actualizarBarraEstado();
+                        clientController.refrescarTablas();
+                    }
+                }
+            }
+        };
+    } // --- FIN de metodo createClientEditarAction ---
+
+    private Action createSelectVisorAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_CLIENTE_VIEW_VISOR);
+        return new controlador.actions.cliente.SelectVisorAction(
+                "Visor de imagenes", icon, this.model, this.registry, this);
+    } // --- FIN de metodo createSelectVisorAction ---
+
+    private Action createSelectEditorAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_CLIENTE_TOGGLE_EDITOR_PANEL);
-        return new controlador.actions.cliente.ToggleEditorPanelAction(
-                "Editor de checkboxes", icon, this.model, this.registry);
+        return new controlador.actions.cliente.SelectEditorAction(
+                "Editor de checkboxes", icon, this.model, this.registry, this);
     }
 
     private Action createClientAbrirPrjclAction() {
@@ -1438,6 +1485,11 @@ public class ActionFactory {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_GESTIONAR);
         return new GestionarProyectoAction(this.generalController, "Ver Proyecto", icon);
     } // --- Fin del método createGestionarProyectoAction ---
+
+    private Action createSolicitarModoClienteAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_MODO_CLIENTE);
+        return new SolicitarModoClienteAction(this.generalController, "Modo Cliente", icon);
+    } // --- Fin del método createSolicitarModoClienteAction ---
 
     private Action createNuevoProyectoAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_NUEVO);
