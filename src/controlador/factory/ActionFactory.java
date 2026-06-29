@@ -895,14 +895,19 @@ public class ActionFactory {
     private Action createClientEditarAction() {
         return new AbstractAction() {
             private static final long serialVersionUID = 1L;
+
+            private void syncToggle(ActionEvent e, boolean selected) {
+                if (e != null && e.getSource() instanceof javax.swing.JToggleButton) {
+                    ((javax.swing.JToggleButton) e.getSource()).setSelected(selected);
+                }
+            }
+
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (clientController == null) return;
                 ProjectModel project = projectManager != null
                         ? projectManager.getCurrentProject() : null;
                 if (project == null) return;
-
-                if (clientController.isEditingActive()) return;
 
                 if (project.isClientModeClosed()) {
                     int resp = JOptionPane.showConfirmDialog(null,
@@ -913,9 +918,20 @@ public class ActionFactory {
                     if (resp == JOptionPane.YES_OPTION) {
                         project.setClientModeClosed(false);
                         clientController.setEditingActive(false);
-                        clientController.ajustarBotonesSegunEstado();
-                        clientController.actualizarBarraEstado();
-                        clientController.refrescarTablas();
+                        syncToggle(e, false);
+                    } else {
+                        syncToggle(e, false);
+                    }
+                } else if (clientController.isEditingActive()) {
+                    int resp = JOptionPane.showConfirmDialog(null,
+                            "\u00bfDesactivar el modo edici\u00f3n?",
+                            "Desactivar edici\u00f3n",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE);
+                    if (resp == JOptionPane.YES_OPTION) {
+                        clientController.setEditingActive(false);
+                    } else {
+                        syncToggle(e, true);
                     }
                 } else {
                     int resp = JOptionPane.showConfirmDialog(null,
@@ -927,10 +943,14 @@ public class ActionFactory {
                             JOptionPane.WARNING_MESSAGE);
                     if (resp == JOptionPane.YES_OPTION) {
                         clientController.setEditingActive(true);
-                        clientController.actualizarBarraEstado();
-                        clientController.refrescarTablas();
+                    } else {
+                        syncToggle(e, false);
                     }
                 }
+
+                clientController.ajustarBotonesSegunEstado();
+                clientController.actualizarBarraEstado();
+                clientController.refrescarTablas();
             }
         };
     } // --- FIN de metodo createClientEditarAction ---
