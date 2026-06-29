@@ -264,7 +264,9 @@ public class ClientBuilder {
                 if (e.isPopupTrigger()) showPopup(e);
             }
             private void showPopup(MouseEvent e) {
-                if (!clientController.isEditingActive()) return;
+                ProjectModel proj = projectManager.getCurrentProject();
+                if (proj != null && proj.isClientModeClosed()) return;
+                boolean editingMode = clientController.isEditingActive();
                 int viewRow = table.rowAtPoint(e.getPoint());
                 if (viewRow >= 0) table.setRowSelectionInterval(viewRow, viewRow);
                 int selViewRow = table.getSelectedRow();
@@ -272,6 +274,11 @@ public class ClientBuilder {
                 String key = ((ProyectoClienteTableModel) table.getModel()).getImageKey(modelRow);
                 if (key == null) return;
                 JPopupMenu popup = new JPopupMenu();
+                if (!editingMode) {
+                    JMenuItem info = new JMenuItem("Activar edición para modificar");
+                    info.setEnabled(false);
+                    popup.add(info);
+                } else
                 if (isSeleccion) {
                     JMenuItem moverADescartes = new JMenuItem("Mover a descartes");
                     moverADescartes.addActionListener(ev -> {
@@ -585,7 +592,9 @@ public class ClientBuilder {
                 if (e.isPopupTrigger()) showPopup(e);
             }
             private void showPopup(MouseEvent e) {
-                if (!clientController.isEditingActive()) return;
+                ProjectModel proj = projectManager.getCurrentProject();
+                if (proj != null && proj.isClientModeClosed()) return;
+                boolean editingMode = clientController.isEditingActive();
                 int viewRow = table.rowAtPoint(e.getPoint());
                 if (viewRow >= 0) table.setRowSelectionInterval(viewRow, viewRow);
                 ClienteTableModel m = (ClienteTableModel) table.getModel();
@@ -594,6 +603,11 @@ public class ClientBuilder {
                 String key = m.getImageKey(modelRow);
                 if (key == null) return;
                 JPopupMenu popup = new JPopupMenu();
+                if (!editingMode) {
+                    JMenuItem info = new JMenuItem("Activar edición para modificar");
+                    info.setEnabled(false);
+                    popup.add(info);
+                } else
                 if (isSeleccion) {
                     JMenuItem moverADescartes = new JMenuItem("Mover a descartes");
                     moverADescartes.addActionListener(ev -> {

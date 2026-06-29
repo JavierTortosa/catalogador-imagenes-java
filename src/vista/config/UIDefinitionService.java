@@ -806,7 +806,7 @@ public class UIDefinitionService {
         
         botonesCliente.add(new SeparatorDefinition());
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EDITAR, "60204-User-Edit-Pencil.png",
-                "Editar selección", "cliente"));
+                "Editar selección", "cliente", ButtonType.TOGGLE));
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES, "60101-Rotate-X-Axis.png",
                 "Mover selección a descartes", "cliente"));
         botonesCliente.add(new SeparatorDefinition());

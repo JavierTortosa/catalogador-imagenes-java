@@ -902,6 +902,8 @@ public class ActionFactory {
                         ? projectManager.getCurrentProject() : null;
                 if (project == null) return;
 
+                if (clientController.isEditingActive()) return;
+
                 if (project.isClientModeClosed()) {
                     int resp = JOptionPane.showConfirmDialog(null,
                             "El proyecto est\u00e1 cerrado. \u00bfReabrirlo para editar?",
