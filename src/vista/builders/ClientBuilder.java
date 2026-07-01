@@ -38,12 +38,13 @@ import controlador.GeneralController;
 import controlador.managers.ToolbarManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
+import modelo.proyecto.CommentThread;
 import modelo.proyecto.ImageCheckboxOverlay;
-import modelo.proyecto.Mensaje;
 import modelo.proyecto.ProjectImage;
 import modelo.proyecto.ProjectModel;
 import modelo.proyecto.SelectionState;
 import servicios.ProjectManager;
+import vista.config.ClientTableConfig;
 import vista.models.ClienteTableModel;
 import vista.models.ProyectoClienteTableModel;
 import vista.panels.CheckboxEditorPanel;
@@ -134,12 +135,12 @@ public class ClientBuilder {
         JPanel centerPanel = createCenterPanel(displayWrapper);
 
         JSplitPane centerRightSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, centerPanel, rightPanel);
-        centerRightSplit.setResizeWeight(0.625);
+        centerRightSplit.setResizeWeight(0.734);
         centerRightSplit.setContinuousLayout(true);
         centerRightSplit.setBorder(null);
 
         JSplitPane mainSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, centerRightSplit);
-        mainSplit.setResizeWeight(0.2);
+        mainSplit.setResizeWeight(0.21);
         mainSplit.setContinuousLayout(true);
         mainSplit.setBorder(null);
         registry.register("splitpane.cliente.main", mainSplit);
@@ -189,16 +190,7 @@ public class ClientBuilder {
         JTable table = new JTable(tableModel);
         table.setName(tableName);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.setRowHeight(28);
-        table.setFillsViewportHeight(true);
-        table.getTableHeader().setReorderingAllowed(false);
-        table.setAutoCreateRowSorter(true);
-
-        table.getColumnModel().getColumn(ProyectoClienteTableModel.COL_CODIGO)
-                .setCellRenderer(new CodeCellRenderer());
-        table.getColumnModel().getColumn(ProyectoClienteTableModel.COL_CODIGO).setMaxWidth(40);
-
-        table.getColumnModel().getColumn(ProyectoClienteTableModel.COL_NOMBRE).setMinWidth(400);
+        ClientTableConfig.configureProjectTable(table);
 
         table.addMouseListener(new MouseAdapter() {
             @Override
@@ -292,6 +284,7 @@ public class ClientBuilder {
                             }
                             projectManager.notificarModificacion();
                             ((ProyectoClienteTableModel) table.getModel()).refrescar();
+                            clientController.refrescarTablas();
                         }
                     });
                     popup.add(moverADescartes);
@@ -308,6 +301,7 @@ public class ClientBuilder {
                             }
                             projectManager.notificarModificacion();
                             ((ProyectoClienteTableModel) table.getModel()).refrescar();
+                            clientController.refrescarTablas();
                         }
                     });
                     popup.add(moverASeleccion);
@@ -321,6 +315,7 @@ public class ClientBuilder {
                         if (confirm == JOptionPane.YES_OPTION) {
                             projectManager.eliminarDeProyecto(Paths.get(key));
                             ((ProyectoClienteTableModel) table.getModel()).refrescar();
+                            clientController.refrescarTablas();
                         }
                     });
                     popup.add(borrar);
@@ -344,24 +339,6 @@ public class ClientBuilder {
         ProjectModel project = projectManager.getCurrentProject();
         ClienteTableModel tableModel = new ClienteTableModel(project, isSeleccion);
         
-        
-//        JTable table = new JTable(tableModel) {
-//            private static final long serialVersionUID = 1L;
-//            @Override
-//            public Component prepareRenderer(TableCellRenderer renderer, int row, int column) {
-//                Component c = super.prepareRenderer(renderer, row, column);
-//                if (!isRowSelected(row)) {
-//                    ClienteTableModel m = (ClienteTableModel) getModel();
-//                    int modelRow = convertRowIndexToModel(row);
-//                    if (m.isChildRow(modelRow)) {
-//                        c.setBackground(new Color(245, 245, 250));
-//                    } else {
-//                        c.setBackground(getBackground());
-//                    }
-//                }
-//                return c;
-//            }
-//        };
         	JTable table = new JTable(tableModel) {
             private static final long serialVersionUID = 1L;
             
@@ -396,97 +373,7 @@ public class ClientBuilder {
         
         table.setName(tableName);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.setRowHeight(28);
-        table.setFillsViewportHeight(true);
-        table.getTableHeader().setReorderingAllowed(false);
-        table.setAutoCreateRowSorter(true);
-
-        // Columna de colapso (COL_COLLAPSE)
-        TableColumn collapseCol = table.getColumnModel().getColumn(ClienteTableModel.COL_COLLAPSE);
-        collapseCol.setCellRenderer(new DefaultTableCellRenderer() {
-            private static final long serialVersionUID = 1L;
-            private final Color collapseColor = new Color(0, 120, 60);
-            @Override
-            public Component getTableCellRendererComponent(JTable t, Object value,
-                    boolean isSelected, boolean hasFocus, int row, int column) {
-                JLabel label = (JLabel) super.getTableCellRendererComponent(
-                        t, value, isSelected, hasFocus, row, column);
-                ClienteTableModel m = (ClienteTableModel) t.getModel();
-                int modelRow = t.convertRowIndexToModel(row);
-                if (m.isParentRow(modelRow)) {
-                    label.setText(value != null ? value.toString() : "");
-                    label.setFont(label.getFont().deriveFont(Font.BOLD, 11f));
-                    if (!isSelected) {
-                        label.setForeground(collapseColor);
-                    }
-                    label.setHorizontalAlignment(JLabel.CENTER);
-                    label.setBorder(null);
-                } else {
-                    label.setText("");
-                    label.setBorder(null);
-                }
-                return label;
-            }
-        });
-        collapseCol.setMaxWidth(35);
-        collapseCol.setResizable(false);
-
-        TableColumn estadoCol = table.getColumnModel().getColumn(ClienteTableModel.COL_ESTADO);
-        estadoCol.setCellRenderer(new TristateCellRenderer());
-        estadoCol.setMaxWidth(40);
-
-        table.getColumnModel().getColumn(ClienteTableModel.COL_CODIGO_IMG).setMaxWidth(40);
-        table.getColumnModel().getColumn(ClienteTableModel.COL_CODIGO_IMG)
-                .setCellRenderer(new CodeCellRenderer());
-
-        table.getColumnModel().getColumn(ClienteTableModel.COL_CODIGO_CB).setMaxWidth(40);
-        table.getColumnModel().getColumn(ClienteTableModel.COL_CODIGO_CB)
-                .setCellRenderer(new DefaultTableCellRenderer() {
-                    private static final long serialVersionUID = 1L;
-                    private final Color codeColor = new Color(70, 130, 180);
-                    @Override
-                    public Component getTableCellRendererComponent(JTable t, Object value,
-                            boolean isSelected, boolean hasFocus, int row, int column) {
-                        JLabel label = (JLabel) super.getTableCellRendererComponent(
-                                t, value, isSelected, hasFocus, row, column);
-                        label.setFont(label.getFont().deriveFont(Font.BOLD));
-                        if (!isSelected) {
-                            label.setForeground(codeColor);
-                        }
-                        label.setHorizontalAlignment(JLabel.CENTER);
-                        ClienteTableModel m = (ClienteTableModel) t.getModel();
-                        if (m.isChildRow(row)) {
-                            label.setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 0));
-                        } else {
-                            label.setBorder(null);
-                        }
-                        return label;
-                    }
-                });
-
-        TableColumn precioCol = table.getColumnModel().getColumn(ClienteTableModel.COL_PRECIO);
-        precioCol.setCellRenderer(new DefaultTableCellRenderer() {
-            private static final long serialVersionUID = 1L;
-            @Override
-            public Component getTableCellRendererComponent(JTable t, Object value,
-                    boolean isSelected, boolean hasFocus, int row, int column) {
-                JLabel label = (JLabel) super.getTableCellRendererComponent(
-                        t, value, isSelected, hasFocus, row, column);
-                label.setHorizontalAlignment(JLabel.RIGHT);
-                if (value instanceof Number n) {
-                    label.setText(n.doubleValue() == 0.0 ? "" : String.format("%.2f", n.doubleValue()));
-                }
-                return label;
-            }
-        });
-        JTextField precioEditor = new JTextField();
-        precioEditor.setHorizontalAlignment(JTextField.RIGHT);
-        precioCol.setCellEditor(new DefaultCellEditor(precioEditor));
-        precioCol.setMaxWidth(80);
-
-        TableColumn commentCol = table.getColumnModel().getColumn(ClienteTableModel.COL_COMENTARIO);
-        commentCol.setCellRenderer(new CommentCellRenderer());
-        commentCol.setMinWidth(120);
+        ClientTableConfig.configureClientTable(table);
 
         table.addMouseListener(new MouseAdapter() {
             @Override
@@ -508,22 +395,24 @@ public class ClientBuilder {
                     ProjectImage pi = model.getProjectImage(modelRow);
                     if (pi == null) return;
                     String title;
-                    List<Mensaje> thread;
+                    CommentThread ct;
                     if (model.isChildRow(modelRow)) {
                         ImageCheckboxOverlay cb = model.getCheckbox(modelRow);
                         if (cb == null) return;
-                        thread = cb.getCommentThread();
+                        ct = cb.getCommentThreadAccess();
                         title = "Mensajes del checkbox " + cb.getCheckboxCode();
                     } else {
-                        thread = pi.getCommentThread();
+                        ct = pi.getCommentThreadAccess();
                         title = "Mensajes de la imagen";
                     }
                     Window owner = javax.swing.SwingUtilities.getWindowAncestor(table);
                     if (owner == null) {
                         owner = (Window) registry.get("frame.principal");
                     }
-                    MsgPopupDialog dlg = new MsgPopupDialog(owner, title, thread,
-                            projectManager, model::fireTableDataChanged);
+                    MsgPopupDialog dlg = new MsgPopupDialog(owner, title, ct,
+                            projectManager,
+                            projectManager.getCurrentProject().getSharedIteration(),
+                            model::fireTableDataChanged);
                     dlg.setVisible(true);
                 } else if (col != ClienteTableModel.COL_ESTADO && col != ClienteTableModel.COL_COMENTARIO) {
                     String cbCode = model.isChildRow(modelRow) ? model.getCheckboxCode(modelRow) : null;
@@ -621,6 +510,7 @@ public class ClientBuilder {
                             }
                             projectManager.notificarModificacion();
                             m.refrescar();
+                            clientController.refrescarTablas();
                         }
                     });
                     popup.add(moverADescartes);
@@ -637,6 +527,7 @@ public class ClientBuilder {
                             }
                             projectManager.notificarModificacion();
                             m.refrescar();
+                            clientController.refrescarTablas();
                         }
                     });
                     popup.add(moverASeleccion);
@@ -652,6 +543,7 @@ public class ClientBuilder {
                             }
                             projectManager.notificarModificacion();
                             ((ClienteTableModel) table.getModel()).refrescar();
+                            clientController.refrescarTablas();
                         }
                     });
                     popup.add(moverADescartesProy);
@@ -671,6 +563,7 @@ public class ClientBuilder {
                                 }
                                 projectManager.notificarModificacion();
                                 m.refrescar();
+                                clientController.refrescarTablas();
                             }
                         }
                     });

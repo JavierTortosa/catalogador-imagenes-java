@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import modelo.proyecto.CommentThread;
 
 import controlador.ProjectController;
 import controlador.managers.interfaces.IProjectManager;
@@ -66,6 +67,7 @@ public class ProjectManager implements IProjectManager {
         this.gson = new GsonBuilder()
                       .setPrettyPrinting()
                       .disableHtmlEscaping() // Para evitar que las barras '\' se conviertan en \u005c
+                      .registerTypeAdapter(CommentThread.class, new CommentThread.GsonAdapter())
 //                    .serializeNulls()
                       .create();
                       

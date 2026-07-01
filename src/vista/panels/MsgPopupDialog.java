@@ -4,11 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Window;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -16,10 +14,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
@@ -27,21 +22,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.managers.interfaces.IProjectManager;
+import modelo.proyecto.CommentThread;
 import modelo.proyecto.Mensaje;
 
 /**
- * Di&aacute;logo modal que muestra el historial de mensajes de un thread
- * en formato &quot;tira de papel&quot;, con capacidad de responder.
- * <p>
- * Uso:
- * <pre>
- * List&lt;Mensaje&gt; thread = imageCheckboxOverlay.getCommentThread();
- * MsgPopupDialog dlg = new MsgPopupDialog(ownerFrame, &quot;Mensajes del checkbox&quot;, thread, projectManager, () -&gt; {
- *     projectManager.notificarModificacion();
- *     tableModel.fireTableDataChanged();
- * });
- * dlg.setVisible(true);
- * </pre>
+ * Dialogo modal que muestra el historial de mensajes de un hilo
+ * en formato "tira de papel", con capacidad de responder.
  */
 public class MsgPopupDialog extends JDialog {
 
@@ -56,29 +42,26 @@ public class MsgPopupDialog extends JDialog {
     private static final Color CLIENTE_BORDER = new Color(200, 200, 200);
 
     private final transient IProjectManager projectManager;
-    private final transient List<Mensaje> thread;
+    private final transient CommentThread commentThread;
+    private final int currentIteration;
     private final Runnable onModify;
 
     private final JPanel messagesPanel;
     private final JTextArea inputArea;
     private final JButton sendButton;
+    private final JButton clearButton;
     private final JButton closeButton;
 
 
-    /**
-     * @param owner           ventana padre (JFrame o JDialog)
-     * @param title           t&iacute;tulo del di&aacute;logo
-     * @param thread          lista viva de Mensaje (se modifica directamente)
-     * @param projectManager  para notificar modificaciones
-     * @param onModify        callback tras a&ntilde;adir/editar/borrar mensajes
-     */
     public MsgPopupDialog(Window owner, String title,
-                          List<Mensaje> thread,
+                          CommentThread commentThread,
                           IProjectManager projectManager,
+                          int currentIteration,
                           Runnable onModify) {
         super(owner, title, ModalityType.APPLICATION_MODAL);
-        this.thread = thread;
+        this.commentThread = commentThread;
         this.projectManager = projectManager;
+        this.currentIteration = currentIteration;
         this.onModify = onModify;
 
         setSize(380, 420);
@@ -86,11 +69,10 @@ public class MsgPopupDialog extends JDialog {
         setResizable(true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-        // Layout
         JPanel content = new JPanel(new BorderLayout(6, 6));
         content.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
-        // Centro: tira de papel con los mensajes
+        // Centro: tira de papel
         messagesPanel = new JPanel();
         messagesPanel.setLayout(new BoxLayout(messagesPanel, BoxLayout.Y_AXIS));
         messagesPanel.setBackground(Color.WHITE);
@@ -98,38 +80,101 @@ public class MsgPopupDialog extends JDialog {
         scrollPane.setBorder(BorderFactory.createTitledBorder("Historial"));
         content.add(scrollPane, BorderLayout.CENTER);
 
-        // Sur: �rea de texto + botones
+        // Sur: area de texto + botones
         JPanel south = new JPanel(new BorderLayout(4, 4));
 
         inputArea = new JTextArea(3, 30);
         inputArea.setLineWrap(true);
         inputArea.setWrapStyleWord(true);
+        inputArea.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { actualizarBotones(); }
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { actualizarBotones(); }
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { actualizarBotones(); }
+        });
         JScrollPane taScroll = new JScrollPane(inputArea);
         taScroll.setBorder(BorderFactory.createTitledBorder("Responder"));
         south.add(taScroll, BorderLayout.CENTER);
 
-        JPanel btnPanel = new JPanel(new BorderLayout(4, 0));
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         sendButton = new JButton("Enviar");
         sendButton.addActionListener(ev -> enviarMensaje());
+
+        clearButton = new JButton("\u2716");
+        clearButton.setFont(clearButton.getFont().deriveFont(Font.BOLD, 14f));
+        clearButton.setForeground(new Color(180, 40, 40));
+        clearButton.setContentAreaFilled(false);
+        clearButton.setBorderPainted(false);
+        clearButton.setFocusPainted(false);
+        clearButton.setToolTipText("Descartar borrador");
+        clearButton.addActionListener(ev -> {
+            inputArea.setText("");
+            inputArea.requestFocusInWindow();
+        });
+
         closeButton = new JButton("Cerrar");
         closeButton.addActionListener(ev -> dispose());
-        btnPanel.add(sendButton, BorderLayout.WEST);
-        btnPanel.add(closeButton, BorderLayout.EAST);
+
+        btnPanel.add(sendButton);
+        btnPanel.add(clearButton);
+        btnPanel.add(Box.createHorizontalGlue());
+        btnPanel.add(closeButton);
         south.add(btnPanel, BorderLayout.SOUTH);
 
         content.add(south, BorderLayout.SOUTH);
 
         add(content);
 
-        // Pre-cargar mensajes
         refrescarMensajes();
+
+        // Pre-rellenar con el ultimo mensaje nuestro
+        if (commentThread != null) {
+            Mensaje last = commentThread.getLast();
+            if (last != null && "nosotros".equals(last.de())) {
+                inputArea.setText(last.texto());
+            }
+        }
+
+        actualizarBotones();
+        
+        
+        // Marcar como leído al abrir la conversación
+        if (commentThread != null) {
+            // Si el estado de nuestro programa es 3 (Nuevo no leído), lo pasamos a 1 (Leído no contestado)
+            if (commentThread.getEstadoPr() == 3) {
+                commentThread.setEstadoPr(1);   // Verde para nosotros
+                commentThread.setEstadoHtml(1); // Verde para el cliente (sabe que lo hemos leído)
+                
+                if (projectManager != null) {
+                    projectManager.notificarModificacion();
+                }
+                if (onModify != null) {
+                    onModify.run(); // Refresca la tabla detrás del diálogo al instante
+                }
+            }
+        }
+        
     } // --- Fin de metodo MsgPopupDialog (constructor) ---
+
+
+    private void actualizarBotones() {
+        boolean tieneTexto = !inputArea.getText().trim().isEmpty();
+        sendButton.setEnabled(tieneTexto);
+        clearButton.setEnabled(tieneTexto);
+    } // --- FIN de metodo actualizarBotones ---
 
 
     private void enviarMensaje() {
         String text = inputArea.getText().trim();
-        if (text.isEmpty()) return;
-        thread.add(new Mensaje("nosotros", text));
+        if (text.isEmpty() || commentThread == null) return;
+        commentThread.add("nosotros", text, currentIteration);
+        
+        // ---> ACTUALIZAR ESTADOS AL CONTESTAR <---
+        commentThread.setEstadoPr(2);   // 2: mensaje contestado (sobre azul para nosotros)
+        commentThread.setEstadoHtml(3); // 3: mensaje nuevo no leido (sobre rojo para el cliente)
+        
         inputArea.setText("");
         if (projectManager != null) {
             projectManager.notificarModificacion();
@@ -143,7 +188,7 @@ public class MsgPopupDialog extends JDialog {
 
     private void refrescarMensajes() {
         messagesPanel.removeAll();
-        if (thread == null || thread.isEmpty()) {
+        if (commentThread == null || commentThread.isEmpty()) {
             JLabel empty = new JLabel("  (sin mensajes)  ");
             empty.setForeground(Color.GRAY);
             empty.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -151,8 +196,9 @@ public class MsgPopupDialog extends JDialog {
             messagesPanel.add(empty);
             messagesPanel.add(Box.createVerticalGlue());
         } else {
-            for (int i = 0; i < thread.size(); i++) {
-                Mensaje msg = thread.get(i);
+            java.util.List<Mensaje> msgs = commentThread.getMessages();
+            for (int i = 0; i < msgs.size(); i++) {
+                Mensaje msg = msgs.get(i);
                 messagesPanel.add(crearBurbujaMensaje(msg, i));
                 messagesPanel.add(Box.createVerticalStrut(4));
             }
@@ -165,14 +211,6 @@ public class MsgPopupDialog extends JDialog {
             javax.swing.SwingUtilities.invokeLater(() -> {
                 sp.getVerticalScrollBar().setValue(sp.getVerticalScrollBar().getMaximum());
             });
-        }
-
-        // Pre-fill textarea si el �ltimo mensaje es del cliente
-        if (thread != null && !thread.isEmpty()) {
-            Mensaje last = thread.get(thread.size() - 1);
-            if ("cliente".equals(last.de())) {
-                inputArea.setText(last.texto());
-            }
         }
     } // --- FIN de metodo refrescarMensajes ---
 
@@ -206,68 +244,44 @@ public class MsgPopupDialog extends JDialog {
         textArea.setRows(1);
         bubble.add(textArea, BorderLayout.CENTER);
 
-        // Click → copiar al textbox
-        bubble.addMouseListener(new MouseAdapter() {
+        // Click -> copiar al textbox
+        bubble.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
-            public void mouseClicked(MouseEvent e) {
+            public void mouseClicked(java.awt.event.MouseEvent e) {
                 inputArea.setText(msg.texto());
             }
         });
 
-        // Popup para editar/borrar mensajes "nosotros"
-        if (isNosotros) {
-            bubble.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mousePressed(MouseEvent e) {
-                    if (e.isPopupTrigger()) mostrarPopup(e, index);
-                }
-                @Override
-                public void mouseReleased(MouseEvent e) {
-                    if (e.isPopupTrigger()) mostrarPopup(e, index);
+        // Btn X para borrar (solo "nosotros" no compartidos)
+        if (isNosotros && commentThread != null && !msg.isCompartido(currentIteration)) {
+            JButton deleteBtn = new JButton("\u2716");
+            deleteBtn.setFont(deleteBtn.getFont().deriveFont(Font.BOLD, 10f));
+            deleteBtn.setForeground(new Color(180, 40, 40));
+            deleteBtn.setContentAreaFilled(false);
+            deleteBtn.setBorderPainted(false);
+            deleteBtn.setFocusPainted(false);
+            deleteBtn.setToolTipText("Borrar este mensaje");
+            
+            deleteBtn.addActionListener(ev -> {
+                if (commentThread.delete(index, currentIteration)) {
+                    // ---> SI SE QUEDA VACÍO, ESTADOS A 0 (GRIS) <---
+                    if (commentThread.isEmpty()) {
+                        commentThread.setEstadoPr(0);
+                        commentThread.setEstadoHtml(0);
+                    }
+                    
+                    if (projectManager != null) projectManager.notificarModificacion();
+                    if (onModify != null) onModify.run();
+                    refrescarMensajes();
                 }
             });
+            
+            
+            // Colocar a la derecha del remitente
+            bubble.add(deleteBtn, BorderLayout.EAST);
         }
 
         return bubble;
     } // --- FIN de metodo crearBurbujaMensaje ---
-
-
-    private void mostrarPopup(MouseEvent e, int index) {
-        JPopupMenu popup = new JPopupMenu();
-
-        JMenuItem editItem = new JMenuItem("Editar");
-        editItem.addActionListener(ev -> {
-            Mensaje msg = thread.get(index);
-            String nuevo = JOptionPane.showInputDialog(this,
-                    "Editar mensaje:", msg.texto());
-            if (nuevo != null) {
-                if (nuevo.trim().isEmpty()) {
-                    thread.remove(index);
-                } else {
-                    thread.set(index, new Mensaje("nosotros", nuevo.trim()));
-                }
-                if (projectManager != null) projectManager.notificarModificacion();
-                if (onModify != null) onModify.run();
-                refrescarMensajes();
-            }
-        });
-        popup.add(editItem);
-
-        JMenuItem deleteItem = new JMenuItem("Borrar");
-        deleteItem.addActionListener(ev -> {
-            int confirm = JOptionPane.showConfirmDialog(this,
-                    "\u00bfBorrar este mensaje?",
-                    "Borrar mensaje", JOptionPane.YES_NO_OPTION);
-            if (confirm == JOptionPane.YES_OPTION) {
-                thread.remove(index);
-                if (projectManager != null) projectManager.notificarModificacion();
-                if (onModify != null) onModify.run();
-                refrescarMensajes();
-            }
-        });
-        popup.add(deleteItem);
-
-        popup.show(e.getComponent(), e.getX(), e.getY());
-    } // --- FIN de metodo mostrarPopup ---
 
 } // --- FIN de clase MsgPopupDialog ---

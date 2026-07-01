@@ -158,9 +158,12 @@ public class ToolbarBuilder {
                     if (componenteBoton != null) {
                         toolbar.add(componenteBoton);
                         if (group != null && componenteBoton instanceof JToggleButton) {
-                            group.add((JToggleButton) componenteBoton);
-                            logger.debug("      -> Botón Toggle '" + botonDef.comandoCanonico()
-                                    + "' añadido al ButtonGroup.");
+                            // CMD_CLIENTE_EDITAR es un toggle independiente, no exclusivo
+                            if (!AppActionCommands.CMD_CLIENTE_EDITAR.equals(botonDef.comandoCanonico())) {
+                                group.add((JToggleButton) componenteBoton);
+                                logger.debug("      -> Botón Toggle '" + botonDef.comandoCanonico()
+                                        + "' añadido al ButtonGroup.");
+                            }
                         }
                     }
                 } else if (compDef instanceof LabelDefinition labelDef) {
@@ -339,6 +342,18 @@ public class ToolbarBuilder {
                     nombreBotonParaClave);
 
             this.registry.register(claveBaseBoton, abstractButtonComponent);
+
+            // Registrar botones específicos con claves fijas para acceso desde los controladores
+            String cmd = definition.comandoCanonico();
+            if (AppActionCommands.CMD_CLIENTE_EDITAR.equals(cmd)) {
+                this.registry.register("button.cliente.editar", abstractButtonComponent);
+            }
+
+            // Resaltar botón de cerrar cliente como peligroso
+            if (AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR.equals(cmd)) {
+                abstractButtonComponent.setBorder(
+                    javax.swing.BorderFactory.createLineBorder(new java.awt.Color(220, 30, 30), 3));
+            }
 
             abstractButtonComponent.putClientProperty("buttonType", definition.tipoBoton());
             abstractButtonComponent.putClientProperty("baseIconName", definition.claveIcono());

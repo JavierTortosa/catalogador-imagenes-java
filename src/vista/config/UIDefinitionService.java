@@ -805,15 +805,10 @@ public class UIDefinitionService {
                 "Exportar HTML único para el cliente", "cliente"));
         
         botonesCliente.add(new SeparatorDefinition());
-        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EDITAR, "60204-User-Edit-Pencil.png",
-                "Editar selección", "cliente", ButtonType.TOGGLE));
+//        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EDITAR, "60204-User-Edit-Pencil.png",
+//                "Editar selección", "cliente", ButtonType.TOGGLE));
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES, "60101-Rotate-X-Axis.png",
                 "Mover selección a descartes", "cliente"));
-        botonesCliente.add(new SeparatorDefinition());
-        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_UPDATE, "60303-Check-Square-2.png",
-                "Actualizar proyecto con cambios del cliente", "cliente"));
-        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR, "60205-User-Check-Validate.png",
-                "Cerrar y sincronizar con el cliente", "cliente"));
 
         // --- BARRA DE BOTONES DEL EDITOR DE CHECKBOXES ---
         List<ToolbarComponentDefinition> botonesCheckboxEditor = List.of(
@@ -834,7 +829,10 @@ public class UIDefinitionService {
         				"Editor de checkboxes", "visor_editor", ButtonType.TOGGLE),
         		new SeparatorDefinition(),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_TOGGLE_EDITOR_PANEL, "60206-Word-Wrap-Around-Bounding-Box.png",
-                        "Visor de imagenes", "visor_editor", ButtonType.TOGGLE)
+                        "Visor de imagenes", "visor_editor", ButtonType.TOGGLE),
+                new SeparatorDefinition(),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EDITAR, "60204-User-Edit-Pencil.png",
+                        "Editar selección", "visor_editor", ButtonType.TOGGLE)
         );
 
         // --- BARRA DE BOTONES Sync ---
@@ -1195,6 +1193,13 @@ public class UIDefinitionService {
                 // Barra Visor/Editor del Modo Cliente
                 , new ToolbarDefinition("visor_editor", "Visor/Editor", 156, EnumSet.of(WorkMode.CLIENTE),
                         List.copyOf(botonesVisorEditor), ToolbarAlignment.CENTER)
+
+                // Barra aislada para cerrar cliente (evitar cierres accidentales)
+                , new ToolbarDefinition("cliente_cerrar", "Cerrar Cliente", 1 /*158*/, EnumSet.of(WorkMode.CLIENTE),
+                        List.of(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR,
+                                "60205-User-Check-Validate.png",
+                                "Cerrar y sincronizar con el cliente", "cliente_cerrar")),
+                        ToolbarAlignment.RIGHT)
 
                 // Barra del Editor de Checkboxes (no se muestra en toolbar principal, se coloca dentro del panel editor)
                 , new ToolbarDefinition("editor_checkboxes", "Editor de Checkboxes", 157, EnumSet.noneOf(WorkMode.class),

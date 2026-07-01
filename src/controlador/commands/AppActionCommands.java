@@ -194,8 +194,8 @@ public interface AppActionCommands {
 	    public static final String CMD_VISTA_PANTALLA_COMPLETA 		= "cmd.vista.pantalla_completa";	// Para Vista de Pantalla Completa
 
     public static final String CMD_VISTA_TOGGLE_LOCATION_BAR 		= "cmd.vista.toggle.location_bar";  	// Para ToggleLocationBarAction
-	public static final String CMD_VISTA_TOGGLE_INFOBAR_INFERIOR   = "cmd.vista.toggle.infobar.inferior";
-	public static final String CMD_VISTA_TOGGLE_INFOBAR_SUPERIOR   = "cmd.vista.toggle.infobar.superior";
+	public static final String CMD_VISTA_TOGGLE_INFOBAR_INFERIOR   	= "cmd.vista.toggle.infobar.inferior";
+	public static final String CMD_VISTA_TOGGLE_INFOBAR_SUPERIOR   	= "cmd.vista.toggle.infobar.superior";
 	
     public static final String CMD_VISTA_TOGGLE_MENU_BAR 			= "cmd.vista.toggle.menu_bar";      	// Para ToggleMenuBarAction
     public static final String CMD_VISTA_TOGGLE_TOOL_BAR 			= "cmd.vista.toggle.tool_bar";      	// Para ToggleToolBarAction
@@ -210,21 +210,23 @@ public interface AppActionCommands {
     public static final String CMD_MODO_DATOS 						= "cmd.modo.datos";
     public static final String CMD_PROYECTO_COMPARTIR_CLIENTE		= "cmd.proyecto.compartir_cliente";
     public static final String CMD_MODO_CLIENTE 					= "cmd.modo.cliente";
+    public static final String CMD_VISTA_CAROUSEL 					= "cmd.vista.carousel";
+    public static final String CMD_CONFIG_CUSTOM_THEME				= "cmd.config.custom_theme";
+    public static final String CMD_CONFIG_AVANZADA					= "cmd.config.avanzada";
+
     public static final String CMD_CLIENTE_ABRIR_PRJCL 				= "cmd.cliente.abrir_prjcl";
-    public static final String CMD_CLIENTE_UPDATE 				= "cmd.cliente.update";
+    public static final String CMD_CLIENTE_UPDATE 					= "cmd.cliente.update";
     public static final String CMD_CLIENTE_EXPORTAR_WEB 			= "cmd.cliente.exportar_web";
     public static final String CMD_CLIENTE_EXPORTAR_HTML 			= "cmd.cliente.exportar_html";
     public static final String CMD_CLIENTE_CARGAR_RESPUESTA 		= "cmd.cliente.cargar_respuesta";
     public static final String CMD_CLIENTE_CERRAR_SINCRONIZAR 		= "cmd.cliente.cerrar_sincronizar";
-    public static final String CMD_CLIENTE_VIEW_VISOR 			    = "cmd.cliente.view_visor";
-    public static final String CMD_CLIENTE_TOGGLE_EDITOR_PANEL 	= "cmd.cliente.toggle_editor_panel";
-    public static final String CMD_CLIENTE_EDITAR 				= "cmd.cliente.editar";
     public static final String CMD_CLIENTE_CHECKBOX_ADD 			= "cmd.cliente.checkbox.add";
-    public static final String CMD_CLIENTE_CHECKBOX_ADD_LABEL 	= "cmd.cliente.checkbox.add_label";
+    public static final String CMD_CLIENTE_CHECKBOX_ADD_LABEL 		= "cmd.cliente.checkbox.add_label";
     public static final String CMD_CLIENTE_CHECKBOX_FIN_EDICION 	= "cmd.cliente.checkbox.fin_edicion";
-    public static final String CMD_VISTA_CAROUSEL 					= "cmd.vista.carousel";
-    public static final String CMD_CONFIG_CUSTOM_THEME				= "cmd.config.custom_theme";
-    public static final String CMD_CONFIG_AVANZADA					= "cmd.config.avanzada";
+    
+    public static final String CMD_CLIENTE_VIEW_VISOR 			    = "cmd.cliente.view_visor";
+    public static final String CMD_CLIENTE_TOGGLE_EDITOR_PANEL 		= "cmd.cliente.toggle_editor_panel";
+    public static final String CMD_CLIENTE_EDITAR 					= "cmd.cliente.editar";
     
     // --- Comportamiento/Toggles Generales ---
     public static final String CMD_TOGGLE_SUBCARPETAS 				= "cmd.toggle.subcarpetas";             // Para ToggleSubfoldersAction

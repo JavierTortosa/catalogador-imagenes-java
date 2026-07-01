@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.44.10";
+        version = "V2.46.40";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -36,7 +36,7 @@ public class VisorV2 {
         // será manejada por AppInitializer y ThemeManager.
         javax.swing.SwingUtilities.invokeLater(() -> {
             new VisorController(version);
-
+            
             logger.debug("VisorController instanciado. La inicialización de la UI ha sido programada en el EDT.");
         });
 
@@ -65,25 +65,6 @@ public class VisorV2 {
     
     
     // CLIENTE
-    
-    // FIXME arreglar los anchos de columna de los grids
-    /*
-     		Anchos de columna (izquierda — proyecto):
-     		Columna		ancho                         
-     		Cod			MaxWidth 40                        
-     		Nombre		minWidth 320(resto)                     
-     		Etiqueta	maxWidth 40                     
-     		                                         
-     		Anchos de columna (derecha — cliente):   
-     		Columna		ancho                         
-     		Estado		maxWidth 40                      
-     		Cód IMG		maxWidth 40                     
-     		Cód CB		maxWidth 40        
-     		Precio		maxWidth 40   
-     		Comentario	sin restricción (rellena)     
-     */
-    //"60401-Hierarchy.png"
-    
     
     
     // TOOLBAR

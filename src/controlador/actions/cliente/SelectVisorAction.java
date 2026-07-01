@@ -31,6 +31,16 @@ public class SelectVisorAction extends AbstractAction {
         AppActionCommands.CMD_VISTA_POLAROID
     };
 
+    private static final String[] ZOOM_COMMANDS = {
+        AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR,
+        AppActionCommands.CMD_ZOOM_TIPO_AUTO,
+        AppActionCommands.CMD_ZOOM_TIPO_ANCHO,
+        AppActionCommands.CMD_ZOOM_TIPO_ALTO,
+        AppActionCommands.CMD_ZOOM_TIPO_RELLENAR,
+        AppActionCommands.CMD_ZOOM_TIPO_FIJO,
+        AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO,
+    };
+
     private final VisorModel model;
     private final ComponentRegistry registry;
     private final ActionFactory actionFactory;
@@ -53,6 +63,7 @@ public class SelectVisorAction extends AbstractAction {
         model.setClienteEditorPanelVisible(false);
         putValue(Action.SELECTED_KEY, true);
 
+        setZoomActionsEnabled(true);
         setViewActionsEnabled(true);
 
         JPanel displayContainer = registry.get("container.displaymodes.cliente.wrapper");
@@ -66,6 +77,16 @@ public class SelectVisorAction extends AbstractAction {
     private void setViewActionsEnabled(boolean enabled) {
         Map<String, Action> actionMap = actionFactory.getActionMap();
         for (String cmd : VIEW_COMMANDS) {
+            Action action = actionMap.get(cmd);
+            if (action != null) {
+                action.setEnabled(enabled);
+            }
+        }
+    }
+
+    private void setZoomActionsEnabled(boolean enabled) {
+        Map<String, Action> actionMap = actionFactory.getActionMap();
+        for (String cmd : ZOOM_COMMANDS) {
             Action action = actionMap.get(cmd);
             if (action != null) {
                 action.setEnabled(enabled);

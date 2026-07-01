@@ -292,6 +292,42 @@ public class ProjectModel {
         return key != null && !key.contains("_cb");
     }
 
+
+    /**
+     * Deriva el estado de una imagen a partir del estado de sus checkboxes internos.
+     * - Al menos un SELECTED → imagen SELECTED
+     * - Ningún SELECTED, al menos un UNDEFINED → imagen UNDEFINED
+     * - Todos DISCARDED → imagen DISCARDED
+     * @param imageKey La clave de la imagen (normalizada o no).
+     */
+    public void derivarEstadoImagen(String imageKey) {
+        String canonicalKey = normalizarClaveImagen(imageKey);
+        ProjectImage pi = masterImages.get(canonicalKey);
+        if (pi == null) return;
+        List<ImageCheckboxOverlay> checkboxes = pi.getCheckboxes();
+        if (checkboxes == null || checkboxes.isEmpty()) return;
+
+        boolean hasSelected = false;
+        boolean hasUndefined = false;
+        for (ImageCheckboxOverlay cb : checkboxes) {
+            switch (cb.getState()) {
+                case SELECTED  -> hasSelected = true;
+                case UNDEFINED -> hasUndefined = true;
+                default -> {}
+            }
+        }
+
+        SelectionState derived;
+        if (hasSelected) {
+            derived = SelectionState.SELECTED;
+        } else if (hasUndefined) {
+            derived = SelectionState.UNDEFINED;
+        } else {
+            derived = SelectionState.DISCARDED;
+        }
+        pi.setEstadoCliente(derived);
+    }
+
     /**
      * Resuelve la ruta canónica de una imagen a partir de su clave (ya sea la ruta o una clave compuesta).
      * @param key La clave de la imagen.

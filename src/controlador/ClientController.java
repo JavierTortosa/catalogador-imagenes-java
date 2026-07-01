@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.AbstractButton;
 import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -94,6 +95,16 @@ public class ClientController implements IModoController {
 
     public void setEditingActive(boolean editingActive) {
         this.editingActive = editingActive;
+        if (registry == null) return;
+        // Sync toggle button
+        AbstractButton btn = registry.get("button.cliente.editar");
+        if (btn != null) btn.setSelected(editingActive);
+        // Sync table models
+        javax.swing.JTable t;
+        t = registry.get("table.cliente.cliente.seleccion");
+        if (t != null && t.getModel() instanceof vista.models.ClienteTableModel cm1) cm1.setEditingActive(editingActive);
+        t = registry.get("table.cliente.cliente.descartes");
+        if (t != null && t.getModel() instanceof vista.models.ClienteTableModel cm2) cm2.setEditingActive(editingActive);
     } // --- Fin de metodo setEditingActive ---
 
 
@@ -153,6 +164,7 @@ public class ClientController implements IModoController {
                             if (fullPath != null) {
                                 visorController.actualizarImagenPrincipalPorPath(fullPath, key);
                             }
+                            sincronizarContextoNavegacion(key);
                         }
                     }
                 }
@@ -169,6 +181,40 @@ public class ClientController implements IModoController {
 
         logger.info("[ClientController] Tablas del Modo Cliente refrescadas.");
     } // --- Fin de metodo activarVistaCliente ---
+
+
+    /**
+     * Sincroniza el contexto de navegaci&oacute;n del visor para que las flechas
+     * de navegaci&oacute;n (anterior/siguiente) se habiliten correctamente
+     * en modo cliente. Acepta tanto una clave de VisorModel como una ruta de archivo.
+     */
+    public void sincronizarContextoNavegacion(String key) {
+        if (visorController == null || generalController == null) return;
+        var visorModel = visorController.getModel();
+        if (visorModel == null) return;
+        var listContext = visorModel.getCurrentListContext();
+        if (listContext == null) return;
+
+        // Si la key no est&aacute; en el modelo de lista, buscar por ruta completa
+        String modelKey = key;
+        var modeloLista = listContext.getModeloLista();
+        if (modeloLista == null || !modeloLista.contains(key)) {
+            var rutaMap = listContext.getRutaCompletaMap();
+            if (rutaMap != null && key != null) {
+                String canonicalSearch = key.replace("\\", "/");
+                for (var entry : rutaMap.entrySet()) {
+                    if (entry.getValue() != null
+                            && entry.getValue().toString().replace("\\", "/").equals(canonicalSearch)) {
+                        modelKey = entry.getKey();
+                        break;
+                    }
+                }
+            }
+        }
+
+        listContext.setSelectedImageKey(modelKey);
+        generalController.notificarAccionesSensiblesAlContexto();
+    } // --- Fin de metodo sincronizarContextoNavegacion ---
 
 
     /**
@@ -195,6 +241,7 @@ public class ClientController implements IModoController {
                 if (canonicalTarget != null && canonicalTarget.equals(rowKey)) {
                     t.setRowSelectionInterval(viewRow, viewRow);
                     t.scrollRectToVisible(t.getCellRect(viewRow, 0, true));
+                    sincronizarContextoNavegacion(rowKey);
                     return;
                 }
             }
@@ -202,6 +249,12 @@ public class ClientController implements IModoController {
         // No hay imagen previa o no se encontró: seleccionar primera fila
         t.setRowSelectionInterval(0, 0);
         t.scrollRectToVisible(t.getCellRect(0, 0, true));
+        // Obtener la clave de la primera fila para inicializar el contexto de navegaci&oacute;n
+        ProyectoClienteTableModel model = (ProyectoClienteTableModel) t.getModel();
+        String firstKey = model.getImageKey(t.convertRowIndexToModel(0));
+        if (firstKey != null) {
+            sincronizarContextoNavegacion(firstKey);
+        }
     } // --- Fin de metodo restaurarOIniciarSeleccion ---
 
 
@@ -210,48 +263,32 @@ public class ClientController implements IModoController {
         t = registry.get("table.cliente.proyecto.seleccion");
         if (t != null) {
             t.setModel(new vista.models.ProyectoClienteTableModel(project, true));
-            t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_CODIGO)
-                    .setCellRenderer(new vista.renderers.CodeCellRenderer());
-            t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_CODIGO).setMaxWidth(80);
+            vista.config.ClientTableConfig.configureProjectTable(t);
         }
         t = registry.get("table.cliente.proyecto.descartes");
         if (t != null) {
             t.setModel(new vista.models.ProyectoClienteTableModel(project, false));
-            t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_CODIGO)
-                    .setCellRenderer(new vista.renderers.CodeCellRenderer());
-            t.getColumnModel().getColumn(vista.models.ProyectoClienteTableModel.COL_CODIGO).setMaxWidth(80);
+            vista.config.ClientTableConfig.configureProjectTable(t);
         }
         t = registry.get("table.cliente.cliente.seleccion");
         if (t != null) {
-            t.setModel(new vista.models.ClienteTableModel(project, true));
-            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_ESTADO)
-                    .setCellRenderer(new vista.renderers.TristateCellRenderer());
-            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_ESTADO).setMaxWidth(50);
-            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_IMG).setMaxWidth(80);
-            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_IMG)
-                    .setCellRenderer(new vista.renderers.CodeCellRenderer());
-            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_CB).setMaxWidth(80);
-            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_CB)
-                    .setCellRenderer(new vista.renderers.CodeCellRenderer());
-            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_COMENTARIO)
-                    .setCellRenderer(new vista.renderers.CommentCellRenderer());
-            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_COMENTARIO).setMaxWidth(50);
+            var m = new vista.models.ClienteTableModel(project, true);
+            m.setEditingActive(editingActive);
+            m.setModificationListener(() -> {
+                if (projectManager != null) projectManager.notificarModificacion();
+            });
+            t.setModel(m);
+            vista.config.ClientTableConfig.configureClientTable(t);
         }
         t = registry.get("table.cliente.cliente.descartes");
         if (t != null) {
-            t.setModel(new vista.models.ClienteTableModel(project, false));
-            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_ESTADO)
-                    .setCellRenderer(new vista.renderers.TristateCellRenderer());
-            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_ESTADO).setMaxWidth(50);
-            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_IMG).setMaxWidth(80);
-            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_IMG)
-                    .setCellRenderer(new vista.renderers.CodeCellRenderer());
-            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_CB).setMaxWidth(80);
-            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_CODIGO_CB)
-                    .setCellRenderer(new vista.renderers.CodeCellRenderer());
-            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_COMENTARIO)
-                    .setCellRenderer(new vista.renderers.CommentCellRenderer());
-            t.getColumnModel().getColumn(vista.models.ClienteTableModel.COL_COMENTARIO).setMaxWidth(50);
+            var m = new vista.models.ClienteTableModel(project, false);
+            m.setEditingActive(editingActive);
+            m.setModificationListener(() -> {
+                if (projectManager != null) projectManager.notificarModificacion();
+            });
+            t.setModel(m);
+            vista.config.ClientTableConfig.configureClientTable(t);
         }
         refrescarTablas();
 
@@ -276,6 +313,17 @@ public class ClientController implements IModoController {
                 }
             }
             gridCliente.setModel(gridModel);
+
+            // Sincronizar el modelo de lista del contexto de navegaci&oacute;n
+            // para que las flechas del visor se habiliten en modo cliente
+            var navCtx = visorController.getModel().getCurrentListContext();
+            if (navCtx != null) {
+                DefaultListModel<String> navModel = new DefaultListModel<>();
+                for (int i = 0; i < gridModel.size(); i++) {
+                    navModel.addElement(gridModel.get(i));
+                }
+                navCtx.setModeloLista(navModel);
+            }
         }
     } // --- Fin de metodo asignarModelosTablas ---
 
@@ -606,7 +654,6 @@ public class ClientController implements IModoController {
             AppActionCommands.CMD_CLIENTE_CARGAR_RESPUESTA,
             AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB,
             AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML,
-            AppActionCommands.CMD_CLIENTE_UPDATE,
             AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR,
             AppActionCommands.CMD_CLIENTE_TOGGLE_EDITOR_PANEL,
             AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES,
@@ -806,79 +853,6 @@ public class ClientController implements IModoController {
                 + "Usa el bot\u00f3n 'Editar' para reabrir si necesitas hacer cambios.",
                 "Cliente Cerrado", JOptionPane.INFORMATION_MESSAGE);
     } // --- Fin de metodo cerrarCliente ---
-
-
-    public void solicitarUpdateCliente() {
-        logger.info("[ClientController] Solicitando update del cliente...");
-        if (projectManager == null || projectManager.getCurrentProject() == null) {
-            JOptionPane.showMessageDialog(null, "No hay proyecto activo.", "Update",
-                    JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        ProjectModel project = projectManager.getCurrentProject();
-        if (project.getClientSelection() == null
-                || project.getClientSelection().getFechaRespuesta() == null
-                || project.getClientSelection().getFechaRespuesta().isBlank()) {
-            JOptionPane.showMessageDialog(null,
-                    "No hay respuesta del cliente. Importa una respuesta antes de actualizar.",
-                    "Update", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        // Construir filas de conflicto desde masterImages
-        List<vista.dialogos.SyncConflictDialog.FilaConflicto> conflictRows = new ArrayList<>();
-        for (ProjectImage pi : project.getMasterImages().values()) {
-            SelectionState clientState = pi.getEstadoCliente();
-            if (clientState == SelectionState.UNDEFINED) continue;
-            SelectionState projectState = pi.isEnSeleccionProyecto()
-                    ? SelectionState.SELECTED : SelectionState.DISCARDED;
-            if (clientState != projectState) {
-                String nombre = pi.getRutaImagen() != null
-                        ? java.nio.file.Paths.get(pi.getRutaImagen()).getFileName().toString() : "";
-                conflictRows.add(new vista.dialogos.SyncConflictDialog.FilaConflicto(
-                        pi.getRutaImagen(),
-                        pi.getCodigoCatalogo() != null ? pi.getCodigoCatalogo() : "",
-                        nombre, projectState, clientState));
-            }
-        }
-
-        if (conflictRows.isEmpty()) {
-            // Sin conflictos: aplicar estado del cliente directamente
-            for (ProjectImage pi : project.getMasterImages().values()) {
-                if (pi.getEstadoCliente() == SelectionState.SELECTED) {
-                    pi.setEnSeleccionProyecto(true);
-                } else if (pi.getEstadoCliente() == SelectionState.DISCARDED) {
-                    pi.setEnSeleccionProyecto(false);
-                }
-            }
-            projectManager.guardarAArchivo();
-            projectManager.notificarModificacion();
-            refrescarTablas();
-            JOptionPane.showMessageDialog(null, "No hay conflictos. Proyecto actualizado.",
-                    "Update", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-
-        JFrame owner = registry != null ? registry.get("frame.principal") : null;
-        vista.dialogos.SyncConflictDialog dialog = new vista.dialogos.SyncConflictDialog(owner, conflictRows);
-        dialog.setVisible(true);
-
-        if (dialog.isAccepted()) {
-            Map<String, Boolean> resolved = dialog.getResolvedConflicts();
-            for (Map.Entry<String, Boolean> entry : resolved.entrySet()) {
-                ProjectImage pi = project.getMasterImages().get(entry.getKey());
-                if (pi != null) {
-                    pi.setEnSeleccionProyecto(entry.getValue());
-                }
-            }
-            projectManager.guardarAArchivo();
-            projectManager.notificarModificacion();
-            refrescarTablas();
-            JOptionPane.showMessageDialog(null,
-                    "Conflictos resueltos y aplicados al proyecto.",
-                    "Update", JOptionPane.INFORMATION_MESSAGE);
-        }
-    } // --- Fin de metodo solicitarUpdateCliente ---
 
 
     public void closeAndSyncProject() {
@@ -1231,7 +1205,7 @@ public class ClientController implements IModoController {
 
     @Override
     public void navegarSiguiente() {
-        // Implementación futura
+    	// Implementación futura
     } // --- Fin de metodo navegarSiguiente ---
 
 

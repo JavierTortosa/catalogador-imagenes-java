@@ -681,8 +681,6 @@ public class ActionFactory {
                 createClientExportarHtmlAction());
         registerAction(AppActionCommands.CMD_CLIENTE_CARGAR_RESPUESTA,
                 createClientCargarRespuestaAction());
-        registerAction(AppActionCommands.CMD_CLIENTE_UPDATE,
-                createClientUpdateAction());
         registerAction(AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR,
                 createClientCerrarSincronizarAction());
         registerAction(AppActionCommands.CMD_CLIENTE_VIEW_VISOR,
@@ -868,18 +866,6 @@ public class ActionFactory {
         };
     }
 
-    private Action createClientUpdateAction() {
-        return new AbstractAction() {
-            private static final long serialVersionUID = 1L;
-            @Override
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                if (clientController != null) {
-                    clientController.solicitarUpdateCliente();
-                }
-            }
-        };
-    }
-
     private Action createClientCerrarSincronizarAction() {
         return new AbstractAction("Cerrar modo cliente") {
             private static final long serialVersionUID = 1L;
@@ -895,13 +881,6 @@ public class ActionFactory {
     private Action createClientEditarAction() {
         return new AbstractAction() {
             private static final long serialVersionUID = 1L;
-
-            private void syncToggle(ActionEvent e, boolean selected) {
-                if (e != null && e.getSource() instanceof javax.swing.JToggleButton) {
-                    ((javax.swing.JToggleButton) e.getSource()).setSelected(selected);
-                }
-            }
-
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (clientController == null) return;
@@ -918,21 +897,12 @@ public class ActionFactory {
                     if (resp == JOptionPane.YES_OPTION) {
                         project.setClientModeClosed(false);
                         clientController.setEditingActive(false);
-                        syncToggle(e, false);
                     } else {
-                        syncToggle(e, false);
+                        clientController.setEditingActive(false);
                     }
                 } else if (clientController.isEditingActive()) {
-                    int resp = JOptionPane.showConfirmDialog(null,
-                            "\u00bfDesactivar el modo edici\u00f3n?",
-                            "Desactivar edici\u00f3n",
-                            JOptionPane.YES_NO_OPTION,
-                            JOptionPane.QUESTION_MESSAGE);
-                    if (resp == JOptionPane.YES_OPTION) {
-                        clientController.setEditingActive(false);
-                    } else {
-                        syncToggle(e, true);
-                    }
+                    // Sin confirmaci&oacute;n: desactivar no es peligroso
+                    clientController.setEditingActive(false);
                 } else {
                     int resp = JOptionPane.showConfirmDialog(null,
                             "Vas a activar el modo edici\u00f3n.\n"
@@ -944,7 +914,7 @@ public class ActionFactory {
                     if (resp == JOptionPane.YES_OPTION) {
                         clientController.setEditingActive(true);
                     } else {
-                        syncToggle(e, false);
+                        clientController.setEditingActive(false);
                     }
                 }
 

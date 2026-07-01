@@ -14,8 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-import javax.swing.Action;
-
 import controlador.commands.AppActionCommands;
 import controlador.factory.ActionFactory;
 import controlador.utils.ComponentRegistry;
@@ -32,6 +30,16 @@ public class SelectEditorAction extends AbstractAction {
         AppActionCommands.CMD_VISTA_SINGLE,
         AppActionCommands.CMD_VISTA_GRID,
         AppActionCommands.CMD_VISTA_POLAROID
+    };
+
+    private static final String[] ZOOM_COMMANDS = {
+        AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR,
+        AppActionCommands.CMD_ZOOM_TIPO_AUTO,
+        AppActionCommands.CMD_ZOOM_TIPO_ANCHO,
+        AppActionCommands.CMD_ZOOM_TIPO_ALTO,
+        AppActionCommands.CMD_ZOOM_TIPO_RELLENAR,
+        AppActionCommands.CMD_ZOOM_TIPO_FIJO,
+        AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO,
     };
 
     private final VisorModel model;
@@ -56,6 +64,7 @@ public class SelectEditorAction extends AbstractAction {
         model.setClienteCheckboxVisible(false);
         putValue(Action.SELECTED_KEY, true);
 
+        setZoomActionsEnabled(false);
         setViewActionsEnabled(false);
 
         JPanel displayContainer = registry.get("container.displaymodes.cliente.wrapper");
@@ -77,6 +86,16 @@ public class SelectEditorAction extends AbstractAction {
     private void setViewActionsEnabled(boolean enabled) {
         Map<String, Action> actionMap = actionFactory.getActionMap();
         for (String cmd : VIEW_COMMANDS) {
+            Action action = actionMap.get(cmd);
+            if (action != null) {
+                action.setEnabled(enabled);
+            }
+        }
+    }
+
+    private void setZoomActionsEnabled(boolean enabled) {
+        Map<String, Action> actionMap = actionFactory.getActionMap();
+        for (String cmd : ZOOM_COMMANDS) {
             Action action = actionMap.get(cmd);
             if (action != null) {
                 action.setEnabled(enabled);

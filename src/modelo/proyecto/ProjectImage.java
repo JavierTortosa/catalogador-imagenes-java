@@ -23,7 +23,7 @@ public class ProjectImage {
     private List<ImageCheckboxOverlay> checkboxes;
     private CommentOverlay commentOverlay;
     private String comment;
-    private List<Mensaje> commentThread;
+    private CommentThread commentThread;
 
     public ProjectImage() {
         this.estadoCliente = SelectionState.UNDEFINED;
@@ -123,7 +123,7 @@ public class ProjectImage {
     public String getComment() {
         if (comment != null && !comment.isEmpty()) return comment;
         if (commentThread != null && !commentThread.isEmpty()) {
-            return commentThread.get(commentThread.size() - 1).texto();
+            return commentThread.getLastText();
         }
         return null;
     }
@@ -132,22 +132,50 @@ public class ProjectImage {
         this.comment = comment;
     }
 
+    /**
+     * @return la lista de mensajes (no modificable) para lectura.
+     */
     public List<Mensaje> getCommentThread() {
         if (commentThread == null) {
-            commentThread = new ArrayList<>();
+            commentThread = new CommentThread();
             if (comment != null && !comment.isEmpty()) {
-                commentThread.add(new Mensaje("nosotros", comment));
+                commentThread.add("nosotros", comment, 0);
             }
         }
+        return commentThread.getMessages();
+    }
+
+    /**
+     * @return el objeto CommentThread para escritura (a&ntilde;adir/borrar).
+     */
+    public CommentThread getCommentThreadAccess() {
+        getCommentThread(); // asegura inicializaci&oacute;n
         return commentThread;
     }
 
     public void setCommentThread(List<Mensaje> thread) {
-        this.commentThread = thread;
+        if (commentThread == null) {
+            commentThread = new CommentThread();
+        }
+        commentThread.setMessages(thread);
     }
 
+    /**
+     * @deprecated Usar {@link #getCommentThread()} y {@link CommentThread#add(String, String, int)}
+     */
+    @Deprecated
     public void addMensaje(String de, String texto) {
-        getCommentThread().add(new Mensaje(de, texto));
+        getCommentThread();
+        if (commentThread != null) {
+            commentThread.add(de, texto, 0);
+        }
+    }
+
+    public void addMensaje(String de, String texto, int iteracion) {
+        getCommentThread();
+        if (commentThread != null) {
+            commentThread.add(de, texto, iteracion);
+        }
     }
 
     public boolean hasThreadMessages() {

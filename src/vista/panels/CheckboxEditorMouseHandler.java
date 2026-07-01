@@ -368,10 +368,6 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
                 viewMsgItem.addActionListener(ev -> mostrarDialogoMensajes(ov));
                 popup.add(viewMsgItem);
 
-                JMenuItem editMsgItem = new JMenuItem("Editar mensaje del modelo...");
-                editMsgItem.addActionListener(ev -> editCheckboxMessage(ov));
-                popup.add(editMsgItem);
-
                 JMenuItem removeMsgItem = new JMenuItem("Borrar mensaje del modelo");
                 removeMsgItem.addActionListener(ev -> removeCheckboxMessage(ov));
                 popup.add(removeMsgItem);
@@ -540,39 +536,13 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
         String text = showTextInputDialog("A\u00f1adir mensaje al checkbox",
                 "Mensaje (como fot\u00f3grafo):", "");
         if (text == null || text.trim().isEmpty()) return;
-        ov.addMensaje("nosotros", text.trim());
+        int iter = projectManager.getCurrentProject() != null
+                ? projectManager.getCurrentProject().getSharedIteration() : 0;
+        ov.addMensaje("nosotros", text.trim(), iter);
         projectManager.notificarModificacion();
         actualizarModeloTabla();
         imagePanel.repaint();
     } // --- FIN de metodo addCheckboxMessage ---
-
-
-    private void editCheckboxMessage(ImageCheckboxOverlay ov) {
-        var thread = ov.getCommentThread();
-        if (thread.isEmpty()) return;
-        // Editar el último mensaje "nosotros"
-        int lastNosotros = -1;
-        for (int i = thread.size() - 1; i >= 0; i--) {
-            if ("nosotros".equals(thread.get(i).de())) {
-                lastNosotros = i;
-                break;
-            }
-        }
-        if (lastNosotros < 0) return;
-        String current = thread.get(lastNosotros).texto();
-        String result = showTextInputDialog("Editar mensaje del checkbox",
-                "Mensaje (como fot\u00f3grafo):", current);
-        if (result != null) {
-            if (result.trim().isEmpty()) {
-                thread.remove(lastNosotros);
-            } else {
-                thread.set(lastNosotros, new Mensaje("nosotros", result.trim()));
-            }
-            projectManager.notificarModificacion();
-            actualizarModeloTabla();
-            imagePanel.repaint();
-        }
-    } // --- FIN de metodo editCheckboxMessage ---
 
 
     private void removeCheckboxMessage(ImageCheckboxOverlay ov) {
@@ -580,7 +550,7 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
                 "\u00bfBorrar todos los mensajes de este checkbox?",
                 "Borrar mensaje", javax.swing.JOptionPane.YES_NO_OPTION);
         if (confirm != javax.swing.JOptionPane.YES_OPTION) return;
-        ov.setCommentThread(new java.util.ArrayList<>());
+        ov.getCommentThreadAccess().setMessages(new java.util.ArrayList<>());
         ov.setComment("");
         projectManager.notificarModificacion();
         actualizarModeloTabla();
@@ -595,8 +565,10 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
         }
         if (owner == null) return;
         String title = "Mensajes del checkbox " + ov.getCheckboxCode();
-        var thread = ov.getCommentThread();
-        MsgPopupDialog dlg = new MsgPopupDialog(owner, title, thread, projectManager, () -> {
+        int iter = projectManager.getCurrentProject() != null
+                ? projectManager.getCurrentProject().getSharedIteration() : 0;
+        MsgPopupDialog dlg = new MsgPopupDialog(owner, title,
+                ov.getCommentThreadAccess(), projectManager, iter, () -> {
             projectManager.notificarModificacion();
             actualizarModeloTabla();
             imagePanel.repaint();
