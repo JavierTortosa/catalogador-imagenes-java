@@ -118,19 +118,22 @@
     <h3>2. Editor de Checkboxes</h3>
     <p>
         Al activar el <strong>Panel de edición de checkboxes</strong>, aparece un visor con la imagen actual
-        y una barra de herramientas específica:
+        y una barra de herramientas específica. También puedes usar atajos de teclado directamente
+        sobre la imagen:
     </p>
     <table class="controls-table">
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_60301-Cursor-Area-Selection-1.png"></td>
             <td><strong>Añadir checkbox:</strong> Activa el modo de inserción. Haz clic en la imagen para
                 colocar un nuevo checkbox en esa posición. Se abrirá un diálogo para configurar su código,
-                precio y estado inicial.</td>
+                precio y estado inicial. También puedes pulsar <strong>Ctrl+Click</strong> sobre la imagen
+                para añadir un checkbox rápidamente sin usar el botón.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_60302-Text-Select-Start.png"></td>
             <td><strong>Añadir label:</strong> Activa el modo de inserción de comentarios. Haz clic en la
-                imagen para colocar un comentario superpuesto.</td>
+                imagen para colocar un comentario superpuesto. También puedes pulsar
+                <strong>Ctrl+Shift+Click</strong> sobre la imagen para añadir un comentario rápidamente.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_60303-Check-Square-2.png"></td>
@@ -138,6 +141,12 @@
                 los cambios realizados.</td>
         </tr>
     </table>
+    <p>
+        En el editor puedes <strong>arrastrar</strong> los checkboxes y comentarios para reposicionarlos,
+        usar la <strong>rueda del ratón</strong> para hacer zoom, y el botón central para desplazar la imagen.
+        El menú contextual (clic derecho) sobre un checkbox permite cambiar su estado, editar código,
+        precio, borrarlo, o abrir su hilo de mensajes.
+    </p>
 
     <h3>3. Los 4 Grids de Selección</h3>
     <p>El modo cliente muestra 4 grids que organizan las imágenes según su origen y estado:</p>
@@ -147,6 +156,35 @@
         <li><strong>Selecciones de Cliente:</strong> Imágenes que el cliente ha seleccionado (según el JSON importado).</li>
         <li><strong>Descartes de Cliente:</strong> Imágenes que el cliente ha descartado.</li>
     </ul>
+    <p>
+        Las tablas de cliente tienen <strong>6 columnas</strong>:
+        <strong>collapse</strong> (▶/▼), <strong>Est</strong> (tristate),
+        <strong>C. IMG</strong> (código de imagen), <strong>C. CB</strong> (código de checkbox),
+        <strong>PVP</strong> (precio), y <strong>Msg</strong> (icono de mensajes).
+    </p>
+    <p>
+        <strong>Ordenación:</strong> Haz clic en el encabezado de cualquier columna para ordenar
+        ascendentemente (▼). Vuelve a hacer clic para orden descendente (▲), y una tercera vez
+        para restaurar el orden natural. La ordenación por la columna <strong>Msg</strong> prioriza
+        las imágenes según el estado de su conversación: primero las que tienen mensajes nuevos del cliente
+        (rojo), luego las que esperan respuesta (azul), seguidas de las leídas (verde), y por último
+        las que no tienen mensajes (gris).
+    </p>
+    <p>
+        <strong>Colapso de hijos:</strong> Cuando una imagen tiene checkboxes internos, la columna
+        collapse muestra un indicador con el número de hijos. Haz clic en él para ciclar entre tres
+        modos: <strong>NONE</strong> (todos los checkboxes visibles), <strong>SMART</strong> (solo los
+        que tienen estado SELECTED o comentario), y <strong>FULL</strong> (solo la imagen padre).
+    </p>
+    <p>
+        <strong>Icono de mensaje (✉):</strong> La columna <strong>Msg</strong> muestra un sobre cuyo
+        color indica el estado de la conversación de esa imagen o checkbox:
+        <span style="color:#dc3232;">● Rojo</span> = mensaje nuevo del cliente sin leer,
+        <span style="color:#3cbe3c;">● Verde</span> = mensaje leído,
+        <span style="color:#3282dc;">● Azul</span> = esperando respuesta del cliente,
+        <span style="color:#aaa;">● Gris</span> = sin conversación.
+        Haz doble clic en el icono para abrir el diálogo de mensajes.
+    </p>
     <p>
         Cada imagen en estos grids muestra un tristate (✓ Seleccionado / ✗ Descartado / ○ Sin Marcar)
         que refleja el estado de la imagen. Con el botón <strong>"Editar selección"</strong> activo,
@@ -182,6 +220,21 @@
         <li>Botón para copiar al portapapeles o descargar un JSON con las decisiones del cliente.</li>
     </ul>
     <p>
+        Al hacer clic en una imagen de la galería se abre un <strong>modal con zoom/pan/pinch</strong>.
+        La rueda del ratón escala la imagen centrando el zoom en la posición del cursor. También
+        puedes arrastrar la imagen para desplazarla, y en dispositivos táctiles funciona con gestos
+        de pellizco.
+    </p>
+    <p>
+        El modal incluye un <strong>panel de chat lateral</strong> donde se muestran los comentarios
+        de la imagen y de cada checkbox. El cliente puede escribir mensajes, y los mensajes nuevos
+        aparecen con un indicador rojo. Las burbujas de comentario usan el mismo sistema de colores:
+        <span style="color:#dc3232;">rojo</span> = mensaje nuevo,
+        <span style="color:#3cbe3c;">verde</span> = leído,
+        <span style="color:#3282dc;">azul</span> = contestado,
+        <span style="color:#aaa;">gris</span> = sin mensajes.
+    </p>
+    <p>
         El cliente abre el HTML en su navegador, revisa las imágenes, cambia los estados y devuelve
         el JSON generado. Tú importas ese JSON con el botón <strong>"Importar respuesta del cliente"</strong>.
     </p>
@@ -193,6 +246,44 @@
             ≤20 imágenes → 800px de ancho / 85% calidad; ≤50 → 600px / 75%; &gt;50 → 400px / 60%.
         </p>
     </div>
+
+    <h3>6. Sistema de Mensajes (Chat)</h3>
+    <p>
+        Cada imagen y cada checkbox interno puede tener un <strong>hilo de mensajes</strong>
+        (<em>CommentThread</em>) que funciona como un chat. Para abrirlo, haz doble clic en el icono
+        <strong>✉</strong> de la columna <strong>Msg</strong> en las tablas de cliente, o haz clic
+        derecho sobre un checkbox en el editor y selecciona <strong>"Ver mensajes"</strong>.
+    </p>
+    <p>
+        El diálogo de mensajes muestra el historial en formato de burbujas (como una conversación
+        de chat). Puedes <strong>responder</strong> escribiendo en el área de texto inferior y pulsando
+        "Enviar". Los mensajes escritos por ti (como fotógrafo/taller) se etiquetan como "nosotros",
+        y los del cliente como "cliente".
+    </p>
+    <p>
+        Los mensajes tienen un <strong>sistema de 4 estados</strong> que se refleja en el color
+        del icono ✉ de la tabla:
+    </p>
+    <ul>
+        <li><span style="color:#dc3232;"><strong>Rojo (Nuevo):</strong></span> El último mensaje es del
+            cliente y no se ha abierto el diálogo. Indica que hay una respuesta pendiente de leer.</li>
+        <li><span style="color:#3cbe3c;"><strong>Verde (Leído):</strong></span> Has abierto el diálogo
+            después de que el cliente escribiera, pero aún no has respondido.</li>
+        <li><span style="color:#3282dc;"><strong>Azul (Espera):</strong></span> El último mensaje es tuyo
+            y el cliente aún no ha respondido. Estás esperando su contestación.</li>
+        <li><span style="color:#aaa;"><strong>Gris (Sin mensajes):</strong></span> No hay ningún mensaje
+            en el hilo. Es el estado por defecto de imagen/checkbox sin conversación.</li>
+    </ul>
+    <p>
+        Puedes <strong>borrar</strong> tus propios mensajes (los que no hayan sido compartidos con
+        el cliente en iteraciones anteriores) pulsando el botón <strong>✖</strong> que aparece en la
+        burbuja. Los mensajes del cliente o los ya compartidos no se pueden borrar.
+    </p>
+    <p>
+        El sistema de mensajes está integrado con la <strong>exportación HTML:</strong> los hilos
+        de conversación se exportan al HTML del cliente, y cuando el cliente devuelve el JSON,
+        sus respuestas se importan como nuevos mensajes del cliente en el hilo correspondiente.
+    </p>
 
     <hr>
     <p>
