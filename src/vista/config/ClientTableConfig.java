@@ -11,11 +11,14 @@ import javax.swing.DefaultCellEditor;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
+import javax.swing.RowSorter;
+import javax.swing.SortOrder;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 
 import vista.models.ClienteTableModel;
 import vista.models.ProyectoClienteTableModel;
@@ -43,6 +46,30 @@ public final class ClientTableConfig {
         table.getColumnModel().getColumn(ProyectoClienteTableModel.COL_CODIGO).setMaxWidth(40);
 
         table.getColumnModel().getColumn(ProyectoClienteTableModel.COL_NOMBRE).setMaxWidth(230);
+
+        // Header renderer con flechas invertidas (▼=asc, ▲=desc)
+        table.getTableHeader().setDefaultRenderer(new DefaultTableCellRenderer() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public Component getTableCellRendererComponent(JTable t, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                JLabel label = (JLabel) super.getTableCellRendererComponent(
+                        t, value, isSelected, hasFocus, row, column);
+                String text = t.getModel().getColumnName(column);
+                RowSorter<?> sorter = t.getRowSorter();
+                if (sorter != null) {
+                    int modelCol = t.convertColumnIndexToModel(column);
+                    for (RowSorter.SortKey key : sorter.getSortKeys()) {
+                        if (key.getColumn() == modelCol && key.getSortOrder() != SortOrder.UNSORTED) {
+                            text += key.getSortOrder() == SortOrder.ASCENDING ? " \u25BC" : " \u25B2";
+                            break;
+                        }
+                    }
+                }
+                label.setText(text);
+                return label;
+            }
+        });
     }
 
 
@@ -54,9 +81,6 @@ public final class ClientTableConfig {
         table.setFillsViewportHeight(true);
         table.getTableHeader().setReorderingAllowed(false);
         table.setAutoCreateRowSorter(false);
-
-        // Indicador visual de ordenaci&oacute;n en el header (▲/▼)
-        table.getTableHeader().setDefaultRenderer(new SortHeaderRenderer());
 
         // Ordenaci&oacute;n por grupos mediante click en cabecera (solo una vez)
         if (table.getTableHeader().getClientProperty("opencode.sort.listener") == null) {
@@ -143,38 +167,34 @@ public final class ClientTableConfig {
         table.getColumnModel().getColumn(ClienteTableModel.COL_COMENTARIO)
                 .setCellRenderer(new CommentCellRenderer());
         table.getColumnModel().getColumn(ClienteTableModel.COL_COMENTARIO).setMaxWidth(50);
+
+        // Indicador visual de ordenaci&oacute;n (▲/▼) en el headerValue
+        table.getModel().addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                actualizarSortHeaders(table);
+            }
+        });
+        actualizarSortHeaders(table);
     }
 
 
-    /**
-     * Renderer para el header de la tabla que muestra ▲ (ascendente) o ▼ (descendente)
-     * en la columna activa de ordenaci&oacute;n.
-     */
-    private static final class SortHeaderRenderer extends DefaultTableCellRenderer {
-
-        private static final long serialVersionUID = 1L;
-
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value,
-                boolean isSelected, boolean hasFocus, int row, int column) {
-            JLabel label = (JLabel) super.getTableCellRendererComponent(
-                    table, value, isSelected, hasFocus, row, column);
-            label.setHorizontalAlignment(SwingConstants.CENTER);
-            label.setBorder(BorderFactory.createEtchedBorder());
-
-            if (table.getModel() instanceof ClienteTableModel ctm) {
-                int sortCol = ctm.getSortColumn();
-                if (sortCol == column) {
-                    if (ctm.isSortAscending()) {
-                        label.setText(label.getText() + " \u25B2");
-                    } else {
-                        label.setText(label.getText() + " \u25BC");
-                    }
-                }
+    private static void actualizarSortHeaders(JTable table) {
+        if (!(table.getModel() instanceof ClienteTableModel ctm)) return;
+        int sortCol = ctm.getSortColumn();
+        boolean asc = ctm.isSortAscending();
+        TableColumnModel cm = table.getColumnModel();
+        for (int i = 0; i < cm.getColumnCount(); i++) {
+            TableColumn col = cm.getColumn(i);
+            int modelIdx = col.getModelIndex();
+            String name = table.getModel().getColumnName(modelIdx);
+            if (modelIdx == sortCol) {
+                col.setHeaderValue(name + (asc ? " \u25BC" : " \u25B2"));
+            } else {
+                col.setHeaderValue(name);
             }
-            return label;
         }
-
+        table.getTableHeader().repaint();
     }
 
 } // --- Fin de clase ClientTableConfig ---
