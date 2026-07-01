@@ -135,6 +135,8 @@ public class ClientResponseImporter {
                             thread.add(new Mensaje(de, txt));
                         }
                         pi.setCommentThread(thread);
+                        if (commentObj.has("estadoPr")) pi.getCommentThreadAccess().setEstadoPr(commentObj.get("estadoPr").getAsInt());
+                        if (commentObj.has("estadoHtml")) pi.getCommentThreadAccess().setEstadoHtml(commentObj.get("estadoHtml").getAsInt());
                         if (!thread.isEmpty()) {
                             pi.setComment(thread.get(thread.size() - 1).texto());
                         }
@@ -190,6 +192,8 @@ public class ClientResponseImporter {
                                         thread.add(new Mensaje(de, txt));
                                     }
                                     target.setCommentThread(thread);
+                                    if (cbObj.has("estadoPr")) target.getCommentThreadAccess().setEstadoPr(cbObj.get("estadoPr").getAsInt());
+                                    if (cbObj.has("estadoHtml")) target.getCommentThreadAccess().setEstadoHtml(cbObj.get("estadoHtml").getAsInt());
                                     if (!thread.isEmpty()) {
                                         target.setComment(thread.get(thread.size() - 1).texto());
                                     }

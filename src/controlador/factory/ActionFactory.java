@@ -855,8 +855,8 @@ public class ActionFactory {
             public void actionPerformed(ActionEvent e) {
                 if (clientController != null) {
                     javax.swing.JFileChooser chooser = new javax.swing.JFileChooser();
-                    chooser.setDialogTitle("Selecciona el JSON de respuesta del cliente");
-                    javax.swing.filechooser.FileNameExtensionFilter filter = new javax.swing.filechooser.FileNameExtensionFilter("JSON de respuesta (*.json)", "json");
+                    chooser.setDialogTitle("Selecciona la respuesta del cliente (JSON / TXT)");
+                    javax.swing.filechooser.FileNameExtensionFilter filter = new javax.swing.filechooser.FileNameExtensionFilter("Respuesta del cliente (*.json, *.txt)", "json", "txt");
                     chooser.setFileFilter(filter);
                     if (chooser.showOpenDialog(null) == javax.swing.JFileChooser.APPROVE_OPTION) {
                         clientController.cargarRespuestaCliente(chooser.getSelectedFile().toPath());
