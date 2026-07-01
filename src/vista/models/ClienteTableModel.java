@@ -8,6 +8,7 @@ import java.util.Map;
 import javax.swing.table.AbstractTableModel;
 
 import modelo.proyecto.ImageCheckboxOverlay;
+import modelo.proyecto.Mensaje;
 import modelo.proyecto.ProjectImage;
 import modelo.proyecto.ProjectModel;
 import modelo.proyecto.SelectionState;
@@ -33,7 +34,7 @@ public class ClienteTableModel extends AbstractTableModel {
     public static final int COL_PRECIO = 4;
     public static final int COL_COMENTARIO = 5;
 
-    private static final String[] COLUMNS = {"", "Estado", "C\u00f3d IMG", "C\u00f3d CB", "Precio", "Comentario"};
+    private static final String[] COLUMNS = {"", "Estado", "Cod IMG", "Cod CB", "Precio", "Mensaje"};
 
     public enum CollapseFilter { NONE, SMART, FULL }
 
@@ -41,7 +42,21 @@ public class ClienteTableModel extends AbstractTableModel {
     private final List<Integer> checkboxIndices; // -1 para filas padre, >=0 para hijas
     private final ProjectModel project;
     private final boolean mostrarSeleccion;
+    private boolean editingActive;
+    private Runnable modificationListener;
     private final Map<String, CollapseFilter> collapseFilters = new HashMap<>();
+    private int sortColumn = -1;
+    private boolean sortAscending = true;
+
+
+    public int getSortColumn() {
+        return sortColumn;
+    }
+
+
+    public boolean isSortAscending() {
+        return sortAscending;
+    }
 
 
     public ClienteTableModel(ProjectModel project, boolean mostrarSeleccion) {
@@ -101,8 +116,134 @@ public class ClienteTableModel extends AbstractTableModel {
                     break;
             }
         }
+        if (sortColumn >= 0) {
+            sortGroups(sortColumn, sortAscending);
+        }
         fireTableDataChanged();
     } // --- Fin de metodo refrescar ---
+
+
+    public void toggleSort(int column) {
+        if (column == sortColumn) {
+            if (sortAscending) {
+                sortAscending = false;
+            } else {
+                sortColumn = -1; // reinicia a orden natural
+            }
+        } else {
+            sortColumn = column;
+            sortAscending = true;
+        }
+        refrescar();
+    } // --- Fin de metodo toggleSort ---
+
+
+    /**
+     * Ordena los grupos (padre + hijos) seg&uacute;n el valor de la columna en la fila padre.
+     */
+    private void sortGroups(int column, boolean ascending) {
+        // 1. Identificar grupos de filas consecutivas
+        List<int[]> groups = new ArrayList<>();
+        int i = 0;
+        while (i < parentImages.size()) {
+            int start = i;
+            i++; // padre
+            while (i < parentImages.size() && checkboxIndices.get(i) >= 0) {
+                i++; // hijos
+            }
+            groups.add(new int[]{start, i});
+        }
+
+        // 2. Ordenar grupos por el valor de la fila padre
+        groups.sort((g1, g2) -> {
+            int cmp;
+            if (column == COL_COMENTARIO) {
+                cmp = Integer.compare(getMessageWeight(g1[0]), getMessageWeight(g2[0]));
+            } else {
+                Object v1 = getValueAt(g1[0], column);
+                Object v2 = getValueAt(g2[0], column);
+                cmp = compareSortValues(v1, v2);
+            }
+            return ascending ? cmp : -cmp;
+        });
+
+        // 3. Reconstruir listas en el nuevo orden
+        List<ProjectImage> newParents = new ArrayList<>(parentImages.size());
+        List<Integer> newIndices = new ArrayList<>(checkboxIndices.size());
+        for (int[] g : groups) {
+            for (int r = g[0]; r < g[1]; r++) {
+                newParents.add(parentImages.get(r));
+                newIndices.add(checkboxIndices.get(r));
+            }
+        }
+        parentImages.clear();
+        parentImages.addAll(newParents);
+        checkboxIndices.clear();
+        checkboxIndices.addAll(newIndices);
+    } // --- Fin de metodo sortGroups ---
+
+
+    /**
+     * Compara dos valores de celda para ordenaci&oacute;n.
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private int compareSortValues(Object a, Object b) {
+        if (a == null && b == null) return 0;
+        if (a == null) return -1;
+        if (b == null) return 1;
+        if (a instanceof Comparable ca && b instanceof Comparable) {
+            return ca.compareTo(b);
+        }
+        // SelectionState tiene toString() descriptivo; comparar por ordinal
+        if (a instanceof SelectionState sa && b instanceof SelectionState sb) {
+            return Integer.compare(sa.ordinal(), sb.ordinal());
+        }
+        return a.toString().compareTo(b.toString());
+    } // --- Fin de metodo compareSortValues ---
+
+
+    /**
+     * Peso del mensaje para ordenaci&oacute;n: 3=rojo(cliente), 2=azul(espera), 1=verde(le&iacute;do), 0=gris(sin msgs).
+     */
+    private int getMessageWeight(int row) {
+        ProjectImage pi = parentImages.get(row);
+        if (pi == null) return 0;
+        int maxW = threadWeight(pi.getCommentThread());
+        List<ImageCheckboxOverlay> cbs = pi.getCheckboxes();
+        if (cbs != null) {
+            for (ImageCheckboxOverlay cb : cbs) {
+                maxW = Math.max(maxW, threadWeight(cb.getCommentThread()));
+            }
+        }
+        return maxW;
+    } // --- Fin de metodo getMessageWeight ---
+
+
+    private int threadWeight(List<Mensaje> thread) {
+        if (thread == null || thread.isEmpty()) return 0;
+        Mensaje last = thread.get(thread.size() - 1);
+        if ("cliente".equalsIgnoreCase(last.de())) return 3;
+        for (Mensaje m : thread) {
+            if ("cliente".equalsIgnoreCase(m.de())) return 1;
+        }
+        return 2;
+    } // --- Fin de metodo threadWeight ---
+
+
+    /**
+     * @return true si el cliente ha respondido al menos una vez en el hilo de la fila padre.
+     */
+    public boolean hasClientReplied(int row) {
+        ProjectImage pi = parentImages.get(row);
+        if (pi == null) return false;
+        List<Mensaje> thread = pi.getCommentThread();
+        if (thread != null) {
+            for (Mensaje m : thread) {
+                if ("cliente".equalsIgnoreCase(m.de())) return true;
+            }
+        }
+        return false;
+    } // --- Fin de metodo hasClientReplied ---
 
 
     /**
@@ -199,6 +340,28 @@ public class ClienteTableModel extends AbstractTableModel {
         }
         return count;
     } // --- Fin de metodo getSmartVisibleCount ---
+
+
+    public void setEditingActive(boolean editingActive) {
+        this.editingActive = editingActive;
+    } // --- Fin de metodo setEditingActive ---
+
+
+    public boolean isEditingActive() {
+        return editingActive;
+    } // --- Fin de metodo isEditingActive ---
+
+
+    public void setModificationListener(Runnable listener) {
+        this.modificationListener = listener;
+    } // --- Fin de metodo setModificationListener ---
+
+
+    private void fireModification() {
+        if (modificationListener != null) {
+            modificationListener.run();
+        }
+    } // --- Fin de metodo fireModification ---
 
 
     /**
@@ -309,9 +472,9 @@ public class ClienteTableModel extends AbstractTableModel {
 
     @Override
     public boolean isCellEditable(int row, int col) {
+        if (!editingActive) return false;
         if (col == COL_ESTADO) return true;
         if (col == COL_PRECIO) return true;
-        // COL_COMENTARIO se edita via MsgPopupDialog (doble-click)
         return false;
     } // --- Fin de metodo isCellEditable ---
 
@@ -322,7 +485,10 @@ public class ClienteTableModel extends AbstractTableModel {
         if (col == COL_ESTADO && value instanceof SelectionState newState) {
             if (isChildRow(row)) {
                 ImageCheckboxOverlay cb = getCheckbox(row);
-                if (cb != null) cb.setState(newState);
+                if (cb != null) {
+                    cb.setState(newState);
+                    project.derivarEstadoImagen(pi.getRutaImagen());
+                }
             } else {
                 pi.setEstadoCliente(newState);
                 // Cascada a hijos: el estado del padre se propaga a todos los checkboxes
@@ -334,6 +500,7 @@ public class ClienteTableModel extends AbstractTableModel {
                 }
             }
             fireTableDataChanged();
+            fireModification();
         } else if (col == COL_PRECIO) {
             try {
                 double precio = Double.parseDouble(value.toString().trim().replace(",", "."));
@@ -350,6 +517,7 @@ public class ClienteTableModel extends AbstractTableModel {
                     }
                 }
                 fireTableDataChanged();
+                fireModification();
             } catch (NumberFormatException e) {
                 // ignorar entrada no numérica
             }
@@ -398,11 +566,15 @@ public class ClienteTableModel extends AbstractTableModel {
         if (row < 0 || row >= parentImages.size()) return;
         if (isChildRow(row)) {
             ImageCheckboxOverlay cb = getCheckbox(row);
-            if (cb != null) cb.setState(state);
+            if (cb != null) {
+                cb.setState(state);
+                project.derivarEstadoImagen(parentImages.get(row).getRutaImagen());
+            }
         } else {
             parentImages.get(row).setEstadoCliente(state);
         }
         fireTableDataChanged();
+        fireModification();
     } // --- Fin de metodo setEstado ---
 
 } // --- Fin de clase ClienteTableModel ---
