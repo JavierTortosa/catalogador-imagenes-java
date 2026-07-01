@@ -34,7 +34,7 @@ public class ClienteTableModel extends AbstractTableModel {
     public static final int COL_PRECIO = 4;
     public static final int COL_COMENTARIO = 5;
 
-    private static final String[] COLUMNS = {"", "Estado", "Cod IMG", "Cod CB", "Precio", "Mensaje"};
+    private static final String[] COLUMNS = {"", "Est", "C. IMG", "C. CB", "PVP", "Msg"};
 
     public enum CollapseFilter { NONE, SMART, FULL }
 

@@ -370,7 +370,7 @@ public class WebCatalogExporter {
     private String getClientCss() {
          return "/* === RESET & COLOR VARIABLES === */\n"
               + "*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }\n"
-              + ":root { --bg: #0f0f1a; --card-bg: #222240; --text: #f0f0f0; --accent: #3a3a6a; --red: #ff3333; --green: #33cc33; --blue: #3399ff; --gray: #666; --selected: #2ecc71; --selected-bg: rgba(46,204,113,.12); --discarded: #e74c3c; --discarded-bg: rgba(231,76,60,.12); --undefined: #f39c12; --undefined-bg: rgba(243,156,18,.08); --text-muted: #999; --radius: 8px; --surface: #1a1a2e; }\n"
+              + ":root { --bg: #0f0f1a; --card-bg: #222240; --text: #f0f0f0; --accent: #3a3a6a; --red: #ff3333; --green: #33cc33; --blue: #3399ff; --gray: #aaa; --selected: #2ecc71; --selected-bg: rgba(46,204,113,.12); --discarded: #e74c3c; --discarded-bg: rgba(231,76,60,.12); --undefined: #f39c12; --undefined-bg: rgba(243,156,18,.08); --text-muted: #999; --radius: 8px; --surface: #1a1a2e; }\n"
               + "body { background: var(--bg); color: var(--text); font-family: sans-serif }\n"
               
               + "/* === HEADER & TOPBAR === */\n"
@@ -394,11 +394,11 @@ public class WebCatalogExporter {
               + ".msg-indicator { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; vertical-align: middle; }\n"
               + ".msg-indicator.has-unread { background: #ffd700; box-shadow: 0 0 4px rgba(255,215,0,.6); }\n"
               + ".msg-indicator.has-read { background: #3498db; box-shadow: 0 0 4px rgba(52,152,219,.6); }\n"
-            
+
               + "/* === ICONO DE COMENTARIO (sobre en galeria) === */\n"
-              + ".comment-icon { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; cursor: pointer; flex-shrink: 0; background: #000; border-radius: 3px; background-image: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"%23666\"><path d=\"M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z\"/></svg>'); background-size: 15px; background-repeat: no-repeat; background-position: center; transition: all 0.2s; }\n"
+              + ".comment-icon { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; cursor: pointer; flex-shrink: 0; background: #000; border-radius: 3px; background-image: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"%23666\"><path d=\"M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z\"/></svg>'); background-size: 15px; background-repeat: no-repeat; background-position: center; transition: all 0.2s; }\n"
               + ".comment-icon:hover { opacity: 0.8; }\n"
-           
+              
               + "/* Colores segun estado: rojo=sin leer, verde=leido, azul=contestado */\n"
               + ".comment-icon.has-unread { background-image: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"%23ff3333\"><path d=\"M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z\"/></svg>'); }\n"
               + ".comment-icon.has-read { background-image: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"%233399ff\"><path d=\"M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z\"/></svg>'); }\n"
@@ -576,8 +576,12 @@ public class WebCatalogExporter {
               + "    if (msgWeight === 3) { iconClass += ' has-unread'; iconTitle = '\u00a1Tienes mensajes del taller!'; }\n"
               + "    else if (msgWeight === 2) { iconClass += ' has-read-pending'; iconTitle = 'Mensaje le\u00eddo'; }\n"
               + "    else if (msgWeight === 1) { iconClass += ' has-read'; iconTitle = 'Mensaje contestado'; }\n"
-              + "    var indicatorHtml = msgWeight === 3 ? '<span class=\"msg-indicator has-unread\"></span>' : (msgWeight === 1 ? '<span class=\"msg-indicator has-read\"></span>' : '');\n"
-              + "    var commentHtml = '';\n"
+              
+              
+//              + "    var indicatorHtml = msgWeight === 3 ? '<span class=\"msg-indicator has-unread\"></span>' : (msgWeight === 1 ? '<span class=\"msg-indicator has-read\"></span>' : '');\n"
+              + "var indicatorHtml = '';\n"
+              
+         + "    var commentHtml = '';\n"
               + "    var genStatus = getMessageStatus(img.comentario);\n"
               + "    if (genStatus !== 'NONE' || prices.length > 0) {\n"
               + "      var prHtml = '';\n"
@@ -677,7 +681,7 @@ public class WebCatalogExporter {
               + "    else if (st === 'PENDING') bubbleClass += ' read';\n"
               + "    else if (st === 'READ') bubbleClass += ' replied';\n"
               + "    else bubbleClass += ' empty';\n"
-              + "    var bubbleOpacity = st === 'NONE' ? 'style=\"opacity:.4\"' : '';\n"
+              + "    var bubbleOpacity = st === 'NONE' ? 'style=\"opacity:.7\"' : '';\n"
               + "    var bubbleHtml = '<span class=\"' + bubbleClass + '\" ' + bubbleOpacity + ' title=\"Comentarios\">\\u2709</span>';\n"
               + "    var priceHtml = cb.precio ? '<span class=\"cb-price\">' + escHtml(cb.precio) + '</span>' : '';\n"
               + "    var overlay = document.createElement('div');\n"
@@ -812,7 +816,22 @@ public class WebCatalogExporter {
               + "wrap.addEventListener('mousedown', function(e) { if (e.button !== 0) return; e.preventDefault(); isDragging = true; startX = e.clientX; startY = e.clientY; wrap.style.cursor = 'grabbing'; });\n"
               + "document.addEventListener('mousemove', function(e) { if (!isDragging) return; panX += (e.clientX - startX); panY += (e.clientY - startY); startX = e.clientX; startY = e.clientY; applyTransform(); });\n"
               + "document.addEventListener('mouseup', function() { isDragging = false; wrap.style.cursor = 'grab'; });\n"
-              + "wrap.addEventListener('wheel', function(e) { e.preventDefault(); zoomScale = Math.max(0.3, Math.min(6, zoomScale + (e.deltaY > 0 ? -0.15 : 0.15))); applyTransform(); }, { passive: false });\n"
+				+ "wrap.addEventListener('wheel', function(e) {\n"
+				+ "  e.preventDefault();\n"
+				+ "  var rect = wrap.getBoundingClientRect();\n"
+				+ "  var mouseX = e.clientX - rect.left;\n"
+				+ "  var mouseY = e.clientY - rect.top;\n"
+				+ "  var oldZoom = zoomScale;\n"
+				+ "  var newZoom = Math.max(0.3, Math.min(6, oldZoom + (e.deltaY > 0 ? -0.15 : 0.15)));\n"
+				+ "  if (newZoom !== oldZoom) {\n"
+				+ "    var worldX = (mouseX - panX) / oldZoom;\n"
+				+ "    var worldY = (mouseY - panY) / oldZoom;\n"
+				+ "    zoomScale = newZoom;\n"
+				+ "    panX = mouseX - worldX * newZoom;\n"
+				+ "    panY = mouseY - worldY * newZoom;\n"
+				+ "    applyTransform();\n"
+				+ "  }\n"
+				+ "}, { passive: false });\n"
               + "wrap.addEventListener('touchstart', function(e) { if (e.touches.length === 1) { isDragging = true; startX = e.touches[0].clientX; startY = e.touches[0].clientY; var now = Date.now(); if (now - lastTapTime < 300) { e.preventDefault(); if (zoomScale > 1.5) resetZoom(); else { zoomScale = 2.5; applyTransform(); } lastTapTime = 0; } else { lastTapTime = now; } } else if (e.touches.length === 2) { e.preventDefault(); var dx = e.touches[0].clientX - e.touches[1].clientX; var dy = e.touches[0].clientY - e.touches[1].clientY; lastTouchDist = Math.sqrt(dx*dx + dy*dy); } }, { passive: false });\n"
               + "wrap.addEventListener('touchmove', function(e) { if (e.touches.length === 1 && isDragging) { e.preventDefault(); panX += (e.touches[0].clientX - startX); panY += (e.touches[0].clientY - startY); startX = e.touches[0].clientX; startY = e.touches[0].clientY; applyTransform(); } else if (e.touches.length === 2) { e.preventDefault(); var dx = e.touches[0].clientX - e.touches[1].clientX; var dy = e.touches[0].clientY - e.touches[1].clientY; var dist = Math.sqrt(dx*dx + dy*dy); if (lastTouchDist > 0) { zoomScale = Math.max(0.3, Math.min(6, zoomScale * (dist / lastTouchDist))); applyTransform(); } lastTouchDist = dist; } }, { passive: false });\n"
               + "wrap.addEventListener('touchend', function(e) { if (e.touches.length < 2) lastTouchDist = 0; if (e.touches.length === 0) isDragging = false; });\n"
