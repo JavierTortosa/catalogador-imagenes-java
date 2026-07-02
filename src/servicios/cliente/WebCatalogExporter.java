@@ -370,7 +370,7 @@ public class WebCatalogExporter {
          return "/* === RESET & COLOR VARIABLES === */\n"
               + "*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }\n"
               + ":root { --bg: #0f0f1a; --card-bg: #222240; --text: #f0f0f0; --accent: #3a3a6a; --red: #ff3333; --green: #33cc33; --blue: #3399ff; --gray: #aaa; --selected: #2ecc71; --selected-bg: rgba(46,204,113,.12); --discarded: #e74c3c; --discarded-bg: rgba(231,76,60,.12); --undefined: #f39c12; --undefined-bg: rgba(243,156,18,.08); --text-muted: #999; --radius: 8px; --surface: #1a1a2e; }\n"
-              + "body { background: var(--bg); color: var(--text); font-family: sans-serif }\n"
+              + "body { background: var(--bg); color: var(--text); font-family: sans-serif; overscroll-behavior-y: contain; }\n"
               
               + "/* === HEADER & TOPBAR === */\n"
               + "header { text-align: center; padding: 2rem; }\n"
@@ -379,7 +379,7 @@ public class WebCatalogExporter {
               + "#counter { color: var(--text-muted); font-size: .9rem; font-weight: bold; }\n"
               + ".sort-controls { background: var(--card-bg); padding: 5px 10px; border-radius: 6px; border: 1px solid var(--accent); }\n"
               + ".control-select { background: var(--bg); color: var(--text); border: 1px solid #3a3a6a; padding: .4rem; border-radius: 4px; outline: none; font-size: .85rem; cursor: pointer; }\n"
-              + ".btn-icon { background: var(--bg); color: var(--text); border: 1px solid #3a3a6a; padding: .3rem .6rem; border-radius: 4px; cursor: pointer; font-size: 1.1rem; }\n"
+              + ".btn-icon { background: var(--bg); color: var(--text); border: 1px solid #3a3a6a; padding: .3rem .6rem; border-radius: 4px; cursor: pointer; font-size: 1.1rem; min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }\n"
               + ".btn-icon:hover { background: var(--accent); }\n"
               
               + "/* === GALERIA DE TARJETAS === */\n"
@@ -451,7 +451,7 @@ public class WebCatalogExporter {
               + ".cb-overlay .cb-codigo { color: var(--text-muted); font-size: .65rem; }\n"
               + ".cb-overlay .cb-price { color: #fff; font-size: .7rem; font-weight: 600; }\n"
           
-              + ".cb-overlay .cb-bubble { color: #aaa; font-size: 1.6rem; cursor: pointer; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; transition: all .3s; }\n"
+              + ".cb-overlay .cb-bubble { color: #aaa; font-size: 1.6rem; cursor: pointer; width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; transition: all .3s; }\n"
               + ".cb-overlay .cb-bubble:hover { color: #fff; }\n"
               + ".cb-overlay .cb-bubble.read { color: var(--green); }\n"
               + ".cb-overlay .cb-bubble.unread { color: var(--red); text-shadow: 0 0 6px rgba(255,51,51,.6); animation: pulse-comment 2s infinite; }\n"
@@ -476,7 +476,7 @@ public class WebCatalogExporter {
         
               + "/* === RESPONSIVE (TRANSFORMACIÓN A BOTTOM SHEET) === */\n"
               + "@media (max-width: 800px) {\n"
-              + "  .modal-content { height: 82vh !important; padding: 12px; } /* Evita el colapso de la altura del modal en móvil */\n"
+              + "  .modal-content { height: 82dvh !important; padding: 12px; } /* Evita el colapso de la altura del modal en móvil */\n"
               + "  .modal-body-layout { position: relative; flex: 1; min-height: 0; display: block; }\n"
               + "  .modal-image-wrap { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; flex: none; }\n"
               + "  .modal-chat-sidebar {\n"
@@ -490,7 +490,7 @@ public class WebCatalogExporter {
               + "  .chat-toggle { display: inline-block; cursor: pointer; font-size: 1.2rem; color: var(--text-muted); padding: 0 10px; user-select: none; }\n"
               + "  .chat-messages { flex: 1; min-height: 0; display: flex; }\n"
               + "  .modal-chat-title { height: 40px; font-size: .85rem; margin-bottom: 4px; padding-bottom: 3px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #3a3a6a; }\n"
-              + "  .chat-input-row textarea { min-height: 2.6rem; font-size: .85rem; }\n"
+              + "  .chat-input-row textarea, .chat-input-row input { font-size: 16px !important; min-height: 2.6rem; }\n"
               + "  .btn-enviar { padding: .5rem; font-size: .85rem; }\n"
               + "}\n"
               + "@media (max-width: 600px) {\n"
@@ -889,8 +889,8 @@ public class WebCatalogExporter {
               + "    div.innerHTML = '<div>' + escHtml(msg.texto) + '</div>' + (msg._sessionMsg ? '<span class=\"btn-borrar\" onclick=\"borrarMsg('+i+')\">X</span>' : '');\n"
               + "    chatDiv.appendChild(div);\n"
               + "  });\n"
-              + "  chatDiv.scrollTop = chatDiv.scrollHeight;\n"
-              + "}\n"
+               + "  setTimeout(function() { chatDiv.scrollTop = chatDiv.scrollHeight; }, 100);\n"
+               + "}\n"
         
               + "// Borra solo mensajes creados en esta sesion (_sessionMsg)\n"
               + "function borrarMsg(i) {\n"
