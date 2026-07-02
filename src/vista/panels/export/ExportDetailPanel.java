@@ -118,7 +118,6 @@ public class ExportDetailPanel extends JPanel {
     }
 
     public void updateDetails(ExportItem item) {
-        this.currentItem = item;
         if (item == null) {
             titleLabel.setText("(ningún ítem seleccionado)");
             associatedFilesModel.clear();

@@ -76,11 +76,6 @@ public class DataController {
     // Indica si la vista actual de tags es árbol (true) o lista plana (false)
     private boolean tagTreeViewActive = true;
 
-    // Controladores tornado para las 3 columnas
-    private TornadoFilterController centerTornado;
-    private TornadoFilterController leftTornado;
-    private TornadoFilterController assignedTornado;
-
     // Estado de expansión guardado antes de filtrar el árbol (para restaurar al desactivar tornado)
     private java.util.Set<Long> savedExpandedTagIds = new java.util.HashSet<>();
 
@@ -92,8 +87,6 @@ public class DataController {
 
     // Flag para evitar refrescar IntelliSense repetidamente si los datos no han cambiado
     private boolean intelliSenseRefreshed = false;
-
-    private controlador.managers.TaggingManager taggingManager;
 
     // Datos pendientes de sincronización desde VISUALIZADOR (entrante desde AppModeService)
     private Path pendingSyncPath = null;
@@ -153,10 +146,6 @@ public class DataController {
      * Establece el gestor de etiquetas (tagging).
      * @param taggingManager Gestor de etiquetas
      */
-    public void setTaggingManager(controlador.managers.TaggingManager taggingManager) {
-        this.taggingManager = taggingManager;
-    } // --- Fin del metodo/clase setTaggingManager ---
-
     /**
      * Inicializa el controlador. Carga los datos iniciales y configura los listeners.
      * Se llama solo una vez.
@@ -963,7 +952,7 @@ public class DataController {
         JToggleButton btnTornado = registry.get("toggle.datamode.tornado");
         if (tornadoField == null || btnTornado == null) return;
 
-        centerTornado = new TornadoFilterController(tornadoField, btnTornado,
+        new TornadoFilterController(tornadoField, btnTornado,
             null, // no popup
             () -> applyTornadoFilter(tornadoField.getText()),
             () -> findNextTornadoMatch(tornadoField.getText()),
@@ -1001,7 +990,7 @@ public class DataController {
             }
         });
 
-        leftTornado = new TornadoFilterController(createField, btnTornado,
+        new TornadoFilterController(createField, btnTornado,
             createField::isPopupVisible,
             () -> { // live filter callback (toggle ON)
                 String text = createField.getText();
@@ -1069,7 +1058,7 @@ public class DataController {
             }
         });
 
-        assignedTornado = new TornadoFilterController(assignField, btnTornado,
+        new TornadoFilterController(assignField, btnTornado,
             assignField::isPopupVisible,
             () -> { // live filter
                 String text = assignField.getText();
@@ -1460,15 +1449,6 @@ public class DataController {
         TagManagementPanel tagPanel = registry.get("panel.datamode.tagmanagement");
         if (tagPanel == null) return;
 
-        tagPanel.setOnRemoveTag(tag -> {
-            List<Path> selectedPaths = getSelectedImagePaths();
-            if (!selectedPaths.isEmpty()) {
-                dataManager.removeTagFromImages(selectedPaths, tag);
-                updateTagPanelSelection(); // Refrescar vista
-                refreshTagTreeAndSelect(null); // Refrescar conteos en el árbol
-                refreshAvailableTags(); // Refrescar el combo
-            }
-        });
     } // --- Fin del metodo/clase setupTagManagementCallbacks ---
 
 

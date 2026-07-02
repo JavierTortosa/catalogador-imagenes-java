@@ -1,8 +1,5 @@
 package modelo;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import servicios.zoom.ZoomModeEnum;
 
 /**
@@ -10,8 +7,6 @@ import servicios.zoom.ZoomModeEnum;
  * como el Visualizador, el modo Proyecto o el modo Datos.
  */
 public class ZoomContext {
-	
-	private static final Logger logger = LoggerFactory.getLogger(ZoomContext.class);
 	
     private double zoomFactor = 1.0;
     private ZoomModeEnum zoomMode = ZoomModeEnum.FIT_TO_SCREEN;

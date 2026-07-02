@@ -9,16 +9,11 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import modelo.proyecto.ExportItem;
 import modelo.proyecto.ExportStatus;
 
 public class ProjectExportService
 {
-    private static final Logger logger = LoggerFactory.getLogger(ProjectExportService.class);
-
     // Validación previa a la exportación: carpeta destino y conflictos de sobrescritura
     public ExportPreflightReport validarPreflight(List<ExportItem> itemsAExportar, Path carpetaDestino)
     {

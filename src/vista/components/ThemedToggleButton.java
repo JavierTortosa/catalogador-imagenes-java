@@ -1,15 +1,11 @@
 package vista.components;
 
 import java.awt.BasicStroke;
-import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 
 import javax.swing.Action;
 import javax.swing.JToggleButton;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import vista.theme.ThemeManager;
 
@@ -20,7 +16,6 @@ import vista.theme.ThemeManager;
  */
 public class ThemedToggleButton extends JToggleButton {
 
-    private static final Logger logger = LoggerFactory.getLogger(ThemedToggleButton.class);
     private static final long serialVersionUID = 2L;
     private static final int BORDER_THICKNESS = 3;
 

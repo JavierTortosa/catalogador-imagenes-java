@@ -58,9 +58,6 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
     private int lastDividerLocation = -1; // Para recordar la posición del divisor
     private boolean isDetailsPanelVisible = false; // Para saber el estado actual
     
-    private JTextField txtProjectName;
-    private JTextArea areaProjectDescription;
-    
     private javax.swing.JToggleButton btnMoveCopy;
     
     public ExportPanel(ProjectController controller, java.util.function.Consumer<javax.swing.event.TableModelEvent> tableChangedCallback) {

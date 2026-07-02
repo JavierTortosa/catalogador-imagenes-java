@@ -12,17 +12,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableRowSorter;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import modelo.proyecto.ExportItem;
 
 
 public class PdfDetailsTablePanel extends JPanel {
 
-    private static final Logger logger = LoggerFactory.getLogger(PdfDetailsTablePanel.class);
     private static final long serialVersionUID = 1L;
 
     private JTable detailsTable;

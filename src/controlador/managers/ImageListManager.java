@@ -73,20 +73,16 @@ public class ImageListManager {
     private final ExecutorService executorService;
     private InfobarStatusManager statusBarManager;
     private final ComponentRegistry registry;
-    private final Map<String, Action> actionMap;
     private servicios.ConfigurationManager configuration;
-    private DisplayModeManager displayModeManager;
     private vista.theme.ThemeManager themeManager;
     private vista.util.IconUtils iconUtils;
     
 //    private final GeneralController generalController;
-    
+
     // --- Estado Interno ---
-    private Future<?> cargaImagenesFuture;
     private boolean isSyncing = false;
 
     private final ImagenDAO imagenDAO;
-    private final TagDAO tagDAO;
 
     /**
      * Constructor que inicializa el gestor de la lista de imágenes con todas sus dependencias.
@@ -104,14 +100,11 @@ public class ImageListManager {
         this.executorService = visorController.getExecutorService();
         this.statusBarManager = visorController.getStatusBarManager();
         this.registry = visorController.getComponentRegistry();
-        this.actionMap = visorController.getActionMap();
         this.configuration = visorController.getConfigurationManager();
-        this.displayModeManager = visorController.getDisplayModeManager();
         this.themeManager = visorController.getThemeManager();
         this.iconUtils = visorController.getIconUtils();
         
         this.imagenDAO = new ImagenDAO();
-        this.tagDAO = new TagDAO(); 
         
 //        this.generalController = visorController.getGeneralController();
         

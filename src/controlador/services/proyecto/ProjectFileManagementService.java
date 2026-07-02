@@ -4,9 +4,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import controlador.managers.ExportQueueManager;
 import controlador.managers.interfaces.IProjectManager;
 import modelo.proyecto.ExportItem;
@@ -16,8 +13,6 @@ import modelo.proyecto.ProjectModel;
 
 public class ProjectFileManagementService
 {
-    private static final Logger logger = LoggerFactory.getLogger(ProjectFileManagementService.class);
-
     private final IProjectManager projectManager;
     private final ExportQueueManager exportQueueManager;
 

@@ -77,7 +77,6 @@ public class GeneralController
     private ComponentRegistry registry;
     private DisplayModeManager displayModeManager;
     private ConfigurationManager configuration;
-    private FolderNavigationManager folderNavManager;
     private FolderTreeManager folderTreeManager;
     private FilterManager filterManager;
     private ImageListManager imageListManager;
@@ -1494,9 +1493,6 @@ public class GeneralController
         navigationService.salirDeSubcarpeta();
     } // --- FIN de metodo solicitarSalirDeSubcarpeta ---
 
-    public void setFolderNavigationManager(FolderNavigationManager folderNavManager) {
-        this.folderNavManager = Objects.requireNonNull(folderNavManager);
-    } // --- FIN de metodo setFolderNavigationManager ---
 
     /**
      * Comanda a la VisorView para que actualice su borde visual de sincronización.

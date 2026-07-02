@@ -23,8 +23,6 @@ import org.slf4j.LoggerFactory;
 import controlador.managers.interfaces.IProjectManager;
 import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
-import modelo.proyecto.CommentOverlay;
-import modelo.proyecto.ImageCheckboxOverlay;
 import modelo.proyecto.ProjectModel;
 import modelo.proyecto.SelectionState;
 import vista.theme.ThemeManager;

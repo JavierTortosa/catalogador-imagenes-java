@@ -6,9 +6,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import modelo.export.pdf.PDFExportPreflightService;
 import modelo.export.pdf.PDFGeneratorService;
 import modelo.proyecto.ExportConfig;
@@ -17,8 +14,6 @@ import modelo.proyecto.ProjectModel;
 
 public class PdfWorkflowService
 {
-    private static final Logger logger = LoggerFactory.getLogger(PdfWorkflowService.class);
-
     // Asigna códigos de catálogo correlativos (C001, C002, ...) a los items seleccionados
     public void asignarCodigosCatalogo(List<ExportItem> items)
     {

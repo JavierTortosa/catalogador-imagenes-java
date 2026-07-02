@@ -2,15 +2,12 @@ package controlador.services;
 
 import controlador.managers.FolderNavigationManager;
 import controlador.managers.tree.FolderTreeManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Servicio encargado de la navegación por el árbol y el historial de carpetas.
  * El GeneralController ya no necesita conocer cómo se navega.
  */
 public class NavigationService {
-    private static final Logger logger = LoggerFactory.getLogger(NavigationService.class);
     
     private final FolderNavigationManager folderNavManager;
     private final FolderTreeManager folderTreeManager;

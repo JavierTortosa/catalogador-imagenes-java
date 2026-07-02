@@ -58,7 +58,6 @@ import modelo.ListContext;
 import modelo.VisorModel;
 import modelo.proyecto.ExportItem;
 import modelo.proyecto.ProjectModel;
-import servicios.ArchiveAnalysisService;
 import vista.VisorView;
 import vista.dialogos.PDFPreviewDialog;
 import vista.dialogos.TaskProgressDialog;
@@ -101,7 +100,6 @@ public class ProjectController implements IModoController {
 
     private ProjectLayout currentLayout = ProjectLayout.DEFAULT;
     private Component storedRightComponent = null;
-    private int lastMainDividerLocation = -1;
 
     // Constructor que inicializa los servicios headless de exportacion y PDF
     /**

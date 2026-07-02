@@ -57,7 +57,7 @@ public class VisorView extends JFrame {
     private final ThemeManager themeManagerRef;
     
     private Map<String, JMenuItem> menuItemsPorNombre; 
-    private int miniaturaScrollPaneHeight;
+
     
     // --- Estado Interno de la Vista (para pintura, etc.) ---
     private boolean fondoACuadrosActivado = false;
@@ -118,7 +118,7 @@ public class VisorView extends JFrame {
         this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null");
         this.iconUtilsRef = Objects.requireNonNull(iconUtils, "IconUtils no puede ser null");
         this.projectManager = projectManager;
-        this.miniaturaScrollPaneHeight = miniaturaPanelHeight;
+        // miniaturaScrollPaneHeight eliminado (no usado)
         this.modeloListaMiniaturas = new DefaultListModel<>();
 
         

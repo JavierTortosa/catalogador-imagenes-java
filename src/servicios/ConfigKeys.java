@@ -20,8 +20,7 @@ public final class ConfigKeys {
     private static final String MENU 			= "interfaz.menu";
     private static final String TOOLBAR 		= "interfaz.herramientas";
     private static final String BUTTON_PREFIX	= "interfaz.boton";
-    private static final String INFOBAR 		= "interfaz.infobar";
-    private static final String MINIATURES 		= "interfaz.miniaturas";
+
 //    private static final String 		= "";
     
     // ... puedes añadir más prefijos aquí si los necesitas

@@ -53,7 +53,6 @@ public class ProjectManager implements IProjectManager {
     // --- ESTADO CENTRALIZADO ---
     private ProjectModel currentProject;
     private ProjectModel lastSavedProjectState;
-    private ProjectController projectControllerRef;
     private VisorModel modelRef;
     private Gson gson;
     
@@ -1192,10 +1191,6 @@ public class ProjectManager implements IProjectManager {
     public ProjectModel getCurrentProject() {
         return this.currentProject;
     } // ---FIN de metodo getCurrentProject---
-    
-   public void setProjectController(ProjectController projectController) {
-        this.projectControllerRef = projectController;
-    } // ---FIN de metodo setProjectController
     
     public void setModel(VisorModel model) {
         this.modelRef = model;

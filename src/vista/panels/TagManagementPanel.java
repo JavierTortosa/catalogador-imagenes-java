@@ -30,9 +30,6 @@ public class TagManagementPanel extends JPanel {
     private List<Tag> currentTags = new java.util.ArrayList<>();
     private List<Tag> allTagsBackup = new java.util.ArrayList<>();
 
-    // Callbacks para notificar al controlador
-    private Consumer<Tag> onRemoveTag;
-
     public TagManagementPanel() {
         super(new BorderLayout(5, 5));
         setBorder(BorderFactory.createTitledBorder("Etiquetas de la Imagen Seleccionada"));
@@ -211,12 +208,6 @@ public class TagManagementPanel extends JPanel {
 
             return tagPanel;
         }
-    }
-    
-    // --- Setters para los callbacks ---
-    
-    public void setOnRemoveTag(Consumer<Tag> onRemoveTag) {
-        this.onRemoveTag = onRemoveTag;
     }
     
 } // --- FIN de clase TagManagementPanel ---

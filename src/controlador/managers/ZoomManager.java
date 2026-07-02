@@ -40,7 +40,6 @@ public class ZoomManager implements IZoomManager {
     private ComponentRegistry registry;
     private ConfigurationManager configuration;
     private InfobarStatusManager statusBarManager;
-    private ListCoordinator listCoordinator;
     private IViewManager viewManager; // <<< Dependencia clave
     private VisorController visorController;
     
@@ -592,7 +591,8 @@ public class ZoomManager implements IZoomManager {
     @Override
     public void setStatusBarManager(InfobarStatusManager manager) { this.statusBarManager = manager; }
     @Override
-    public void setListCoordinator(ListCoordinator listCoordinator) { this.listCoordinator = listCoordinator; }
+    public void setListCoordinator(ListCoordinator listCoordinator) { /* no-op */ }
+
     public void setModel(VisorModel model) { this.model = Objects.requireNonNull(model, "VisorModel no puede ser null"); }
     public void setRegistry(ComponentRegistry registry) { this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null"); }
     public void setConfiguration(ConfigurationManager configuration) { this.configuration = Objects.requireNonNull(configuration, "ConfigurationManager no puede ser null"); }

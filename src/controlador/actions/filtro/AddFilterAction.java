@@ -19,12 +19,10 @@ public class AddFilterAction extends AbstractAction {
 	 */
 	private static final long serialVersionUID = 1L;
 	private final GeneralController generalController;
-    private final FilterType filterType; // POSITIVE o NEGATIVE
 
     public AddFilterAction(GeneralController generalController, FilterType filterType, String name, ImageIcon icon) {
         super(name, icon);
         this.generalController = generalController;
-        this.filterType = filterType;
     } // --- Fin del constructor AddFilterAction ---
 
     @Override

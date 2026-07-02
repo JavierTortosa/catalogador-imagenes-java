@@ -23,7 +23,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
-import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
@@ -47,18 +46,14 @@ import vista.renderers.ProjectListCellRenderer;
 import vista.theme.Tema;
 import vista.theme.ThemeChangeListener;
 import vista.theme.ThemeManager;
-import vista.util.IconUtils;
-import vista.util.ThumbnailPreviewer;
 
 public class ProjectBuilder implements ThemeChangeListener {
 
     private static final Logger logger = LoggerFactory.getLogger(ProjectBuilder.class);
 
     private final ComponentRegistry registry;
-    private final VisorModel model;
     private final ThemeManager themeManager;
     private final GeneralController generalController;
-    private final ToolbarManager toolbarManager;
     private final ProjectController projectController;
     private DataManager dataManager;
 
@@ -73,10 +68,8 @@ public class ProjectBuilder implements ThemeChangeListener {
         logger.info("[ProjectBuilder] Iniciando...");
 
         this.registry = Objects.requireNonNull(registry, "Registry no puede ser null en ProjectBuilder");
-        this.model = Objects.requireNonNull(model, "VisorModel no puede ser null en ProjectBuilder");
         this.themeManager = Objects.requireNonNull(themeManager, "ThemeManager no puede ser null en ProjectBuilder");
         this.generalController = Objects.requireNonNull(generalController, "GeneralController no puede ser null");
-        this.toolbarManager = Objects.requireNonNull(toolbarManager, "ToolbarManager no puede ser null");
         this.projectController = Objects.requireNonNull(projectController, "ProjectController no puede ser null");
         this.themeManager.addThemeChangeListener(this);
     } // --- Fin del método ProjectBuilder (constructor) ---

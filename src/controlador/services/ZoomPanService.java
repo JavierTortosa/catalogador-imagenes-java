@@ -2,8 +2,6 @@ package controlador.services;
 
 import controlador.managers.interfaces.IViewManager;
 import modelo.VisorModel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import vista.components.Direction;
 import vista.panels.ImageDisplayPanel;
 
@@ -14,7 +12,6 @@ import java.awt.image.BufferedImage;
  * y la coordinación del zoom entre el modelo y la vista.
  */
 public class ZoomPanService {
-    private static final Logger logger = LoggerFactory.getLogger(ZoomPanService.class);
 
     private final VisorModel model;
     private final IViewManager viewManager;

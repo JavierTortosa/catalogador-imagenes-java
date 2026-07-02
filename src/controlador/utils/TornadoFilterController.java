@@ -6,8 +6,6 @@ import javax.swing.JToggleButton;
 import javax.swing.Timer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Controlador reutilizable que implementa el patrón "Tornado" para un campo de texto
@@ -20,8 +18,6 @@ import org.slf4j.LoggerFactory;
  * </ul>
  */
 public class TornadoFilterController {
-
-    private static final Logger logger = LoggerFactory.getLogger(TornadoFilterController.class);
 
     private final JTextField textField;
     private final JToggleButton toggleButton;

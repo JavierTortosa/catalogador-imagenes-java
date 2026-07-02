@@ -20,11 +20,9 @@ public class NombreArchivoRenderer extends DefaultListCellRenderer {
 
     private static final long serialVersionUID = 1L;
     private final ThemeManager themeManager;
-    private final boolean isForDiscardsList;
     
     private static final javax.swing.border.Border noFocusBorder = new javax.swing.border.EmptyBorder(1, 1, 1, 1);
     
-    private final VisorModel model; // Referencia al modelo para consultar el foco lógico
 
     /**
      * Constructor principal.
@@ -37,8 +35,6 @@ public class NombreArchivoRenderer extends DefaultListCellRenderer {
             throw new IllegalArgumentException("ThemeManager y VisorModel no pueden ser nulos en NombreArchivoRenderer");
         }
         this.themeManager = themeManager;
-        this.model = model; 
-        this.isForDiscardsList = isForDiscardsList;
         setOpaque(true); 
         
     } // --- Fin del método NombreArchivoRenderer (constructor) ---

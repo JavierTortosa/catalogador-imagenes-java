@@ -11,12 +11,8 @@ import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class CustomGridCellPanel extends JPanel {
 
-	private static final Logger logger = LoggerFactory.getLogger(CustomGridCellPanel.class); 
     private static final long serialVersionUID = 2L; // Versión incrementada
 
     // Campos para almacenar el estado que debemos pintar
@@ -33,7 +29,6 @@ public class CustomGridCellPanel extends JPanel {
     private final Color textBackgroundColor = new Color(0, 0, 0, 150);
     private final Font textFont = new Font("Arial", Font.BOLD, 14);
 
-    private static int GROSOR_BORDE = 6;
     private static final int GROSOR_BORDE_SELECCION = 3;
     
     public CustomGridCellPanel() {

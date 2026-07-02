@@ -4,7 +4,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,13 +52,11 @@ public class ClientController implements IModoController {
 
     private GeneralController generalController;
     private ProjectManager projectManager;
-    private ValidationService validationService;
     private ClientSyncService clientSyncService;
     private WebCatalogExporter webCatalogExporter;
     private ClientResponseImporter clientResponseImporter;
     private ComponentRegistry registry;
     private VisorController visorController;
-    private controlador.ProjectListCoordinator projectListCoordinator;
     private boolean sincronizandoTablas;
     private boolean gridListenerRegistered;
     private boolean editingActive;
@@ -79,11 +76,6 @@ public class ClientController implements IModoController {
     public void setComponentRegistry(ComponentRegistry registry) {
         this.registry = registry;
     } // --- Fin de metodo setComponentRegistry ---
-
-
-    public void setProjectListCoordinator(controlador.ProjectListCoordinator projectListCoordinator) {
-        this.projectListCoordinator = projectListCoordinator;
-    } // --- Fin de metodo setProjectListCoordinator ---
 
     public void setActionFactory(ActionFactory actionFactory) {
         this.actionFactory = actionFactory;
@@ -121,11 +113,6 @@ public class ClientController implements IModoController {
     public ProjectManager getProjectManager() {
         return projectManager;
     } // --- Fin de metodo getProjectManager ---
-
-
-    public void setValidationService(ValidationService validationService) {
-        this.validationService = validationService;
-    } // --- Fin de metodo setValidationService ---
 
 
     public void setClientSyncService(ClientSyncService clientSyncService) {

@@ -40,11 +40,6 @@ public class ConfigApplicationManager {
     private final ComponentRegistry registry;
     private Map<String, Action> actionMap;
     private BackgroundControlManager backgroundControlManager;
-    private VisorView view;
-    private DisplayModeManager displayModeManager;
-    
-    // --- ESTADO ---
-    private final Map<String, String> configAlInicio;
     
 
     public ConfigApplicationManager(
@@ -61,10 +56,9 @@ public class ConfigApplicationManager {
         this.themeManager = Objects.requireNonNull(themeManager);
         this.registry = Objects.requireNonNull(registry);
         
-        // 'view' y 'actionMap' serán nulos aquí. Se inyectarán después.
+        // 'actionMap' será nulo aquí. Se inyectará después.
         this.actionMap = new HashMap<>(); // Inicializar a un mapa vacío para evitar NullPointerException
 
-        this.configAlInicio = new HashMap<>(config.getConfigMap());
         logger.debug("[ConfigApplicationManager] Instancia creada.");
     } // --- Fin del Constructor ---
     
@@ -470,14 +464,9 @@ public class ConfigApplicationManager {
      * Inyecta la instancia principal de la vista.
      * @param view La instancia de VisorView.
      */
-    public void setView(VisorView view) {
-        this.view = view;
-    } // --- Fin del método setView ---
-
-    
     /**
-     * Inyecta el mapa de acciones de la aplicación.
-     * @param actionMap El mapa de acciones (comando -> Action).
+     * Inyecta el mapa global de acciones.
+     * @param actionMap Mapa con todas las acciones registradas en la aplicación.
      */
     public void setActionMap(Map<String, Action> actionMap) {
         this.actionMap = Objects.requireNonNull(actionMap);
@@ -489,6 +478,6 @@ public class ConfigApplicationManager {
     }
     
     
-    public void setDisplayModeManager(DisplayModeManager dmm) { this.displayModeManager = dmm; }
+
     
 } // --- FIN de la clase ConfigApplicationManager ---

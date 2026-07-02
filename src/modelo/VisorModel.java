@@ -25,8 +25,7 @@ public class VisorModel {
         PROYECTO,
         DATOS,
         CLIENTE,
-        CARROUSEL,
-        CLIENT_REVIEW
+        CARROUSEL
     }
 
     public enum DisplayMode {
@@ -240,7 +239,6 @@ public class VisorModel {
         switch (this.currentWorkMode) {
             case PROYECTO:
             case CLIENTE:
-            case CLIENT_REVIEW:
                 return this.proyectoListContext;
             case DATOS:
                 return this.datosListContext;
@@ -256,7 +254,6 @@ public class VisorModel {
         switch (this.currentWorkMode) {
             case PROYECTO:
             case CLIENTE:
-            case CLIENT_REVIEW:
                 return this.proyectoZoomContext;
             case DATOS:
                 return this.datosZoomContext;

@@ -1,10 +1,10 @@
 package vista.panels;
 
+import java.awt.BorderLayout;
 import java.awt.Window;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
-import java.awt.BorderLayout;
 
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -12,10 +12,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JTable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import controlador.managers.interfaces.IProjectManager;
 import controlador.utils.ComponentRegistry;
@@ -23,7 +19,6 @@ import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
 import modelo.proyecto.CommentOverlay;
 import modelo.proyecto.ImageCheckboxOverlay;
-import modelo.proyecto.Mensaje;
 import modelo.proyecto.ProjectImage;
 import modelo.proyecto.ProjectModel;
 import modelo.proyecto.SelectionState;
@@ -34,8 +29,6 @@ import modelo.proyecto.SelectionState;
  * sobre la imagen, así como el menú popup contextual.
  */
 public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
-
-    private static final Logger logger = LoggerFactory.getLogger(CheckboxEditorMouseHandler.class);
 
     private final VisorModel model;
     private final IProjectManager projectManager;

@@ -13,13 +13,9 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TaskProgressDialog extends JDialog {
 
-    private static final Logger logger = LoggerFactory.getLogger(TaskProgressDialog.class);
-    
     private static final long serialVersionUID = 1L;
     private JProgressBar progressBar;
     private JLabel lblStatus;

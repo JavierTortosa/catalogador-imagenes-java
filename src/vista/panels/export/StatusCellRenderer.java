@@ -11,16 +11,11 @@ import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.table.TableCellRenderer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import modelo.proyecto.ExportItem;
 import modelo.proyecto.ExportStatus;
 import vista.util.IconUtils;
 
 public class StatusCellRenderer implements TableCellRenderer {
-
-    private static final Logger logger = LoggerFactory.getLogger(StatusCellRenderer.class);
 
     private IconUtils iconUtils;
 

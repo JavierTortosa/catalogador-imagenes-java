@@ -10,9 +10,6 @@ import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import controlador.managers.interfaces.IProjectManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
@@ -21,11 +18,7 @@ import vista.theme.ThemeManager;
 public class CheckboxEditorPanel extends JPanel {
 
     private static final long serialVersionUID = 1L;
-    private static final Logger logger = LoggerFactory.getLogger(CheckboxEditorPanel.class);
 
-    private final VisorModel model;
-    private final IProjectManager projectManager;
-    private final ComponentRegistry registry;
     private final ImageDisplayPanel imagePanel;
     private final JLabel headerLabel;
     private final JLabel zoomLabel;
@@ -35,10 +28,6 @@ public class CheckboxEditorPanel extends JPanel {
     public CheckboxEditorPanel(ThemeManager themeManager, VisorModel model,
                                 IProjectManager projectManager, ComponentRegistry registry,
                                 JToolBar editorToolbar) {
-        this.model = model;
-        this.projectManager = projectManager;
-        this.registry = registry;
-
         setLayout(new BorderLayout());
         setBackground(themeManager.getTemaActual().colorFondoSecundario());
         setBorder(BorderFactory.createTitledBorder("Editor de Checkboxes"));

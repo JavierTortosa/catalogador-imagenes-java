@@ -239,7 +239,6 @@ public class AppInitializer {
         this.clientSyncService = new ClientSyncService();
         
         this.clientController.setGeneralController(this.generalController);
-        this.clientController.setValidationService(this.validationService);
         this.clientController.setClientSyncService(this.clientSyncService);
         this.clientController.setProjectManager(this.projectManagerService);
         this.clientController.setComponentRegistry(this.registry);
@@ -401,7 +400,6 @@ public class AppInitializer {
         viewManager.setConfiguration(this.configuration);
         viewManager.setThemeManager(this.themeManager);
         viewManager.setToolbarManager(this.toolbarManager);
-        viewManager.setViewBuilder(this.viewBuilder);
         viewManager.setDisplayModeManager(this.displayModeManager);
         viewBuilder.setFolderTreeManager(this.folderTreeManager);
         viewBuilder.setToolbarManager(this.toolbarManager);
@@ -412,14 +410,12 @@ public class AppInitializer {
         zoomManager.setRegistry(this.registry);
         zoomManager.setConfiguration(this.configuration);
         zoomManager.setViewManager(this.viewManager);
-        zoomManager.setListCoordinator(this.listCoordinator);
         zoomManager.setInfobarImageManager(this.infobarImageManager);
 
         zoomManager.setConfigApplicationManager(this.configAppManager);
 
         if (this.projectManagerService != null) {
             this.projectManagerService.setConfigManager(this.configuration);
-            this.projectManagerService.setProjectController(this.projectController);
         }
         editionManager.setModel(this.model);
         editionManager.setController(this.controller);
@@ -454,7 +450,6 @@ public class AppInitializer {
         generalController.setDisplayModeManager(this.displayModeManager);
         generalController.setConfiguration(this.configuration);
         generalController.setFilterManager(this.filterManager);
-        generalController.setFolderNavigationManager(this.folderNavManager);
         generalController.setFolderTreeManager(this.folderTreeManager);
         
         //PENDIENTE DE REFACTORIZACION
@@ -493,7 +488,6 @@ public class AppInitializer {
         // --- TaggingManager (contexto compartido entre modos) ---
         controlador.managers.TaggingManager taggingManager = new controlador.managers.TaggingManager();
         this.controller.setTaggingManager(taggingManager);
-        this.dataController.setTaggingManager(taggingManager);
         this.appModeService.setTaggingManager(taggingManager);
         
         // --- Cableado de componentes del Modo Datos ---
@@ -531,8 +525,6 @@ public class AppInitializer {
         actionFactory.setCarouselManager(carouselManager);
         actionFactory.setConfigAppManager(this.configAppManager);
         actionFactory.setToolbarManager(this.toolbarManager);
-
-        toolbarManager.setProjectController(this.projectController);
 
         actionFactory.setDisplayModeManager(this.displayModeManager);
         this.model.addMasterListChangeListener(this.generalController);
@@ -624,7 +616,6 @@ public class AppInitializer {
                 // 3.4: Inyectar la 'view' en los componentes que la necesitaban
                 logger.debug("    -> Inyectando la instancia de 'view' en los componentes...");
                 this.actionFactory.setView(this.view);
-                this.configAppManager.setView(this.view);
                 this.viewManager.setView(this.view);
                 this.controller.setView(this.view);
                 this.view.setController(this.controller);
@@ -645,7 +636,6 @@ public class AppInitializer {
                 this.filterManager.setStatusBarManager(this.statusBarManager);
                 this.dataController.setStatusBarManager(this.statusBarManager);
                 this.displayModeManager.setInfobarStatusManager(this.statusBarManager);
-                this.statusBarManager.setController(this.controller);
                 this.statusBarManager.setMenuPopupManager(this.menuPopupManager);
                 this.searchSortService.setStatusBarManager(this.statusBarManager);
 
@@ -663,8 +653,6 @@ public class AppInitializer {
                 imageListManager.setFilterManager(this.filterManager);
                 this.controller.setImageListManager(imageListManager);
                 this.generalController.setImageListManager(imageListManager);
-                this.appModeService.setImageListManager(imageListManager);
-
                 this.actionFactory.setImageListManager(imageListManager);
                 this.actionFactory.setClientController(this.clientController);
                 this.clientController.setActionFactory(this.actionFactory);
@@ -674,11 +662,9 @@ public class AppInitializer {
                 logger.debug("    -> Ensamblando UI: Menús, Toolbars, Listeners...");
                 this.view.setJMenuBar(this.menuBuilder.buildMenuBar(new UIDefinitionService().generateMenuStructure(),
                         this.actionMap));
-                this.controller.setMenuItemsPorNombre(this.menuBuilder.getMenuItemsMap());
                 this.menuBuilder.getMenuItemsMap().forEach(this.registry::register);
                 this.toolbarManager.reconstruirContenedorDeToolbars(this.model.getCurrentWorkMode());
                 this.controller.setBotonesPorNombre(this.toolbarBuilder.getBotonesPorNombre());
-                this.viewManager.setBotonesPorNombre(this.toolbarBuilder.getBotonesPorNombre());
 
                 JList<String> miniaturasVisor = registry.get("list.miniaturas");
                 if (miniaturasVisor != null)

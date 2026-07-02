@@ -24,12 +24,10 @@ public class ToolbarVisibilityPanel extends JPanel implements ConfigurationPanel
 
     private static final long serialVersionUID = 1L;
 	private final transient UIDefinitionService uiDefService = new UIDefinitionService();
-    private final transient ConfigurationManager config;
 
     private final List<ToolbarCheckGroup> toolbarGroups = new ArrayList<>();
 
     public ToolbarVisibilityPanel(ConfigurationManager config) {
-        this.config = config;
         setLayout(new BorderLayout());
         setBorder(new TitledBorder("Barras de Herramientas"));
         initComponents();

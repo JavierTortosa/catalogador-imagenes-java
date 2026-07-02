@@ -18,9 +18,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import controlador.managers.interfaces.IProjectManager;
 import modelo.proyecto.CommentThread;
 import modelo.proyecto.Mensaje;
@@ -32,7 +29,6 @@ import modelo.proyecto.Mensaje;
 public class MsgPopupDialog extends JDialog {
 
     private static final long serialVersionUID = 1L;
-    private static final Logger logger = LoggerFactory.getLogger(MsgPopupDialog.class);
 
     private static final Color NOSOTROS_BG  = new Color(255, 243, 205);
     private static final Color NOSOTROS_FG  = new Color(133, 100, 4);

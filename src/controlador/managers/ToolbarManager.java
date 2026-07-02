@@ -16,7 +16,6 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
-import controlador.managers.BackgroundControlManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +58,6 @@ public class ToolbarManager implements ThemeChangeListener{
     private final Map<String, JToolBar> managedToolbars;
     
     private BackgroundControlManager backgroundControlManager;
-    private controlador.ProjectController projectController;
     private IconUtils iconUtils;
 
     // --- Estado de overflow ---
@@ -70,7 +68,6 @@ public class ToolbarManager implements ThemeChangeListener{
     private boolean overflowListenersInicializados = false;
     private boolean previousOverflowState = false;
     private JButton overflowButton;
-    private static final int OVERFLOW_HGAP = 10;
     private static final String OVERFLOW_TOOLBAR_KEY = "especiales";
 
     public ToolbarManager(ComponentRegistry registry, ConfigurationManager configuration, ToolbarBuilder toolbarBuilder, UIDefinitionService uiDefService, VisorModel model) {
@@ -84,9 +81,7 @@ public class ToolbarManager implements ThemeChangeListener{
         logger.debug("[ToolbarManager] Instancia creada con éxito.");
     } // --- Fin del método ToolbarManager (constructor) ---
 
-    public void setProjectController(controlador.ProjectController projectController) {
-        this.projectController = projectController;
-    }
+
 
     
     /**

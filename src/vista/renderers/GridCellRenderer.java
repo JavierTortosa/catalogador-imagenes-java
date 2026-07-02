@@ -16,9 +16,6 @@ import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import controlador.ProjectController;
 import controlador.managers.interfaces.IProjectManager;
 import modelo.VisorModel;
@@ -34,8 +31,6 @@ import vista.util.ThumbnailPreviewer;
 
 public class GridCellRenderer implements ListCellRenderer<String> {
 	
-	private static final Logger logger = LoggerFactory.getLogger(GridCellRenderer.class); 
-
 	
     private final ThumbnailService gridThumbnailService;
     private final VisorModel modeloVisor;
@@ -44,7 +39,6 @@ public class GridCellRenderer implements ListCellRenderer<String> {
     private final IconUtils iconUtils;
     private final ThumbnailPreviewer previewer;
     private IProjectManager projectManager;
-    private final Color selectionBorderColor;
     
     private final ProjectController projectController;
 
@@ -70,7 +64,6 @@ public class GridCellRenderer implements ListCellRenderer<String> {
         this.projectManager = projectManager;
         this.projectController = projectController;
         
-        this.selectionBorderColor = themeManager.getTemaActual().colorSeleccionFondo();
         
         int anchoMiniatura = configuration.getInt(ConfigKeys.GRID_THUMBNAIL_WIDTH, 120);
         int altoMiniatura = configuration.getInt(ConfigKeys.GRID_THUMBNAIL_HEIGHT, 120);

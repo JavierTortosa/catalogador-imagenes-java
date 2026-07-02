@@ -134,7 +134,7 @@ public class VisorController implements IModoController, ThemeChangeListener {
     
     private Map<String, AbstractButton> botonesPorNombre;
     
-    private Map<String, JMenuItem> menuItemsPorNombre;
+
     
 
 
@@ -790,13 +790,14 @@ public class VisorController implements IModoController, ThemeChangeListener {
                  panelKey = isPolaroid ? "panel.datamode.display.polaroid.image" : "panel.datamode.display";
                  break;
              case CLIENTE:
-             case CLIENT_REVIEW:
                  panelKey = isPolaroid ? "panel.cliente.display.polaroid.image" : "panel.cliente.display";
                  break;
              default:
                  panelKey = isPolaroid ? "panel.display.polaroid.image" : "panel.display.imagen";
                  break;
          }
+ 
+
 
          ImageDisplayPanel displayPanel = registry.get(panelKey);
          if (displayPanel == null) {
@@ -965,7 +966,6 @@ public class VisorController implements IModoController, ThemeChangeListener {
                 displayPanel = registry.get("panel.proyecto.display");
                 break;
             case CLIENTE:
-            case CLIENT_REVIEW:
                 displayPanel = registry.get("panel.cliente.display");
                 break;
             default:
@@ -2191,7 +2191,7 @@ public class VisorController implements IModoController, ThemeChangeListener {
     public void setStatusBarManager			(InfobarStatusManager manager) { this.statusBarManager = manager; }
     public void setComponentRegistry		(ComponentRegistry registry) {this.registry = registry;}
     public void setBotonesPorNombre			(Map<String, AbstractButton> botones) {this.botonesPorNombre = (botones != null) ? botones : new HashMap<>();}
-    public void setMenuItemsPorNombre		(Map<String, JMenuItem> menuItems) {this.menuItemsPorNombre = (menuItems != null) ? menuItems : new HashMap<>();}
+
     public void setToolbarManager			(ToolbarManager toolbarManager) {this.toolbarManager = toolbarManager;}
     public void setViewManager				(ViewManager viewManager) {this.viewManager = viewManager;}
     public void setConfigApplicationManager	(ConfigApplicationManager manager) { this.configAppManager = manager; }

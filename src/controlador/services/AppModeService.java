@@ -52,7 +52,6 @@ public class AppModeService {
     private ClientController clientController;
     private ConfigurationManager configuration;
     private ComponentRegistry registry;
-    private ImageListManager imageListManager;
     private Map<String, Action> actionMap;
     private controlador.managers.TaggingManager taggingManager;
 
@@ -99,11 +98,6 @@ public class AppModeService {
     } // --- FIN de metodo setRegistry ---
 
 
-    public void setImageListManager(ImageListManager imageListManager) {
-        this.imageListManager = imageListManager;
-    } // --- FIN de metodo setImageListManager ---
-
-
     public void setActionMap(Map<String, Action> actionMap) {
         this.actionMap = actionMap;
     } // --- FIN de metodo setActionMap ---
@@ -124,7 +118,6 @@ public class AppModeService {
             case DATOS -> "VISTA_DATOS";
             case CLIENTE -> "VISTA_CLIENTE";
             case CARROUSEL -> "VISTA_CARROUSEL_WORKMODE";
-            case CLIENT_REVIEW -> "VISTA_CLIENTE";
         };
         viewManager.cambiarAVista("container.workmodes", vistaName);
         logger.debug("[AppModeService] Vista cambiada a: {}", vistaName);
@@ -252,7 +245,6 @@ public class AppModeService {
             case DATOS         -> AppActionCommands.CMD_MODO_DATOS;
             case CLIENTE       -> AppActionCommands.CMD_MODO_CLIENTE;
             case CARROUSEL     -> AppActionCommands.CMD_VISTA_CAROUSEL;
-            case CLIENT_REVIEW -> AppActionCommands.CMD_MODO_CLIENTE;
         };
 
         List<String> comandosDeModo = List.of(
@@ -440,6 +432,7 @@ public class AppModeService {
                 case CARROUSEL:
                     viewManager.cambiarAVista("container.workmodes", "VISTA_CARROUSEL_WORKMODE");
                     break;
+
             }
 
             JPanel workModesContainer = registry.get("container.workmodes");

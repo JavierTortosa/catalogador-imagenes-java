@@ -22,9 +22,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionListener;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import vista.configuracion.ConfigurationPanel;
@@ -37,10 +34,7 @@ public class AppearancePanel extends JPanel implements ConfigurationPanel {
 
     private static final long serialVersionUID = 1L;
 
-	private static final Logger logger = LoggerFactory.getLogger(AppearancePanel.class);
-
     private final transient ThemeManager themeManager;
-    private final transient ConfigurationManager config;
     private final transient java.awt.Frame ownerFrame;
 
     private final JList<ThemeListEntry> themeList = new JList<>();
@@ -62,7 +56,6 @@ public class AppearancePanel extends JPanel implements ConfigurationPanel {
     private final Color[] pendingColors = new Color[4];
 
     public AppearancePanel(ConfigurationManager config, ThemeManager themeManager, java.awt.Frame ownerFrame) {
-        this.config = config;
         this.themeManager = themeManager;
         this.ownerFrame = ownerFrame;
         setLayout(new BorderLayout());

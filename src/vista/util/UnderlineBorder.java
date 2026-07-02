@@ -7,16 +7,11 @@ import java.awt.Insets;
 
 import javax.swing.border.Border;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * Un Border personalizado que dibuja una simple línea de subrayado debajo de un componente.
  */
 public class UnderlineBorder implements Border {
 
-	private static final Logger logger = LoggerFactory.getLogger(UnderlineBorder.class);
-	
     private final int thickness;
     private final Color color;
 

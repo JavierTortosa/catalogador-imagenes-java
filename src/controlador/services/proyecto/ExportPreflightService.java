@@ -4,19 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import modelo.proyecto.ProjectImage;
-import modelo.proyecto.ProjectModel;
 
 /**
  * Servicio de validación previa a la exportación al cliente.
  * Comprueba que todas las imágenes seleccionadas tengan código de catálogo asignado.
  */
 public class ExportPreflightService {
-
-    private static final Logger logger = LoggerFactory.getLogger(ExportPreflightService.class);
 
     public static List<String> validarAsignaciones(Map<String, ProjectImage> masterImages) {
         List<String> errores = new ArrayList<>();

@@ -41,7 +41,6 @@ public class InfobarStatusManager implements ThemeChangeListener {
 
     private static final Logger logger = LoggerFactory.getLogger(InfobarStatusManager.class);
 
-    private VisorController visorController;
     private MenuPopupManager menuPopupManager;
     private final VisorModel model;
     private final ComponentRegistry registry;
@@ -668,10 +667,6 @@ public class InfobarStatusManager implements ThemeChangeListener {
         panel.revalidate();
         panel.repaint();
     } // ---FIN de metodo [applyCustomStatusBarStyle]---
-
-    public void setController(VisorController controller) {
-        this.visorController = Objects.requireNonNull(controller);
-    }
 
     public void setMenuPopupManager(MenuPopupManager menuPopupManager) {
         this.menuPopupManager = menuPopupManager;

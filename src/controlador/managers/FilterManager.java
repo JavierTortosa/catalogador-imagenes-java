@@ -44,7 +44,6 @@ public class FilterManager {
 	private controlador.utils.ComponentRegistry registry;
 
 	// --- Estado para FILTRO PERSISTENTE (Movido desde GeneralController) ---
-	private DefaultListModel<String> persistente_listaMaestraOriginal;
 	private String persistente_punteroOriginalKey;
 	private boolean persistente_activo = false;
 
@@ -420,7 +419,6 @@ public class FilterManager {
     public void resetPersistentFilterState() {
         if (this.persistente_activo) {
             logger.info("[FilterManager] Reseteando estado de filtro persistente debido a carga de nuevo contexto.");
-            this.persistente_listaMaestraOriginal = null;
             this.persistente_punteroOriginalKey = null;
             this.persistente_activo = false;
         }
@@ -518,7 +516,6 @@ public class FilterManager {
             
             if (resetearCheckpoint) {
                 logger.info("[FM] Reseteando estado del checkpoint persistente...");
-                this.persistente_listaMaestraOriginal = null;
                 this.persistente_punteroOriginalKey = null;
                 this.persistente_activo = false;
             }

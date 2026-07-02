@@ -60,9 +60,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
     private ComponentRegistry registry;
     private ThemeManager themeManager;
     private Map<String, Action> actionMap;
-    private Map<String, AbstractButton> botonesPorNombre;
     private ToolbarManager toolbarManager;
-    private ViewBuilder viewBuilder;
     private VisorModel model;
     private DisplayModeManager displayModeManager;
     private InfobarStatusManager statusBarManager;
@@ -679,7 +677,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
 
     @Override
     public void setBotonesPorNombre(Map<String, AbstractButton> botones) {
-        this.botonesPorNombre = botones;
+        // No-op: campo eliminado por no usarse
     } // --- Fin del método setBotonesPorNombre ---
 
     @Override
@@ -1676,9 +1674,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
         this.toolbarManager = toolbarManager;
     }
 
-    public void setViewBuilder(ViewBuilder viewBuilder) {
-        this.viewBuilder = viewBuilder;
-    }
+
 
     @Override
     public void setModel(VisorModel model) {

@@ -9,7 +9,6 @@ import java.util.Objects;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import javax.swing.JOptionPane;
 
 import controlador.GeneralController;
 import controlador.commands.AppActionCommands;

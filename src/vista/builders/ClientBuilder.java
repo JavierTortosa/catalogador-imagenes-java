@@ -2,33 +2,26 @@ package vista.builders;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.Objects;
 
 import javax.swing.BorderFactory;
-import javax.swing.DefaultCellEditor;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
-import javax.swing.border.TitledBorder;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableColumn;
+import javax.swing.table.TableCellRenderer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,9 +45,6 @@ import vista.panels.GridDisplayPanel;
 import vista.panels.ImageDisplayPanel;
 import vista.panels.MsgPopupDialog;
 import vista.panels.PolaroidDisplayPanel;
-import vista.renderers.CodeCellRenderer;
-import vista.renderers.CommentCellRenderer;
-import vista.renderers.TristateCellRenderer;
 import vista.theme.ThemeManager;
 
 /**
@@ -70,7 +60,6 @@ public class ClientBuilder {
     private final ComponentRegistry registry;
     private final VisorModel model;
     private final ThemeManager themeManager;
-    private final GeneralController generalController;
     private final ToolbarManager toolbarManager;
     private final ClientController clientController;
     private final ProjectManager projectManager;
@@ -82,7 +71,6 @@ public class ClientBuilder {
         this.registry = Objects.requireNonNull(registry, "Registry no puede ser null en ClientBuilder");
         this.model = Objects.requireNonNull(model, "VisorModel no puede ser null en ClientBuilder");
         this.themeManager = Objects.requireNonNull(themeManager, "ThemeManager no puede ser null");
-        this.generalController = Objects.requireNonNull(generalController, "GeneralController no puede ser null");
         this.toolbarManager = Objects.requireNonNull(toolbarManager, "ToolbarManager no puede ser null");
         this.clientController = Objects.requireNonNull(clientController, "ClientController no puede ser null");
         this.projectManager = Objects.requireNonNull(projectManager, "ProjectManager no puede ser null");

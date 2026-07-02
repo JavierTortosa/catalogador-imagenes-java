@@ -50,7 +50,6 @@ public class ToolbarBuilder {
     private Map<String, Action> actionMap;
     private final ThemeManager themeManager;
     private final IconUtils iconUtils;
-    private final VisorController controllerRef;
     private final ComponentRegistry registry;
 
     private final int iconoAncho;
@@ -58,8 +57,6 @@ public class ToolbarBuilder {
 
     private Map<String, AbstractButton> botonesPorNombre;
     private final Map<String, ButtonGroup> radioGroups = new HashMap<>();
-    private final List<String> groupToolbarKeys = List.of("zoom", "modo", "vistas");
-
     public ToolbarBuilder(
             ThemeManager themeManager,
             IconUtils iconUtils,
@@ -72,7 +69,6 @@ public class ToolbarBuilder {
 
         this.themeManager = Objects.requireNonNull(themeManager);
         this.iconUtils = Objects.requireNonNull(iconUtils);
-        this.controllerRef = Objects.requireNonNull(controller);
         this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null en ToolbarBuilder.");
 
         this.iconoAncho = (iconoAncho > 0) ? iconoAncho : 24;

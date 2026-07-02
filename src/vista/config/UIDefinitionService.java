@@ -5,17 +5,11 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import controlador.commands.AppActionCommands;
-import vista.config.IconScope;
 import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
 
 public class UIDefinitionService {
-
-    private static final Logger logger = LoggerFactory.getLogger(UIDefinitionService.class);
 
     public UIDefinitionService() {
 
