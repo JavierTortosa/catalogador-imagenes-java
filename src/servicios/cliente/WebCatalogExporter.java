@@ -332,6 +332,7 @@ public class WebCatalogExporter {
             + "  <main id=\"gallery\" class=\"gallery\"></main>\n"
             + "  <footer>\n"
             + "    <div id=\"summary\"></div>\n"
+            + "    <div style=\"font-size:0.7rem; color:var(--text-muted); margin-top:5px;\">Cat\u00e1logo generado con ModelTag by Fco. Javier Tortorsa</div>\n"
             + "  </footer>\n"
             + "  <div id=\"modal\" class=\"modal hidden\">\n"
             + "    <div class=\"modal-content\">\n"
