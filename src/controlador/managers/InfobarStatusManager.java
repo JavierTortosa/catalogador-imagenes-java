@@ -22,7 +22,6 @@ import javax.swing.border.LineBorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.VisorController;
 import controlador.commands.AppActionCommands;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;

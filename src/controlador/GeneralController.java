@@ -26,7 +26,6 @@ import controlador.interfaces.IModoController;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.DisplayModeManager;
 import controlador.managers.FilterManager;
-import controlador.managers.FolderNavigationManager;
 import controlador.managers.ImageListManager;
 import controlador.managers.InfobarStatusManager;
 import controlador.managers.MenuPopupManager;
@@ -373,6 +372,7 @@ public class GeneralController
      * 
      * @param modoDestino El modo al que se desea cambiar (VISUALIZADOR o PROYECTO).
      */
+    @SuppressWarnings("deprecation")
     public void cambiarModoDeTrabajo(VisorModel.WorkMode modoDestino) {
         WorkMode modoActual = this.model.getCurrentWorkMode();
         if (modoActual == modoDestino) {

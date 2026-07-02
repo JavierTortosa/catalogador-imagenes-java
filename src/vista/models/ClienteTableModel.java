@@ -186,7 +186,7 @@ public class ClienteTableModel extends AbstractTableModel {
     /**
      * Compara dos valores de celda para ordenaci&oacute;n.
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked"})
     private int compareSortValues(Object a, Object b) {
         if (a == null && b == null) return 0;
         if (a == null) return -1;

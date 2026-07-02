@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.51.10";
+        version = "V2.52.10";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -79,7 +79,6 @@ public class VisorV2 {
     
     
     // CONFIGURACION
-    // FIXME en general. los textbox de excluir carpeta y omitir directorios deberia tener el boton de seleccionar carpeta que abra el selector de carpetas
     // FIXME en apariencia|personalizar tema: si customizamos un tema y vamos a salir nos tiene que avisar que el tema no se ha guardado y que la proxima vez que iniciemos la aplicacion lo hara con el tema actual
     
     

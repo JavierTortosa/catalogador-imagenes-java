@@ -24,15 +24,14 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import modelo.proyecto.CommentThread;
 
-import controlador.ProjectController;
 import controlador.managers.interfaces.IProjectManager;
 import modelo.VisorModel;
+import modelo.proyecto.CommentThread;
 import modelo.proyecto.ExportConfig;
 import modelo.proyecto.ProjectImage;
-import modelo.proyecto.ProjectModel.ClientSelection;
 import modelo.proyecto.ProjectModel;
+import modelo.proyecto.ProjectModel.ClientSelection;
 
 public class ProjectManager implements IProjectManager {
 	
@@ -124,6 +123,7 @@ public class ProjectManager implements IProjectManager {
      * guardado (lastSavedProjectState) para determinar si hay cambios.
      * @return true si hay diferencias, false si son idénticos.
      */
+    @SuppressWarnings("deprecation")
     private boolean isProjectDirty() {
         // Si por alguna razón el estado guardado es nulo, consideramos que hay cambios.
         if (this.lastSavedProjectState == null) {
@@ -211,6 +211,7 @@ public class ProjectManager implements IProjectManager {
      * Los campos se restauran en memoria tras la serializaci�n para mantener
      * la compatibilidad hacia atr�s del objeto ProjectModel en ejecuci�n.
      */
+    @SuppressWarnings("deprecation")
     private void guardarConGsonV2(Appendable writer) {
         if (this.currentProject.getSchemaVersion() < 2) {
             gson.toJson(this.currentProject, writer);

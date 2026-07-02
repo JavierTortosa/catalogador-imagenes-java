@@ -25,7 +25,6 @@ import modelo.VisorModel;
 import modelo.VisorModel.DisplayMode;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
-import vista.VisorView; // Mantener solo si es necesario para el JOptionPane o setAlwaysOnTop
 import vista.theme.Tema;
 import vista.theme.ThemeManager;
 

@@ -70,9 +70,9 @@ public class ClientResponseImporter {
 
         // Almacenar metadatos de la respuesta
         if (root.has("fechaRespuesta") && !root.get("fechaRespuesta").isJsonNull()) {
-            project.getClientSelection().setFechaRespuesta(root.get("fechaRespuesta").getAsString());
+            project.setFechaRespuesta(root.get("fechaRespuesta").getAsString());
         } else {
-            project.getClientSelection().setFechaRespuesta(
+            project.setFechaRespuesta(
                     LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         }
         if (root.has("iteracion")) {

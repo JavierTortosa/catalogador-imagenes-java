@@ -45,7 +45,6 @@ import modelo.VisorModel;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import vista.VisorView;
-import vista.builders.ViewBuilder;
 import vista.panels.ImageDisplayPanel;
 import vista.theme.Tema;
 import vista.theme.ThemeChangeListener;

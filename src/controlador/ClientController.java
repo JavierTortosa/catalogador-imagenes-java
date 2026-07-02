@@ -33,7 +33,6 @@ import modelo.proyecto.ProjectModel;
 import modelo.proyecto.SelectionState;
 import servicios.ProjectManager;
 import servicios.ProyectoIOException;
-import servicios.ValidationService;
 import servicios.cliente.ClientResponseImporter;
 import servicios.cliente.ClientResponseImporter.ImportReport;
 import servicios.cliente.ClientSyncService;

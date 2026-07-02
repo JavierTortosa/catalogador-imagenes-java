@@ -1,5 +1,18 @@
 package controlador.services;
 
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.Action;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import controlador.ClientController;
 import controlador.DataController;
 import controlador.ProjectController;
@@ -8,7 +21,6 @@ import controlador.commands.AppActionCommands;
 import controlador.managers.CarouselManager;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.DisplayModeManager;
-import controlador.managers.ImageListManager;
 import controlador.managers.InfobarStatusManager;
 import controlador.managers.ToolbarManager;
 import controlador.managers.ViewManager;
@@ -18,19 +30,7 @@ import modelo.ListContext;
 import modelo.VisorModel;
 import modelo.VisorModel.DisplayMode;
 import modelo.VisorModel.WorkMode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import servicios.ConfigurationManager;
-
-import javax.swing.Action;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Servicio maestro que orquesta los cambios de modo de trabajo 

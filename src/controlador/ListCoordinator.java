@@ -305,6 +305,7 @@ public class ListCoordinator extends AbstractListCoordinator {
             propagarMultiSeleccion(list, list.getSelectedIndices());
         };
 
+        @SuppressWarnings("unchecked")
         JList<String>[] lists = new JList[]{
             registry.get("list.nombresArchivo"),
             registry.get("list.miniaturas"),

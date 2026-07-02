@@ -52,6 +52,7 @@ public class ProjectModel {
     private boolean clientModeClosed;
     private long sharedTimestamp;
     private int sharedIteration;
+    private String fechaRespuesta;
     private Map<String, String> imageCodes;
 
     // --- Datos del Cliente ---
@@ -249,6 +250,14 @@ public class ProjectModel {
     public void setSharedIteration(int sharedIteration) {
         this.sharedIteration = sharedIteration;
     } // ---FIN de metodo setSharedIteration---
+
+    public String getFechaRespuesta() {
+        return fechaRespuesta;
+    } // ---FIN de metodo getFechaRespuesta---
+
+    public void setFechaRespuesta(String fechaRespuesta) {
+        this.fechaRespuesta = fechaRespuesta;
+    } // ---FIN de metodo setFechaRespuesta---
 
     public Map<String, String> getImageCodes() {
         if (imageCodes == null) {
