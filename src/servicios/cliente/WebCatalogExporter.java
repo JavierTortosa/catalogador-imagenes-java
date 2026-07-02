@@ -332,7 +332,7 @@ public class WebCatalogExporter {
             + "  </nav>\n"
             + "  <main id=\"gallery\" class=\"gallery\"></main>\n"
             + "  <footer>\n"
-            + "    <div id=\"summary\"></div>\n"
+            + "    <div style=\"font-size:0.7rem; color:var(--text-muted); padding:10px;\">Cat\u00e1logo generado con ModelTag by Fco. Javier Tortorsa</div>\n"
             + "  </footer>\n"
             + "  <div id=\"modal\" class=\"modal hidden\">\n"
             + "    <div class=\"modal-content\">\n"
@@ -713,7 +713,6 @@ public class WebCatalogExporter {
                + "  var dis = data.imagenes.filter(function(i) { return i.estado === 'DISCARDED'; }).length;\n"
                + "  var und = data.imagenes.filter(function(i) { return i.estado === 'UNDEFINED'; }).length;\n"
                + "  document.getElementById('counter').innerHTML = 'Total: ' + data.imagenes.length + ' | <span class=\"count-icon count-sel\">&#x2713;</span> ' + sel + ' <span class=\"count-icon count-dis\">&#x2717;</span> ' + dis + ' <span class=\"count-icon count-und\">&#x25cb;</span> ' + und;\n"
-               + "  document.getElementById('summary').textContent = '\\u2713 ' + sel + ' seleccionadas \\u00b7 \\u2717 ' + dis + ' descartadas \\u00b7 \\u25cb ' + und + ' sin marcar';\n"
                + "}\n"
 
               + "// === FUNCIÓN DE CONTROL DE CAJÓN DESPLEGABLE (BOTTOM SHEET) ===\n"
