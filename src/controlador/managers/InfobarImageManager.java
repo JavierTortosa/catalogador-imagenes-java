@@ -1,6 +1,7 @@
 package controlador.managers;
 
 import java.awt.Color;
+import java.awt.KeyboardFocusManager;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,6 +12,7 @@ import java.util.Objects;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
@@ -118,6 +120,9 @@ public class InfobarImageManager implements ThemeChangeListener{
             String fullPathString = "Ruta: N/A";
             if (selectedKey != null) {
                 Path fullPath = model.getRutaCompleta(selectedKey);
+                if (fullPath == null) {
+                    fullPath = Path.of(selectedKey);
+                }
                 if (fullPath != null) {
                     Path folderPath = fullPath.getParent();
                     Path fileName = fullPath.getFileName();
@@ -191,12 +196,38 @@ public class InfobarImageManager implements ThemeChangeListener{
         if (label.isVisible() != esVisible) label.setVisible(esVisible);
 
         if (esVisible) {
-            int indice = -1, total = (model.getModeloLista() != null) ? model.getModeloLista().getSize() : 0;
-            if (model.getSelectedImageKey() != null && total > 0) indice = model.getModeloLista().indexOf(model.getSelectedImageKey());
-            String display = (total > 0 && indice != -1) ? (indice + 1) + "/" + total : "0/0";
+            String display = "0/0";
+            if (model.getCurrentWorkMode() == modelo.VisorModel.WorkMode.CLIENTE) {
+                display = obtenerIndiceModoCliente();
+            } else {
+                int indice = -1, total = (model.getModeloLista() != null) ? model.getModeloLista().getSize() : 0;
+                if (model.getSelectedImageKey() != null && total > 0) indice = model.getModeloLista().indexOf(model.getSelectedImageKey());
+                if (total > 0 && indice != -1) display = (indice + 1) + "/" + total;
+            }
             label.setText("Idx: " + display);
         }
     } // --- Fin del método actualizarIndiceTotal ---
+
+    private String obtenerIndiceModoCliente() {
+        java.awt.Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+        if (focusOwner instanceof JTable) {
+            JTable t = (JTable) focusOwner;
+            int total = t.getRowCount();
+            int selRow = t.getSelectedRow();
+            if (total > 0 && selRow >= 0) return (selRow + 1) + "/" + total;
+        }
+        // Fallback: buscar la primera tabla con una fila seleccionada que coincida con la clave actual
+        String selectedKey = model.getSelectedImageKey();
+        String[] tableKeys = {"table.cliente.proyecto.seleccion", "table.cliente.proyecto.descartes",
+                              "table.cliente.cliente.seleccion", "table.cliente.cliente.descartes"};
+        for (String key : tableKeys) {
+            JTable t = registry.get(key);
+            if (t != null && t.getRowCount() > 0 && t.getSelectedRow() >= 0) {
+                return (t.getSelectedRow() + 1) + "/" + t.getRowCount();
+            }
+        }
+        return "0/0";
+    } // --- FIN de metodo obtenerIndiceModoCliente ---
 
     private void actualizarDimensiones() {
         JLabel label = registry.get("label.info.dimensiones");
@@ -222,7 +253,7 @@ public class InfobarImageManager implements ThemeChangeListener{
 
         if (esVisible) {
             String display = "N/A";
-            Path ruta = (model.getSelectedImageKey() != null) ? model.getRutaCompleta(model.getSelectedImageKey()) : null;
+            Path ruta = resolvePath(model.getSelectedImageKey());
             if (ruta != null && Files.exists(ruta)) {
                 try {
                     display = formatFileSize(Files.size(ruta));
@@ -241,7 +272,7 @@ public class InfobarImageManager implements ThemeChangeListener{
 
         if (esVisible) {
             String display = "N/A";
-            Path ruta = (model.getSelectedImageKey() != null) ? model.getRutaCompleta(model.getSelectedImageKey()) : null;
+            Path ruta = resolvePath(model.getSelectedImageKey());
             if (ruta != null && Files.exists(ruta)) {
                 try {
                     display = sdfFechaArchivo.format(new Date(Files.getLastModifiedTime(ruta).toMillis()));
@@ -260,7 +291,7 @@ public class InfobarImageManager implements ThemeChangeListener{
 
         if (esVisible) {
             String display = "N/A";
-            Path ruta = (model.getSelectedImageKey() != null) ? model.getRutaCompleta(model.getSelectedImageKey()) : null;
+            Path ruta = resolvePath(model.getSelectedImageKey());
             if (ruta != null) display = ImageUtils.getImageFormat(ruta);
             label.setText("Fmt: " + (display != null ? display.toUpperCase() : "N/A"));
         }
@@ -392,6 +423,18 @@ public class InfobarImageManager implements ThemeChangeListener{
         panel.revalidate();
         panel.repaint();
     } // ---FIN de metodo [applyCustomStatusBarStyle]---
-    
+
+    private Path resolvePath(String selectedKey) {
+        if (selectedKey == null) return null;
+        Path ruta = model.getRutaCompleta(selectedKey);
+        if (ruta == null) {
+            try {
+                ruta = Path.of(selectedKey);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return ruta;
+    } // --- FIN de metodo resolvePath ---
     
 } // --- Fin de la clase InfobarImageManager ---

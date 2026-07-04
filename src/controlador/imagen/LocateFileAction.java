@@ -57,6 +57,9 @@ public class LocateFileAction extends AbstractAction implements ContextSensitive
 
         Path filePath = modelRef.getRutaCompleta(selectedKey);
         if (filePath == null || !Files.exists(filePath)) {
+            filePath = Path.of(selectedKey);
+        }
+        if (filePath == null || !Files.exists(filePath)) {
              JOptionPane.showMessageDialog(mainFrame, "No se pudo encontrar la ruta del archivo seleccionado.", "Error al Localizar", JOptionPane.ERROR_MESSAGE);
              return;
         }

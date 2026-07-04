@@ -93,7 +93,7 @@ public class InfobarStatusManager implements ThemeChangeListener {
             return;
         JLabel mensajesAppLabel = registry.get("label.estado.mensajes");
         if (mensajesAppLabel != null) {
-            mensajesAppLabel.setText(" " + mensaje + " "); // Añadir padding
+            mensajesAppLabel.setText(" " + (mensaje != null ? mensaje : "") + " ");
         }
     }// --- Fin del método mostrarMensaje ---
 

@@ -17,7 +17,9 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.ListSelectionModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionListener;
@@ -45,6 +47,12 @@ public class AppearancePanel extends JPanel implements ConfigurationPanel {
     private final JButton btnColor4 = new JButton();
     private final JButton btnThemeDefault = new JButton();
     private final JButton btnCustomizeTheme = new JButton("Personalizar Tema...");
+
+    private final JSpinner spnIconWidth = new JSpinner(new SpinnerNumberModel(18, 8, 64, 2));
+    private final JSpinner spnIconHeight = new JSpinner(new SpinnerNumberModel(18, 8, 64, 2));
+
+    private int initialIconWidth;
+    private int initialIconHeight;
 
     private String initialThemeId;
     private boolean initialCheckered;
@@ -129,6 +137,7 @@ public class AppearancePanel extends JPanel implements ConfigurationPanel {
         JPanel rightPanel = new JPanel();
         rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
         rightPanel.add(bgPanel);
+        rightPanel.add(createIconSizePanel());
         rightPanel.add(new JPanel()); // spacer
         add(rightPanel, BorderLayout.EAST);
     }
@@ -144,6 +153,29 @@ public class AppearancePanel extends JPanel implements ConfigurationPanel {
         });
         return btn;
     }
+
+    private JPanel createIconSizePanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(new TitledBorder("Iconos"));
+
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(2, 4, 2, 4);
+        g.anchor = GridBagConstraints.WEST;
+
+        g.gridx = 0; g.gridy = 0;
+        panel.add(new JLabel("Ancho:"), g);
+        g.gridx = 1;
+        spnIconWidth.setPreferredSize(new java.awt.Dimension(70, 24));
+        panel.add(spnIconWidth, g);
+
+        g.gridx = 2;
+        panel.add(new JLabel("  Alto:"), g);
+        g.gridx = 3;
+        spnIconHeight.setPreferredSize(new java.awt.Dimension(70, 24));
+        panel.add(spnIconHeight, g);
+
+        return panel;
+    } // --- FIN de metodo createIconSizePanel ---
 
     private ListSelectionListener onThemeSelected() {
         return e -> {
@@ -199,6 +231,11 @@ public class AppearancePanel extends JPanel implements ConfigurationPanel {
         pendingColors[1] = null;
         pendingColors[2] = null;
         pendingColors[3] = null;
+
+        initialIconWidth = config.getInt(ConfigKeys.ICONOS_ANCHO, 18);
+        initialIconHeight = config.getInt(ConfigKeys.ICONOS_ALTO, 18);
+        spnIconWidth.setValue(initialIconWidth);
+        spnIconHeight.setValue(initialIconHeight);
     }
 
     public void reloadThemeList() {
@@ -255,6 +292,20 @@ public class AppearancePanel extends JPanel implements ConfigurationPanel {
         changed |= saveColor(config, ConfigKeys.BACKGROUND_CUSTOM_COLOR_2, pendingColors[1], initialColor2, btnColor2);
         changed |= saveColor(config, ConfigKeys.BACKGROUND_CUSTOM_COLOR_3, pendingColors[2], initialColor3, btnColor3);
         changed |= saveColor(config, ConfigKeys.BACKGROUND_CUSTOM_COLOR_4, pendingColors[3], initialColor4, btnColor4);
+
+        int iw = (Integer) spnIconWidth.getValue();
+        if (iw != initialIconWidth) {
+            config.setString(ConfigKeys.ICONOS_ANCHO, String.valueOf(iw));
+            initialIconWidth = iw;
+            changed = true;
+        }
+        int ih = (Integer) spnIconHeight.getValue();
+        if (ih != initialIconHeight) {
+            config.setString(ConfigKeys.ICONOS_ALTO, String.valueOf(ih));
+            initialIconHeight = ih;
+            changed = true;
+        }
+
         return changed;
     }
 
@@ -271,7 +322,9 @@ public class AppearancePanel extends JPanel implements ConfigurationPanel {
     public boolean isModified() {
         ThemeListEntry selected = themeList.getSelectedValue();
         boolean themeChanged = selected != null && selected.themeId() != null && !selected.themeId().equals(initialThemeId);
-        return themeChanged || chkCheckered.isSelected() != initialCheckered;
+        return themeChanged || chkCheckered.isSelected() != initialCheckered
+                || (Integer) spnIconWidth.getValue() != initialIconWidth
+                || (Integer) spnIconHeight.getValue() != initialIconHeight;
     }
 
     @Override

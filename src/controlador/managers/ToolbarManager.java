@@ -162,30 +162,28 @@ public class ToolbarManager implements ThemeChangeListener{
         DisplayMode displayModeActual = model.getCurrentDisplayMode();
         
         for (ToolbarDefinition def : todasLasBarras) {
-            if (def.modosVisibles().contains(modoActual)) {
-                JToolBar toolbar = getToolbar(def.claveBarra()); 
+            if (!def.modosVisibles().contains(modoActual)) continue;
+            if (def.alignment() == ToolbarAlignment.FREE) continue;
+            JToolBar toolbar = getToolbar(def.claveBarra()); 
 
-                if (toolbar != null) {
-                    if (def.alignment() != ToolbarAlignment.FREE) {
-                        String configKeyVisibilidad = ConfigKeys.buildKey("interfaz.herramientas", def.claveBarra(), "visible");
-                        boolean isVisibleInConfig = configuration.getBoolean(configKeyVisibilidad, true);
-                        toolbar.setVisible(isVisibleInConfig);
-                        toolbar.setOpaque(false);
-                        
-                        if ("zoom".equals(def.claveBarra())) {
-                            boolean esModoDatos = (modoActual == WorkMode.DATOS);
-                            boolean debeSerVisible = ((displayModeActual != DisplayMode.GRID) || esModoDatos) && isVisibleInConfig;
-                            toolbar.setVisible(debeSerVisible);
-                            logger.debug("  -> Visibilidad condicional para 'zoom': " + debeSerVisible);
-                        }
-                        
-                        switch (def.alignment()) {
-                            case LEFT: leftPanel.add(toolbar); break;
-                            case CENTER: centerPanel.add(toolbar); break;
-                            case RIGHT: rightPanel.add(toolbar); break;
-                            default: leftPanel.add(toolbar); break;
-                        }
-                    }
+            if (toolbar != null) {
+                String configKeyVisibilidad = ConfigKeys.buildKey("interfaz.herramientas", def.claveBarra(), "visible");
+                boolean isVisibleInConfig = configuration.getBoolean(configKeyVisibilidad, true);
+                toolbar.setVisible(isVisibleInConfig);
+                toolbar.setOpaque(false);
+                
+                if ("zoom".equals(def.claveBarra())) {
+                    boolean esModoDatos = (modoActual == WorkMode.DATOS);
+                    boolean debeSerVisible = ((displayModeActual != DisplayMode.GRID) || esModoDatos) && isVisibleInConfig;
+                    toolbar.setVisible(debeSerVisible);
+                    logger.debug("  -> Visibilidad condicional para 'zoom': " + debeSerVisible);
+                }
+                
+                switch (def.alignment()) {
+                    case LEFT: leftPanel.add(toolbar); break;
+                    case CENTER: centerPanel.add(toolbar); break;
+                    case RIGHT: rightPanel.add(toolbar); break;
+                    default: leftPanel.add(toolbar); break;
                 }
             }
         }

@@ -160,8 +160,9 @@ public class ComponentRegistry {
     
     
     /**
-     * Elimina del registro todos los componentes cuyas claves comiencen con los prefijos
-     * "interfaz.boton." o "toolbar.". Esencial para limpiar antes de una reconstrucción de UI.
+     * Elimina del registro los componentes de toolbar (toolbar.*, interfaz.boton.*, interfaz.dpad.*).
+     * Esencial para limpiar antes de una reconstrucción de UI. NO elimina textfield.*
+     * porque hay textfields persistentes fuera de toolbars (estado, info ruta, modo datos).
      */
     public void unregisterToolbarComponents() {
         logger.debug("  [ComponentRegistry] Eliminando componentes de toolbars del registro...");
@@ -170,7 +171,6 @@ public class ComponentRegistry {
 	        key.startsWith("toolbar.")  
 	        || key.startsWith("interfaz.boton.")
 	        || key.startsWith("interfaz.dpad.") 
-	        || key.startsWith("textfield.") 
         );
     } // --- Fin del método unregisterToolbarComponents ---
     

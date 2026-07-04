@@ -865,7 +865,7 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER, "40001-filter_48x48.png",
                         "Activar/Desactivar Filtro en Vivo", "orden_lista", ButtonType.TOGGLE),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_ACTIVO, "40011-cambio_de_filtro_48x48.png",
-                        "Añadir Filtro Positivo (+)", "orden_lista", ButtonType.TOGGLE));
+                        "Añadir Filtro Positivo (+)", "orden_lista", ButtonType.NORMAL));
 
         // --- BARRA DE BOTONES filtros ---
         // filtrado por extension (bmp, gif, png...), filtros por tags, filtros por
@@ -1088,137 +1088,142 @@ public class UIDefinitionService {
                 // Grupo Izquierda
 
                 // Flechas de navegacion
-                new ToolbarDefinition("navegacion", "Navegación", 10,
-                        EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.CARROUSEL, WorkMode.CLIENTE),
-                        List.copyOf(botonesNavegacion), ToolbarAlignment.LEFT)
+                new ToolbarDefinition("navegacion", "Navegación",
+                		10, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.CARROUSEL, WorkMode.CLIENTE), List.copyOf(botonesNavegacion), 
+                		ToolbarAlignment.LEFT)
 
+                // Boton aislado de Abrir Carpeta
+                ,new ToolbarDefinition("abrir_carpeta", "Abrir Carpeta", 				
+                		1, EnumSet.allOf(WorkMode.class), List.copyOf(botonesAbrirCarpeta), 
+                		ToolbarAlignment.LEFT)
+                
                 // Grupo Centro
 
                 // Botones de edicion de imagen
-                , new ToolbarDefinition("edicion", "Edición", 20, EnumSet.of(WorkMode.VISUALIZADOR),
-                        List.copyOf(botonesEdicion), ToolbarAlignment.CENTER)
+                ,new ToolbarDefinition("edicion", "Edición", 							
+                		20, EnumSet.of(WorkMode.VISUALIZADOR),List.copyOf(botonesEdicion), 
+                		ToolbarAlignment.CENTER)
 
                 // Botones de modos de zoom
-                , new ToolbarDefinition("zoom", "Zoom", 30, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.PROYECTO, WorkMode.CLIENTE),
-                        List.copyOf(botonesZoom), ToolbarAlignment.CENTER)
+                ,new ToolbarDefinition("zoom", "Zoom", 								
+                		30, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.PROYECTO, WorkMode.CLIENTE), List.copyOf(botonesZoom), 
+                		ToolbarAlignment.CENTER)
 
                 // Botones de DisplayMode
-                ,
-                new ToolbarDefinition("vista", "Vista", 40,
-                        EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CLIENTE), List.copyOf(botonesVista),
-                        ToolbarAlignment.CENTER)
+                ,new ToolbarDefinition("vista", "Vista", 								
+                		40,EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CLIENTE), List.copyOf(botonesVista),
+                		ToolbarAlignment.CENTER)
 
                 // Cambio tamaño de miniaturas
-                ,
-                new ToolbarDefinition("barra_zoom_miniaturas", "Zoom de Miniaturas", 50,
-                        EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.PROYECTO, WorkMode.CLIENTE), botones_zoom_miniaturas,
-                        ToolbarAlignment.CENTER)
+                ,new ToolbarDefinition("barra_zoom_miniaturas", "Zoom de Miniaturas", 	
+                		50, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.PROYECTO, WorkMode.CLIENTE), botones_zoom_miniaturas, 
+                		ToolbarAlignment.CENTER)
 
                 // Grupo Derecha
 
                 // Botones de Refresco, Localizar, Borrar
-                ,
-                new ToolbarDefinition("control", "Utilidades", 60, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.CLIENTE),
-                        List.copyOf(botonesUtils), ToolbarAlignment.RIGHT)
+                ,new ToolbarDefinition("control", "Utilidades", 						
+                		60, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.CLIENTE), List.copyOf(botonesUtils), 
+                		ToolbarAlignment.RIGHT)
 
                 // Botones de gestion de Proyecto
-                , new ToolbarDefinition("proyecto", "Acciones de Proyecto", 70, EnumSet.of(WorkMode.PROYECTO),
-                        List.copyOf(botonesProyectoEnProyecto), ToolbarAlignment.RIGHT)
+                ,new ToolbarDefinition("proyecto", "Acciones de Proyecto", 			
+                		70, EnumSet.of(WorkMode.PROYECTO), List.copyOf(botonesProyectoEnProyecto), 
+                		ToolbarAlignment.RIGHT)
 
                 // Botones de Marcar, Zoom y Reset
-                ,
-                new ToolbarDefinition("proyecto_vista", "Proyecto (Vista)", 80,
-                        EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.CARROUSEL),
-                        List.copyOf(botonesProyectoEnVista), ToolbarAlignment.RIGHT)
+                ,new ToolbarDefinition("proyecto_vista", "Proyecto (Vista)",		 	
+                		80, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.CARROUSEL), List.copyOf(botonesProyectoEnVista), 
+                		ToolbarAlignment.RIGHT)
 
                 // Botones de ver subcarpetas, mantener proporciones, pantalla completa
-                , new ToolbarDefinition("toggle", "Toggles", 90, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL),
-                        List.copyOf(botonesToggle), ToolbarAlignment.RIGHT)
+                ,new ToolbarDefinition("toggle", "Toggles", 							
+                		90, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL), List.copyOf(botonesToggle), 
+                		ToolbarAlignment.RIGHT)
 
                 // Boton de sincronizacion Visor / Carrousel
-                ,
-                new ToolbarDefinition("sincronizacion", "Sincronización", 100,
-                        EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL), List.copyOf(botonesSincronizacion),
-                        ToolbarAlignment.RIGHT)
-                // ,new ToolbarDefinition("botones_syncro", "Sincronizacion", 100,
-                // EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL),
-                // List.copyOf(botonesSync), ToolbarAlignment.RIGHT)
-
-
-                // Botones de WorkMode
-                ,
-                new ToolbarDefinition("modo", "Modo", 105, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO,
-                        WorkMode.DATOS, WorkMode.CARROUSEL, WorkMode.CLIENTE), List.copyOf(botonesModo),
-                        ToolbarAlignment.FREE)
-                ,
-                new ToolbarDefinition("modo_bottom", "Modo Bottom", 106, EnumSet.of(WorkMode.VISUALIZADOR,
-                        WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CARROUSEL, WorkMode.CLIENTE),
-                        List.copyOf(botonesModoBottom), ToolbarAlignment.FREE)
-
-                // Boton aislado de Abrir Carpeta
-                ,
-                new ToolbarDefinition("abrir_carpeta", "Abrir Carpeta", 110,
-                		EnumSet.allOf(WorkMode.class), List.copyOf(botonesAbrirCarpeta),
+                ,new ToolbarDefinition("sincronizacion", "Sincronización", 				
+                		10, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL), List.copyOf(botonesSincronizacion),  
                 		ToolbarAlignment.RIGHT)
                 
-                
+                // Botones de WorkMode
+                ,new ToolbarDefinition("modo", "Modo", 									
+                		105, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CARROUSEL, WorkMode.CLIENTE), List.copyOf(botonesModo), 
+                		ToolbarAlignment.FREE)
+                ,new ToolbarDefinition("modo_bottom", "Modo Bottom", 					
+                		106, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CARROUSEL, WorkMode.CLIENTE), List.copyOf(botonesModoBottom), 
+                		ToolbarAlignment.FREE)
+
                 // Selector de carpetas, Menu principal, Botones ocultos
-                ,
-                new ToolbarDefinition(
-                        "especiales", "Apoyo", 120, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS,
-                                WorkMode.CLIENTE, WorkMode.CARROUSEL),
-                        List.copyOf(botonesApoyo), ToolbarAlignment.RIGHT)
+                ,new ToolbarDefinition("especiales", "Apoyo", 							
+                		120, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CLIENTE, WorkMode.CARROUSEL), List.copyOf(botonesApoyo), 
+                		ToolbarAlignment.RIGHT)
 
                 // Toolbars específicas del modo Carrusel
-                ,
-                new ToolbarDefinition("carrousel", "Carrousel", 130, EnumSet.of(WorkMode.CARROUSEL),
-                        List.copyOf(botonesCarrousel), ToolbarAlignment.CENTER),
-                new ToolbarDefinition("velocidad_carrousel", "Velocidad", 140, EnumSet.of(WorkMode.CARROUSEL),
-                        botonesVelocidadCarrousel, ToolbarAlignment.CENTER)
+                ,new ToolbarDefinition("carrousel", "Carrousel", 						
+                		130, EnumSet.of(WorkMode.CARROUSEL), List.copyOf(botonesCarrousel), 
+                		ToolbarAlignment.CENTER)
+                
+                ,new ToolbarDefinition("velocidad_carrousel", "Velocidad", 
+                		140, EnumSet.of(WorkMode.CARROUSEL), botonesVelocidadCarrousel, 
+                		ToolbarAlignment.CENTER)
 
                 // Barra específica para el Modo Datos
-                , new ToolbarDefinition("gestion_datos", "Gestión de Colección", 150, EnumSet.of(WorkMode.DATOS),
-                        List.copyOf(botonesGestionDatos), ToolbarAlignment.CENTER)
-
+                ,new ToolbarDefinition("gestion_datos", "Gestión de Colección", 		
+                		150, EnumSet.of(WorkMode.DATOS), List.copyOf(botonesGestionDatos), 
+                		ToolbarAlignment.CENTER)
+                
                 // Barra específica para el Modo Cliente
-                , new ToolbarDefinition("cliente", "Cliente", 155, EnumSet.of(WorkMode.CLIENTE),
-                        List.copyOf(botonesCliente), ToolbarAlignment.CENTER)
-
+                ,new ToolbarDefinition("cliente", "Cliente", 							
+                		155, EnumSet.of(WorkMode.CLIENTE), List.copyOf(botonesCliente), 
+                		ToolbarAlignment.CENTER)
+                
                 // Barra Visor/Editor del Modo Cliente
-                , new ToolbarDefinition("visor_editor", "Visor/Editor", 156, EnumSet.of(WorkMode.CLIENTE),
-                        List.copyOf(botonesVisorEditor), ToolbarAlignment.CENTER)
+                ,new ToolbarDefinition("visor_editor", "Visor/Editor", 				
+                		156, EnumSet.of(WorkMode.CLIENTE), List.copyOf(botonesVisorEditor), 
+                		ToolbarAlignment.CENTER)
 
                 // Barra aislada para cerrar cliente (evitar cierres accidentales)
-                , new ToolbarDefinition("cliente_cerrar", "Cerrar Cliente", 1 /*158*/, EnumSet.of(WorkMode.CLIENTE),
+                ,new ToolbarDefinition("cliente_cerrar", "Cerrar Cliente", 			
+                		1 /*158*/, EnumSet.of(WorkMode.CLIENTE),
+                		
                         List.of(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR,
                                 "60205-User-Check-Validate.png",
                                 "Cerrar y sincronizar con el cliente", "cliente_cerrar")),
                         ToolbarAlignment.RIGHT)
 
                 // Barra del Editor de Checkboxes (no se muestra en toolbar principal, se coloca dentro del panel editor)
-                , new ToolbarDefinition("editor_checkboxes", "Editor de Checkboxes", 157, EnumSet.noneOf(WorkMode.class),
-                        List.copyOf(botonesCheckboxEditor), ToolbarAlignment.CENTER)
+                ,new ToolbarDefinition("editor_checkboxes", "Editor de Checkboxes", 	
+                		157, EnumSet.noneOf(WorkMode.class), List.copyOf(botonesCheckboxEditor), 
+                		ToolbarAlignment.CENTER)
 
                 // Barras especiales
-                ,
-                new ToolbarDefinition("acciones_exportacion", "Acciones de Exportación", 1500,
-                        EnumSet.of(WorkMode.PROYECTO), componentesExportacion, ToolbarAlignment.FREE),
-                new ToolbarDefinition("acciones_det_exportacion", "Detalles de Exportación", 1550,
-                        EnumSet.of(WorkMode.PROYECTO), componentesDetallesExportacion, ToolbarAlignment.FREE),
-                new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 1600,
-                        EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CLIENTE), List.copyOf(botonesControlesImagenInferior),
-                        ToolbarAlignment.FREE),
-                new ToolbarDefinition("barra_estado_controles", "Controles de Estado", 1650,
-                        EnumSet.allOf(WorkMode.class), componentesBarraEstado, ToolbarAlignment.FREE),
-                new ToolbarDefinition("botonesOrdenLista", "Orden de Lista", 1700, EnumSet.allOf(WorkMode.class),
-                        botonesOrdenLista, ToolbarAlignment.FREE),
-                new ToolbarDefinition("barra_filtros", "Herramientas de Filtro", 1750, EnumSet.allOf(WorkMode.class),
-                        componentesFiltro, ToolbarAlignment.FREE)
+                ,new ToolbarDefinition("acciones_exportacion", "Acciones de Exportación", 		
+                		1500, EnumSet.of(WorkMode.PROYECTO), componentesExportacion, 
+                		ToolbarAlignment.FREE)
+                ,new ToolbarDefinition("acciones_det_exportacion", "Detalles de Exportación", 	
+                		1550, EnumSet.of(WorkMode.PROYECTO), componentesDetallesExportacion, 
+                		ToolbarAlignment.FREE)
+                ,new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 		
+                		1600, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CLIENTE), List.copyOf(botonesControlesImagenInferior), 
+                		ToolbarAlignment.FREE)
+                ,new ToolbarDefinition("barra_estado_controles", "Controles de Estado", 			
+                		1650, EnumSet.allOf(WorkMode.class), componentesBarraEstado, 
+                		ToolbarAlignment.FREE)                
+                ,new ToolbarDefinition("botonesOrdenLista", "Orden de Lista", 					
+                		1700, EnumSet.allOf(WorkMode.class), botonesOrdenLista, 
+                		ToolbarAlignment.FREE)
+                ,new ToolbarDefinition("barra_filtros", "Herramientas de Filtro", 				
+                		1750, EnumSet.allOf(WorkMode.class), componentesFiltro, 
+                		ToolbarAlignment.FREE)
+                
                 // ,new ToolbarDefinition("barra_grid_tamano", "Controles de Tamaño de Grid",
                 // 1850, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO),
                 // botones_grid_tamano, ToolbarAlignment.FREE)
-                , new ToolbarDefinition("barra_grid_proyecto", "Controles de Proyecto de Grid", 1900,
-                        EnumSet.of(WorkMode.PROYECTO), botones_grid_proyecto, ToolbarAlignment.FREE));
+                
+                ,new ToolbarDefinition("barra_grid_proyecto", "Controles de Proyecto de Grid", 
+                		1900, EnumSet.of(WorkMode.PROYECTO), botones_grid_proyecto, 
+                		ToolbarAlignment.FREE));
 
     }// --- FIN DEL METODO generateModularToolbarStructure ---
 

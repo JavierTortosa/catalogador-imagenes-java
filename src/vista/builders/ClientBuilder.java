@@ -3,10 +3,13 @@ package vista.builders;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 
@@ -186,9 +189,10 @@ public class ClientBuilder {
                 int viewRow = table.rowAtPoint(e.getPoint());
                 if (viewRow < 0) return;
                 int modelRow = table.convertRowIndexToModel(viewRow);
-                ProyectoClienteTableModel model = (ProyectoClienteTableModel) table.getModel();
-                String key = model.getImageKey(modelRow);
+                ProyectoClienteTableModel tableModel = (ProyectoClienteTableModel) table.getModel();
+                String key = tableModel.getImageKey(modelRow);
                 if (key != null && clientController.getVisorController() != null) {
+                    ClientBuilder.this.model.setSelectedImageKey(key);
                     clientController.getVisorController()
                             .actualizarImagenPrincipalPorPath(Paths.get(key), key);
                 }
@@ -196,7 +200,7 @@ public class ClientBuilder {
         });
 
         table.addMouseWheelListener(e -> {
-            ProyectoClienteTableModel model = (ProyectoClienteTableModel) table.getModel();
+            ProyectoClienteTableModel wheelModel = (ProyectoClienteTableModel) table.getModel();
             int total = table.getRowCount();
             if (total == 0) return;
             int viewRow = table.getSelectedRow();
@@ -210,8 +214,9 @@ public class ClientBuilder {
                 table.setRowSelectionInterval(newViewRow, newViewRow);
                 table.scrollRectToVisible(table.getCellRect(newViewRow, 0, true));
                 int modelRow = table.convertRowIndexToModel(newViewRow);
-                String key = model.getImageKey(modelRow);
+                String key = wheelModel.getImageKey(modelRow);
                 if (key != null && clientController.getVisorController() != null) {
+                    ClientBuilder.this.model.setSelectedImageKey(key);
                     clientController.getVisorController()
                             .actualizarImagenPrincipalPorPath(Paths.get(key), key);
                 }
@@ -228,6 +233,7 @@ public class ClientBuilder {
             ProyectoClienteTableModel m = (ProyectoClienteTableModel) table.getModel();
             String key = m.getImageKey(modelRow);
             if (key != null && clientController.getVisorController() != null) {
+                model.setSelectedImageKey(key);
                 clientController.getVisorController()
                         .actualizarImagenPrincipalPorPath(Paths.get(key), key);
             }
@@ -307,6 +313,10 @@ public class ClientBuilder {
                         }
                     });
                     popup.add(borrar);
+                    popup.add(new JPopupMenu.Separator());
+                    JMenuItem localizar = new JMenuItem("Localizar archivo");
+                    localizar.addActionListener(ev -> localizarArchivo(key));
+                    popup.add(localizar);
                 }
                 popup.show(e.getComponent(), e.getX(), e.getY());
             }
@@ -406,6 +416,7 @@ public class ClientBuilder {
                     String cbCode = model.isChildRow(modelRow) ? model.getCheckboxCode(modelRow) : null;
                     ClientBuilder.this.model.setSelectedCheckboxCode(cbCode);
                     if (key != null && clientController.getVisorController() != null) {
+                        ClientBuilder.this.model.setSelectedImageKey(key);
                         clientController.getVisorController()
                                 .actualizarImagenPrincipalPorPath(Paths.get(key), key);
                         mostrarCheckboxesEnVisor();
@@ -433,6 +444,7 @@ public class ClientBuilder {
                 if (key != null && clientController.getVisorController() != null) {
                     String cbCode = model.isChildRow(modelRow) ? model.getCheckboxCode(modelRow) : null;
                     ClientBuilder.this.model.setSelectedCheckboxCode(cbCode);
+                    ClientBuilder.this.model.setSelectedImageKey(key);
                     clientController.getVisorController()
                             .actualizarImagenPrincipalPorPath(Paths.get(key), key);
                     mostrarCheckboxesEnVisor();
@@ -452,6 +464,7 @@ public class ClientBuilder {
             if (key != null && clientController.getVisorController() != null) {
                 String cbCode = m.isChildRow(modelRow) ? m.getCheckboxCode(modelRow) : null;
                 ClientBuilder.this.model.setSelectedCheckboxCode(cbCode);
+                ClientBuilder.this.model.setSelectedImageKey(key);
                 clientController.getVisorController()
                         .actualizarImagenPrincipalPorPath(Paths.get(key), key);
                 mostrarCheckboxesEnVisor();
@@ -556,6 +569,10 @@ public class ClientBuilder {
                         }
                     });
                     popup.add(borrar);
+                    popup.add(new JPopupMenu.Separator());
+                    JMenuItem localizar = new JMenuItem("Localizar archivo");
+                    localizar.addActionListener(ev -> localizarArchivo(key));
+                    popup.add(localizar);
                 }
                 popup.show(e.getComponent(), e.getX(), e.getY());
             }
@@ -592,6 +609,24 @@ public class ClientBuilder {
         if (!model.isClienteCheckboxVisible()) {
             model.setClienteCheckboxVisible(true);
         }
-    }
+    } // --- FIN de metodo mostrarCheckboxesEnVisor ---
+
+    private void localizarArchivo(String key) {
+        try {
+            Path filePath = Paths.get(key);
+            if (Files.exists(filePath)) {
+                String osName = System.getProperty("os.name").toLowerCase();
+                if (osName.contains("win")) {
+                    Runtime.getRuntime().exec("explorer.exe /select,\"" + filePath.toAbsolutePath() + "\"");
+                } else if (Desktop.isDesktopSupported()) {
+                    Desktop.getDesktop().open(filePath.getParent().toFile());
+                }
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(null,
+                    "Error al intentar localizar el archivo:\n" + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    } // --- FIN de metodo localizarArchivo ---
 
 } // --- FIN de clase ClientBuilder ---

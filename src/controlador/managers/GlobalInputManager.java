@@ -14,6 +14,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import vista.theme.Tema;
+import vista.theme.ThemeChangeListener;
+
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JList;
@@ -43,7 +46,7 @@ import modelo.VisorModel.WorkMode;
  * y la rueda del ratón universal, liberando a otros controladores de esta
  * responsabilidad.
  */
-public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeListener {
+public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeListener, ThemeChangeListener {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalInputManager.class);
 
@@ -59,6 +62,7 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
     private javax.swing.border.Border focusedBorder;
     private javax.swing.border.Border unfocusedBorder;
     private List<javax.swing.JComponent> focusablePanels;
+    private final List<String> focusablePanelKeys = new ArrayList<>();
     private TitledBorder borderListaArchivosOriginal;
     private TitledBorder borderFiltrosActivosOriginal;
     
@@ -521,9 +525,44 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
         javax.swing.JComponent panel = registry.get(registryKey);
         if (panel != null) {
             focusablePanels.add(panel);
+            focusablePanelKeys.add(registryKey);
         } else {
             logger.warn("[FOCUS_INIT] No se pudo registrar el panel para foco: '{}'", registryKey);
         }
     } // --- FIN de metodo registerFocusablePanel ---
+    
+    /**
+     * Refresca la lista de paneles con foco desde el registro.
+     * Esencial tras un cambio de tema, donde los componentes se han recreado.
+     */
+    public void refreshFocusablePanels() {
+        focusablePanels.clear();
+        for (String key : focusablePanelKeys) {
+            javax.swing.JComponent panel = registry.get(key);
+            if (panel != null) {
+                focusablePanels.add(panel);
+            }
+        }
+        // Re-descubrir el JScrollPane de detalles de exportacion
+        if (registry.get("panel.exportacion.detalles") instanceof javax.swing.JPanel detailPanel) {
+            for (java.awt.Component comp : detailPanel.getComponents()) {
+                if (comp instanceof javax.swing.JPanel) {
+                    for (java.awt.Component innerComp : ((javax.swing.JPanel) comp).getComponents()) {
+                        if (innerComp instanceof javax.swing.JScrollPane
+                                && "scroll.detalles.exportacion".equals(innerComp.getName())) {
+                            focusablePanels.add((javax.swing.JScrollPane) innerComp);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        logger.debug("  [GlobalInputManager] focusablePanels refrescados ({} paneles).", focusablePanels.size());
+    } // --- FIN de metodo refreshFocusablePanels ---
+    
+    @Override
+    public void onThemeChanged(Tema nuevoTema) {
+        refreshFocusablePanels();
+    } // --- FIN de metodo onThemeChanged ---
 
 } // --- FIN de clase GlobalInputManager ---

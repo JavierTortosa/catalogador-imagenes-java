@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -69,6 +70,7 @@ public class ListCoordinator extends AbstractListCoordinator {
      * @param listener El listener a añadir
      */
     public void addMasterSelectionChangeListener(MasterSelectionChangeListener listener) {
+        if (listener == null) return;
         if (!selectionListeners.contains(listener)) {
             selectionListeners.add(listener);
         }
@@ -90,6 +92,7 @@ public class ListCoordinator extends AbstractListCoordinator {
      */
     private void fireMasterSelectionChanged(int newIndex) {
         for (MasterSelectionChangeListener listener : selectionListeners) {
+            if (listener == null) continue;
             listener.onMasterSelectionChanged(newIndex, this);
         }
     } // --- Fin del metodo/clase fireMasterSelectionChanged ---
@@ -493,7 +496,7 @@ public class ListCoordinator extends AbstractListCoordinator {
     // === SETTERS Y GETTERS ===
     // =================================================================================
     
-    public void setModel(VisorModel model) { this.model = model; }
+    public void setModel(VisorModel model) { this.model = Objects.requireNonNull(model); }
     public void setController(VisorController controller) {
         this.controller = controller;
         if (this.controller != null && this.controller.getConfigurationManager() != null) {

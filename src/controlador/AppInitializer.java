@@ -393,6 +393,7 @@ public class AppInitializer {
         this.themeManager.addThemeChangeListener(this.projectBuilder);
         this.themeManager.addThemeChangeListener(this.backgroundControlManager);
         this.themeManager.addThemeChangeListener(this.infobarImageManager);
+        this.themeManager.addThemeChangeListener(this.globalInputManager);
 
         // Inyección de dependencias en Managers y Controladores
         viewManager.setModel(this.model);
@@ -519,6 +520,8 @@ public class AppInitializer {
 
         themeManager.setConfigApplicationManager(this.configAppManager);
         configAppManager.setBackgroundControlManager(this.backgroundControlManager);
+        configAppManager.setActionFactory(this.actionFactory);
+        configAppManager.setToolbarManager(this.toolbarManager);
         toolbarManager.setBackgroundControlManager(this.backgroundControlManager);
         toolbarManager.setViewManager(this.viewManager);
         toolbarManager.setIconUtils(this.iconUtils);

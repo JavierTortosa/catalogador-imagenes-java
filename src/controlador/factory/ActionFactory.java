@@ -184,8 +184,8 @@ public class ActionFactory {
     private final Map<String, IconInfo> comandoToIconKeyMap;
 
     // 1.4. Dimensiones de iconos (leídas de config)
-    private final int iconoAncho;
-    private final int iconoAlto;
+    private int iconoAncho;
+    private int iconoAlto;
 
     // 1.5. Mapa para almacenar las Actions creadas.
     private final Map<String, Action> actionMap;
@@ -2214,6 +2214,12 @@ public class ActionFactory {
         logger.debug("[ActionFactory] Actualización de iconos completada. Se actualizaron " + iconosActualizados
                 + " acciones con un nuevo icono.");
     } // --- Fin del método actualizarIconosDeAcciones ---
+
+    public void actualizarTamanoIconos() {
+        this.iconoAncho = configuration.getInt(ConfigKeys.ICONOS_ANCHO, 24);
+        this.iconoAlto = configuration.getInt(ConfigKeys.ICONOS_ALTO, 24);
+        actualizarIconosDeAcciones();
+    } // --- Fin del método actualizarTamanoIconos ---
 
     public void setView(VisorView view) {
         this.view = view;

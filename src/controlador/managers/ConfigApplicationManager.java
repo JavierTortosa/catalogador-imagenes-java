@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.commands.AppActionCommands;
+import controlador.factory.ActionFactory;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import modelo.VisorModel.DisplayMode;
@@ -38,6 +39,8 @@ public class ConfigApplicationManager {
     private final ThemeManager themeManager;
     private final ComponentRegistry registry;
     private Map<String, Action> actionMap;
+    private ActionFactory actionFactory;
+    private ToolbarManager toolbarManager;
     private BackgroundControlManager backgroundControlManager;
     
 
@@ -297,6 +300,12 @@ public class ConfigApplicationManager {
             this.backgroundControlManager.sincronizarSeleccionConEstadoActual(); 
         }
         
+        if (this.actionFactory != null) {
+            this.actionFactory.actualizarTamanoIconos();
+        }
+        
+        sincronizarUIFinal();
+        
         logger.debug("    -> Configuración básica de Vista aplicada.");
         
     } // --- Fin del método aplicarConfiguracionAlaVista ---
@@ -451,6 +460,10 @@ public class ConfigApplicationManager {
             logger.debug("    -> Estado .isSelected() del botón cambiado a " + isSelected);
         }
         
+        // 3. Mantener la Action sincronizada con el botón para que SELECTED_KEY
+        //    refleje siempre el estado real. Esencial para sincronizarUIFinal().
+        action.putValue(Action.SELECTED_KEY, isSelected);
+        
         // Ya no es necesario llamar a button.repaint() aquí, porque setSelected()
         // ya notifica al sistema de repintado.
         
@@ -470,6 +483,14 @@ public class ConfigApplicationManager {
     public void setActionMap(Map<String, Action> actionMap) {
         this.actionMap = Objects.requireNonNull(actionMap);
     } // --- Fin del método setActionMap ---
+
+    public void setActionFactory(ActionFactory actionFactory) {
+        this.actionFactory = actionFactory;
+    } // --- Fin del método setActionFactory ---
+
+    public void setToolbarManager(ToolbarManager toolbarManager) {
+        this.toolbarManager = toolbarManager;
+    } // --- Fin del método setToolbarManager ---
     
     
     public void setBackgroundControlManager(BackgroundControlManager backgroundControlManager) {

@@ -52,6 +52,7 @@ public class ProjectListCoordinator extends AbstractListCoordinator  {
     private final List<MasterSelectionChangeListener> selectionListeners = new ArrayList<>();
 
     public void addMasterSelectionChangeListener(MasterSelectionChangeListener listener) {
+        if (listener == null) return;
         if (!selectionListeners.contains(listener)) {
             selectionListeners.add(listener);
         }
@@ -65,6 +66,7 @@ public class ProjectListCoordinator extends AbstractListCoordinator  {
         // En modo proyecto, el índice es relativo a la lista activa.
         // Por ahora, el DisplayModeManager es suficientemente inteligente para manejarlo.
         for (MasterSelectionChangeListener listener : selectionListeners) {
+            if (listener == null) continue;
             listener.onMasterSelectionChanged(newIndex, this);
         }
     } // end of fireMasterSelectionChanged
