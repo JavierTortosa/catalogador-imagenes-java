@@ -107,6 +107,7 @@ public class DatabaseMaintenanceDialog extends JDialog {
 
             @Override
             protected void done() {
+                if (isCancelled()) return;
                 try {
                     List<Long> orphans = get();
                     if (orphans.isEmpty()) {

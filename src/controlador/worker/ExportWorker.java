@@ -155,14 +155,18 @@ public class ExportWorker extends SwingWorker<String, String> {
             exportPanel.resetMoveOperation();
         }
         
-        try {
-            String resultado = get(); // Obtenemos el mensaje de éxito o cancelación.
-
-            // Si la operación fue cancelada, mostramos un mensaje simple y terminamos.
-            if (isCancelled()) {
-                JOptionPane.showMessageDialog(dialogo.getParent(), resultado, "Exportación Cancelada", JOptionPane.WARNING_MESSAGE);
-                return;
+        if (isCancelled()) {
+            try {
+                get();
+            } catch (Exception e) {
+                // get() lanza CancellationException si se canceló; la ignoramos
             }
+            JOptionPane.showMessageDialog(dialogo.getParent(), "Exportación cancelada por el usuario.", "Exportación Cancelada", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            String resultado = get(); // Obtenemos el mensaje de éxito o error.
 
             // 1. Definimos los botones que queremos mostrar.
             Object[] options = {"Aceptar", "Abrir Carpeta de Destino"};

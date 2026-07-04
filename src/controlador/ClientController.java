@@ -633,7 +633,6 @@ public class ClientController implements IModoController {
         var map = actionFactory.getActionMap();
         ProjectModel project = projectManager != null ? projectManager.getCurrentProject() : null;
         boolean closed = project != null && project.isClientModeClosed();
-        boolean shared = project != null && project.isSharedWithClient();
 
         // Botones que se deshabilitan cuando el modo cliente est� cerrado
         String[] disableWhenClosed = {
@@ -981,7 +980,7 @@ public class ClientController implements IModoController {
         }
 
         javax.swing.JDialog progressDialog = new javax.swing.JDialog(
-                registry != null ? (JFrame) registry.get("frame.principal") : null,
+                registry != null ? (JFrame) registry.get("frame.main") : null,
                 "Exportando catálogo...", true);
         progressDialog.setDefaultCloseOperation(javax.swing.JDialog.DO_NOTHING_ON_CLOSE);
         javax.swing.JProgressBar progressBar = new javax.swing.JProgressBar(0, 100);
@@ -991,7 +990,7 @@ public class ClientController implements IModoController {
         progressDialog.add(progressBar);
         progressDialog.setSize(350, 80);
         progressDialog.setLocationRelativeTo(registry != null
-                ? (java.awt.Window) registry.get("frame.principal") : null);
+                ? (java.awt.Window) registry.get("frame.main") : null);
 
         javax.swing.SwingWorker<Void, Integer> worker = new javax.swing.SwingWorker<>() {
             @Override
@@ -1022,14 +1021,14 @@ public class ClientController implements IModoController {
                     get();
                     logger.info("[ClientController] Exportación completada.");
                     JOptionPane.showMessageDialog(
-                            registry != null ? (java.awt.Component) registry.get("frame.principal") : null,
+                            registry != null ? (java.awt.Component) registry.get("frame.main") : null,
                             "Catálogo exportado correctamente a:\n" + outputDir.toAbsolutePath(),
                             "Exportación Completada", JOptionPane.INFORMATION_MESSAGE);
                 } catch (java.util.concurrent.ExecutionException e) {
                     logger.error("[ClientController] Error durante la exportación: {}",
                             e.getCause() != null ? e.getCause().getMessage() : e.getMessage(), e);
                     JOptionPane.showMessageDialog(
-                            registry != null ? (java.awt.Component) registry.get("frame.principal") : null,
+                            registry != null ? (java.awt.Component) registry.get("frame.main") : null,
                             "Error al exportar: " + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()),
                             "Error de Exportación", JOptionPane.ERROR_MESSAGE);
                 } catch (InterruptedException e) {
@@ -1060,7 +1059,7 @@ public class ClientController implements IModoController {
         // Diálogo de iteración
         int iteracion = project.getSharedIteration();
         String input = JOptionPane.showInputDialog(
-                registry != null ? (java.awt.Component) registry.get("frame.principal") : null,
+                registry != null ? (java.awt.Component) registry.get("frame.main") : null,
                 "N\u00famero de iteraci\u00f3n:", String.valueOf(iteracion));
         if (input == null) return;
         try {
@@ -1081,7 +1080,7 @@ public class ClientController implements IModoController {
         chooser.setSelectedFile(new java.io.File(defaultName));
 
         if (chooser.showSaveDialog(registry != null
-                ? (java.awt.Window) registry.get("frame.principal") : null)
+                ? (java.awt.Window) registry.get("frame.main") : null)
                 != JFileChooser.APPROVE_OPTION) return;
 
         Path outputFile = chooser.getSelectedFile().toPath();
@@ -1093,7 +1092,7 @@ public class ClientController implements IModoController {
         Path finalOutput = outputFile;
         if (java.nio.file.Files.exists(finalOutput)) {
             int overwrite = JOptionPane.showConfirmDialog(
-                    registry != null ? (java.awt.Component) registry.get("frame.principal") : null,
+                    registry != null ? (java.awt.Component) registry.get("frame.main") : null,
                     "El archivo ya existe.\n\u00bfDeseas sobrescribirlo?",
                     "Confirmar sobrescritura", JOptionPane.YES_NO_OPTION);
             if (overwrite != JOptionPane.YES_OPTION) return;
@@ -1101,7 +1100,7 @@ public class ClientController implements IModoController {
 
         final int iteracionFinal = iteracion;
         var progressDialog = new javax.swing.JDialog(
-                registry != null ? (java.awt.Window) registry.get("frame.principal") : null,
+                registry != null ? (java.awt.Window) registry.get("frame.main") : null,
                 "Exportando catálogo HTML...", java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         var progressBar = new javax.swing.JProgressBar(0, 100);
         progressBar.setStringPainted(true);
@@ -1110,7 +1109,7 @@ public class ClientController implements IModoController {
         progressDialog.add(progressBar);
         progressDialog.setSize(350, 70);
         progressDialog.setLocationRelativeTo(
-                registry != null ? (java.awt.Window) registry.get("frame.principal") : null);
+                registry != null ? (java.awt.Window) registry.get("frame.main") : null);
         progressDialog.setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
 
         javax.swing.SwingWorker<Void, Void> worker = new javax.swing.SwingWorker<>() {
@@ -1131,14 +1130,14 @@ public class ClientController implements IModoController {
                     get();
                     logger.info("[ClientController] HTML cliente exportado: {}", finalOutput);
                     JOptionPane.showMessageDialog(
-                            registry != null ? (java.awt.Component) registry.get("frame.principal") : null,
+                            registry != null ? (java.awt.Component) registry.get("frame.main") : null,
                             "Catálogo HTML exportado correctamente a:\n" + finalOutput.toAbsolutePath(),
                             "Exportación Completada", JOptionPane.INFORMATION_MESSAGE);
                 } catch (Exception e) {
                     logger.error("[ClientController] Error exportando HTML: {}",
                             e.getCause() != null ? e.getCause().getMessage() : e.getMessage(), e);
                     JOptionPane.showMessageDialog(
-                            registry != null ? (java.awt.Component) registry.get("frame.principal") : null,
+                            registry != null ? (java.awt.Component) registry.get("frame.main") : null,
                             "Error al exportar: " + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage()),
                             "Error", JOptionPane.ERROR_MESSAGE);
                 }

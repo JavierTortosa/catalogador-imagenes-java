@@ -6,7 +6,6 @@ import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 
 import controlador.GeneralController;
-import controlador.managers.filter.FilterCriterion.FilterSource;
 import controlador.managers.filter.FilterCriterion.FilterType;
 
 /**
@@ -27,12 +26,6 @@ public class AddFilterAction extends AbstractAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        // En el futuro, leeremos la FilterSource (nombre/carpeta) de un JComboBox.
-        // Por ahora, asumimos que todos los filtros son sobre el nombre del archivo.
-        FilterSource filterSource = FilterSource.FILENAME;
-        
-//        generalController.solicitarAnadirFiltro(filterSource, filterType);
-        
         generalController.solicitarAnadirFiltro();
         
     } // --- Fin del método actionPerformed ---

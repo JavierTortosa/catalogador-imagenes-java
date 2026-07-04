@@ -372,7 +372,6 @@ public class GeneralController
      * 
      * @param modoDestino El modo al que se desea cambiar (VISUALIZADOR o PROYECTO).
      */
-    @SuppressWarnings("deprecation")
     public void cambiarModoDeTrabajo(VisorModel.WorkMode modoDestino) {
         WorkMode modoActual = this.model.getCurrentWorkMode();
         if (modoActual == modoDestino) {
@@ -410,14 +409,6 @@ public class GeneralController
             ProjectModel proyecto = visorController.getProjectManager().getCurrentProject();
             boolean hayDatosProyecto = !proyecto.getSelectedImages().isEmpty()
                     || !proyecto.getDiscardedImages().isEmpty();
-            boolean hayDatosCliente;
-            if (proyecto.getSchemaVersion() >= 2) {
-                hayDatosCliente = proyecto.getMasterImages().values().stream()
-                        .anyMatch(pi -> pi.getEstadoCliente() != SelectionState.UNDEFINED);
-            } else {
-                hayDatosCliente = proyecto.hasClientSelection()
-                        && !proyecto.getClientSelection().getImages().isEmpty();
-            }
             boolean isShared = proyecto.isSharedWithClient();
 
             // --- Bloquear si proyecto compartido pero con imágenes sin código ---

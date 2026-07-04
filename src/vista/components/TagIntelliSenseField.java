@@ -419,7 +419,6 @@ public class TagIntelliSenseField extends JTextField {
         }
         String missingStr = missingChain.toString();
 
-        Tag parentTag = !existingParentPath.isEmpty() ? engine.resolveTagByPath(existingParentPath) : null;
         String message = String.format(
                 "Vas a asignar el tag \"%s\" y no existe en la ruta \"%s\". \u00bfLo creamos?",
                 missingStr, existingParentPath.isEmpty() ? "ra\u00edz" : existingParentPath);
@@ -523,8 +522,6 @@ public class TagIntelliSenseField extends JTextField {
         }
         String missingStr = missingChain.toString();
 
-        Tag parentTag = !existingParentPath.isEmpty() ? engine.resolveTagByPath(existingParentPath) : null;
-        String parentDisplay = (parentTag != null) ? parentTag.getNombre() : "raiz";
         String message = String.format(
                 "Vas a asignar el tag \"%s\" y no existe en la ruta \"%s\". \u00bfLo creamos?",
                 missingStr, existingParentPath.isEmpty() ? "ra\u00edz" : existingParentPath);

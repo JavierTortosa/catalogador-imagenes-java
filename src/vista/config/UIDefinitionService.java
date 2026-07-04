@@ -929,15 +929,6 @@ public class UIDefinitionService {
                         "50004-reducir_miniatura_48x48.png", "Reducir Miniaturas", "barra_zoom_miniaturas",
                         ButtonType.NORMAL));
 
-        // --- BARRA DE BOTONES Grid Control general
-        List<ToolbarComponentDefinition> botones_grid_tamano = List.of(
-                new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SIZE_UP_MINIATURA,
-                        "50003-agrandar_miniatura_48x48.png", "Agrandar Miniatura", "barra_grid_tamano",
-                        ButtonType.NORMAL),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SIZE_DOWN_MINIATURA,
-                        "50004-reducir_miniatura_48x48.png", "Reducir Miniatura", "barra_grid_tamano",
-                        ButtonType.NORMAL));
-
         // --- BARRA DE BOTONES Grid Control de proyecto---
         List<ToolbarComponentDefinition> botones_grid_proyecto = List.of(
                 new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_ASSIGN_PANNEL, "21005-iniciar_exportación.png",

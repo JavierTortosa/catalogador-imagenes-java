@@ -40,7 +40,6 @@ public class ConfigApplicationManager {
     private final ComponentRegistry registry;
     private Map<String, Action> actionMap;
     private ActionFactory actionFactory;
-    private ToolbarManager toolbarManager;
     private BackgroundControlManager backgroundControlManager;
     
 
@@ -488,10 +487,6 @@ public class ConfigApplicationManager {
         this.actionFactory = actionFactory;
     } // --- Fin del método setActionFactory ---
 
-    public void setToolbarManager(ToolbarManager toolbarManager) {
-        this.toolbarManager = toolbarManager;
-    } // --- Fin del método setToolbarManager ---
-    
     
     public void setBackgroundControlManager(BackgroundControlManager backgroundControlManager) {
         this.backgroundControlManager = Objects.requireNonNull(backgroundControlManager);

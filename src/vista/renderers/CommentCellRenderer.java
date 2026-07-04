@@ -43,31 +43,6 @@ public class CommentCellRenderer extends DefaultTableCellRenderer {
         int modelRow = table.convertRowIndexToModel(row);
         boolean isParent = ctm.isParentRow(modelRow);
 
-        CommentThread ct = null;
-        if (isParent) {
-            ProjectImage pi = ctm.getProjectImage(modelRow);
-            // Obtenemos directamente la referencia al CommentThread
-            if (pi != null) {
-                // Asumiendo que puedes obtener el CommentThread o sus mensajes
-                // Si getCommentThread() devuelve List<Mensaje>, necesitamos acceder al objeto CommentThread.
-                // Como en ClientBuilder usas pi.getCommentThreadAccess(), usaremos eso si es posible,
-                // o añadiremos un método alternativo. Si pi.getCommentThread() devuelve List,
-                // asegúrate de tener una forma de acceder al CommentThread original.
-            }
-        }
-
-        // Para simplificar el acceso en base a tu ClientBuilder,
-        // tu ClienteTableModel probablemente ya tiene acceso al CommentThread.
-        // Vamos a resolver el acceso al CommentThread de manera segura:
-        List<Mensaje> threadList = null;
-        if (isParent) {
-            ProjectImage pi = ctm.getProjectImage(modelRow);
-            if (pi != null) threadList = pi.getCommentThread();
-        } else {
-            ImageCheckboxOverlay cb = ctm.getCheckbox(modelRow);
-            if (cb != null) threadList = cb.getCommentThread();
-        }
-
         label.setOpaque(true);
         if (!isSelected) {
             label.setBackground(Color.BLACK);

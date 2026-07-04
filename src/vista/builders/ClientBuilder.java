@@ -405,7 +405,7 @@ public class ClientBuilder {
                     }
                     Window owner = javax.swing.SwingUtilities.getWindowAncestor(table);
                     if (owner == null) {
-                        owner = (Window) registry.get("frame.principal");
+                        owner = (Window) registry.get("frame.main");
                     }
                     MsgPopupDialog dlg = new MsgPopupDialog(owner, title, ct,
                             projectManager,

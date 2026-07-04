@@ -1964,8 +1964,9 @@ public class ProjectController implements IModoController {
                 @Override
                 protected void done() {
                     saveDialog.closeDialog();
+                    if (isCancelled()) return;
                     try {
-                        get(); // Esto lanzará una excepción si algo falló en doInBackground
+                        get();
                         JOptionPane.showMessageDialog(view, "PDF Creado con éxito.", "Finalizado", JOptionPane.INFORMATION_MESSAGE);
                     } catch (java.util.concurrent.ExecutionException e) {
                         logger.error("Error al generar el PDF", e.getCause());
@@ -1991,12 +1992,7 @@ public class ProjectController implements IModoController {
      * @param seleccionados Lista de items seleccionados
      */
     public void ejecutarAnalisisTecnicoDeSeleccion(List<ExportItem> seleccionados) {
-        for (ExportItem item : seleccionados) {
-            if (item.getRutasArchivosAsociados() != null && !item.getRutasArchivosAsociados().isEmpty()) {
-                for (Path p : item.getRutasArchivosAsociados()) {
-                }
-            }
-        }
+        // Método stub para análisis técnico futuro
     } // --- Fin del metodo: ejecutarAnalisisTecnicoDeSeleccion ---
     
     

@@ -32,8 +32,6 @@ public class ExportDetailPanel extends JPanel {
     private JList<Path> associatedFilesList;
     private DefaultListModel<Path> associatedFilesModel;
 
-    private ExportItem currentItem;
-
     private Action addAction;
     private Action removeAction;
     private Action locateAction;

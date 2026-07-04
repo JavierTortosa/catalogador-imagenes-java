@@ -216,8 +216,7 @@ public class InfobarImageManager implements ThemeChangeListener{
             int selRow = t.getSelectedRow();
             if (total > 0 && selRow >= 0) return (selRow + 1) + "/" + total;
         }
-        // Fallback: buscar la primera tabla con una fila seleccionada que coincida con la clave actual
-        String selectedKey = model.getSelectedImageKey();
+        // Fallback: buscar la primera tabla con una fila seleccionada
         String[] tableKeys = {"table.cliente.proyecto.seleccion", "table.cliente.proyecto.descartes",
                               "table.cliente.cliente.seleccion", "table.cliente.cliente.descartes"};
         for (String key : tableKeys) {

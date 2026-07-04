@@ -554,7 +554,7 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
     private void mostrarDialogoMensajes(ImageCheckboxOverlay ov) {
         Window owner = javax.swing.SwingUtilities.getWindowAncestor(imagePanel);
         if (owner == null && registry != null) {
-            owner = (Window) registry.get("frame.principal");
+            owner = (Window) registry.get("frame.main");
         }
         if (owner == null) return;
         String title = "Mensajes del checkbox " + ov.getCheckboxCode();

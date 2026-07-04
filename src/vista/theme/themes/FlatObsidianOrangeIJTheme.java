@@ -36,8 +36,6 @@ public class FlatObsidianOrangeIJTheme extends FlatMacDarkLaf {
         Color background = new Color(0x1A1B26);
         Color secondaryBackground = new Color(0x24283B);
         Color thirdBackground = new Color(0x2A2F41);
-        Color foreground = new Color(0xC0CAF5);
-        Color disabledForeground = new Color(0x565F89);
         Color borderColor = new Color(0x414868);
         Color separatorColor = new Color(0x414868);
 

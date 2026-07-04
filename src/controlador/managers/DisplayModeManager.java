@@ -134,6 +134,7 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
                             }
                             @Override
                             protected void done() {
+                                if (isCancelled()) return;
                                 try {
                                     model.setCurrentImage(get());
                                     vista.panels.ImageDisplayPanel singlePanel = registry.get("panel.datamode.display");
@@ -179,6 +180,7 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
                             }
                             @Override
                             protected void done() {
+                                if (isCancelled()) return;
                                 try {
                                     model.setCurrentImage(get());
                                     actualizarPanelPolaroidActivo();

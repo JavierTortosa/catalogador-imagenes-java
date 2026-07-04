@@ -22,7 +22,6 @@ import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import servicios.ValidationService;
 import servicios.cliente.ClientSyncService;
 import controlador.commands.AppActionCommands;
 import controlador.factory.ActionFactory;
@@ -102,7 +101,6 @@ public class AppInitializer {
 
     private ProjectController projectController;
     private ClientController clientController;
-    private ValidationService validationService;
     private ClientSyncService clientSyncService;
     private DataController dataController;
     private GeneralController generalController;
@@ -235,7 +233,6 @@ public class AppInitializer {
         this.globalInputManager = new GlobalInputManager();
         this.projectController = new ProjectController(); // Crear la ÚNICA instancia aquí
         this.clientController = new ClientController();
-        this.validationService = new ValidationService();
         this.clientSyncService = new ClientSyncService();
         
         this.clientController.setGeneralController(this.generalController);
@@ -521,7 +518,6 @@ public class AppInitializer {
         themeManager.setConfigApplicationManager(this.configAppManager);
         configAppManager.setBackgroundControlManager(this.backgroundControlManager);
         configAppManager.setActionFactory(this.actionFactory);
-        configAppManager.setToolbarManager(this.toolbarManager);
         toolbarManager.setBackgroundControlManager(this.backgroundControlManager);
         toolbarManager.setViewManager(this.viewManager);
         toolbarManager.setIconUtils(this.iconUtils);

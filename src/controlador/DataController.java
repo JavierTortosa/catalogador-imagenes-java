@@ -718,6 +718,7 @@ public class DataController {
             }
             @Override
             protected void done() {
+                if (isCancelled()) return;
                 try {
                     model.setCurrentImage(get());
 
@@ -2079,8 +2080,6 @@ public class DataController {
 
         } else if (choice == 1) {
             int impacto = dataManager.getImageCountForTagRecursive(tag);
-            java.awt.Frame mainFrame = null;
-            if (parentWindow instanceof java.awt.Frame) mainFrame = (java.awt.Frame) parentWindow;
 
             javax.swing.JPanel movePanel = new javax.swing.JPanel(new java.awt.BorderLayout(5, 8));
             String impactoTxt = impacto > 0

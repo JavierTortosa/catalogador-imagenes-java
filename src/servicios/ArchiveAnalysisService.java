@@ -37,18 +37,20 @@ public class ArchiveAnalysisService {
 
         String exePath = get7zExePath();
         ProcessBuilder pb = new ProcessBuilder(exePath, "l", "-slt", archivePath.toString());
+        Process p = null;
         try {
-            Process p = pb.start();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("Path = ")) {
-                    String internalPath = line.substring(7).toLowerCase();
-                    if (archivePath.toString().toLowerCase().endsWith(internalPath)) continue;
-                    internalPaths.add(internalPath);
-                }
-                if (line.startsWith("Size = ")) {
-                    try { totalBytes += Long.parseLong(line.substring(7).trim()); } catch (Exception e) {}
+            p = pb.start();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith("Path = ")) {
+                        String internalPath = line.substring(7).toLowerCase();
+                        if (archivePath.toString().toLowerCase().endsWith(internalPath)) continue;
+                        internalPaths.add(internalPath);
+                    }
+                    if (line.startsWith("Size = ")) {
+                        try { totalBytes += Long.parseLong(line.substring(7).trim()); } catch (Exception e) {}
+                    }
                 }
             }
             if (!p.waitFor(60, java.util.concurrent.TimeUnit.SECONDS)) {
@@ -57,15 +59,15 @@ public class ArchiveAnalysisService {
             }
         } catch (InterruptedException e) {
             logger.warn("Interrupción leyendo metadata de {}. Matando proceso.", archivePath);
-            // No podemos llamar a p.destroy() aquí porque p podría ser nulo si pb.start() falló
-            // pero si llegamos aquí, p ya ha sido creado.
-            // El problema es que p no está definido fuera del try.
-            // Vamos a refactorizar un poco para asegurar la destrucción.
             Thread.currentThread().interrupt();
             return;
         } catch (Exception e) {
             logger.error("Error ejecutando 7z para: " + archivePath, e);
             return;
+        } finally {
+            if (p != null && p.isAlive()) {
+                p.destroyForcibly();
+            }
         }
 
         meta.totalSizeMb = totalBytes / (1024.0 * 1024.0);
