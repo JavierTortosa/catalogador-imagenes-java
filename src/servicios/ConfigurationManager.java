@@ -527,7 +527,7 @@ public class ConfigurationManager
 	    defaults.put(ConfigKeys.MINIATURAS_TAMANO_SEL_ALTO, "80");
 	    defaults.put(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, "70");
 	    defaults.put(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, "70");
-	    defaults.put(ConfigKeys.MINIATURAS_CACHE_MAX_SIZE, "200");
+	    defaults.put(ConfigKeys.MINIATURAS_CACHE_MAX_SIZE, "5000");
 	    
 	    // --- 3. ESTADOS DE MENÚS (CHECKBOXES Y RADIOS) ---
 	    defaults.put(ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, "true");

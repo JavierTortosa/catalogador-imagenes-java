@@ -106,6 +106,11 @@ public class GridCellRenderer implements ListCellRenderer<String> {
         return this.cellPanel.getPreferredSize();
     } // ---FIN de metodo ---
 
+    public void setCellSize(int nuevoAncho, int nuevoAlto) {
+        int separacion = 10;
+        this.cellPanel.setPreferredSize(new java.awt.Dimension(nuevoAncho + separacion, nuevoAlto + separacion));
+    } // ---FIN de metodo setCellSize ---
+
     @Override
     public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus) {
         

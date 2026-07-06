@@ -1724,6 +1724,179 @@ public class DataController {
         }
     } // ---FIN de metodo [setupTagCRUDButtons]---
 
+
+
+    // ── Métodos para el popup del árbol de tags ──────────────────────────
+
+    /**
+     * Crea un tag hijo del tag actualmente seleccionado en el árbol.
+     * Si no hay selección, abre el mismo diálogo que el botón "Nuevo" toolbar.
+     */
+    public void treePopupCrearTag() {
+        JTree allTagsTree = registry.get("tree.datamode.alltags");
+        Tag selectedTag = getSelectedTagFromTree();
+        java.awt.Component parentComp = (allTagsTree != null) ? allTagsTree : null;
+
+        String prefix = "";
+        if (selectedTag != null) {
+            String fullPath = dataManager.getTagDAO().getTagFullPath(selectedTag.getId());
+            prefix = fullPath.replace(" > ", ".");
+        }
+
+        TagIntelliSenseField dialogField = new TagIntelliSenseField();
+        dialogField.setColumns(25);
+        dialogField.refreshTags(dataManager.getAllTags());
+
+        String prompt = prefix.isEmpty()
+            ? "<html>Nombre del tag (usa <b>.</b> para explorar la jerarquía):</html>"
+            : "<html>Nombre del sub-tag bajo '<b>" + prefix + "</b>':</html>";
+
+        JPanel panel = new JPanel(new java.awt.BorderLayout(5, 5));
+        panel.add(new javax.swing.JLabel(prompt), java.awt.BorderLayout.NORTH);
+        panel.add(dialogField, java.awt.BorderLayout.CENTER);
+
+        int opt = JOptionPane.showConfirmDialog(
+            parentComp != null ? javax.swing.SwingUtilities.getWindowAncestor(parentComp) : null,
+            panel, "Crear Tag", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (opt != JOptionPane.OK_OPTION) return;
+
+        String input = dialogField.getText().trim();
+        if (input.isEmpty()) return;
+
+        String fullInput = prefix.isEmpty() ? input : prefix + "." + input;
+        List<Tag> resolved = dataManager.createByDotNotation(fullInput);
+        long createdTagId = -1;
+        if (!resolved.isEmpty()) {
+            Tag leaf = resolved.get(resolved.size() - 1);
+            createdTagId = leaf.getId();
+            String msg = resolved.size() > 1
+                ? "Jerarquía '" + fullInput + "' creada (" + resolved.size() + " nivel(es))."
+                : "Tag '" + leaf.getNombre() + "' creado/encontrado.";
+            statusBarManager.mostrarMensajeTemporal(msg, 3000);
+        } else {
+            statusBarManager.mostrarMensajeTemporal("Error al crear tag.", 3000);
+        }
+
+        afterTagStructureChanged(createdTagId >= 0 ? createdTagId : null);
+    }
+
+    /**
+     * Renombra el tag actualmente seleccionado en el árbol.
+     * Muestra el mismo diálogo de edición que el botón "Editar" toolbar.
+     */
+    public void treePopupRenombrarTag() {
+        Tag tag = getSelectedTagFromTree();
+        if (tag == null) {
+            JOptionPane.showMessageDialog(null,
+                "Selecciona un tag en el árbol.",
+                "Renombrar Tag", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (tag.isReadOnly()) {
+            JOptionPane.showMessageDialog(null,
+                "El tag '" + tag.getNombre() + "' es del sistema y no se puede modificar.",
+                "Renombrar Tag", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        JTree allTagsTree = registry.get("tree.datamode.alltags");
+        showEditTagDialog(tag, allTagsTree != null ? allTagsTree : null);
+    }
+
+    /**
+     * Borra el tag actualmente seleccionado en el árbol.
+     * Muestra los mismos diálogos de confirmación que el botón "Borrar" toolbar.
+     */
+    public void treePopupBorrarTag() {
+        Tag tag = getSelectedTagFromTree();
+        if (tag == null) {
+            JOptionPane.showMessageDialog(null,
+                "Selecciona un tag en el árbol.",
+                "Borrar Tag", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (tag.isReadOnly()) {
+            JOptionPane.showMessageDialog(null,
+                "El tag '" + tag.getNombre() + "' es del sistema y no se puede borrar.",
+                "Borrar Tag", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        JTree allTagsTree = registry.get("tree.datamode.alltags");
+        java.awt.Component parentComp = allTagsTree != null ? allTagsTree : null;
+
+        int childCount = dataManager.getTagDAO().getDirectChildCount(tag.getId());
+        int imageCount = dataManager.getImageCountForTagRecursive(tag);
+
+        if (childCount > 0) {
+            String mensaje = "<html>El tag '<b>" + tag.getNombre() + "</b>' tiene "
+                + childCount + " hijo(s) directo(s).";
+            if (imageCount > 0) {
+                mensaje += "<br>En total, " + imageCount + " imagen(es) están en esta jerarquía.";
+            }
+            mensaje += "<br><br>¿Qué deseas hacer?</html>";
+
+            Object[] opciones = {"Borrar solo este tag", "Borrar toda la rama", "Cancelar"};
+            int borrarChoice = JOptionPane.showOptionDialog(
+                parentComp != null ? javax.swing.SwingUtilities.getWindowAncestor(parentComp) : null,
+                new javax.swing.JLabel(mensaje),
+                "Borrar Etiqueta",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.WARNING_MESSAGE,
+                null, opciones, opciones[2]
+            );
+
+            if (borrarChoice == 0) {
+                boolean ok = dataManager.getTagDAO().deleteTag(tag.getId());
+                if (ok) {
+                    statusBarManager.mostrarMensajeTemporal(
+                        "Tag '" + tag.getNombre() + "' eliminado. Sus hijos se han movido al nivel superior.", 4000);
+                    afterTagStructureChanged(tag.getParentId());
+                } else {
+                    statusBarManager.mostrarMensajeTemporal("Error al eliminar el tag.", 3000);
+                }
+            } else if (borrarChoice == 1) {
+                int confirmFinal = JOptionPane.showConfirmDialog(
+                    parentComp != null ? javax.swing.SwingUtilities.getWindowAncestor(parentComp) : null,
+                    "<html>¿Confirmas borrar '<b>" + tag.getNombre() + "</b>' y TODA su jerarquía descendiente?<br>"
+                    + "Esta acción no se puede deshacer. Se desasociarán " + imageCount + " imagen(es).</html>",
+                    "Confirmar borrado de rama",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+                );
+                if (confirmFinal != JOptionPane.YES_OPTION) return;
+
+                boolean ok = dataManager.deleteTagBranch(tag);
+                if (ok) {
+                    statusBarManager.mostrarMensajeTemporal(
+                        "Rama '" + tag.getNombre() + "' eliminada completamente.", 4000);
+                    afterTagStructureChanged(tag.getParentId());
+                } else {
+                    statusBarManager.mostrarMensajeTemporal("Error al eliminar la rama.", 3000);
+                }
+            }
+        } else {
+            String msg = "¿Borrar el tag '" + tag.getNombre() + "'?";
+            if (imageCount > 0) {
+                msg += "\n\n" + imageCount + " imagen(es) perderán esta etiqueta (no se borrarán).";
+            }
+            int confirm = JOptionPane.showConfirmDialog(
+                parentComp != null ? javax.swing.SwingUtilities.getWindowAncestor(parentComp) : null,
+                msg, "Confirmar Borrado",
+                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            if (confirm != JOptionPane.YES_OPTION) return;
+
+            boolean ok = dataManager.getTagDAO().deleteTag(tag.getId());
+            if (ok) {
+                statusBarManager.mostrarMensajeTemporal(
+                    "Tag '" + tag.getNombre() + "' eliminado.", 3000);
+                afterTagStructureChanged(tag.getParentId());
+            } else {
+                statusBarManager.mostrarMensajeTemporal("Error al eliminar el tag.", 3000);
+            }
+        }
+    }
+
+
     /**
      * Acción de limpieza/refresco que se ejecuta tras cualquier cambio en la estructura de tags.
      * @param selectTagId ID del tag a seleccionar tras el refresco, o null para mantener la selección.
@@ -1734,6 +1907,20 @@ public class DataController {
         refreshAvailableTags();
         refreshIntelliSense();
         dataManager.invalidateTagCache();
+
+        // Refrescar el grid con el tag actualmente seleccionado
+        JTree allTagsTree = registry.get("tree.datamode.alltags");
+        if (allTagsTree != null) {
+            TreePath selPath = allTagsTree.getSelectionPath();
+            if (selPath != null) {
+                Object node = selPath.getLastPathComponent();
+                if (node instanceof Tag) {
+                    loadImagesForTag((Tag) node);
+                } else {
+                    loadAllImages();
+                }
+            }
+        }
     } // ---FIN de metodo [afterTagStructureChanged]---
 
     /**

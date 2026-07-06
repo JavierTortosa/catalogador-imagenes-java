@@ -704,6 +704,9 @@ public class ActionFactory {
         registerAction(AppActionCommands.CMD_DATOS_TAGS_ORDENAR, createTagSortAction());
         registerAction(AppActionCommands.CMD_DATOS_TAGS_FILTRAR, createTagFilterAction());
         registerAction(AppActionCommands.CMD_DATOS_TAG_TOGGLE_ASIGNADO, createToggleTagAction());
+        registerAction(AppActionCommands.CMD_DATOS_TAG_NUEVO, createTagNuevoAction());
+        registerAction(AppActionCommands.CMD_DATOS_TAG_RENOMBRAR, createTagRenombrarAction());
+        registerAction(AppActionCommands.CMD_DATOS_TAG_BORRAR, createTagBorrarAction());
 
         // --- Acciones para el Árbol de Carpetas ---
         registerAction(AppActionCommands.CMD_TREE_OPEN_FOLDER, createOpenFolderAction());
@@ -2339,6 +2342,23 @@ public class ActionFactory {
         this.sortCallback = callback;
     }
 
+    // Callbacks para acciones del popup del árbol de tags (Modo Datos)
+    private Runnable tagNuevoCallback;
+    private Runnable tagRenombrarCallback;
+    private Runnable tagBorrarCallback;
+
+    public void setTagNuevoCallback(Runnable callback) {
+        this.tagNuevoCallback = callback;
+    }
+
+    public void setTagRenombrarCallback(Runnable callback) {
+        this.tagRenombrarCallback = callback;
+    }
+
+    public void setTagBorrarCallback(Runnable callback) {
+        this.tagBorrarCallback = callback;
+    }
+
     private Action createTagFilterAction() {
         return new javax.swing.AbstractAction("Filtrar Tags") {
             @Override
@@ -2367,5 +2387,35 @@ public class ActionFactory {
         action.putValue(javax.swing.Action.SMALL_ICON, iconUtils.getScaledIcon("30105-Layout-Square.png", 24, 24));
         action.putValue(javax.swing.Action.SHORT_DESCRIPTION, "Tag asignado");
         return action;
+    }
+
+    private Action createTagNuevoAction() {
+        return new javax.swing.AbstractAction("Nuevo") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Runnable cb = tagNuevoCallback;
+                if (cb != null) cb.run();
+            }
+        };
+    }
+
+    private Action createTagRenombrarAction() {
+        return new javax.swing.AbstractAction("Renombrar") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Runnable cb = tagRenombrarCallback;
+                if (cb != null) cb.run();
+            }
+        };
+    }
+
+    private Action createTagBorrarAction() {
+        return new javax.swing.AbstractAction("Borrar") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Runnable cb = tagBorrarCallback;
+                if (cb != null) cb.run();
+            }
+        };
     }
 } // --- FIN de la clase ActionFactory ---

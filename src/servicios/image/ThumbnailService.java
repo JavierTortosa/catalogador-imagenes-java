@@ -45,7 +45,7 @@ public class ThumbnailService {
 
     public ThumbnailService() {
         ConfigurationManager config = ConfigurationManager.getInstance();
-        int tamanoMaximoCache = config.getInt(ConfigKeys.MINIATURAS_CACHE_MAX_SIZE, 200);
+        int tamanoMaximoCache = config.getInt(ConfigKeys.MINIATURAS_CACHE_MAX_SIZE, 5000);
         
         this.mapaMiniaturasCacheadas = Caffeine.newBuilder()
                 .maximumSize(tamanoMaximoCache)
@@ -169,8 +169,8 @@ public class ThumbnailService {
             BufferedImage imagenEscalada = Thumbnails.of(imagenCorregida)
                     .size(anchoFinal, altoFinal)
                     .keepAspectRatio(mantenerProporcion)
-                    .rendering(Rendering.QUALITY)
-                    .antialiasing(Antialiasing.ON)
+                    .rendering(Rendering.SPEED)
+                    .antialiasing(Antialiasing.OFF)
                     .asBufferedImage();
 
             return new ImageIcon(imagenEscalada);

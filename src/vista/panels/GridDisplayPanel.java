@@ -34,6 +34,7 @@ public class GridDisplayPanel extends JPanel {
     private JPanel toolbarContainer;
     private GridCellRenderer renderer;
     private JScrollPane scrollPane;
+    private ThumbnailService gridThumbnailService;
     
     /**
      * Constructor para el MODO VISUALIZADOR.
@@ -66,7 +67,9 @@ public class GridDisplayPanel extends JPanel {
             ComponentRegistry registry
     ) {
         super(new BorderLayout());
-        
+
+        this.gridThumbnailService = gridThumbnailService;
+
         logger.debug("Creando un nuevo GridDisplayPannel");
         
         toolbarContainer = new JPanel(new BorderLayout());
@@ -122,6 +125,12 @@ public class GridDisplayPanel extends JPanel {
         if (gridList != null) {
             gridList.setFixedCellWidth(nuevoAncho);
             gridList.setFixedCellHeight(nuevoAlto);
+            if (renderer != null) {
+                renderer.setCellSize(nuevoAncho, nuevoAlto);
+            }
+            if (gridThumbnailService != null) {
+                gridThumbnailService.limpiarCache();
+            }
             gridList.revalidate();
             gridList.repaint();
             logger.debug("Tamaño de celda del grid actualizado a: {}x{}", nuevoAncho, nuevoAlto);

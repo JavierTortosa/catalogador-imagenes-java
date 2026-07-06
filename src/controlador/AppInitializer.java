@@ -730,6 +730,9 @@ public class AppInitializer {
                 this.generalController.initialize();
                 this.dataController.initialize();
                 this.actionFactory.setSortCallback(this.dataController::ordenarListaPlana);
+                this.actionFactory.setTagNuevoCallback(this.dataController::treePopupCrearTag);
+                this.actionFactory.setTagRenombrarCallback(this.dataController::treePopupRenombrarTag);
+                this.actionFactory.setTagBorrarCallback(this.dataController::treePopupBorrarTag);
                 instalarPreviewers();
                 configurarCierreVentana();
 

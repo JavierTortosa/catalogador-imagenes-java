@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Rectangle;
 import java.nio.file.Path;
 import java.util.Objects;
 
@@ -15,6 +16,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
+import javax.swing.ListModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 
@@ -117,17 +119,30 @@ public class MiniaturaListCellRenderer extends JPanel implements ListCellRendere
         ImageIcon miniaturaCargada = null;
         if (rutaCompleta != null) {
             miniaturaCargada = this.servicioMiniaturas.obtenerOCrearMiniatura(
-                rutaCompleta, value, this.anchoMiniaturaObjetivo, this.altoMiniaturaObjetivo, true);
+                rutaCompleta, value, this.anchoMiniaturaObjetivo, this.altoMiniaturaObjetivo, true,
+                (generatedKey) -> {
+                    if (list != null && list.isShowing()) {
+                        ListModel<? extends String> model = list.getModel();
+                        for (int i = 0; i < model.getSize(); i++) {
+                            if (generatedKey.equals(model.getElementAt(i))) {
+                                Rectangle cellBounds = list.getCellBounds(i, i);
+                                if (cellBounds != null) list.repaint(cellBounds);
+                                break;
+                            }
+                        }
+                    }
+                }
+            );
         }
         
         if (miniaturaCargada != null) {
             this.etiquetaIcono.setIcon(miniaturaCargada);
             this.etiquetaIcono.setText(null);
         } else {
-            ImageIcon iconoErrorParaCelda = this.iconUtils.getScaledCommonIcon(
-                "imagen-rota.png", this.anchoMiniaturaObjetivo, this.altoMiniaturaObjetivo);
-            this.etiquetaIcono.setIcon(iconoErrorParaCelda);
-            this.etiquetaIcono.setText(iconoErrorParaCelda == null ? "X" : null);
+            ImageIcon iconoPlaceholder = this.iconUtils.getScaledCommonIcon(
+                "placeholder-grid.png", this.anchoMiniaturaObjetivo, this.altoMiniaturaObjetivo);
+            this.etiquetaIcono.setIcon(iconoPlaceholder);
+            this.etiquetaIcono.setText(null);
         }
 
         if (this.mostrarNombresConfigurado) {
