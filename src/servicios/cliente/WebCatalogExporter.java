@@ -119,12 +119,12 @@ public class WebCatalogExporter {
 
         java.util.List<String> imageKeys = new java.util.ArrayList<>();
         for (var pi : project.getMasterImages().values()) {
-            if (pi.isEnSeleccionProyecto()) {
+            if (true) {
                 imageKeys.add(pi.getRutaImagen());
             }
         }
         if (imageKeys.isEmpty()) {
-            throw new IOException("El proyecto no tiene imágenes compartidas con el cliente.");
+            throw new IOException("El proyecto no tiene imágenes.");
         }
 
         int total = imageKeys.size();
@@ -1477,12 +1477,12 @@ public class WebCatalogExporter {
 //
 //        java.util.List<String> imageKeys = new java.util.ArrayList<>();
 //        for (var pi : project.getMasterImages().values()) {
-//            if (pi.isEnSeleccionProyecto()) {
+//            if (true) {
 //                imageKeys.add(pi.getRutaImagen());
 //            }
 //        }
 //        if (imageKeys.isEmpty()) {
-//            throw new IOException("El proyecto no tiene imágenes compartidas con el cliente.");
+//            throw new IOException("El proyecto no tiene imágenes.");
 //        }
 //
 //        int total = imageKeys.size();

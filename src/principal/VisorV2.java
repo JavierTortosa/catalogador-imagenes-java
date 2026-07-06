@@ -52,7 +52,6 @@ public class VisorV2 {
     
     // TODO HACER SALTO DE CARPETA. Cuando estamos viendo una carpeta que vemos que no nos cuadra, poder saltar todas las imagenes de esa carpeta
     // TODO CTRL + SHIFT DEBE ACTIVAR EL MODO PANEO Y DESACTIVARLO CUANDO SE DEJA DE PULSAR
-    // FIXME cuando abro la vista previa con doble click en vista grid, al intentar cerrarla se marca como foco el correcto pero no se cierra (parece como si se volviera a abrir)
     
     
     
@@ -63,7 +62,6 @@ public class VisorV2 {
     // TODO añadir el tornado en seleccion
     // TODO en el panel de pdf, poder ordenar las imagenes mediante drag & drop o algun otro sistema
     // FIXME el panel de detalles de pdf no tiene el split para ajustar la altura
-    // FIXME han desaparecido los botones que añadian un comentario debajo de el thumbnail del grid y el boton que pone un marco del color del estado de la imagen segun el panel de asociaciones
     
     
     // CLIENTE
