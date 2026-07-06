@@ -120,6 +120,8 @@ public class ClientBuilder {
         CheckboxEditorPanel checkboxEditorPanel = new CheckboxEditorPanel(themeManager, model, projectManager, registry, editorToolbar);
         registry.register("panel.cliente.editor", checkboxEditorPanel);
         displayWrapper.add(checkboxEditorPanel, "DISPLAY_EDITOR");
+        checkboxEditorPanel.getMouseHandler().setOnRefreshCompleted(
+                key -> clientController.sincronizarSeleccionEnTablas(key));
 
         ((CardLayout) displayWrapper.getLayout()).show(displayWrapper, "DISPLAY_NORMAL");
 
@@ -270,6 +272,7 @@ public class ClientBuilder {
                     moverADescartes.addActionListener(ev -> {
                         ProjectImage pi = projectManager.getCurrentProject().getMasterImages().get(key);
                         if (pi != null) {
+                            pi.setEnSeleccionProyecto(false);
                             pi.setEstadoCliente(SelectionState.DISCARDED);
                             if (pi.getCheckboxes() != null) {
                                 for (ImageCheckboxOverlay cb : pi.getCheckboxes()) {
@@ -287,6 +290,7 @@ public class ClientBuilder {
                     moverASeleccion.addActionListener(ev -> {
                         ProjectImage pi = projectManager.getCurrentProject().getMasterImages().get(key);
                         if (pi != null) {
+                            pi.setEnSeleccionProyecto(true);
                             pi.setEstadoCliente(SelectionState.UNDEFINED);
                             if (pi.getCheckboxes() != null) {
                                 for (ImageCheckboxOverlay cb : pi.getCheckboxes()) {
@@ -410,7 +414,7 @@ public class ClientBuilder {
                     MsgPopupDialog dlg = new MsgPopupDialog(owner, title, ct,
                             projectManager,
                             projectManager.getCurrentProject().getSharedIteration(),
-                            model::fireTableDataChanged);
+                            clientController::refrescarTablas);
                     dlg.setVisible(true);
                 } else if (col != ClienteTableModel.COL_ESTADO && col != ClienteTableModel.COL_COMENTARIO) {
                     String cbCode = model.isChildRow(modelRow) ? model.getCheckboxCode(modelRow) : null;

@@ -91,4 +91,8 @@ public class CheckboxEditorPanel extends JPanel {
         return imagePanel;
     }
 
+    public CheckboxEditorMouseHandler getMouseHandler() {
+        return mouseHandler;
+    }
+
 }

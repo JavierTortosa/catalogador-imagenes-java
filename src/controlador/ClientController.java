@@ -621,6 +621,8 @@ public class ClientController implements IModoController {
 
 
     public void refrescarTablas() {
+        String selectedKey = visorController != null && visorController.getModel() != null
+                ? visorController.getModel().getSelectedImageKey() : null;
         if (registry == null) return;
         javax.swing.JTable t;
         t = registry.get("table.cliente.proyecto.seleccion");
@@ -631,6 +633,9 @@ public class ClientController implements IModoController {
         if (t != null && t.getModel() instanceof vista.models.ClienteTableModel cm1) cm1.refrescar();
         t = registry.get("table.cliente.cliente.descartes");
         if (t != null && t.getModel() instanceof vista.models.ClienteTableModel cm2) cm2.refrescar();
+        if (selectedKey != null) {
+            sincronizarSeleccionEnTablas(selectedKey);
+        }
     } // --- Fin de metodo refrescarTablas ---
 
 

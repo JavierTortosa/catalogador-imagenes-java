@@ -5,6 +5,7 @@ import java.awt.Window;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
+import java.util.function.Consumer;
 
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -41,6 +42,7 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
     private boolean draggingPan = false;
     private int dragOffsetX, dragOffsetY;
     private int panLastX, panLastY;
+    private Consumer<String> onRefreshCompleted;
 
     public CheckboxEditorMouseHandler(VisorModel model, IProjectManager projectManager,
                                        ComponentRegistry registry, ImageDisplayPanel imagePanel,
@@ -51,6 +53,10 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
         this.imagePanel = imagePanel;
         this.headerLabel = headerLabel;
     } // --- FIN de metodo CheckboxEditorMouseHandler (constructor) ---
+
+    public void setOnRefreshCompleted(Consumer<String> callback) {
+        this.onRefreshCompleted = callback;
+    } // --- FIN de metodo setOnRefreshCompleted ---
 
 
     void actualizarCabecera() {
@@ -592,6 +598,7 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
 
 
     private void actualizarModeloTabla() {
+        String selectedKey = model != null ? model.getSelectedImageKey() : null;
         if (registry == null) return;
         javax.swing.JTable t;
         t = registry.get("table.cliente.proyecto.seleccion");
@@ -609,6 +616,9 @@ public class CheckboxEditorMouseHandler extends java.awt.event.MouseAdapter {
         t = registry.get("table.cliente.cliente.descartes");
         if (t != null && t.getModel() instanceof vista.models.ClienteTableModel cm2) {
             cm2.refrescar();
+        }
+        if (selectedKey != null && onRefreshCompleted != null) {
+            onRefreshCompleted.accept(selectedKey);
         }
     } // --- FIN de metodo actualizarModeloTabla ---
 
