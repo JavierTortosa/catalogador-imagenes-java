@@ -31,6 +31,12 @@ import modelo.proyecto.ImageCheckboxOverlay;
 import modelo.proyecto.ProjectImage;
 import modelo.proyecto.ProjectModel;
 import modelo.proyecto.SelectionState;
+import java.io.File;
+
+import javax.swing.SwingWorker;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+import modelo.export.pdf.PDFGeneratorService;
 import servicios.ProjectManager;
 import servicios.ProyectoIOException;
 import servicios.cliente.ClientResponseImporter;
@@ -1187,6 +1193,92 @@ public class ClientController implements IModoController {
         }
     } // --- Fin de metodo cargarRespuestaCliente ---
 
+
+    /**
+     * Genera un PDF simple con las imágenes seleccionadas (estado SELECTED)
+     * para aceptación / constancia de lo solicitado por el cliente.
+     */
+    public void exportarPdfCliente() {
+        ProjectModel project = projectManager != null ? projectManager.getCurrentProject() : null;
+        if (project == null) {
+            JOptionPane.showMessageDialog(null, "No hay proyecto activo.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        List<ProjectImage> seleccionadas = project.getMasterImages().values().stream()
+                .filter(pi -> pi.getEstadoCliente() == SelectionState.SELECTED)
+                .toList();
+
+        if (seleccionadas.isEmpty()) {
+            JOptionPane.showMessageDialog(null,
+                    "No hay imágenes con estado SELECTED (V) para exportar a PDF.",
+                    "Sin imágenes seleccionadas", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        JFrame parent = registry != null ? (JFrame) registry.get("frame.main") : null;
+
+        JFileChooser chooser = new JFileChooser();
+        chooser.setDialogTitle("Guardar PDF de selección del cliente");
+        chooser.setSelectedFile(new File("seleccion_cliente.pdf"));
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("PDF (*.pdf)", "pdf");
+        chooser.setFileFilter(filter);
+
+        if (chooser.showSaveDialog(parent) != JFileChooser.APPROVE_OPTION) return;
+
+        File destino = chooser.getSelectedFile();
+        if (!destino.getName().toLowerCase().endsWith(".pdf")) {
+            destino = new File(destino.getAbsolutePath() + ".pdf");
+        }
+
+        if (destino.exists()) {
+            int resp = JOptionPane.showConfirmDialog(parent,
+                    "El archivo ya existe. ¿Deseas sobrescribirlo?",
+                    "Confirmar sobrescritura",
+                    JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            if (resp != JOptionPane.YES_OPTION) return;
+        }
+
+        final File destinoFinal = destino;
+        final List<ProjectImage> finalSeleccionadas = seleccionadas;
+
+        vista.dialogos.TaskProgressDialog progress =
+                new vista.dialogos.TaskProgressDialog(parent, "Generando PDF", "Generando PDF de selección del cliente...");
+
+        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                PDFGeneratorService pdfService = new PDFGeneratorService();
+                String notas = projectManager != null && projectManager.getCurrentProject() != null
+                        ? projectManager.getCurrentProject().getProjectDescription() : null;
+                pdfService.crearPresupuestoCliente(finalSeleccionadas, destinoFinal, notas);
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                progress.closeDialog();
+                if (isCancelled()) return;
+                try {
+                    get();
+                    JOptionPane.showMessageDialog(parent,
+                            "PDF creado correctamente:\n" + destinoFinal.getAbsolutePath(),
+                            "PDF generado", JOptionPane.INFORMATION_MESSAGE);
+                } catch (java.util.concurrent.ExecutionException e) {
+                    logger.error("[ClientController] Error generando PDF cliente", e.getCause());
+                    JOptionPane.showMessageDialog(parent,
+                            "Error al generar el PDF:\n" + e.getCause().getMessage(),
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        };
+
+        progress.setWorkerAsociado(worker);
+        worker.execute();
+        progress.setVisible(true);
+    }
 
     @Override
     public void navegarSiguiente() {

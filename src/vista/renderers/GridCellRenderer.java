@@ -71,26 +71,27 @@ public class GridCellRenderer implements ListCellRenderer<String> {
         
         this.cellPanel = new CustomGridCellPanel();
         
-        // --- INICIO DE LA MODIFICACIÓN: AÑADIR SEPARACIÓN ---
-        int separacion = 10; // <<-- ¡AQUÍ CONTROLAS LA SEPARACIÓN ENTRE IMÁGENES!
+        int separacion = 10;
         this.cellPanel.setPreferredSize(new java.awt.Dimension(anchoMiniatura + separacion, altoMiniatura + separacion));
-        // --- FIN DE LA MODIFICACIÓN ---
 
         this.cellPanel.addMouseListener(new MouseAdapter() {
-            
-        	@SuppressWarnings("unchecked")
-			
-        	@Override
+            @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
-                    Component sourceComponent = (Component) e.getSource();
-                    if (sourceComponent.getParent() instanceof JList) {
-                        JList<?> list = (JList<?>) sourceComponent.getParent();
-                        Point pointInList = SwingUtilities.convertPoint(sourceComponent, e.getPoint(), list);
-                        int index = list.locationToIndex(pointInList);
-                        if (index != -1) {
-                            previewer.showPreviewForIndexPublic((JList<String>) list, index);
+                    Component p = (Component) e.getSource();
+                    while (p != null) {
+                        if (p instanceof JList) {
+                            JList<?> list = (JList<?>) p;
+                            Point pt = SwingUtilities.convertPoint((Component) e.getSource(), e.getPoint(), list);
+                            int idx = list.locationToIndex(pt);
+                            if (idx != -1) {
+                            @SuppressWarnings("unchecked")
+                                JList<String> sl = (JList<String>) list;
+                                previewer.showPreviewForIndexPublic(sl, idx);
+                            }
+                            return;
                         }
+                        p = p.getParent();
                     }
                 }
             }

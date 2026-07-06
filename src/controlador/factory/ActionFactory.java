@@ -689,6 +689,8 @@ public class ActionFactory {
                 createSelectEditorAction());
         registerAction(AppActionCommands.CMD_CLIENTE_EDITAR,
                 createClientEditarAction());
+        registerAction(AppActionCommands.CMD_CLIENTE_EXPORTAR_PDF,
+                createClientExportarPdfAction());
         registerAction(AppActionCommands.CMD_CLIENTE_CHECKBOX_ADD,
                 createFuncionalidadPendienteAction());
         registerAction(AppActionCommands.CMD_CLIENTE_CHECKBOX_ADD_LABEL,
@@ -842,6 +844,19 @@ public class ActionFactory {
             public void actionPerformed(ActionEvent e) {
                 if (clientController != null) {
                     clientController.exportarHtmlCliente();
+                }
+            }
+        };
+        return action;
+    }
+
+    private Action createClientExportarPdfAction() {
+        AbstractAction action = new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (clientController != null) {
+                    clientController.exportarPdfCliente();
                 }
             }
         };

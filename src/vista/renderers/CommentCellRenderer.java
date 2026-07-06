@@ -2,7 +2,6 @@ package vista.renderers;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -10,11 +9,11 @@ import javax.swing.JTable;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
 
+import modelo.proyecto.CommentThread;
 import modelo.proyecto.ImageCheckboxOverlay;
 import modelo.proyecto.Mensaje;
 import modelo.proyecto.ProjectImage;
 import vista.models.ClienteTableModel;
-import modelo.proyecto.CommentThread;
 
 public class CommentCellRenderer extends DefaultTableCellRenderer {
 

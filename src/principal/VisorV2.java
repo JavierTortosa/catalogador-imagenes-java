@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.53.10";
+        version = "V2.55.10";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -52,6 +52,8 @@ public class VisorV2 {
     
     // TODO HACER SALTO DE CARPETA. Cuando estamos viendo una carpeta que vemos que no nos cuadra, poder saltar todas las imagenes de esa carpeta
     // TODO CTRL + SHIFT DEBE ACTIVAR EL MODO PANEO Y DESACTIVARLO CUANDO SE DEJA DE PULSAR
+    // FIXME cuando abro la vista previa con doble click en vista grid, al intentar cerrarla se marca como foco el correcto pero no se cierra (parece como si se volviera a abrir)
+    
     
     
     // PROYECTO

@@ -71,5 +71,6 @@
   </build>
   <properties>
     <twelvemonkeys.version>3.10.1</twelvemonkeys.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 </project>

@@ -55,6 +55,9 @@ public class ThumbnailPreviewer {
     
     // Componente que tenía el foco antes de abrir el diálogo, para restaurarlo al cerrar
     private Component focusOwnerBeforeDialog;
+    
+    // Evita re-entrada en windowDeactivated cuando el dispose() ya está en curso
+    private boolean closingDialgo = false;
 
     private static final int PREVIEW_WIDTH = 500;
     private static final int PREVIEW_HEIGHT = 500;
@@ -133,12 +136,16 @@ public class ThumbnailPreviewer {
             
             @Override
             public void windowDeactivated(WindowEvent e) {
-                // Cuando la ventana principal recupera el foco (el usuario clickó fuera),
-                // cerramos el diálogo de previsualización automáticamente.
+                if (closingDialgo) return;
                 if (previewDialog != null && previewDialog.isVisible()) {
                     Window newActive = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
                     if (newActive != null && newActive != previewDialog) {
-                        previewDialog.dispose();
+                        closingDialgo = true;
+                        try {
+                            previewDialog.dispose();
+                        } finally {
+                            closingDialgo = false;
+                        }
                     }
                 }
             }

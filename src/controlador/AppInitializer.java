@@ -840,9 +840,8 @@ public class AppInitializer {
 
         JList<String> gridList = registry.get("list.grid");
         if (gridList != null) {
-            this.activePreviewers
-                    .add(new ThumbnailPreviewer(gridList, this.model, this.themeManager, this.viewManager, registry));
-            logger.debug("  -> Previsualizador de doble clic instalado en 'list.grid'.");
+            // El preview del grid lo maneja GridCellRenderer internamente
+            logger.debug("  -> Previsualizador de doble clic integrado en GridCellRenderer.");
         } else {
             logger.warn("WARN: No se pudo instalar ThumbnailPreviewer, 'list.grid' no encontrada.");
         }

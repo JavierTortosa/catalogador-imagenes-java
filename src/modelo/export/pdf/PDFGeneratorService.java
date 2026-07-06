@@ -10,6 +10,9 @@ import org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import modelo.proyecto.ExportItem;
+import modelo.proyecto.ImageCheckboxOverlay;
+import modelo.proyecto.ProjectImage;
+import modelo.proyecto.SelectionState;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -79,6 +82,335 @@ public class PDFGeneratorService {
             doc.save(destino);
         }
     } // --- Fin del metodo: crearPresupuesto ---
+
+
+    /**
+     * Genera un PDF simple cuadrícula 2x2 (4 imágenes por página) con
+     * código, precio, imagen y comentarios auto-contenidos por celda.
+     */
+    public void crearPresupuestoCliente(List<ProjectImage> imagenes, File destino, String notasProyecto) throws Exception {
+        System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
+
+        PDFont bold = new PDType1Font(FontName.HELVETICA_BOLD);
+        PDFont normal = new PDType1Font(FontName.HELVETICA);
+        PDFont italic = new PDType1Font(FontName.HELVETICA_OBLIQUE);
+
+        try (PDDocument doc = new PDDocument()) {
+            int index = 0;
+            while (index < imagenes.size()) {
+                PDPage page = new PDPage(PDRectangle.A4);
+                doc.addPage(page);
+
+                try (PDPageContentStream cs = new PDPageContentStream(doc, page)) {
+                    for (int cell = 0; cell < ITEMS_PER_PAGE && index < imagenes.size(); cell++, index++) {
+                        ProjectImage pi = imagenes.get(index);
+                        int col = cell % COLS;
+                        int row = cell / COLS;
+                        float bx = MARGIN + col * (BOX_W + GAP);
+                        float by = PAGE_H - TOP - (row + 1) * BOX_H - row * GAP;
+                        drawClientBox(cs, bx, by, BOX_W, BOX_H, pi, doc, bold, normal, italic);
+                    }
+                }
+            }
+
+            // Página(s) de resumen con tabla de precios
+            double total = imagenes.stream().mapToDouble(ProjectImage::getPrice).sum();
+            drawResumenPage(doc, imagenes, total, notasProyecto, bold, normal, italic);
+
+            doc.save(destino);
+        }
+    }
+
+    private void drawResumenPage(PDDocument doc, List<ProjectImage> imagenes, double total,
+            String notasProyecto, PDFont bold, PDFont normal, PDFont italic) throws Exception {
+        float[] cols = { MARGIN, 100, MARGIN + 320 };
+        float colW = PAGE_W - 2 * MARGIN;
+        float rowH = 14;
+        int itemsPerPage = 18;
+        int start = 0;
+
+        // Cargar logo (solo para primera página)
+        BufferedImage logo = null;
+        try {
+            java.net.URL logoUrl = getClass().getResource("/iconos/comunes/application/Parabellum Print & Paint black.png");
+            if (logoUrl != null) {
+                logo = ImageIO.read(logoUrl);
+            }
+        } catch (Exception e) {
+            logger.debug("No se pudo cargar el logo para el PDF");
+        }
+
+        String fecha = new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date());
+
+        while (start < imagenes.size()) {
+            PDPage page = new PDPage(PDRectangle.A4);
+            doc.addPage(page);
+            int end = Math.min(start + itemsPerPage, imagenes.size());
+            boolean isFirstPage = start == 0;
+            boolean isLastPage = end >= imagenes.size();
+
+            try (PDPageContentStream cs = new PDPageContentStream(doc, page)) {
+                float y = PAGE_H - MARGIN;
+
+                if (isFirstPage && logo != null) {
+                    // Logo a la izquierda
+                    float logoMaxW = 160;
+                    float logoScale = Math.min(logoMaxW / logo.getWidth(), 50f / logo.getHeight());
+                    float lw = logo.getWidth() * logoScale;
+                    float lh = logo.getHeight() * logoScale;
+                    PDImageXObject pdLogo = LosslessFactory.createFromImage(doc, logo);
+                    cs.drawImage(pdLogo, MARGIN, y - lh, lw, lh);
+
+                    // Título a la derecha del logo
+                    cs.setFont(bold, 18);
+                    cs.setNonStrokingColor(0, 0, 0);
+                    cs.beginText();
+                    cs.newLineAtOffset(MARGIN + lw + 15, y - 14);
+                    showText(cs, "Presupuesto");
+                    cs.endText();
+
+                    // Fecha
+                    cs.setFont(normal, 10);
+                    cs.setNonStrokingColor(new Color(100, 100, 100));
+                    cs.beginText();
+                    cs.newLineAtOffset(MARGIN + lw + 15, y - 30);
+                    showText(cs, fecha);
+                    cs.endText();
+
+                    // Teléfono debajo de la fecha
+                    cs.beginText();
+                    cs.newLineAtOffset(MARGIN + lw + 15, y - 44);
+                    showText(cs, "Tel.: 681.81.82.40");
+                    cs.endText();
+                    
+
+                    y -= Math.max(lh, 40) + 5;
+                } else {
+                    // Título + fecha centrados en páginas siguientes
+                    cs.setFont(bold, 16);
+                    cs.setNonStrokingColor(0, 0, 0);
+                    cs.beginText();
+                    cs.newLineAtOffset(MARGIN, y - 10);
+                    showText(cs, "Presupuesto (cont.)");
+                    cs.endText();
+                    y -= 20;
+                }
+
+                // Línea decorativa
+                y -= 6;
+                cs.setStrokingColor(0.7f, 0.7f, 0.7f);
+                cs.moveTo(MARGIN, y);
+                cs.lineTo(PAGE_W - MARGIN, y);
+                cs.stroke();
+                y -= 12;
+
+                // Encabezados de columna
+                cs.setFont(bold, 10);
+                cs.setNonStrokingColor(0, 0, 0);
+                cs.beginText();
+                cs.newLineAtOffset(MARGIN, y);
+                showText(cs, "Código");
+                cs.endText();
+                cs.beginText();
+                cs.newLineAtOffset(cols[1], y);
+                showText(cs, "Nombre");
+                cs.endText();
+                cs.beginText();
+                cs.newLineAtOffset(cols[2], y);
+                showText(cs, "PVP");
+                cs.endText();
+
+                // Línea separadora
+                y -= 4;
+                cs.setStrokingColor(0.6f, 0.6f, 0.6f);
+                cs.moveTo(MARGIN, y);
+                cs.lineTo(PAGE_W - MARGIN, y);
+                cs.stroke();
+
+                // Filas
+                y -= rowH - 2;
+                cs.setFont(normal, 9);
+                cs.setNonStrokingColor(0, 0, 0);
+
+                for (int i = start; i < end; i++) {
+                    ProjectImage pi = imagenes.get(i);
+
+                    String codigo = pi.getCodigoCatalogo() != null ? pi.getCodigoCatalogo() : "-";
+                    String nombre = new File(pi.getRutaImagen()).getName();
+                    String pvp = String.format("%.2f   EUR", pi.getPrice());
+
+                    if (textWidth(nombre, normal, 9) > colW - 240) {
+                        nombre = ellipsizeToWidth(nombre, normal, 9, colW - 240);
+                    }
+
+                    cs.beginText();
+                    cs.newLineAtOffset(MARGIN, y);
+                    showText(cs, codigo);
+                    cs.endText();
+                    cs.beginText();
+                    cs.newLineAtOffset(cols[1], y);
+                    showText(cs, nombre);
+                    cs.endText();
+                    cs.beginText();
+                    cs.newLineAtOffset(cols[2], y);
+                    showText(cs, pvp);
+                    cs.endText();
+
+                    y -= rowH;
+                }
+
+                // Total + notas solo en última página
+                if (isLastPage) {
+                    y -= 6;
+                    cs.setStrokingColor(0.6f, 0.6f, 0.6f);
+                    cs.moveTo(MARGIN, y);
+                    cs.lineTo(PAGE_W - MARGIN, y);
+                    cs.stroke();
+
+                    y -= rowH + 2;
+                    cs.setFont(bold, 12);
+                    cs.setNonStrokingColor(new Color(0, 100, 0));
+                    cs.beginText();
+                    cs.newLineAtOffset(cols[2] - 30, y);
+                    showText(cs, "Total:");
+                    cs.endText();
+                    cs.beginText();
+                    cs.newLineAtOffset(cols[2], y);
+                    showText(cs, String.format("%.2f   EUR", total));
+                    cs.endText();
+
+                    // Notas del proyecto
+                    if (notasProyecto != null && !notasProyecto.isBlank()) {
+                        y -= 30;
+                        cs.setFont(bold, 10);
+                        cs.setNonStrokingColor(0, 0, 0);
+                        cs.beginText();
+                        cs.newLineAtOffset(MARGIN, y);
+                        showText(cs, "Comentario del proyecto:");
+                        cs.endText();
+
+                        y -= 18;
+                        cs.setFont(normal, 9);
+                        List<String> lines = wrapText(notasProyecto, normal, 9, colW);
+                        for (String line : lines) {
+                            if (y < BOTTOM + 14) break;
+                            cs.beginText();
+                            cs.newLineAtOffset(MARGIN, y);
+                            showText(cs, line);
+                            cs.endText();
+                            y -= 12;
+                        }
+                    }
+                }
+
+                start = end;
+            }
+        }
+    }
+
+    private void drawClientBox(PDPageContentStream cs, float x, float y, float w, float h,
+            ProjectImage pi, PDDocument doc, PDFont bold, PDFont normal, PDFont italic) throws Exception {
+        cs.setStrokingColor(0.8f, 0.8f, 0.8f);
+        cs.addRect(x, y, w, h);
+        cs.stroke();
+
+        float pad = 6;
+        // Código + Precio en la misma línea (código izq, precio der)
+        String codigo = pi.getCodigoCatalogo() != null ? pi.getCodigoCatalogo() : "-";
+        String precio = String.format("%.2f   EUR", pi.getPrice());
+        cs.setFont(bold, 10);
+        cs.setNonStrokingColor(0, 0, 0);
+        cs.beginText();
+        cs.newLineAtOffset(x + pad, y + h - 14);
+        showText(cs, codigo);
+        cs.endText();
+
+        cs.setFont(bold, 10);
+        cs.setNonStrokingColor(new Color(0, 100, 0));
+        float precioW = bold.getStringWidth(precio) / 1000f * 10f;
+        cs.beginText();
+        cs.newLineAtOffset(x + w - pad - precioW, y + h - 14);
+        showText(cs, precio);
+        cs.endText();
+
+        // Línea separadora
+        float sepY = y + h - 20;
+        cs.setStrokingColor(0.85f, 0.85f, 0.85f);
+        cs.moveTo(x + pad, sepY);
+        cs.lineTo(x + w - pad, sepY);
+        cs.stroke();
+
+        // Imagen: área entre separador superior y zona de comentarios
+        float commentAreaH = 36;
+        float imgTop = sepY - 4;
+        float imgBottom = y + commentAreaH;
+        float imgH = imgTop - imgBottom;
+        float imgW = w - pad * 2;
+
+        try {
+            BufferedImage bi = ImageIO.read(new File(pi.getRutaImagen()));
+            if (bi != null) {
+                float scale = Math.min(imgW / bi.getWidth(), imgH / bi.getHeight());
+                float dw = bi.getWidth() * scale;
+                float dh = bi.getHeight() * scale;
+                float dx = x + (w - dw) / 2f;
+                float dy = imgBottom + (imgH - dh) / 2f;
+                PDImageXObject pdImg = LosslessFactory.createFromImage(doc, bi);
+                cs.drawImage(pdImg, dx, dy, dw, dh);
+            }
+        } catch (Exception e) {
+            logger.debug("No se pudo incluir imagen en PDF cliente: {}", pi.getRutaImagen());
+        }
+
+        // Comentarios compactos abajo
+        float commentY = y + 32;
+        cs.setFont(normal, 6);
+        cs.setNonStrokingColor(new Color(60, 60, 60));
+
+        List<ImageCheckboxOverlay> cbs = pi.getCheckboxes();
+        if (cbs != null && !cbs.isEmpty()) {
+            float maxW = w - pad * 2;
+            for (ImageCheckboxOverlay cb : cbs) {
+                String cbText = (cb.getLabel() != null ? cb.getLabel() : cb.getCheckboxCode())
+                        + ": " + estadoStr(cb.getState());
+                if (cb.getComment() != null && !cb.getComment().isBlank()) {
+                    cbText += " " + cb.getComment();
+                }
+                if (textWidth(cbText, normal, 6) > maxW) {
+                    cbText = ellipsizeToWidth(cbText, normal, 6, maxW);
+                }
+                cs.beginText();
+                cs.newLineAtOffset(x + pad, commentY);
+                showText(cs, cbText);
+                cs.endText();
+                commentY -= 8;
+            }
+        }
+
+        String imgComment = pi.getComment();
+        if (imgComment != null && !imgComment.isBlank()) {
+            float maxW = w - pad * 2;
+            String commentLine = imgComment.length() > 60 ? imgComment.substring(0, 57) + "..." : imgComment;
+            if (textWidth(commentLine, italic, 6) > maxW) {
+                commentLine = ellipsizeToWidth(commentLine, italic, 6, maxW);
+            }
+            cs.setFont(italic, 6);
+            cs.setNonStrokingColor(new Color(80, 80, 80));
+            cs.beginText();
+            cs.newLineAtOffset(x + pad, commentY);
+            showText(cs, commentLine);
+            cs.endText();
+        }
+    }
+
+    private String estadoStr(SelectionState s) {
+        if (s == null) return "?";
+        return switch (s) {
+            case SELECTED -> "V";
+            case DISCARDED -> "X";
+            case UNDEFINED -> "—";
+        };
+    }
 
 
     // Dibuja la caja individual de cada item: código, imagen, y datos de archivos

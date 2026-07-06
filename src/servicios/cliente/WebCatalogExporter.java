@@ -100,9 +100,9 @@ public class WebCatalogExporter {
     
     
     private QualityLevel determinarCalidad(int imageCount) {
-        if (imageCount <= 20)  return new QualityLevel(920, 0.85);
-        if (imageCount <= 50)  return new QualityLevel(690, 0.75);
-        return new QualityLevel(550, 0.70);
+        if (imageCount <= 20)  return new QualityLevel(250, 0.55);
+        if (imageCount <= 50)  return new QualityLevel(180, 0.45);
+        return new QualityLevel(150, 0.40);
     
     } // --- Fin del Metodo determinarCalidad ---
 
@@ -300,7 +300,7 @@ public class WebCatalogExporter {
             + "<html lang=\"es\">\n"
             + "<head>\n"
             + "  <meta charset=\"UTF-8\">\n"
-            + "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n"
+            + "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes\">\n"
             + "  <title>" + escapeHtml(projectName) + " \u2013 Cat\u00e1logo</title>\n"
             + "  <style>\n" + getClientCss() + "  </style>\n"
             + "</head>\n"
@@ -375,7 +375,7 @@ public class WebCatalogExporter {
               
               + "/* === HEADER & TOPBAR === */\n"
               + "header { text-align: center; padding: 2rem; }\n"
-              + "#topbar { position: sticky; top: 0; z-index: 50; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; padding: .8rem 1rem; background: rgba(26,26,46,0.95); backdrop-filter: blur(5px); border-bottom: 1px solid #2a2a4a; }\n"
+              + "#topbar { position: sticky; top: 0; z-index: 50; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; padding: .8rem 1rem; background: rgba(26,26,46,0.95); border-bottom: 1px solid #2a2a4a; }\n"
               + ".topbar-section { display: flex; align-items: center; gap: 10px; }\n"
               + "#counter { color: var(--text-muted); font-size: .9rem; font-weight: bold; }\n"
               + ".sort-controls { background: var(--card-bg); padding: 5px 10px; border-radius: 6px; border: 1px solid var(--accent); }\n"
@@ -431,7 +431,8 @@ public class WebCatalogExporter {
               + ".count-und { background: var(--undefined-bg); color: var(--undefined); border-color: var(--undefined); }\n"
           
               + "/* === MODAL & CONTROLES === */\n"
-              + ".modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 100; }\n"
+              + "body.modal-open { overflow: hidden; position: fixed; width: 100%; height: 100%; }\n"
+              + ".modal { position: fixed; top: 0; left: 0; width: 100%; height: 100dvh; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 100; }\n"
               + ".modal.hidden { display: none !important; }\n"
               + ".hidden { display: none !important; }\n"
               + ".modal-content { background: var(--card-bg); width: 95%; max-width: 1200px; padding: 20px; border-radius: 8px; position: relative; max-height: 95vh; display: flex; flex-direction: column; border: 1px solid #3a3a5a; }\n"
@@ -441,10 +442,10 @@ public class WebCatalogExporter {
               + ".modal-nombre { font-size: 1.05rem; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n"
               + ".modal-codigo { display: inline-block; background: #000; color: #fff; padding: 1px 8px; border-radius: 3px; font-size: .7rem; font-weight: 700; flex-shrink: 0; }\n"
               + ".modal-body-layout { display: flex; gap: 15px; flex: 1; min-height: 0; }\n"
-              + ".modal-image-wrap { flex: 2; overflow: hidden; border-radius: 6px; background: #000; position: relative; cursor: grab; touch-action: none; }\n"
+              + ".modal-image-wrap { flex: 2; overflow: hidden; border-radius: 6px; background: #000; position: relative; cursor: grab; touch-action: none; contain: layout; }\n"
               + ".modal-image-wrap:active { cursor: grabbing; }\n"
               + ".modal-image { width: 100%; height: 100%; object-fit: contain; display: block; transform-origin: 0 0; user-select: none; -webkit-user-select: none; pointer-events: none; }\n"
-              + ".checkbox-overlays { position: absolute; top: 0; left: 0; pointer-events: none; transform-origin: 0 0; }\n"
+              + ".checkbox-overlays { position: absolute; top: 0; left: 0; pointer-events: none; transform-origin: 0 0; contain: layout; }\n"
        
               + "/* === OVERLAYS DE CHECKBOX + BURBUJA DE MENSAJES === */\n"
               + ".cb-overlay { position: absolute; display: flex; align-items: center; gap: 3px; pointer-events: auto; transform: translate(-50%, -50%); background: rgba(0,0,0,.85); border-radius: 4px; padding: 2px 5px; white-space: nowrap; cursor: pointer; border: 1px solid rgba(255,255,255,.2); user-select: none; }\n"
@@ -481,7 +482,7 @@ public class WebCatalogExporter {
         
               + "/* === RESPONSIVE (TRANSFORMACIÓN A BOTTOM SHEET) === */\n"
               + "@media (max-width: 800px) {\n"
-              + "  .modal-content { height: 82dvh !important; padding: 12px; } /* Evita el colapso de la altura del modal en móvil */\n"
+              + "  .modal-content { height: 85vh; height: 82dvh !important; padding: 12px; } /* Evita el colapso de la altura del modal en móvil */\n"
               + "  .modal-body-layout { position: relative; flex: 1; min-height: 0; display: block; }\n"
               + "  .modal-image-wrap { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; flex: none; }\n"
               + "  .modal-chat-sidebar {\n"
@@ -512,8 +513,9 @@ public class WebCatalogExporter {
 
     private String getClientJs(String respuestaFilename, String projectName) {
          return "// === VARIABLES GLOBALES ===\n"
-              + "var data = CATALOG_DATA || { imagenes: [] };\n"
-              + "var currentIndex = -1;\n"
+               + "var data = CATALOG_DATA || { imagenes: [] };\n"
+               + "window.onerror = function(msg, url, line) { var d=document.createElement('div'); d.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#c00;color:#fff;padding:10px;font-size:14px;word-break:break-all'; d.textContent='Error L'+line+': '+msg; document.body.appendChild(d); };\n"
+               + "var currentIndex = -1;\n"
               + "var currentContext = { type: 'IMAGE', index: 0, cbIndex: -1 };\n"
               + "var zoomScale = 1, panX = 0, panY = 0, isDragging = false, startX = 0, startY = 0, lastTouchDist = 0, lastTapTime = 0;\n"
                + "for(var i=0; i<data.imagenes.length; i++) { data.imagenes[i]._origIndex = i; }\n"
@@ -691,8 +693,8 @@ public class WebCatalogExporter {
                + "      + '    <span class=\"' + iconClass + '\" title=\"' + iconTitle + '\" onclick=\"openModal(' + i + ', true)\"></span>'\n" // Al pulsar el sobre, abre maximizado
                + "      + '  </div>'\n"
               + "      + '  ' + commentHtml\n"
-              + "      + '  <img src=\"' + img.miniatura + '\" alt=\"' + escHtml(img.nombre) + '\" loading=\"lazy\" onclick=\"openModal(' + i + ')\" onerror=\"this.src=\\'data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'200\\' height=\\'200\\'><rect width=\\'200\\' height=\\'200\\' fill=\\'%23222\\'/><text x=\\'50%\\' y=\\'50%\\' fill=\\'%23666\\' text-anchor=\\'middle\\' dy=\\'.3em\\'>Sin imagen</text></svg>\\'\">'\n"
-              + "      + '</div>';\n"
+               + "      + '  <img src=\"' + img.miniatura + '\" alt=\"' + escHtml(img.nombre) + '\" loading=\"lazy\" onclick=\"openModal(' + i + ')\" onerror=\"setErrorImage(this)\">'\n"
+               + "      + '</div>';\n"
               + "  }\n"
               + "  gallery.innerHTML = html;\n"
               + "  updateCounter();\n"
@@ -707,6 +709,7 @@ public class WebCatalogExporter {
               + "  saveState();\n"
               + "}\n"
               + "function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;'); }\n"
+              + "function setErrorImage(el) { el.onerror=null; el.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"200\"><rect width=\"200\" height=\"200\" fill=\"%23222\"/><text x=\"50%\" y=\"50%\" fill=\"%23666\" text-anchor=\"middle\" dy=\".3em\">Sin imagen</text></svg>'); }\n"
               + "function makeMsgClickHandler(texto) { return function() { document.getElementById('modalComentario').value = texto; document.getElementById('modalComentario').focus(); }; }\n"
                + "function updateCounter() {\n"
                + "  var sel = data.imagenes.filter(function(i) { return i.estado === 'SELECTED'; }).length;\n"
@@ -753,9 +756,10 @@ public class WebCatalogExporter {
                + "  resetZoom();\n"
               + "  var overlayContainer = document.getElementById('checkboxOverlays');\n"
               + "  overlayContainer.innerHTML = '';\n"
-              + "  document.getElementById('modalImg').onload = function() { sizeOverlayContainer(); if (img.checkboxes && img.checkboxes.length > 0) positionOverlays(overlayContainer, img); };\n"
-              + "  if (document.getElementById('modalImg').complete && document.getElementById('modalImg').naturalWidth > 0) { sizeOverlayContainer(); if (img.checkboxes && img.checkboxes.length > 0) positionOverlays(overlayContainer, img); }\n"
-              + "  document.getElementById('modal').classList.remove('hidden');\n"
+              + "  document.getElementById('modalImg').onload = function() { requestAnimationFrame(function() { sizeOverlayContainer(); if (img.checkboxes && img.checkboxes.length > 0) positionOverlays(overlayContainer, img); }); };\n"
+               + "  if (document.getElementById('modalImg').complete && document.getElementById('modalImg').naturalWidth > 0) { requestAnimationFrame(function() { sizeOverlayContainer(); if (img.checkboxes && img.checkboxes.length > 0) positionOverlays(overlayContainer, img); }); }\n"
+               + "  document.body.classList.add('modal-open');\n"
+               + "  document.getElementById('modal').classList.remove('hidden');\n"
               + "}\n"
               + "function sizeOverlayContainer() {\n"
               + "  var modalImg = document.getElementById('modalImg');\n"
@@ -841,8 +845,8 @@ public class WebCatalogExporter {
               + "}\n"
               + "function cycleState(c) { return c === 'SELECTED' ? 'DISCARDED' : (c === 'DISCARDED' ? 'UNDEFINED' : 'SELECTED'); }\n"
               + "function setTristate(el, state) { el.className = 'tristate-cb state-' + state.toLowerCase(); el.textContent = state === 'SELECTED' ? '\\u2713' : (state === 'DISCARDED' ? '\\u2717' : '\\u25cb'); }\n"
-              + "document.getElementById('modalClose').addEventListener('click', function() { guardarModal(); document.getElementById('modal').classList.add('hidden'); });\n"
-               + "document.getElementById('modalCheckPrincipal').addEventListener('click', function() { if (currentIndex >= 0) { var img = data.imagenes[currentIndex]; img.estado = cycleState(img.estado || 'UNDEFINED'); if (img.checkboxes) { for (var k = 0; k < img.checkboxes.length; k++) { img.checkboxes[k].estado = img.estado; } setTristate(this, img.estado); positionOverlays(document.getElementById('checkboxOverlays'), img); renderGallery(); saveState(); } } });\n"
+              + "document.getElementById('modalClose').addEventListener('click', function() { guardarModal(); document.getElementById('modal').classList.add('hidden'); document.body.classList.remove('modal-open'); });\n"
+               + "document.getElementById('modalCheckPrincipal').addEventListener('click', function() { if (currentIndex >= 0) { var img = data.imagenes[currentIndex]; img.estado = cycleState(img.estado || 'UNDEFINED'); if (img.checkboxes) { for (var k = 0; k < img.checkboxes.length; k++) { img.checkboxes[k].estado = img.estado; } } setTristate(this, img.estado); positionOverlays(document.getElementById('checkboxOverlays'), img); renderGallery(); saveState(); } });\n"
                + "function ensureThread(img) {\n"
               + "  if (typeof img.comentario === 'object' && img.comentario && img.comentario.hilo) {\n"
               + "    if (typeof img.comentario.estadoPr === 'undefined') img.comentario.estadoPr = 0;\n"
@@ -1307,7 +1311,13 @@ public class WebCatalogExporter {
     
     private String jsonString(String valor) {
         if (valor == null) return "null";
-        return "\"" + valor.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r") + "\"";
+        String escaped = valor
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r")
+            .replace("</", "<\\/");
+        return "\"" + escaped + "\"";
         
     } // --- Fin del Metodo jsonString ---
 

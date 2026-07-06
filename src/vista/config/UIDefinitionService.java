@@ -791,8 +791,15 @@ public class UIDefinitionService {
                 "Guardar proyecto como...", "cliente"));
         botonesCliente.add(new SeparatorDefinition());
 
+        
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CARGAR_RESPUESTA, "60201-User-Followers.png",
                 "Importar respuesta del cliente (JSON)", "cliente"));
+        
+        botonesCliente.add(new SeparatorDefinition());
+        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_PDF, "21013-File-Pdf.png", 
+        		"Crear PDF", "cliente"));
+        botonesCliente.add(new SeparatorDefinition());
+        
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB, "60202-User-Following.png",
                 "Exportar catálogo web para el cliente", "cliente"));
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML, "60203-User-Share.png",
@@ -803,7 +810,7 @@ public class UIDefinitionService {
 //                "Editar selección", "cliente", ButtonType.TOGGLE));
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES, "60101-Rotate-X-Axis.png",
                 "Mover selección a descartes", "cliente"));
-
+        
         // --- BARRA DE BOTONES DEL EDITOR DE CHECKBOXES ---
         List<ToolbarComponentDefinition> botonesCheckboxEditor = List.of(
                 new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CHECKBOX_ADD, "60301-Cursor-Area-Selection-1.png",
@@ -1037,6 +1044,7 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_COMPARTIR_CLIENTE, "21016-Ar-Environment.png",
                         "Compartir al Cliente", "acciones_exportacion"),
                 new SeparatorDefinition(),
+                
                 new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB, "60202-User-Following.png",
                         "Exportar catálogo web para el cliente", "acciones_exportacion"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML, "60203-User-Share.png", 

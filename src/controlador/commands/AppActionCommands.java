@@ -227,6 +227,7 @@ public interface AppActionCommands {
     public static final String CMD_CLIENTE_VIEW_VISOR 			    = "cmd.cliente.view_visor";
     public static final String CMD_CLIENTE_TOGGLE_EDITOR_PANEL 		= "cmd.cliente.toggle_editor_panel";
     public static final String CMD_CLIENTE_EDITAR 					= "cmd.cliente.editar";
+    public static final String CMD_CLIENTE_EXPORTAR_PDF 			= "cmd.cliente.exportar_pdf";
     
     // --- Comportamiento/Toggles Generales ---
     public static final String CMD_TOGGLE_SUBCARPETAS 				= "cmd.toggle.subcarpetas";             // Para ToggleSubfoldersAction
