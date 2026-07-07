@@ -2135,8 +2135,8 @@ public class ProjectController implements IModoController {
             logger.debug("[ProjectController] Tabla de exportación limpiada para nuevo proyecto.");
         }
 
-        logger.info("Volviendo al modo Visualizador después de crear nuevo proyecto...");
-        generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.VISUALIZADOR);
+        logger.info("Yendo al modo Proyecto después de crear nuevo proyecto...");
+        generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
 
         generalController.actualizarTituloVentana();
     } // --- Fin del metodo: solicitarNuevoProyecto ---
@@ -2153,10 +2153,12 @@ public class ProjectController implements IModoController {
             return;
         }
 
+        // Recordar en qué modo estábamos antes de abrir (influirá en la UX del diálogo).
+        boolean estabaEnCliente = (model.getCurrentWorkMode() == VisorModel.WorkMode.CLIENTE);
+
         try {
             // --- INICIO DE REFUERZO DE ROBUSTEZ ---
             // PASO 1: Limpiar COMPLETAMENTE el estado anterior ANTES de cargar el nuevo.
-            // Esto es crucial para evitar "fugas" de datos entre proyectos.
             logger.debug("Limpiando estado del proyecto anterior antes de abrir uno nuevo...");
             limpiarEstadoCompletoDelProyecto();
             // --- FIN DE REFUERZO DE ROBUSTEZ ---
@@ -2168,20 +2170,49 @@ public class ProjectController implements IModoController {
             // PASO 3: Actualizar el título de la ventana.
             generalController.actualizarTituloVentana();
 
-            // PASO 4: Si estamos en modo proyecto, refrescar la vista para mostrar los
-            // nuevos datos.
-            if (model.isEnModoProyecto()) {
+            // PASO 4: Refrescar vista según modo.
+            if (estabaEnCliente) {
+                // Proyecto NO compartido (no lanzó redirect)
+                logger.info("Proyecto sin compartir abierto desde modo cliente. Informando y pasando a proyecto.");
+                JOptionPane.showMessageDialog(
+                        (view != null) ? view : null,
+                        "El proyecto abierto no está compartido con cliente.\n"
+                        + "Cambiando a modo proyecto.",
+                        "Proyecto sin compartir",
+                        JOptionPane.INFORMATION_MESSAGE);
+                generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
+            } else if (model.isEnModoProyecto()) {
                 logger.info("Ya se está en modo proyecto. Refrescando la vista con el nuevo proyecto cargado...");
                 activarVistaProyecto();
             }
+            projectManager.markProjectAsSaved();
+            generalController.actualizarTituloVentana();
 
         } catch (java.io.IOException e) {
             String msg = e.getMessage();
-            // --- Fase 7: redirigir a modo cliente si se cargó .prjcl ---
             if (servicios.ProjectManager.REDIRECT_TO_CLIENTE.equals(msg)) {
-                logger.info("Proyecto redirigido a modo cliente por .prjcl compañero.");
-                if (generalController != null) {
-                    generalController.cambiarModoDeTrabajo(modelo.VisorModel.WorkMode.CLIENTE);
+                // Proyecto compartido
+                logger.info("Proyecto compartido detectado. Modo actual: {}", model.getCurrentWorkMode());
+                projectManager.markProjectAsSaved();
+                if (estabaEnCliente) {
+                    // Ya estamos en cliente, solo refrescar (sin preguntar)
+                    logger.info("Ya en modo cliente. Refrescando vista cliente con el proyecto compartido.");
+                    if (generalController.getClientController() != null) {
+                        generalController.getClientController().activarVistaCliente();
+                    }
+                } else {
+                    // Preguntar si quiere ir a modo cliente
+                    int option = JOptionPane.showConfirmDialog(
+                            (view != null) ? view : null,
+                            "Este proyecto tiene una sesión de cliente activa.\n¿Entrar en modo cliente?",
+                            "Sesión de Cliente Detectada",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE);
+                    if (option == JOptionPane.YES_OPTION) {
+                        generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.CLIENTE);
+                    } else if (model.isEnModoProyecto()) {
+                        activarVistaProyecto();
+                    }
                 }
                 return;
             }

@@ -329,6 +329,11 @@ public class AppModeService {
                 model.setProjectExportPanelVisible(projectController.isExportPanelVisible());
                 logger.debug("    -> Modo Proyecto: Estado de UI sincronizado con el modelo en memoria.");
             }
+            // Re-marcar como guardado para que lastSavedProjectState refleje las nuevas
+            // instancias de ProjectImage creadas por sincronizarModeloConUI.
+            if (projectController.getProjectManager() != null) {
+                projectController.getProjectManager().markProjectAsSaved();
+            }
         }
 
         // --- LÓGICA DE GUARDADO AL SALIR DEL MODO VISUALIZADOR ---
@@ -479,6 +484,12 @@ public class AppModeService {
                         }
                         if (projectController != null) {
                             projectController.actualizarEstadoExportacionUI();
+                        }
+                        // Re-marcar como guardado para limpiar cualquier suciedad
+                        // introducida por la activación de la vista cliente
+                        // (ej. cambios en masterImages, creación de nuevas instancias).
+                        if (projectController != null && projectController.getProjectManager() != null) {
+                            projectController.getProjectManager().markProjectAsSaved();
                         }
                         break;
                 }

@@ -125,39 +125,30 @@ public class ProjectManager implements IProjectManager {
      */
     @SuppressWarnings("deprecation")
     private boolean isProjectDirty() {
-        // Si por alguna razón el estado guardado es nulo, consideramos que hay cambios.
         if (this.lastSavedProjectState == null) {
             return true;
         }
 
-        // Comparamos los mapas de imágenes seleccionadas (rutas y etiquetas).
-        // El método .equals() para Maps es exhaustivo: compara tamaño, claves y valores.
         if (!Objects.equals(this.currentProject.getSelectedImages(), this.lastSavedProjectState.getSelectedImages())) {
             logger.debug("[Dirty Check] Diferencia detectada en: selectedImages");
             return true;
         }
 
-        // Comparamos las listas de imágenes descartadas.
         if (!Objects.equals(this.currentProject.getDiscardedImages(), this.lastSavedProjectState.getDiscardedImages())) {
             logger.debug("[Dirty Check] Diferencia detectada en: discardedImages");
             return true;
         }
 
-        // Comparamos las configuraciones de exportación.
-        // Esto es crucial para detectar cambios en la tabla de exportación.
-        // Nota: Esto requiere que la clase ExportConfig tenga un método .equals() bien implementado.
         if (!Objects.equals(this.currentProject.getExportConfigs(), this.lastSavedProjectState.getExportConfigs())) {
              logger.debug("[Dirty Check] Diferencia detectada en: exportConfigs");
             return true;
         }
         
-        // Comparamos la descripción del proyecto
         if (!Objects.equals(this.currentProject.getProjectDescription(), this.lastSavedProjectState.getProjectDescription())) {
             logger.debug("[Dirty Check] Diferencia detectada en: projectDescription");
             return true;
         }
 
-        // Para esquema v1, comparar el ClientSelection legacy
         if (this.currentProject.getSchemaVersion() < 2) {
             if (!Objects.equals(this.currentProject.getClientSelection(), this.lastSavedProjectState.getClientSelection())) {
                 logger.debug("[Dirty Check] Diferencia detectada en: clientSelection");
@@ -165,7 +156,6 @@ public class ProjectManager implements IProjectManager {
             }
         }
 
-        // Para esquema v2, comparar la lista maestra directamente
         if (this.currentProject.getSchemaVersion() >= 2) {
             if (!Objects.equals(this.currentProject.getMasterImages(),
                                 this.lastSavedProjectState.getMasterImages())) {
@@ -174,7 +164,6 @@ public class ProjectManager implements IProjectManager {
             }
         }
 
-        // Si hemos llegado hasta aquí, no hay diferencias.
         return false;
     } // ---FIN de metodo isProjectDirty---
     
@@ -404,13 +393,6 @@ public class ProjectManager implements IProjectManager {
                 logger.debug("   -> [FLAG] El proyecto ha sido marcado como GUARDADO. 'hayCambiosSinGuardar' es ahora 'false'.");
             }
 
-            if (currentProject != null && currentProject.isSharedWithClient()) {
-                String prjclName = rutaGuardado.getFileName().toString()
-                        .replaceAll("(?i)\\.prj$", "") + ".prjcl";
-                Path prjclPath = rutaGuardado.resolveSibling(prjclName);
-                saveAsCopy(prjclPath);
-                logger.debug("   -> Copia replicada a .prjcl: {}", prjclPath.getFileName());
-            }
         }
     } // --- Fin del método guardarAArchivo ---
     
@@ -463,6 +445,7 @@ public class ProjectManager implements IProjectManager {
         }
 
         cargarDesdeArchivo(rutaArchivo);
+        this.hayCambiosSinGuardar = false;
         this.lastSavedProjectState = deepCopyProjectModel(this.currentProject); 
         this.archivoProyectoActivo = rutaArchivo;
         if (modelRef != null) {
@@ -470,20 +453,7 @@ public class ProjectManager implements IProjectManager {
         }
 
         if (isPrjFile(rutaArchivo) && currentProject != null && currentProject.isSharedWithClient()) {
-            String companionName = rutaArchivo.getFileName().toString()
-                    .replaceAll("(?i)\\.prj$", "") + EXTENSION_PRJCL;
-            Path companionPath = rutaArchivo.resolveSibling(companionName);
-            if (Files.isReadable(companionPath)) {
-                int option = JOptionPane.showConfirmDialog(null,
-                        "Este proyecto tiene una sesi\u00f3n de cliente activa.\n"
-                        + "\u00bfEntrar en modo cliente?",
-                        "Sesi\u00f3n de Cliente Detectada",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.QUESTION_MESSAGE);
-                if (option == JOptionPane.YES_OPTION) {
-                    throw new ProyectoIOException(REDIRECT_TO_CLIENTE);
-                }
-            }
+            throw new ProyectoIOException(REDIRECT_TO_CLIENTE);
         }
     } // ---FIN de metodo abrirProyecto---
 
