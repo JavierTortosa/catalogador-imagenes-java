@@ -1100,7 +1100,21 @@ public class DataController {
         if (selectedValue != null && filteredModel.contains(selectedValue)) {
             fileNameList.setSelectedValue(selectedValue, true);
         }
+
+        actualizarContadorTornado(filteredModel.getSize(), masterModel.getSize());
     } // --- Fin del metodo/clase applyTornadoFilter ---
+
+
+    private void actualizarContadorTornado(int filtrados, int total) {
+        javax.swing.JLabel label = registry.get("label.datamode.tornado.count");
+        if (label != null) {
+            if (filtrados == total) {
+                label.setText(total + " resultados");
+            } else {
+                label.setText(filtrados + " de " + total);
+            }
+        }
+    } // --- Fin del metodo/clase actualizarContadorTornado ---
 
 
     /**
@@ -1228,6 +1242,8 @@ public class DataController {
         JList<String> fileNameList = registry.get("list.datamode.filenames");
         if (fileNameList == null) return;
         fileNameList.setModel(masterFileListModel);
+        int total = masterFileListModel != null ? masterFileListModel.getSize() : 0;
+        actualizarContadorTornado(total, total);
     } // --- Fin del metodo/clase refreshVisibleFileList ---
 
     /**
@@ -2412,6 +2428,7 @@ public class DataController {
                 JToggleButton btnTornado = registry.get("toggle.datamode.tornado");
                 if (btnTornado == null || !btnTornado.isSelected()) {
                     fileNameList.setModel(fileNameModel);
+                    actualizarContadorTornado(fileNameModel.getSize(), fileNameModel.getSize());
                 }
             }
             if (visorController != null && visorController.getListCoordinator() != null) {
@@ -2472,6 +2489,7 @@ public class DataController {
                 JToggleButton btnTornado = registry.get("toggle.datamode.tornado");
                 if (btnTornado == null || !btnTornado.isSelected()) {
                     fileNameList.setModel(fileNameModel);
+                    actualizarContadorTornado(fileNameModel.getSize(), fileNameModel.getSize());
                 }
             }
             if (visorController != null && visorController.getListCoordinator() != null) {
@@ -2531,6 +2549,7 @@ public class DataController {
                 JToggleButton btnTornado = registry.get("toggle.datamode.tornado");
                 if (btnTornado == null || !btnTornado.isSelected()) {
                     fileNameList.setModel(fileNameModel);
+                    actualizarContadorTornado(fileNameModel.getSize(), fileNameModel.getSize());
                 }
             }
             if (visorController != null && visorController.getListCoordinator() != null) {

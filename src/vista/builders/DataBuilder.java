@@ -28,6 +28,7 @@ import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import javax.swing.tree.TreeSelectionModel;
@@ -334,6 +335,12 @@ public class DataBuilder {
             "• Con filtro tornado <b>ENCENDIDO</b>: filtra en vivo los nombres que contienen el texto</html>");
         registry.register("textfield.datamode.tornado", tornadoField);
         tornadobar.add(tornadoField);
+        
+        JLabel tornadoCountLabel = new JLabel("");
+        tornadoCountLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        tornadoCountLabel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 4));
+        registry.register("label.datamode.tornado.count", tornadoCountLabel);
+        tornadobar.add(tornadoCountLabel);
         
         tornadoPanel.add(tornadobar, BorderLayout.CENTER);
         centerPanel.add(tornadoPanel, BorderLayout.NORTH);
