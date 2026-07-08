@@ -2,8 +2,10 @@ package vista.builders;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Desktop;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
@@ -583,6 +585,7 @@ public class ClientBuilder {
         });
 
         registry.register(tableName, table);
+        registry.register("panel." + tableName, panel);
         JScrollPane scrollPane = new JScrollPane(table);
         panel.add(scrollPane, BorderLayout.CENTER);
 
@@ -600,10 +603,47 @@ public class ClientBuilder {
 
         JPanel statusPanel = new JPanel(new BorderLayout());
         statusPanel.setBorder(BorderFactory.createTitledBorder("Estado"));
-        JLabel lblEstado = new JLabel("Modo cliente abierto");
-        lblEstado.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        registry.register("label.cliente.estado", lblEstado);
-        statusPanel.add(lblEstado, BorderLayout.CENTER);
+
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        leftPanel.setBorder(null);
+
+        JLabel lblIteracion = new JLabel("iteraci\u00f3n: 0");
+        lblIteracion.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        registry.register("label.cliente.estado.iteracion", lblIteracion);
+        leftPanel.add(lblIteracion);
+
+        leftPanel.add(new JLabel("  |  "));
+
+        JLabel lblSel = new JLabel("\u2713 0");
+        lblSel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblSel.setForeground(new Color(34, 139, 34));
+        registry.register("label.cliente.estado.sel", lblSel);
+        leftPanel.add(lblSel);
+
+        leftPanel.add(new JLabel("  "));
+
+        JLabel lblUnd = new JLabel("\u25CB 0");
+        lblUnd.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblUnd.setForeground(new Color(128, 128, 128));
+        registry.register("label.cliente.estado.und", lblUnd);
+        leftPanel.add(lblUnd);
+
+        leftPanel.add(new JLabel("  "));
+
+        JLabel lblDis = new JLabel("\u2717 0");
+        lblDis.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblDis.setForeground(new Color(200, 50, 50));
+        registry.register("label.cliente.estado.dis", lblDis);
+        leftPanel.add(lblDis);
+
+        statusPanel.add(leftPanel, BorderLayout.WEST);
+
+        JLabel lblInfo = new JLabel("");
+        lblInfo.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblInfo.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        registry.register("label.cliente.estado.info", lblInfo);
+        statusPanel.add(lblInfo, BorderLayout.EAST);
+
         centerPanel.add(statusPanel, BorderLayout.SOUTH);
 
         return centerPanel;

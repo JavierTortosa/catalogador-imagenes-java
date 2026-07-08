@@ -1,5 +1,6 @@
 package controlador;
 
+import java.awt.BorderLayout;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.nio.file.Path;
@@ -13,8 +14,11 @@ import javax.swing.DefaultListModel;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JList;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +69,7 @@ public class ClientController implements IModoController {
     private boolean sincronizandoTablas;
     private boolean gridListenerRegistered;
     private boolean editingActive;
+    private boolean ocultarDescartes;
     private String lastClientImageKey;
     private ActionFactory actionFactory;
 
@@ -103,6 +108,45 @@ public class ClientController implements IModoController {
         t = registry.get("table.cliente.cliente.descartes");
         if (t != null && t.getModel() instanceof vista.models.ClienteTableModel cm2) cm2.setEditingActive(editingActive);
     } // --- Fin de metodo setEditingActive ---
+
+
+    public boolean isOcultarDescartes() {
+        return ocultarDescartes;
+    } // --- Fin de metodo isOcultarDescartes ---
+
+
+    public void setOcultarDescartes(boolean ocultarDescartes) {
+        this.ocultarDescartes = ocultarDescartes;
+        actualizarFeedbackVisualDescartes();
+        refrescarTablas();
+    } // --- Fin de metodo setOcultarDescartes ---
+
+
+    private JLabel descartesWarningLabel;
+
+    private void actualizarFeedbackVisualDescartes() {
+        if (registry == null) return;
+        JPanel panel = registry.get("panel.table.cliente.cliente.descartes");
+        if (panel == null) return;
+        if (ocultarDescartes) {
+            if (descartesWarningLabel == null) {
+                descartesWarningLabel = new JLabel("\u26a0 DESCARTES OCULTADOS EN EXPORTACI\u00d3N \u26a0");
+                descartesWarningLabel.setHorizontalAlignment(SwingConstants.CENTER);
+                descartesWarningLabel.putClientProperty("FlatLaf.style",
+                        "font: bold; background: #CC3333; foreground: #FFFFFF;");
+            }
+            panel.add(descartesWarningLabel, BorderLayout.NORTH);
+            panel.setBorder(javax.swing.BorderFactory.createLineBorder(
+                    new java.awt.Color(180, 40, 40), 2));
+        } else {
+            if (descartesWarningLabel != null) {
+                panel.remove(descartesWarningLabel);
+            }
+            panel.setBorder(javax.swing.BorderFactory.createTitledBorder("Descartes (Cliente)"));
+        }
+        panel.revalidate();
+        panel.repaint();
+    } // --- Fin de metodo actualizarFeedbackVisualDescartes ---
 
 
     public void setGeneralController(GeneralController generalController) {
@@ -652,6 +696,7 @@ public class ClientController implements IModoController {
             AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML,
             AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR,
             AppActionCommands.CMD_CLIENTE_TOGGLE_EDITOR_PANEL,
+            AppActionCommands.CMD_CLIENTE_TOGGLE_OCULTAR_DESCARTES,
             AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES,
         };
         for (String cmd : disableWhenClosed) {
@@ -663,20 +708,41 @@ public class ClientController implements IModoController {
 
     public void actualizarBarraEstado() {
         if (registry == null) return;
-        javax.swing.JLabel lbl = registry.get("label.cliente.estado");
-        if (lbl == null) return;
         ProjectModel project = projectManager != null ? projectManager.getCurrentProject() : null;
         if (project == null) return;
 
-        String text;
-        if (project.isClientModeClosed()) {
-            text = "Modo cliente cerrado \u2014 Solo lectura";
-        } else if (editingActive) {
-            text = "Modo cliente abierto \u2014 Edici\u00f3n activa";
-        } else {
-            text = "Modo cliente abierto \u2014 Iteraci\u00f3n " + project.getSharedIteration();
+        javax.swing.JLabel lblIter = registry.get("label.cliente.estado.iteracion");
+        if (lblIter != null) {
+            lblIter.setText("iteraci\u00f3n: " + project.getSharedIteration());
         }
-        lbl.setText(text);
+
+        int sel = 0, dis = 0, und = 0;
+        for (var pi : project.getMasterImages().values()) {
+            var state = pi.getEstadoCliente();
+            if (state == SelectionState.SELECTED) sel++;
+            else if (state == SelectionState.DISCARDED) dis++;
+            else und++;
+        }
+
+        javax.swing.JLabel lblSel = registry.get("label.cliente.estado.sel");
+        if (lblSel != null) lblSel.setText("\u2713 " + sel);
+
+        javax.swing.JLabel lblDis = registry.get("label.cliente.estado.dis");
+        if (lblDis != null) lblDis.setText("\u2717 " + dis);
+
+        javax.swing.JLabel lblUnd = registry.get("label.cliente.estado.und");
+        if (lblUnd != null) lblUnd.setText("\u25CB " + und);
+
+        javax.swing.JLabel lblInfo = registry.get("label.cliente.estado.info");
+        if (lblInfo != null) {
+            if (project.isClientModeClosed()) {
+                lblInfo.setText("Cliente cerrado");
+            } else if (editingActive) {
+                lblInfo.setText("Edici\u00f3n activa");
+            } else {
+                lblInfo.setText("");
+            }
+        }
     } // --- Fin de metodo actualizarBarraEstado ---
 
 
@@ -1003,10 +1069,11 @@ public class ClientController implements IModoController {
         progressDialog.setLocationRelativeTo(registry != null
                 ? (java.awt.Window) registry.get("frame.main") : null);
 
+        final boolean incluirDescartes = !ocultarDescartes;
         javax.swing.SwingWorker<Void, Integer> worker = new javax.swing.SwingWorker<>() {
             @Override
             protected Void doInBackground() throws Exception {
-                webCatalogExporter.exportar(project, outputDir, iteracion, progress -> {
+                webCatalogExporter.exportar(project, outputDir, iteracion, incluirDescartes, progress -> {
                     publish(progress);
                 });
                 return null;
@@ -1123,6 +1190,7 @@ public class ClientController implements IModoController {
                 registry != null ? (java.awt.Window) registry.get("frame.main") : null);
         progressDialog.setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
 
+        final boolean incluirDescartes = !ocultarDescartes;
         javax.swing.SwingWorker<Void, Void> worker = new javax.swing.SwingWorker<>() {
             @Override
             protected Void doInBackground() throws Exception {
@@ -1130,7 +1198,7 @@ public class ClientController implements IModoController {
                     webCatalogExporter = new WebCatalogExporter();
                 }
                 webCatalogExporter.exportarHtmlCliente(project, finalOutput,
-                        iteracionFinal, progress -> setProgress(progress));
+                        iteracionFinal, incluirDescartes, progress -> setProgress(progress));
                 return null;
             }
 

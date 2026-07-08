@@ -110,6 +110,15 @@
             <td><strong>Mostrar checkboxes en imágenes (Toggle):</strong> Activa o desactiva la visualización
                 de los overlays de checkboxes sobre las imágenes en el visor.</td>
         </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_60101-Rotate-X-Axis.png"></td>
+            <td><strong>Ocultar descartes (Toggle con confirmación):</strong> Activa o desactiva el filtro
+                que excluye las imágenes con estado <strong>DISCARDED</strong> de las exportaciones (HTML único
+                y catálogo web). Al activarlo, se muestra un diálogo de confirmación y el panel de
+                <strong>Descartes de Cliente</strong> se marca visualmente con una barra roja de advertencia.
+                Las imágenes descartadas siguen visibles en la tabla para consulta, pero no se incluyen
+                en los archivos generados.</td>
+        </tr>
         <tr><td colspan="2"><hr class="separator"></td></tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_60303-Check-Square-2.png"></td>
@@ -123,7 +132,21 @@
         </tr>
     </table>
 
-    <h3>2. Editor de Checkboxes</h3>
+    <h3>2. Barra de Estado (Inferior)</h3>
+    <p>
+        En la parte inferior del modo cliente se muestra una <strong>barra de estado</strong>
+        con información resumida del proyecto:
+    </p>
+    <ul>
+        <li><strong>Iteración:</strong> Número de iteración actual de la revisión compartida.</li>
+        <li><strong>✓ Seleccionados:</strong> Recuento de imágenes con estado SELECTED.</li>
+        <li><strong>○ Sin marcar:</strong> Recuento de imágenes con estado UNDEFINED.</li>
+        <li><strong>✗ Descartados:</strong> Recuento de imágenes con estado DISCARDED.</li>
+        <li><strong>Información adicional:</strong> Total de imágenes y filtro activo si
+            se ha activado la opción <strong>"Ocultar descartes"</strong>.</li>
+    </ul>
+
+    <h3>3. Editor de Checkboxes</h3>
     <p>
         Al activar el <strong>Panel de edición de checkboxes</strong>, aparece un visor con la imagen actual
         y una barra de herramientas específica. También puedes usar atajos de teclado directamente
@@ -156,7 +179,7 @@
         precio, borrarlo, o abrir su hilo de mensajes.
     </p>
 
-    <h3>3. Los 4 Grids de Selección</h3>
+    <h3>4. Los 4 Grids de Selección</h3>
     <p>El modo cliente muestra 4 grids que organizan las imágenes según su origen y estado:</p>
     <ul>
         <li><strong>Selecciones de Proyecto:</strong> Imágenes que el proyecto tiene marcadas como seleccionadas.</li>
@@ -200,7 +223,7 @@
         internos de esa imagen.
     </p>
 
-    <h3>4. Checkboxes (Tristate)</h3>
+    <h3>5. Checkboxes (Tristate)</h3>
     <p>
         Los checkboxes en modo cliente tienen tres estados posibles que se ciclan al hacer clic:
     </p>
@@ -216,7 +239,7 @@
         en cualquier otro caso, UNDEFINED.
     </p>
 
-    <h3>5. Exportación HTML Único</h3>
+    <h3>6. Exportación HTML Único</h3>
     <p>
         La exportación a HTML único genera un archivo autónomo que contiene:
     </p>
@@ -255,7 +278,7 @@
         </p>
     </div>
 
-    <h3>6. Sistema de Mensajes (Chat)</h3>
+    <h3>7. Sistema de Mensajes (Chat)</h3>
     <p>
         Cada imagen y cada checkbox interno puede tener un <strong>hilo de mensajes</strong>
         (<em>CommentThread</em>) que funciona como un chat. Para abrirlo, haz doble clic en el icono

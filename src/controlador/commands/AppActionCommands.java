@@ -180,6 +180,7 @@ public interface AppActionCommands {
 	    
 	 // Gestor de proyectos - POPUP MENU
 	    public static final String CMD_PROYECTO_MOVER_A_DESCARTES 	= "cmd.proyecto.mover_a_descartes";
+	    public static final String CMD_CLIENTE_TOGGLE_OCULTAR_DESCARTES = "cmd.cliente.toggle_ocultar_descartes";
 	    public static final String CMD_PROYECTO_LOCALIZAR_ARCHIVO 	= "cmd.proyecto.localizar_archivo";
 	    public static final String CMD_PROYECTO_VACIAR_DESCARTES 	= "cmd.proyecto.vaciar_descartes";
 	    public static final String CMD_PROYECTO_RESTAURAR_DE_DESCARTES = "cmd.proyecto.restaurar_de_descartes";

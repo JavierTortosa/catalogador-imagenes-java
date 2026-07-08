@@ -1,0 +1,70 @@
+# ThumbnailService
+
+Generación y caché de miniaturas para todas las vistas de la aplicación.
+
+## Archivos clave
+
+| Archivo | Rol |
+|---------|-----|
+| `servicios/image/ThumbnailService.java` | Servicio central: generación + caché LRU |
+| `servicios/ConfigKeys.java` | Keys de configuración (tamaños, caché) |
+| `servicios/ConfigurationManager.java` | Defaults y gestión de configuración |
+| `vista/renderers/GridCellRenderer.java` | Renderer del grid (usa versión asíncrona) |
+| `vista/renderers/MiniaturaListCellRenderer.java` | Renderer de la tira de miniaturas (usa versión asíncrona) |
+| `vista/panels/GridDisplayPanel.java` | Panel del grid, gestiona cambio de tamaño de celda |
+| `vista/renderers/GridCellRenderer.java` | Renderer con `setCellSize()` para sincronizar tamaño |
+
+## Caché
+
+- **L1 (memoria):** Caffeine LRU, configurable via `MINIATURAS_CACHE_MAX_SIZE` (default 5000).
+- **No hay caché en disco** (descartado porque el scanner de imágenes indexa la carpeta de thumbnails).
+- La caché se limpia explícitamente cuando:
+  - El usuario cambia el tamaño de thumbnail (tira o grid)
+  - Se resetea la UI al welcome (`ViewManager.limpiarUI()`)
+  - Ocurre un `OutOfMemoryError` durante la generación
+
+## Generación
+
+`generarYEscalarMiniatura()` en `ThumbnailService.java`:
+1. Comprueba `invalidImagePaths` (lista negra de archivos corruptos)
+2. `ImageIO.read()` — carga la imagen completa
+3. `ImageUtils.correctImageOrientation()` — lee metadatos EXIF y corrige rotación
+4. Thumbnailator con `.size(w, h).keepAspectRatio().rendering(SPEED).antialiasing(OFF)`
+
+**IMPORTANTE:** `Rendering.SPEED` + `Antialiasing.OFF` se eligió porque la diferencia visual en 120px es imperceptible y la generación es 3-5x más rápida que QUALITY/ON.
+
+## Dos sobrecargas de `obtenerOCrearMiniatura`
+
+| Sobrecarga | Uso | Bloquea EDT? |
+|------------|-----|--------------|
+| 5 params (síncrona) | Tira de miniaturas (vía `MiniaturaListCellRenderer`) | No (usa async vía listener) |
+| 6 params (asíncrona con `ThumbnailListener`) | Grid (`GridCellRenderer`) y tira | No — retorna null y genera en background |
+
+## Tamaños de miniatura por contexto
+
+| Contexto | Config Key | Default |
+|----------|------------|---------|
+| Grid (celda) | `GRID_THUMBNAIL_WIDTH/HEIGHT` | 120x120 |
+| Tira normal | `MINIATURAS_TAMANO_NORM_ANCHO/ALTO` | 70x70 |
+| Tira seleccionada | `MINIATURAS_TAMANO_SEL_ANCHO/ALTO` | 80x80 |
+
+## Sincronización de tamaño del grid
+
+Cuando el usuario cambia el tamaño de celda (Ctrl++/- o barra de herramientas):
+
+```
+ImageListManager.aumentarTamanoMiniaturas()
+  → escribe nuevo tamaño en config
+  → GridDisplayPanel.setGridCellSize(nuevoAncho, nuevoAlto)
+    → gridList.setFixedCellWidth/Height()
+    → renderer.setCellSize(nuevoAncho, nuevoAlto)  // actualiza preferredSize
+    → gridThumbnailService.limpiarCache()            // descarta thumbnails del tamaño anterior
+    → gridList.revalidate() + repaint()
+```
+
+## Gotchas
+
+- **Las claves de caché incluyen la ruta del archivo + dimensiones.** Si el renderer pide 110x110 y la precarga fue 128x128, son dos entradas distintas en caché.
+- **`GridCoordinator.java` es código muerto.** Nunca se instancia. Su `limpiarCache()` en `onMasterListChanged()` nunca se ejecuta.
+- **Existen dos `ThumbnailService` separados:** `thumbnailServiceGlobal` (tira de miniaturas) y `gridThumbnailService` (grid). Cada uno con su propia caché LRU.
+- **Los iconos `30106-Check-Square-2.png` y `30105-Layout-Square.png` no existen en disco.** Son referencias de código muerto en `createToggleTagAction()`.

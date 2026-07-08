@@ -45,6 +45,7 @@ public class WebCatalogExporter {
     public void setForceJpeg(boolean forceJpeg) { this.forceJpeg = forceJpeg; }
 
     public void exportar(ProjectModel project, Path outputDir, int iteracion,
+                         boolean incluirDescartes,
                          java.util.function.Consumer<Integer> progressCallback) throws IOException {
     	
         logger.info("[WebCatalogExporter] Iniciando exportación a: {}", outputDir);
@@ -66,7 +67,7 @@ public class WebCatalogExporter {
             }
         }
 
-        String dataJson = generarDataJson(project, thumbsDir, iteracion);
+        String dataJson = generarDataJson(project, thumbsDir, iteracion, incluirDescartes);
         Path dataJsonPath = outputDir.resolve("data.json");
         Files.writeString(dataJsonPath, dataJson, StandardCharsets.UTF_8);
 
@@ -77,7 +78,7 @@ public class WebCatalogExporter {
         if (progressCallback != null) progressCallback.accept(90);
 
         String projectSafeName = sanitizarNombre(project.getProjectName());
-        String respuestaVacia = generarRespuestaVacia(project, projectSafeName, iteracion);
+        String respuestaVacia = generarRespuestaVacia(project, projectSafeName, iteracion, incluirDescartes);
         Path respuestaPath = outputDir.resolve(projectSafeName + "_iteracion" + iteracion + "_respuesta.json");
         Files.writeString(respuestaPath, respuestaVacia, StandardCharsets.UTF_8);
         if (progressCallback != null) progressCallback.accept(95);
@@ -92,8 +93,8 @@ public class WebCatalogExporter {
     } // --- Fin del metodo exportar ---
 
     
-    public void exportar(ProjectModel project, Path outputDir, int iteracion) throws IOException {
-        exportar(project, outputDir, iteracion, null);
+    public void exportar(ProjectModel project, Path outputDir, int iteracion, boolean incluirDescartes) throws IOException {
+        exportar(project, outputDir, iteracion, incluirDescartes, null);
     
     } // --- Fin del metodo exportar ---
     
@@ -107,21 +108,22 @@ public class WebCatalogExporter {
     } // --- Fin del Metodo determinarCalidad ---
 
     
-    public void exportarHtmlCliente(ProjectModel project, Path outputFile, int iteracion) throws IOException {
-        this.exportarHtmlCliente(project, outputFile, iteracion, null);
+    public void exportarHtmlCliente(ProjectModel project, Path outputFile, int iteracion,
+                                    boolean incluirDescartes) throws IOException {
+        this.exportarHtmlCliente(project, outputFile, iteracion, incluirDescartes, null);
     
     } // --- Fin del Metodo exportarHtmlCliente ---
 
-    
+
     public void exportarHtmlCliente(ProjectModel project, Path outputFile, int iteracion,
+                                    boolean incluirDescartes,
                                     java.util.function.Consumer<Integer> progressCallback) throws IOException {
         logger.info("[WebCatalogExporter] Generando HTML cliente único: {}", outputFile);
 
         java.util.List<String> imageKeys = new java.util.ArrayList<>();
         for (var pi : project.getMasterImages().values()) {
-            if (true) {
-                imageKeys.add(pi.getRutaImagen());
-            }
+            if (!incluirDescartes && pi.getEstadoCliente() == SelectionState.DISCARDED) continue;
+            imageKeys.add(pi.getRutaImagen());
         }
         if (imageKeys.isEmpty()) {
             throw new IOException("El proyecto no tiene imágenes.");
@@ -418,6 +420,7 @@ public class WebCatalogExporter {
             + "          <span class=\"tristate-cb\" id=\"modalCheckPrincipal\" tabindex=\"0\" title=\"Seleccionar/Descartar\">&#x25cb;</span>\n"
             + "          <span class=\"modal-codigo\" id=\"modalCodigo\"></span>\n"
             + "          <span class=\"modal-nombre\" id=\"modalNombre\"></span>\n"
+            + "          <span class=\"modal-precio\" id=\"modalPrecio\"></span>\n"
             + "        </div>\n"
             + "      </div>\n"
             + "      <div class=\"modal-body-layout\">\n"
@@ -515,16 +518,17 @@ public class WebCatalogExporter {
               + ".modal-close { position: absolute; top: 10px; right: 15px; cursor: pointer; font-size: 2rem; color: #fff; border: none; background: none; z-index: 10;}\n"
               + ".modal-header { margin-bottom: .8rem; padding-right: 30px; }\n"
               + ".modal-info { display: flex; align-items: center; gap: .5rem; }\n"
-              + ".modal-nombre { font-size: 1.05rem; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n"
-              + ".modal-codigo { display: inline-block; background: #000; color: #fff; padding: 1px 8px; border-radius: 3px; font-size: .7rem; font-weight: 700; flex-shrink: 0; }\n"
+               + ".modal-nombre { font-size: 1.05rem; font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n"
+               + ".modal-codigo { display: inline-block; background: #000; color: #fff; padding: 1px 8px; border-radius: 3px; font-size: .7rem; font-weight: 700; flex-shrink: 0; }\n"
+               + ".modal-precio { font-size: .9rem; font-weight: 700; color: #2ecc71; margin-left: auto; flex-shrink: 0; }\n"
               + ".modal-body-layout { display: flex; gap: 15px; flex: 1; min-height: 0; }\n"
-              + ".modal-image-wrap { flex: 2; overflow: hidden; border-radius: 6px; background: #000; position: relative; cursor: grab; touch-action: none; contain: layout; }\n"
+               + ".modal-image-wrap { flex: 2; overflow: hidden; border-radius: 6px; background: #000; position: relative; cursor: grab; touch-action: none; contain: layout; }\n"
               + ".modal-image-wrap:active { cursor: grabbing; }\n"
               + ".modal-image { width: 100%; height: 100%; object-fit: contain; display: block; transform-origin: 0 0; user-select: none; -webkit-user-select: none; pointer-events: none; }\n"
               + ".checkbox-overlays { position: absolute; top: 0; left: 0; pointer-events: none; transform-origin: 0 0; contain: layout; }\n"
        
               + "/* === OVERLAYS DE CHECKBOX + BURBUJA DE MENSAJES === */\n"
-              + ".cb-overlay { position: absolute; display: flex; align-items: center; gap: 3px; pointer-events: auto; transform: translate(-50%, -50%); background: rgba(0,0,0,.85); border-radius: 4px; padding: 2px 5px; white-space: nowrap; cursor: pointer; border: 1px solid rgba(255,255,255,.2); user-select: none; }\n"
+               + ".cb-overlay { position: absolute; display: flex; align-items: center; gap: 3px; pointer-events: auto; transform: translate(-50%, -50%); background: rgba(0,0,0,.85); border-radius: 4px; padding: 2px 5px; white-space: nowrap; cursor: pointer; border: 1px solid rgba(255,255,255,.2); user-select: none; touch-action: manipulation; }\n"
               + ".cb-overlay.active { outline: 2px solid #ffd700; box-shadow: 0 0 10px rgba(255,215,0,.7); }\n"
               + ".cb-overlay .cb-indicator { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 3px; font-weight: 700; font-size: .7rem; }\n"
               + ".cb-overlay .cb-indicator.sel { background: var(--selected); color: #000; }\n"
@@ -575,13 +579,13 @@ public class WebCatalogExporter {
               + "  .chat-input-row textarea, .chat-input-row input { font-size: 16px !important; min-height: 2.6rem; }\n"
               + "  .btn-enviar { padding: .5rem; font-size: .85rem; }\n"
               + "}\n"
-              + "@media (max-width: 600px) {\n"
-              + "  #topbar { flex-direction: column; align-items: stretch; text-align: center; }\n"
-              + "  .topbar-section { justify-content: center; flex-wrap: wrap; }\n"
-              + "  .gallery { grid-template-columns: repeat(2, 1fr); gap: .5rem; padding: .5rem; }\n"
-              + "  .footer-buttons { flex-direction: column; width: 100%; }\n"
-              + "  .btn-primary, .btn-secondary { width: 100%; }\n"
-              + "}\n";
+               + "@media (max-width: 600px) {\n"
+               + "  #topbar { flex-direction: column; align-items: stretch; text-align: center; }\n"
+               + "  .topbar-section { justify-content: center; flex-wrap: wrap; }\n"
+               + "  .gallery { grid-template-columns: repeat(2, 1fr); gap: .5rem; padding: .5rem; }\n"
+               + "  .footer-buttons { flex-direction: column; width: 100%; }\n"
+               + "  .btn-primary, .btn-secondary { width: 100%; }\n"
+               + "}\n";
         
     } // --- Fin del Metodo getClientCss --- 
 
@@ -720,8 +724,9 @@ public class WebCatalogExporter {
               + "  sortGallery();\n"
               + "});\n"
               + "// === RENDERIZADO DE GALERIA ===\n"
-              + "function renderGallery() {\n"
-              + "  var gallery = document.getElementById('gallery');\n"
+               + "function renderGallery() {\n"
+               + "  console.log('Rendering gallery. Sample image price:', data.imagenes[0] ? data.imagenes[0].precio : 'No images');\n"
+               + "  var gallery = document.getElementById('gallery');\n"
               + "  gallery.innerHTML = '';\n"
               + "  for (var i = 0; i < data.imagenes.length; i++) {\n"
               + "    var img = data.imagenes[i];\n"
@@ -755,45 +760,49 @@ public class WebCatalogExporter {
               + "    spanName.className = 'card-name';\n"
               + "    spanName.textContent = img.nombre;\n"
               + "    spanName.dataset.idx = i;\n"
-              + "    spanName.onclick = function() { openModal(parseInt(this.dataset.idx)); };\n"
-              + "    header.appendChild(spanName);\n"
-              + "    \n"
-              + "    if (img.precio) {\n"
-              + "      var spanPrice = document.createElement('span');\n"
-              + "      spanPrice.className = 'card-price';\n"
-              + "      spanPrice.textContent = img.precio + ' \\u20ac';\n"
-              + "      header.appendChild(spanPrice);\n"
-              + "    }\n"
-              + "    \n"
-              + "    var prices = [];\n"
-              + "    if (img.checkboxes) { for (var j = 0; j < img.checkboxes.length; j++) { if (img.checkboxes[j].precio) prices.push(img.checkboxes[j].precio); } }\n"
-              + "    var msgWeight = getCardMessageWeight(img);\n"
-              + "    var iconClass = 'comment-icon';\n"
-              + "    var iconTitle = 'Sin mensajes';\n"
-              + "    if (msgWeight === 3) { iconClass += ' has-unread'; iconTitle = '\\u00a1Tienes mensajes del taller!'; }\n"
-              + "    else if (msgWeight === 2) { iconClass += ' has-read-pending'; iconTitle = 'Mensaje le\\u00eddo'; }\n"
-              + "    else if (msgWeight === 1) { iconClass += ' has-read'; iconTitle = 'Mensaje contestado'; }\n"
-              + "    \n"
-              + "    var iconBtn = document.createElement('span');\n"
-              + "    iconBtn.className = iconClass;\n"
-              + "    iconBtn.title = iconTitle;\n"
-              + "    iconBtn.dataset.idx = i;\n"
-              + "    iconBtn.onclick = function() { openModal(parseInt(this.dataset.idx), true); };\n"
-              + "    header.appendChild(iconBtn);\n"
-              + "    card.appendChild(header);\n"
-              + "    \n"
-              + "    var genStatus = getMessageStatus(img.comentario);\n"
-              + "    if (genStatus !== 'NONE' || prices.length > 0) {\n"
-              + "      var commentDiv = document.createElement('div');\n"
-              + "      commentDiv.className = 'card-comment';\n"
-              + "      if (prices.length === 1 && !img.precio) {\n"
-              + "        var prDiv = document.createElement('div'); prDiv.className = 'card-prices';\n"
-              + "        var tSpan = document.createElement('span'); tSpan.className = 'price-tag'; tSpan.textContent = prices[0] + ' \\u20ac';\n"
-              + "        prDiv.appendChild(tSpan); commentDiv.appendChild(prDiv);\n"
-              + "      } else if (prices.length > 0) {\n"
-              + "        var prDiv2 = document.createElement('div'); prDiv2.className = 'card-prices'; prDiv2.style.cssText = 'color:var(--text-muted);font-size:.75rem;'; prDiv2.textContent = 'Precios \\u27a1 clic';\n"
-              + "        commentDiv.appendChild(prDiv2);\n"
-              + "      }\n"
+               + "    addClickAndTouch(spanName, function() { openModal(parseInt(this.dataset.idx)); });\n"
+               + "    header.appendChild(spanName);\n"
+               + "    \n"
+               + "    if (img.precio && img.precio !== '') {\n"
+               + "      var spanPrice = document.createElement('span');\n"
+               + "      spanPrice.className = 'card-price';\n"
+               + "      spanPrice.textContent = img.precio + ' \\u20ac';\n"
+               + "      header.appendChild(spanPrice);\n"
+               + "    }\n"
+               + "    \n"
+               + "    var prices = [];\n"
+               + "    if (img.checkboxes) { for (var j = 0; j < img.checkboxes.length; j++) { if (img.checkboxes[j].precio) prices.push(img.checkboxes[j].precio); } }\n"
+               + "    var msgWeight = getCardMessageWeight(img);\n"
+               + "    var iconClass = 'comment-icon';\n"
+               + "    var iconTitle = 'Sin mensajes';\n"
+               + "    if (msgWeight === 3) { iconClass += ' has-unread'; iconTitle = '\\u00a1Tienes mensajes del taller!'; }\n"
+               + "    else if (msgWeight === 2) { iconClass += ' has-read-pending'; iconTitle = 'Mensaje le\\u00eddo'; }\n"
+               + "    else if (msgWeight === 1) { iconClass += ' has-read'; iconTitle = 'Mensaje contestado'; }\n"
+               + "    \n"
+               + "    var iconBtn = document.createElement('span');\n"
+               + "    iconBtn.className = iconClass;\n"
+               + "    iconBtn.title = iconTitle;\n"
+               + "    iconBtn.dataset.idx = i;\n"
+               + "    addClickAndTouch(iconBtn, function() { openModal(parseInt(this.dataset.idx), true); });\n"
+               + "    header.appendChild(iconBtn);\n"
+               + "    card.appendChild(header);\n"
+               + "    \n"
+               + "    var genStatus = getMessageStatus(img.comentario);\n"
+               + "    if (genStatus !== 'NONE' || prices.length > 0 || (img.precio && img.precio !== '')) {\n"
+               + "      var commentDiv = document.createElement('div');\n"
+               + "      commentDiv.className = 'card-comment';\n"
+               + "      if (prices.length === 1 && (!img.precio || img.precio === '')) {\n"
+               + "        var prDiv = document.createElement('div'); prDiv.className = 'card-prices';\n"
+               + "        var tSpan = document.createElement('span'); tSpan.className = 'price-tag'; tSpan.textContent = prices[0] + ' \\u20ac';\n"
+               + "        prDiv.appendChild(tSpan); commentDiv.appendChild(prDiv);\n"
+               + "      } else if (prices.length > 0) {\n"
+               + "        var prDiv2 = document.createElement('div'); prDiv2.className = 'card-prices'; prDiv2.style.cssText = 'color:var(--text-muted);font-size:.75rem;'; prDiv2.textContent = 'Precios \\u27a1 clic';\n"
+               + "        commentDiv.appendChild(prDiv2);\n"
+               + "      } else if (img.precio && img.precio !== '') {\n"
+               + "        var prDiv3 = document.createElement('div'); prDiv3.className = 'card-prices';\n"
+               + "        var tSpan3 = document.createElement('span'); tSpan3.className = 'price-tag'; tSpan3.textContent = img.precio + ' \\u20ac';\n"
+               + "        prDiv3.appendChild(tSpan3); commentDiv.appendChild(prDiv3);\n"
+               + "      }\n"
               + "      if (genStatus !== 'NONE') {\n"
               + "         var lastM = img.comentario.hilo[img.comentario.hilo.length-1];\n"
               + "         var deStr = lastM.de === 'nosotros' ? '<span style=\"color:#ffd700\">TALLER:</span> ' : '<span style=\"color:#3498db\">TÚ:</span> ';\n"
@@ -809,7 +818,7 @@ public class WebCatalogExporter {
               + "    imgEl.alt = img.nombre;\n"
               + "    imgEl.loading = 'lazy';\n"
               + "    imgEl.dataset.idx = i;\n"
-              + "    imgEl.onclick = function() { openModal(parseInt(this.dataset.idx)); };\n"
+               + "    addClickAndTouch(imgEl, function() { openModal(parseInt(this.dataset.idx)); });\n"
               + "    imgEl.onerror = function() { setErrorImage(this); };\n"
               + "    card.appendChild(imgEl);\n"
               + "    \n"
@@ -854,6 +863,7 @@ public class WebCatalogExporter {
                + "  var img = data.imagenes[index];\n"
                + "  document.getElementById('modalCodigo').textContent = img.codigo || '';\n"
                + "  document.getElementById('modalNombre').textContent = img.nombre;\n"
+               + "  document.getElementById('modalPrecio').textContent = img.precio ? img.precio + ' \\u20ac' : '';\n"
                + "  document.getElementById('modalImg').src = img.miniatura;\n"
                + "  setTristate(document.getElementById('modalCheckPrincipal'), img.estado || 'UNDEFINED');\n"
                + "  currentContext = { type: 'IMAGE', index: index, cbIndex: -1 }; renderChat();\n"
@@ -921,32 +931,32 @@ public class WebCatalogExporter {
                + "    overlay.style.left = x + 'px'; overlay.style.top = y + 'px';\n"
                + "    overlay.innerHTML = '<span class=\"cb-indicator ' + indicatorClass + '\">' + indicatorText + '</span>' + priceHtml + bubbleHtml;\n"
                + "    container.appendChild(overlay);\n"
-              + "    overlay.addEventListener('click', function(e) {\n"
-              + "      if (e.target.closest('.cb-bubble')) return;\n"
-              + "      var idx = Array.prototype.indexOf.call(container.children, this);\n"
-              + "      if (idx >= 0 && data.imagenes[currentIndex].checkboxes[idx]) {\n"
-              + "        var cbData = data.imagenes[currentIndex].checkboxes[idx];\n"
-              + "        cbData.estado = cycleState(cbData.estado || 'UNDEFINED');\n"
-              + "        var hasSel = false, allDis = true;\n"
-              + "        for(var k=0; k<data.imagenes[currentIndex].checkboxes.length; k++) {\n"
-              + "          var cbSt = data.imagenes[currentIndex].checkboxes[k].estado || 'UNDEFINED';\n"
-              + "          if (cbSt === 'SELECTED') hasSel = true;\n"
-              + "          if (cbSt !== 'DISCARDED') allDis = false;\n"
-              + "        }\n"
-              + "        if (hasSel) data.imagenes[currentIndex].estado = 'SELECTED';\n"
-              + "        else if (allDis && data.imagenes[currentIndex].checkboxes.length > 0) data.imagenes[currentIndex].estado = 'DISCARDED';\n"
-              + "        else data.imagenes[currentIndex].estado = 'UNDEFINED';\n"
-              + "        positionOverlays(container, data.imagenes[currentIndex]);\n"
-              + "        setTristate(document.getElementById('modalCheckPrincipal'), data.imagenes[currentIndex].estado);\n"
-              + "        guardarModal();\n"
-              + "        saveState();\n"
-              + "      }\n"
-              + "    });\n"
+               + "    addClickAndTouch(overlay, function(e) {\n"
+               + "      if (e.target.closest('.cb-bubble')) return;\n"
+               + "      var idx = Array.prototype.indexOf.call(container.children, this);\n"
+               + "      if (idx >= 0 && data.imagenes[currentIndex].checkboxes[idx]) {\n"
+               + "        var cbData = data.imagenes[currentIndex].checkboxes[idx];\n"
+               + "        cbData.estado = cycleState(cbData.estado || 'UNDEFINED');\n"
+               + "        var hasSel = false, allDis = true;\n"
+               + "        for(var k=0; k<data.imagenes[currentIndex].checkboxes.length; k++) {\n"
+               + "          var cbSt = data.imagenes[currentIndex].checkboxes[k].estado || 'UNDEFINED';\n"
+               + "          if (cbSt === 'SELECTED') hasSel = true;\n"
+               + "          if (cbSt !== 'DISCARDED') allDis = false;\n"
+               + "        }\n"
+               + "        if (hasSel) data.imagenes[currentIndex].estado = 'SELECTED';\n"
+               + "        else if (allDis && data.imagenes[currentIndex].checkboxes.length > 0) data.imagenes[currentIndex].estado = 'DISCARDED';\n"
+               + "        else data.imagenes[currentIndex].estado = 'UNDEFINED';\n"
+               + "        positionOverlays(container, data.imagenes[currentIndex]);\n"
+               + "        setTristate(document.getElementById('modalCheckPrincipal'), data.imagenes[currentIndex].estado);\n"
+               + "        guardarModal();\n"
+               + "        saveState();\n"
+               + "      }\n"
+               + "    });\n"
               + "    var bubble = overlay.querySelector('.cb-bubble');\n"
-              + "    bubble.addEventListener('click', function(e) {\n"
-              + "      e.stopPropagation();\n"
-              + "      var idx = Array.prototype.indexOf.call(container.children, this.closest('.cb-overlay'));\n"
-              + "      if (idx >= 0) {\n"
+               + "    addClickAndTouch(bubble, function(e) {\n"
+               + "      e.stopPropagation();\n"
+               + "      var idx = Array.prototype.indexOf.call(container.children, this.closest('.cb-overlay'));\n"
+               + "      if (idx >= 0) {\n"
               + "        var cbData = data.imagenes[currentIndex].checkboxes[idx];\n"
               + "        currentContext = { type: 'CHECKBOX', index: currentIndex, cbIndex: idx }; renderChat(); positionOverlays(document.getElementById('checkboxOverlays'), data.imagenes[currentIndex]);\n"
               + "        \n"
@@ -961,10 +971,27 @@ public class WebCatalogExporter {
               + "    });\n"
               + "  }\n"
               + "}\n"
-              + "function cycleState(c) { return c === 'SELECTED' ? 'DISCARDED' : (c === 'DISCARDED' ? 'UNDEFINED' : 'SELECTED'); }\n"
+               + "function addClickAndTouch(el, handler) {\n"
+               + "  var startX, startY;\n"
+               + "  el.addEventListener('touchstart', function(e) {\n"
+               + "    startX = e.touches[0].clientX;\n"
+               + "    startY = e.touches[0].clientY;\n"
+               + "  }, { passive: true });\n"
+               + "  el.addEventListener('touchend', function(e) {\n"
+               + "    var endX = e.changedTouches[0].clientX;\n"
+               + "    var endY = e.changedTouches[0].clientY;\n"
+               + "    var dist = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));\n"
+               + "    if (dist < 10) {\n"
+               + "      e.preventDefault();\n"
+               + "      handler.call(this, e);\n"
+               + "    }\n"
+               + "  });\n"
+               + "  el.addEventListener('click', handler);\n"
+               + "}\n"
+               + "function cycleState(c) { return c === 'SELECTED' ? 'DISCARDED' : (c === 'DISCARDED' ? 'UNDEFINED' : 'SELECTED'); }\n"
               + "function setTristate(el, state) { el.className = 'tristate-cb state-' + state.toLowerCase(); el.textContent = state === 'SELECTED' ? '\\u2713' : (state === 'DISCARDED' ? '\\u2717' : '\\u25cb'); }\n"
               + "document.getElementById('modalClose').addEventListener('click', function() { guardarModal(); document.getElementById('modal').classList.add('hidden'); document.body.classList.remove('modal-open'); });\n"
-               + "document.getElementById('modalCheckPrincipal').addEventListener('click', function() { if (currentIndex >= 0) { var img = data.imagenes[currentIndex]; img.estado = cycleState(img.estado || 'UNDEFINED'); if (img.checkboxes) { for (var k = 0; k < img.checkboxes.length; k++) { img.checkboxes[k].estado = img.estado; } } setTristate(this, img.estado); positionOverlays(document.getElementById('checkboxOverlays'), img); renderGallery(); saveState(); } });\n"
+               + "addClickAndTouch(document.getElementById('modalCheckPrincipal'), function() { if (currentIndex >= 0) { var img = data.imagenes[currentIndex]; img.estado = cycleState(img.estado || 'UNDEFINED'); if (img.checkboxes) { for (var k = 0; k < img.checkboxes.length; k++) { img.checkboxes[k].estado = img.estado; } } setTristate(this, img.estado); positionOverlays(document.getElementById('checkboxOverlays'), img); renderGallery(); saveState(); } });\n"
                + "function ensureThread(img) {\n"
               + "  if (typeof img.comentario === 'object' && img.comentario && img.comentario.hilo) {\n"
               + "    if (typeof img.comentario.estadoPr === 'undefined') img.comentario.estadoPr = 0;\n"
@@ -1093,7 +1120,7 @@ public class WebCatalogExporter {
                + "    startX = e.touches[0].clientX;\n"
                + "    startY = e.touches[0].clientY;\n"
                + "    var now = Date.now();\n"
-               + "    if (now - lastTapTime < 300 && lastTapTime > 0) {\n"
+               + "    if (now - lastTapTime < 400 && lastTapTime > 0) {\n"
                + "      e.preventDefault();\n"
                + "      if (zoomScale > 1.5) { resetZoom(); }\n"
                + "      else {\n"
@@ -1238,7 +1265,7 @@ public class WebCatalogExporter {
     } // --- Fin del Metodo getClientJs --- 
     
     
-    private String generarDataJson(ProjectModel project, Path thumbsDir, int iteracion) {
+    private String generarDataJson(ProjectModel project, Path thumbsDir, int iteracion, boolean incluirDescartes) {
         String projectName = project.getProjectName() != null ? project.getProjectName() : "Proyecto";
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
@@ -1253,6 +1280,7 @@ public class WebCatalogExporter {
         for (var pi : project.getMasterImages().values()) {
             String rutaStr = pi.getRutaImagen();
             if (rutaStr == null) continue;
+            if (!incluirDescartes && pi.getEstadoCliente() == SelectionState.DISCARDED) continue;
             Path rutaImagen = Path.of(rutaStr);
             String etiqueta = pi.getEtiqueta() != null ? pi.getEtiqueta() : "";
 
@@ -1276,7 +1304,7 @@ public class WebCatalogExporter {
             sb.append("      \"codigo\": ").append(jsonString(imageCode)).append(",\n");
             sb.append("      \"etiqueta\": ").append(jsonString(etiqueta)).append(",\n");
             sb.append("      \"miniatura\": ").append(jsonString("thumbs/" + thumbFilename)).append(",\n");
-            sb.append("      \"estado\": \"DISCARDED\",\n");
+            sb.append("      \"estado\": ").append(jsonString(pi.getEstadoCliente() != null ? pi.getEstadoCliente().name() : "UNDEFINED")).append(",\n");
             sb.append("      \"comentario\": ").append(jsonThread(pi.getCommentThreadAccess(), comment)).append(",\n"); // Usar CommentThread
             sb.append("      \"anchoOriginal\": ").append(origW).append(",\n");
             sb.append("      \"altoOriginal\": ").append(origH).append(",\n");
@@ -1298,7 +1326,7 @@ public class WebCatalogExporter {
                 sb.append("          \"x\": ").append(cb.getImageX()).append(",\n");
                 sb.append("          \"y\": ").append(cb.getImageY()).append(",\n");
                 sb.append("          \"tamano\": ").append(cb.getSize()).append(",\n");
-                sb.append("          \"marcado\": ").append(cb.getState() == SelectionState.SELECTED).append(",\n");
+                sb.append("          \"estado\": ").append(jsonString(cb.getState().name())).append(",\n");
                 sb.append("          \"precio\": ").append(jsonString(cb.getPrice() > 0 ? String.format("%.2f", cb.getPrice()) : "")).append(",\n");
                 sb.append("          \"comentario\": ").append(jsonThread(cb.getCommentThreadAccess(), cb.getComment())).append("\n"); // Usar CommentThread
                 sb.append("        }");
@@ -1314,7 +1342,7 @@ public class WebCatalogExporter {
     } // --- Fin del Metodo generarDataJson --- 
 
     
-    private String generarRespuestaVacia(ProjectModel project, String projectSafeName, int iteracion) {
+    private String generarRespuestaVacia(ProjectModel project, String projectSafeName, int iteracion, boolean incluirDescartes) {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
         StringBuilder sb = new StringBuilder();
@@ -1329,13 +1357,14 @@ public class WebCatalogExporter {
         for (var pi : project.getMasterImages().values()) {
             String rutaStr = pi.getRutaImagen();
             if (rutaStr == null) continue;
+            if (!incluirDescartes && pi.getEstadoCliente() == SelectionState.DISCARDED) continue;
             Path rutaImagen = Path.of(rutaStr);
             String imageId = generarId(rutaImagen);
             if (i > 0) sb.append(",\n");
             sb.append("    {\n");
             sb.append("      \"id\": ").append(jsonString(imageId)).append(",\n");
             sb.append("      \"codigo\": ").append(jsonString(pi.getCodigoCatalogo() != null ? pi.getCodigoCatalogo() : "")).append(",\n");
-            sb.append("      \"estado\": \"DISCARDED\",\n");
+            sb.append("      \"estado\": ").append(jsonString(pi.getEstadoCliente() != null ? pi.getEstadoCliente().name() : "UNDEFINED")).append(",\n");
             sb.append("      \"comentario\": \"\"\n");
             sb.append("    }");
             i++;

@@ -689,6 +689,8 @@ public class ActionFactory {
                 createSelectEditorAction());
         registerAction(AppActionCommands.CMD_CLIENTE_EDITAR,
                 createClientEditarAction());
+        registerAction(AppActionCommands.CMD_CLIENTE_TOGGLE_OCULTAR_DESCARTES,
+                createClientOcultarDescartesAction());
         registerAction(AppActionCommands.CMD_CLIENTE_EXPORTAR_PDF,
                 createClientExportarPdfAction());
         registerAction(AppActionCommands.CMD_CLIENTE_CHECKBOX_ADD,
@@ -942,6 +944,40 @@ public class ActionFactory {
             }
         };
     } // --- FIN de metodo createClientEditarAction ---
+
+    private Action createClientOcultarDescartesAction() {
+        AbstractAction action = new AbstractAction("Ocultar descartes") {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (clientController == null) return;
+                boolean activar = false;
+                if (e.getSource() instanceof AbstractButton btn) {
+                    activar = btn.isSelected();
+                }
+                if (activar) {
+                    int resp = JOptionPane.showConfirmDialog(null,
+                            "Vas a ocultar los descartes del cliente en las exportaciones.\n"
+                            + "Los descartes seguir\u00e1n visibles en la tabla para consulta.\n\n"
+                            + "\u00bfContinuar?",
+                            "Ocultar descartes",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE);
+                    if (resp != JOptionPane.YES_OPTION) {
+                        if (e.getSource() instanceof AbstractButton btn) {
+                            btn.setSelected(false);
+                        }
+                        return;
+                    }
+                }
+                clientController.setOcultarDescartes(activar);
+                clientController.ajustarBotonesSegunEstado();
+                clientController.actualizarBarraEstado();
+            }
+        };
+        action.putValue(Action.SELECTED_KEY, false);
+        return action;
+    } // --- FIN de metodo createClientOcultarDescartesAction ---
 
     private Action createSelectVisorAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_CLIENTE_VIEW_VISOR);

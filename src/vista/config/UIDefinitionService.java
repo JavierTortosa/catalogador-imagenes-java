@@ -792,7 +792,7 @@ public class UIDefinitionService {
                 "Guardar proyecto", "cliente"));
         botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR_COMO, "7105-guardar_proyecto_como_48x48.png",
                 "Guardar proyecto como...", "cliente"));
-        botonesCliente.add(new SeparatorDefinition());
+//        botonesCliente.add(new SeparatorDefinition());
 
         // --- BARRA DE BOTONES DE COMPARTIR CON EL CLIENTE ---
         List<ToolbarComponentDefinition> componentesCompartirCliente = List.of(
@@ -805,12 +805,16 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB, "60202-User-Following.png",
                         "Exportar catálogo web para el cliente", "compartir_cliente"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML, "60203-User-Share.png",
-                        "Exportar HTML único para el cliente", "compartir_cliente")
-                );
-//        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EDITAR, "60204-User-Edit-Pencil.png",
-//                "Editar selección", "cliente", ButtonType.TOGGLE));
-//        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES, "60101-Rotate-X-Axis.png",
-//                "Mover selección a descartes", "cliente"));
+                        "Exportar HTML único para el cliente", "compartir_cliente"),
+//                );
+                
+                new SeparatorDefinition(),
+//                new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE /*.CMD_CLIENTE_EDITAR*/, "60204-User-Edit-Pencil.png",
+//                		"Editar selección", "cliente", ButtonType.TOGGLE),
+                
+                new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_TOGGLE_OCULTAR_DESCARTES, "60101-Rotate-X-Axis.png",
+        				"No exportar descartes", "cliente", ButtonType.TOGGLE)
+        		);
         
         // --- BARRA DE BOTONES DEL EDITOR DE CHECKBOXES ---
         List<ToolbarComponentDefinition> botonesCheckboxEditor = List.of(
