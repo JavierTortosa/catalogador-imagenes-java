@@ -1,6 +1,7 @@
 # Visor de Imágenes V2
 
 Idioma: Todas las comunicaciones deben ser en castellano. No usar inglés para planes, resúmenes ni explicaciones.
+Reglas: No compilar ni hacer commit a menos que el usuario lo pida explícitamente.
 
 Sistema DAM (Digital Asset Management) de escritorio para gestionar bibliotecas masivas (>40.000 activos) de modelado 3D (STL comprimidos en ZIP/RAR/7Z) con sus imágenes de renderizado asociadas.
 
