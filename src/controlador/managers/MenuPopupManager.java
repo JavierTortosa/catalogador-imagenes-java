@@ -223,6 +223,39 @@ public class MenuPopupManager {
         if (tfCarpetaInf != null) {
             tfCarpetaInf.addMouseListener(new PathPopupListener(tfCarpetaInf, false));
         }
+
+        // Popup para el nombre de la imagen: copiar solo el nombre del archivo
+        JLabel nombreLabel = registry.get("label.info.nombreArchivo");
+        if (nombreLabel != null) {
+            nombreLabel.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) { maybeShow(e); }
+                @Override
+                public void mouseReleased(MouseEvent e) { maybeShow(e); }
+                private void maybeShow(MouseEvent e) {
+                    if (e.isPopupTrigger()) {
+                        String selectedKey = model != null ? model.getSelectedImageKey() : null;
+                        if (selectedKey == null) return;
+                        Path fullPath = model.getRutaCompleta(selectedKey);
+                        if (fullPath == null) {
+                            Path raiz = model.getCarpetaRaizActual();
+                            fullPath = (raiz != null) ? raiz.resolve(selectedKey) : Path.of(selectedKey);
+                        }
+                        if (fullPath == null) return;
+                        final String soloNombre = fullPath.getFileName().toString();
+                        JPopupMenu menu = new JPopupMenu();
+                        JMenuItem copiarItem = new JMenuItem("Copiar nombre");
+                        copiarItem.addActionListener(al -> {
+                            java.awt.datatransfer.StringSelection selection =
+                                new java.awt.datatransfer.StringSelection(soloNombre);
+                            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
+                        });
+                        menu.add(copiarItem);
+                        menu.show(e.getComponent(), e.getX(), e.getY());
+                    }
+                }
+            });
+        }
     }
 
     // ==================== MENÚ CARRUSEL (VELOCIDAD) ====================

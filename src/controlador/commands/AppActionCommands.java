@@ -50,6 +50,7 @@ public interface AppActionCommands {
     public static final String CMD_DATOS_TAG_BORRAR				= "cmd.datos.tag.borrar";
     public static final String CMD_DATOS_TAG_TOGGLE_ASIGNADO	= "cmd.datos.tag.toggle_asignado";
     public static final String CMD_DATOS_MANTENIMIENTO_BD		= "cmd.datos.mantenimiento.bd";
+    public static final String CMD_DATOS_ORDEN_CICLO				= "cmd.datos.orden.ciclo";
     
     
  // --- Filtros

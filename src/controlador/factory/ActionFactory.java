@@ -709,6 +709,7 @@ public class ActionFactory {
         registerAction(AppActionCommands.CMD_DATOS_TAG_NUEVO, createTagNuevoAction());
         registerAction(AppActionCommands.CMD_DATOS_TAG_RENOMBRAR, createTagRenombrarAction());
         registerAction(AppActionCommands.CMD_DATOS_TAG_BORRAR, createTagBorrarAction());
+        registerAction(AppActionCommands.CMD_DATOS_ORDEN_CICLO, createDatosSortAction());
 
         // --- Acciones para el Árbol de Carpetas ---
         registerAction(AppActionCommands.CMD_TREE_OPEN_FOLDER, createOpenFolderAction());
@@ -2376,6 +2377,36 @@ public class ActionFactory {
 
     public void setSortCallback(java.util.function.Consumer<Integer> callback) {
         this.sortCallback = callback;
+    }
+
+    private Action createDatosSortAction() {
+        javax.swing.Action action = new javax.swing.AbstractAction("") {
+            private int estado = 0; // 0: OFF, 1: ASC, 2: DESC
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                estado = (estado + 1) % 3;
+                updateIcon(this);
+                java.util.function.Consumer<Integer> cb = datosSortCallback;
+                if (cb != null) cb.accept(estado);
+            }
+
+            private void updateIcon(javax.swing.Action action) {
+                String iconName = (estado == 0) ? "30006-orden_off.png" :
+                                  (estado == 1) ? "30004-orden_ascendente.png" : "30005-orden_descendente.png";
+                action.putValue(javax.swing.Action.SMALL_ICON, iconUtils.getScaledIcon(iconName, 24, 24));
+            }
+        };
+        action.putValue(javax.swing.Action.SMALL_ICON, iconUtils.getScaledIcon("30006-orden_off.png", 24, 24));
+        action.putValue(javax.swing.Action.SHORT_DESCRIPTION, "Ordenar lista de archivos");
+        return action;
+    }
+
+    // Callback para que el DataController reciba el orden de la lista de archivos
+    private java.util.function.Consumer<Integer> datosSortCallback;
+
+    public void setDatosSortCallback(java.util.function.Consumer<Integer> callback) {
+        this.datosSortCallback = callback;
     }
 
     // Callbacks para acciones del popup del árbol de tags (Modo Datos)

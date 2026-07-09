@@ -121,7 +121,8 @@ public class InfobarImageManager implements ThemeChangeListener{
             if (selectedKey != null) {
                 Path fullPath = model.getRutaCompleta(selectedKey);
                 if (fullPath == null) {
-                    fullPath = Path.of(selectedKey);
+                    Path raiz = model.getCarpetaRaizActual();
+                    fullPath = (raiz != null) ? raiz.resolve(selectedKey) : Path.of(selectedKey);
                 }
                 if (fullPath != null) {
                     Path folderPath = fullPath.getParent();

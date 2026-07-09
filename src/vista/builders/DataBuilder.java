@@ -329,6 +329,13 @@ public class DataBuilder {
         registry.register("toggle.datamode.mark", btnDataMark);
         tornadobar.add(btnDataMark);
         
+        tornadobar.addSeparator();
+        javax.swing.Action sortAction = actionMap != null ? actionMap.get(AppActionCommands.CMD_DATOS_ORDEN_CICLO) : null;
+        JButton btnDatosSort = sortAction != null ? new JButton(sortAction) : new JButton(iconUtils.getScaledIcon("30006-orden_off.png", 24, 24));
+        btnDatosSort.setToolTipText("Ordenar lista de archivos (OFF / A-Z / Z-A)");
+        registry.register("btn.datamode.sort", btnDatosSort);
+        tornadobar.add(btnDatosSort);
+        
         JTextField tornadoField = new JTextField(20);
         tornadoField.setToolTipText("<html><b>Búsqueda rápida (Tornado):</b><br>" +
             "• Con filtro tornado <b>APAGADO</b>: pulsa Enter para buscar la cadena desde la selección actual<br>" +

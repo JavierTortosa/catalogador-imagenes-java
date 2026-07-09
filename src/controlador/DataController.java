@@ -91,6 +91,7 @@ public class DataController {
     // Datos pendientes de sincronización desde VISUALIZADOR (entrante desde AppModeService)
     private Path pendingSyncPath = null;
     private String pendingSyncKey = null;
+    private Path pendingSyncAbsPath = null;
 
     /**
      * Constructor del controlador de datos.
@@ -233,9 +234,6 @@ public class DataController {
     public void activate() {
         logger.debug("Activando el Modo Datos...");
         
-        // Guardar la clave seleccionada antes de que activate() la modifique
-        String savedImageKey = model != null ? model.getDatosListContext().getSelectedImageKey() : null;
-        
         // Recargamos el árbol cada vez que entramos en este modo.
         refreshTagTreeAndSelect(null);
         refreshFlatTagList();
@@ -286,6 +284,7 @@ public class DataController {
                 if (pendingSyncKey != null) {
                     model.getDatosListContext().setSelectedImageKey(pendingSyncKey);
                 }
+                pendingSyncAbsPath = pendingSyncPath;
                 pendingSyncPath = null;
                 pendingSyncKey = null;
             } else {
@@ -294,7 +293,7 @@ public class DataController {
                     selectTagNode(allTagsTree, savedTag);
                 }
             }
-            if (allTagsTree.getSelectionCount() == 0) {
+            if (pendingSyncAbsPath == null && allTagsTree.getSelectionCount() == 0) {
                 allTagsTree.setSelectionRow(0);
             }
         }
@@ -303,28 +302,6 @@ public class DataController {
         if (tagPanel != null) {
             tagPanel.clearPanel();
         }
-        
-        // Restaurar la seleccion del grid DESPUES de que loadAllImages/loadImagesForTag
-        // (invocados desde el TreeSelectionListener) hayan reemplazado el modelo.
-        SwingUtilities.invokeLater(() -> {
-            JList<String> gridList = registry.get("list.datamode.grid");
-            if (gridList == null) return;
-            String keyRestore = model != null ? model.getDatosListContext().getSelectedImageKey() : null;
-            if (keyRestore == null) keyRestore = savedImageKey;
-            if (keyRestore != null) {
-                for (int i = 0; i < gridList.getModel().getSize(); i++) {
-                    if (keyRestore.equals(gridList.getModel().getElementAt(i))) {
-                        gridList.setSelectedIndex(i);
-                        gridList.ensureIndexIsVisible(i);
-                        return;
-                    }
-                }
-            }
-            // Sin clave guardada o no encontrada: seleccionar el primer elemento
-            if (gridList.getModel().getSize() > 0) {
-                gridList.setSelectedIndex(0);
-            }
-        });
     } // --- Fin del metodo/clase activate ---
 
 
@@ -863,7 +840,7 @@ public class DataController {
                         btnAssign.setEnabled(hasSelection);
                     }
                     if (selectedKey != null) {
-                        model.setSelectedImageKey(selectedKey);
+                        model.getDatosListContext().setSelectedImageKey(selectedKey);
                         cargarImagenEnVisor();
                         updateTagPanelSelection();
                         JList<String> gridList = registry.get("list.datamode.grid");
@@ -1279,7 +1256,8 @@ public class DataController {
                 isSyncingLists = true;
                 try {
                     String selectedKey = gridList.getSelectedValue();
-                    model.setSelectedImageKey(selectedKey);
+                    model.getDatosListContext().setSelectedImageKey(selectedKey);
+                    sincronizarSeleccionConVisualizador(selectedKey);
                     cargarImagenEnVisor();
                     if (visorController != null && visorController.getListCoordinator() != null) {
                         visorController.getListCoordinator().forzarActualizacionEstadoAcciones();
@@ -2422,7 +2400,6 @@ public class DataController {
         masterFileListModel = fileNameModel;
 
         SwingUtilities.invokeLater(() -> {
-            gridList.setModel(gridListModel);
             JList<String> fileNameList = registry.get("list.datamode.filenames");
             if (fileNameList != null) {
                 JToggleButton btnTornado = registry.get("toggle.datamode.tornado");
@@ -2431,6 +2408,8 @@ public class DataController {
                     actualizarContadorTornado(fileNameModel.getSize(), fileNameModel.getSize());
                 }
             }
+            gridList.setModel(gridListModel);
+            restaurarSeleccionSync(gridList, gridListModel);
             if (visorController != null && visorController.getListCoordinator() != null) {
                 visorController.getListCoordinator().forzarActualizacionEstadoAcciones();
             }
@@ -2483,7 +2462,6 @@ public class DataController {
         masterFileListModel = fileNameModel;
 
         SwingUtilities.invokeLater(() -> {
-            gridList.setModel(gridListModel);
             JList<String> fileNameList = registry.get("list.datamode.filenames");
             if (fileNameList != null) {
                 JToggleButton btnTornado = registry.get("toggle.datamode.tornado");
@@ -2492,6 +2470,8 @@ public class DataController {
                     actualizarContadorTornado(fileNameModel.getSize(), fileNameModel.getSize());
                 }
             }
+            gridList.setModel(gridListModel);
+            restaurarSeleccionSync(gridList, gridListModel);
             if (visorController != null && visorController.getListCoordinator() != null) {
                 visorController.getListCoordinator().forzarActualizacionEstadoAcciones();
             }
@@ -2543,7 +2523,6 @@ public class DataController {
         masterFileListModel = fileNameModel;
 
         SwingUtilities.invokeLater(() -> {
-            gridList.setModel(gridListModel);
             JList<String> fileNameList = registry.get("list.datamode.filenames");
             if (fileNameList != null) {
                 JToggleButton btnTornado = registry.get("toggle.datamode.tornado");
@@ -2552,6 +2531,8 @@ public class DataController {
                     actualizarContadorTornado(fileNameModel.getSize(), fileNameModel.getSize());
                 }
             }
+            gridList.setModel(gridListModel);
+            restaurarSeleccionSync(gridList, gridListModel);
             if (visorController != null && visorController.getListCoordinator() != null) {
                 visorController.getListCoordinator().forzarActualizacionEstadoAcciones();
             }
@@ -2561,6 +2542,155 @@ public class DataController {
             logger.debug("Grid y lista central actualizados con todas las {} imágenes.", gridListModel.getSize());
         });
     } // --- Fin del metodo/clase loadAllImages ---
+
+
+    private void restaurarSeleccionSync(JList<String> gridList, DefaultListModel<String> gridListModel) {
+        boolean restored = false;
+        if (pendingSyncAbsPath != null) {
+            try {
+                Map<String, Path> pathMap = model != null ? model.getDatosListContext().getRutaCompletaMap() : null;
+                logger.debug("restaurarSeleccionSync: buscando path='{}' en pathMap con {} entradas",
+                    pendingSyncAbsPath, pathMap != null ? pathMap.size() : -1);
+                if (pathMap != null) {
+                    String matchKey = null;
+                    for (Map.Entry<String, Path> entry : pathMap.entrySet()) {
+                        logger.trace("  comparando con clave='{}' path='{}'", entry.getKey(), entry.getValue());
+                        if (pendingSyncAbsPath.equals(entry.getValue())) {
+                            matchKey = entry.getKey();
+                            logger.debug("  ¡coincidencia encontrada! clave='{}'", matchKey);
+                            break;
+                        }
+                    }
+                    if (matchKey != null) {
+                        for (int i = 0; i < gridListModel.getSize(); i++) {
+                            if (matchKey.equals(gridListModel.getElementAt(i))) {
+                                gridList.setSelectedIndex(i);
+                                gridList.ensureIndexIsVisible(i);
+                                restored = true;
+                                logger.debug("  seleccionado índice {} en el grid", i);
+                                break;
+                            }
+                        }
+                    } else {
+                        logger.debug("  no se encontró coincidencia en pathMap para: {}", pendingSyncAbsPath);
+                    }
+                }
+            } catch (Exception e) {
+                logger.warn("Error restaurando selecci\u00f3n sincronizada: {}", e.getMessage());
+            } finally {
+                pendingSyncAbsPath = null;
+            }
+        } else {
+            logger.debug("restaurarSeleccionSync: pendingSyncAbsPath es null, seleccionando primero");
+        }
+        if (!restored && gridListModel.getSize() > 0) {
+            gridList.setSelectedIndex(0);
+            logger.debug("  (fallback) seleccionado primer elemento del grid");
+        }
+    } // --- Fin del metodo/clase restaurarSeleccionSync ---
+
+
+    private void sincronizarSeleccionConVisualizador(String datosKey) {
+        if (datosKey == null || model == null) return;
+        try {
+            Path rutaAbsoluta = model.getRutaCompleta(datosKey);
+            if (rutaAbsoluta == null) return;
+            ListContext visorCtx = model.getVisualizadorListContext();
+            Path visorRoot = visorCtx.getCarpetaRaizContexto();
+            if (visorRoot != null && rutaAbsoluta.startsWith(visorRoot)) {
+                Path rutaRelativa = visorRoot.relativize(rutaAbsoluta);
+                if (rutaRelativa != null) {
+                    String visorKey = rutaRelativa.toString().replace("\\", "/");
+                    visorCtx.setSelectedImageKey(visorKey);
+                }
+            }
+        } catch (Exception ex) {
+            logger.debug("Error sincronizando selecci\u00f3n con VISUALIZADOR: {}", ex.getMessage());
+        }
+    } // --- Fin del metodo/clase sincronizarSeleccionConVisualizador ---
+
+
+    // -------------------------------------------------------------------------
+    // Ordenación de la lista de archivos (Datos)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Ordena la lista maestra de archivos del modo Datos.
+     * @param estado 0=OFF (restaurar orden original desde BD), 1=ASC, 2=DESC
+     */
+    public void applyFileSort(int estado) {
+        if (masterFileListModel == null || masterFileListModel.isEmpty()) return;
+
+        if (estado == 0) {
+            // OFF: recargar desde el tag actual para restaurar el orden original de la BD
+            JTree allTagsTree = registry.get("tree.datamode.alltags");
+            if (allTagsTree != null) {
+                javax.swing.tree.TreePath selPath = allTagsTree.getSelectionPath();
+                if (selPath != null) {
+                    Object node = selPath.getLastPathComponent();
+                    if (node instanceof Tag) {
+                        loadImagesForTag((Tag) node);
+                        return;
+                    }
+                }
+            }
+            loadAllImages();
+            return;
+        }
+
+        // Recoger elementos del modelo maestro
+        java.util.List<String> items = new java.util.ArrayList<>();
+        for (int i = 0; i < masterFileListModel.getSize(); i++)
+            items.add(masterFileListModel.getElementAt(i));
+
+        // Ordenar
+        items.sort(String::compareToIgnoreCase);
+        if (estado == 2)
+            java.util.Collections.reverse(items);
+
+        // Guardar clave de selección actual
+        String selectedKey = null;
+        JList<String> gridList = registry.get("list.datamode.grid");
+        if (gridList != null)
+            selectedKey = gridList.getSelectedValue();
+        if (selectedKey == null) {
+            JList<String> fileNameList = registry.get("list.datamode.filenames");
+            if (fileNameList != null)
+                selectedKey = fileNameList.getSelectedValue();
+        }
+
+        // Actualizar modelo maestro (fileNameList usa este modelo)
+        masterFileListModel.clear();
+        masterFileListModel.addAll(items);
+
+        // Actualizar modelo del grid si es distinto
+        if (gridList != null) {
+            javax.swing.ListModel<String> gm = gridList.getModel();
+            if (gm instanceof DefaultListModel)
+                ((DefaultListModel<String>) gm).clear();
+            if (gm instanceof DefaultListModel)
+                ((DefaultListModel<String>) gm).addAll(items);
+        }
+
+        // Refrescar lista visible de archivos
+        refreshVisibleFileList();
+
+        // Restaurar selección
+        int newIndex = selectedKey != null ? masterFileListModel.indexOf(selectedKey) : -1;
+        if (newIndex == -1 && !masterFileListModel.isEmpty())
+            newIndex = 0;
+        int finalIndex = newIndex;
+        if (gridList != null && finalIndex >= 0) {
+            gridList.setSelectedIndex(finalIndex);
+            gridList.ensureIndexIsVisible(finalIndex);
+        }
+        JList<String> fileNameList = registry.get("list.datamode.filenames");
+        if (fileNameList != null && finalIndex >= 0) {
+            fileNameList.setSelectedIndex(finalIndex);
+            fileNameList.ensureIndexIsVisible(finalIndex);
+        }
+    } // --- Fin del metodo/clase applyFileSort ---
+
 
     // -------------------------------------------------------------------------
     // Navegación en modo DATOS (opera directamente sobre el grid)
