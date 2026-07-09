@@ -54,6 +54,7 @@ mvn package          # empaquetar fat JAR en D:/Descargas/VisorV2/VisorV2.jar
 
 ## Gotchas
 
+- **DataController no debe pisar `selectedImageKey` del visualizador:** Los listeners de `list.datamode.grid` y `list.datamode.filenames` usaban `model.setSelectedImageKey()` que opera sobre el contexto **activo**. Durante el arranque el modo es VISUALIZADOR, por lo que sobrescribían la clave correcta. Usar siempre `model.getDatosListContext().setSelectedImageKey()` en el modo DATOS.
 - **JS `%` en text blocks:** el operador módulo JS (ej. `(i+1) % length`) debe escaparse como `%%` porque Java `.formatted()` lo interpreta como formato `%e`. Ver `getClientJs()`.
 - **Gson + enums anidados:** Gson deserializa `Map<String, SelectionState>` correctamente si el campo tiene tipo genérico completo. El `module-info.java` debe `opens modelo.proyecto to com.google.gson`.
 - **ProjectManager.gson** usa `disableHtmlEscaping()` para preservar barras `\` en rutas Windows.
