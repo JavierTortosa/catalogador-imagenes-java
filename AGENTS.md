@@ -2,7 +2,13 @@
 
 Idioma: Todas las comunicaciones deben ser en castellano. No usar inglés para planes, resúmenes ni explicaciones.
 
-Aplicación Swing (Java 21) para visualización, catalogación y exportación de imágenes con modo cliente.
+Sistema DAM (Digital Asset Management) de escritorio para gestionar bibliotecas masivas (>40.000 activos) de modelado 3D (STL comprimidos en ZIP/RAR/7Z) con sus imágenes de renderizado asociadas.
+
+**Flujo de trabajo:**
+1. **Modo VISUALIZADOR** — Explorar imágenes con filtros de texto, carpeta y etiquetas para localizar modelos
+2. **Modo DATOS** — Gestionar tags de sistema (red de carpetas autodescriptivas) y tags de usuario para organizar los activos
+3. **Modo PROYECTO** — Seleccionar imágenes y verificar la integridad de sus archivos comprimidos asociados
+4. **Modo CLIENTE** — Exportar catálogos interactivos para que el cliente seleccione/descarte imágenes
 
 ## Quick start
 
