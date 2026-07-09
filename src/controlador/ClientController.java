@@ -1293,7 +1293,8 @@ public class ClientController implements IModoController {
 
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Guardar PDF de selección del cliente");
-        chooser.setSelectedFile(new File("seleccion_cliente.pdf"));
+        String nombreProyecto = project != null ? project.getProjectName() : "seleccion_cliente";
+        chooser.setSelectedFile(new File(nombreProyecto + " - Presupuesto.pdf"));
         FileNameExtensionFilter filter = new FileNameExtensionFilter("PDF (*.pdf)", "pdf");
         chooser.setFileFilter(filter);
 
