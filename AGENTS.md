@@ -1,5 +1,7 @@
 # Visor de Imágenes V2
 
+Idioma: Todas las comunicaciones deben ser en castellano. No usar inglés para planes, resúmenes ni explicaciones.
+
 Aplicación Swing (Java 21) para visualización, catalogación y exportación de imágenes con modo cliente.
 
 ## Quick start
