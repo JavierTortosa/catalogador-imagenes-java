@@ -124,19 +124,6 @@ public class DataBuilder {
         tagToolbar.add(new JButton(actionMap.get(AppActionCommands.CMD_DATOS_TAGS_ORDENAR)));
         tagToolbar.addSeparator();
         
-        // Mantenimiento BD
-        JButton btnMantenimiento = new JButton(iconUtils.getScaledIcon("7005-settings_48x48.png", 24, 24));
-        if (btnMantenimiento.getIcon() == null) btnMantenimiento.setText("Mantenimiento");
-        btnMantenimiento.setToolTipText("Mantenimiento de Base de Datos");
-        if (actionMap != null && actionMap.containsKey(AppActionCommands.CMD_DATOS_MANTENIMIENTO_BD)) {
-            btnMantenimiento.addActionListener(actionMap.get(AppActionCommands.CMD_DATOS_MANTENIMIENTO_BD));
-        } else {
-            btnMantenimiento.setActionCommand(AppActionCommands.CMD_DATOS_MANTENIMIENTO_BD);
-            registry.register("btn.datamode.mantenimiento", btnMantenimiento);
-        }
-        tagToolbar.add(btnMantenimiento);
-        tagToolbar.addSeparator();
-        
         // --- Botones CRUD (movidos de la toolbar derecha) ---
         JButton btnCreateTag = new JButton(iconUtils.getScaledIcon("30102-Add-Square.png", 24, 24));
         btnCreateTag.setToolTipText("Crear nueva etiqueta (x.y.z)");

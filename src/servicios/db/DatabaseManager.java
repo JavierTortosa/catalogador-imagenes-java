@@ -342,5 +342,29 @@ public class DatabaseManager {
         
     } // ---FIN de metodo [closeConnection]---
 
-    
+
+    /**
+     * Reconstruye todos los índices de la base de datos y la compacta.
+     * Equivalente a ejecutar REINDEX + VACUUM en SQLite.
+     * Útil si se sospecha corrupción de índices o para recuperar espacio.
+     *
+     * @return Mensaje descriptivo del resultado.
+     */
+    public String reindexDatabase() {
+        if (connection == null) {
+            return "Error: no hay conexión a la base de datos.";
+        }
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute("REINDEX");
+            logger.info("REINDEX ejecutado correctamente.");
+            stmt.execute("VACUUM");
+            logger.info("VACUUM ejecutado correctamente.");
+            return "Índices reconstruidos y base de datos compactada correctamente.";
+        } catch (SQLException e) {
+            logger.error("Error al reindexar la base de datos", e);
+            return "Error al reindexar: " + e.getMessage();
+        }
+    } // --- Fin del método reindexDatabase ---
+
+
 } // --- FIN de clase DatabaseManager ---

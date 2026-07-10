@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import modelo.datos.Tag;
 import servicios.db.ImagenDAO;
 import servicios.db.TagDAO;
+import servicios.db.DatabaseManager;
 import modelo.datos.Disco;
 import servicios.db.DiscoDAO;
 import servicios.VolumeService;
@@ -84,6 +85,15 @@ public class DataManager {
         allTagsCache = null;
         logger.debug("Caché de tags invalidada.");
     } // ---FIN de metodo [invalidateTagCache]---
+
+
+    /**
+     * Reconstruye todos los índices de la base de datos y la compacta (REINDEX + VACUUM).
+     * @return Mensaje descriptivo del resultado.
+     */
+    public String reindexDatabase() {
+        return DatabaseManager.getInstance().reindexDatabase();
+    } // --- Fin del método reindexDatabase ---
 
     /**
      * Obtiene una lista de todas las rutas de imágenes asociadas a un tag específico

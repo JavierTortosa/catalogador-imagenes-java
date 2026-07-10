@@ -164,7 +164,6 @@ public class DataController {
         setupListeners();
         setupTagCRUDButtons();
         setupImageTagCRUDButtons();
-        setupMaintenanceDialog();
         initializeMarkButton();
         
         // Tareas pesadas (carga de tags, cómputo de counts, escaneo de discos) se ejecutan
@@ -204,28 +203,8 @@ public class DataController {
         
         isInitialized = true;
     } // --- Fin del metodo/clase initialize ---
-
-
-    /**
-     * Configura el diálogo de mantenimiento de la base de datos.
-     */
-    private void setupMaintenanceDialog() {
-        javax.swing.JButton btn = registry.get("btn.datamode.mantenimiento");
-        if (btn != null) {
-            btn.addActionListener(e -> {
-                java.awt.Frame mainFrame = null;
-                java.awt.Component topComp = btn.getTopLevelAncestor();
-                if (topComp instanceof java.awt.Frame) mainFrame = (java.awt.Frame) topComp;
-                
-                vista.dialogos.DatabaseMaintenanceDialog dialog = new vista.dialogos.DatabaseMaintenanceDialog(mainFrame, dataManager);
-                dialog.setVisible(true);
-                
-                if (dialog.isDbChanged()) {
-                    afterTagStructureChanged(null);
-                }
-            });
-        }
-    } // --- Fin del metodo/clase setupMaintenanceDialog ---
+    
+    
     
     /**
      * Activa el modo datos. Se llama cada vez que el usuario cambia a esta vista.
@@ -1916,6 +1895,18 @@ public class DataController {
             }
         }
     } // ---FIN de metodo [afterTagStructureChanged]---
+
+
+    /**
+     * Refresca la estructura de tags tras una modificación de la base de datos.
+     * Invalida la caché, reconstruye el árbol, la lista plana, los IntelliSense y
+     * recarga las imágenes del tag seleccionado. Llamado desde DatabaseMaintenancePanel
+     * y desde métodos internos del controlador.
+     */
+    public void refreshTagStructure() {
+        afterTagStructureChanged(null);
+    } // --- Fin del método refreshTagStructure ---
+
 
     /**
      * Resuelve una ruta en notación punto buscando SOLO tags existentes (sin crear nuevos).

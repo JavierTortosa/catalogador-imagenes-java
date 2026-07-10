@@ -121,6 +121,7 @@ import controlador.managers.CarouselManager;
 import controlador.managers.DisplayModeManager;
 import controlador.managers.FileOperationsManager;
 import controlador.managers.ImageListManager;
+import controlador.managers.DataManager;
 import controlador.managers.filter.FilterCriterion.FilterSource;
 import controlador.managers.filter.FilterCriterion.FilterType;
 //import controlador.managers.interfaces.ICarouselListCoordinator;
@@ -214,6 +215,9 @@ public class ActionFactory {
 
     // 1.10. Campo para añadir carpeta actual a la coleccion
     private ImageListManager imageListManager;
+
+    // 1.11. Campo para DataManager (modo datos)
+    private DataManager dataManager;
 
     // --- SECCIÓN 2: CONSTRUCTOR ---
     /**
@@ -724,7 +728,8 @@ public class ActionFactory {
 
         registerAction(AppActionCommands.CMD_CONFIG_AVANZADA,
                 new controlador.actions.config.OpenConfigurationAction("Configuración Avanzada...",
-                        this.configuration, this.configAppManager, this.themeManager));
+                        this.configuration, this.configAppManager, this.themeManager,
+                        this.dataManager, this.registry));
 
         // Acciones para otros WorkModes futuros, si los tienes definidos en
         // UIDefinitionService.
@@ -2331,6 +2336,10 @@ public class ActionFactory {
 
     public void setToolbarManager(controlador.managers.ToolbarManager toolbarManager) {
         this.toolbarManager = toolbarManager;
+    }
+
+    public void setDataManager(DataManager dataManager) {
+        this.dataManager = dataManager;
     }
 
     // --- MÉTODOS PARA CREAR ACCIONES DE TAGS (MODO DATOS) ---

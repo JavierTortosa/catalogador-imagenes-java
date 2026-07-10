@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.managers.ConfigApplicationManager;
+import controlador.managers.DataManager;
+import controlador.utils.ComponentRegistry;
 import servicios.ConfigurationManager;
 import vista.theme.ThemeManager;
 
@@ -38,6 +40,8 @@ public class ConfigurationDialog extends JDialog {
 
     private final transient ConfigurationManager config;
     private final transient ConfigApplicationManager configAppManager;
+    private final transient DataManager dataManager;
+    private final transient ComponentRegistry registry;
 
     private JTree tree;
     private final CardLayout cardLayout;
@@ -51,13 +55,19 @@ public class ConfigurationDialog extends JDialog {
      * @param config Gestor de configuración
      * @param configAppManager Gestor de aplicación de configuración
      * @param themeManager Gestor de temas
+     * @param dataManager Gestor de datos del modo DATOS
+     * @param registry Registro de componentes
      */
     public ConfigurationDialog(JFrame owner, ConfigurationManager config,
                                 ConfigApplicationManager configAppManager,
-                                ThemeManager themeManager) {
+                                ThemeManager themeManager,
+                                DataManager dataManager,
+                                ComponentRegistry registry) {
         super(owner, "Configuración Avanzada", true);
         this.config = config;
         this.configAppManager = configAppManager;
+        this.dataManager = dataManager;
+        this.registry = registry;
 
         this.cardLayout = new CardLayout();
         this.cardsPanel = new JPanel(cardLayout);
@@ -122,6 +132,7 @@ public class ConfigurationDialog extends JDialog {
         addCategoryNode(root, "Paneles de Información");
         addCategoryNode(root, "Grid");
         addCategoryNode(root, "Proyecto");
+        addCategoryNode(root, "Base de Datos");
         return root;
     } // --- Fin del metodo/clase buildTreeNodes ---
 
@@ -201,6 +212,7 @@ public class ConfigurationDialog extends JDialog {
         registerPanel(cards, new vista.configuracion.panels.InfobarPanel(config));
         registerPanel(cards, new vista.configuracion.panels.GridPanel(config));
         registerPanel(cards, new vista.configuracion.panels.ProjectPanel(config));
+        registerPanel(cards, new vista.configuracion.panels.DatabaseMaintenancePanel(dataManager, registry, config));
     } // --- Fin del metodo/clase registerPanels ---
 
 

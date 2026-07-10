@@ -1097,7 +1097,8 @@ public class UIDefinitionService {
 
                 // Boton aislado de Abrir Carpeta
                 ,new ToolbarDefinition("abrir_carpeta", "Abrir Carpeta", 				
-                		10, EnumSet.allOf(WorkMode.class), List.copyOf(botonesAbrirCarpeta), 
+//                		10, EnumSet.allOf(WorkMode.class), List.copyOf(botonesAbrirCarpeta), 
+                		10, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL), List.copyOf(botonesAbrirCarpeta),
                 		ToolbarAlignment.LEFT)
                 
                 // Botones de gestion de Proyecto
@@ -1177,7 +1178,7 @@ public class UIDefinitionService {
                 
                 //Botones de Acceiones de proyecto
                 ,new ToolbarDefinition("proyecto_accion", "Acciones", 			
-                		60, EnumSet.of(WorkMode.PROYECTO), List.copyOf(botonesAccionesProyecto), 
+                		50, EnumSet.of(WorkMode.PROYECTO), List.copyOf(botonesAccionesProyecto), 
                 		ToolbarAlignment.RIGHT)
                 
                 // Selector de carpetas, Menu principal, Botones ocultos

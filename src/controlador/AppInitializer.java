@@ -259,6 +259,7 @@ public class AppInitializer {
         // --- Instanciación de componentes del Modo Datos ---
         this.dataManager = new DataManager();
         this.dataController = new DataController(this.model, this.registry, this.dataManager);
+        this.registry.registerBean("dataController", this.dataController);
         this.dataBuilder = new DataBuilder(this.registry, this.model, this.themeManager, this.iconUtils,
                 this.gridThumbnailService, this.configuration);
 
@@ -326,6 +327,7 @@ public class AppInitializer {
                 this.projectManagerService, iconMap, this.viewManager, this.themeManager, this.registry,
                 this.generalController, this.projectController);
 
+        this.actionFactory.setDataManager(this.dataManager);
         
         // PENDIENTE DE REFACTORIZACION
         

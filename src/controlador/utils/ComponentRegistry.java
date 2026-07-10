@@ -205,7 +205,7 @@ public class ComponentRegistry {
     } // --- FIN del método unregister ---
     
     
-    /**
+	/**
      * Devuelve una lista de todos los componentes registrados que son de un tipo específico
      * o una subclase de ese tipo.
      *
@@ -231,5 +231,34 @@ public class ComponentRegistry {
         
         return componentsOfType;
     } // --- FIN del metodo getAllComponentsOfType ---
+    
+    
+    // --- Almacén de objetos no-Component (beans) ---
+    
+    private final Map<String, Object> beans = new HashMap<>();
+    
+    /**
+     * Registra un objeto arbitrario (no necesariamente un Component de Swing) en el registro.
+     * Útil para almacenar controladores, servicios, etc.
+     *
+     * @param name Clave única para el objeto.
+     * @param bean El objeto a registrar.
+     */
+    public void registerBean(String name, Object bean) {
+        if (name == null || bean == null) return;
+        beans.put(name, bean);
+    } // --- Fin del método registerBean ---
+    
+    /**
+     * Obtiene un objeto registrado previamente con {@link #registerBean(String, Object)}.
+     *
+     * @param <T>  Tipo esperado del objeto.
+     * @param name Clave del objeto.
+     * @return El objeto casteado a T, o null si no se encuentra.
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T getBean(String name) {
+        return (T) beans.get(name);
+    } // --- Fin del método getBean ---
     
 }// --- FIN de la clase ComponentRegistry ---
