@@ -146,6 +146,7 @@ public class ToolbarManager implements ThemeChangeListener{
         final JPanel leftPanel = registry.get("container.toolbars.left");
         final JPanel centerPanel = registry.get("container.toolbars.center");
         final JPanel rightPanel = registry.get("container.toolbars.right");
+        final JPanel eastPanel = registry.get("container.toolbars.east");
 
         if (leftPanel == null || centerPanel == null || rightPanel == null) {
             logger.error("  ERROR [ToolbarManager]: Uno o más paneles de alineamiento no se encontraron. Abortando.");
@@ -155,6 +156,7 @@ public class ToolbarManager implements ThemeChangeListener{
         leftPanel.removeAll();
         centerPanel.removeAll();
         rightPanel.removeAll();
+        if (eastPanel != null) eastPanel.removeAll();
 
         List<ToolbarDefinition> todasLasBarras = new java.util.ArrayList<>(uiDefService.generateModularToolbarStructure());
         todasLasBarras.sort(java.util.Comparator.comparingInt(ToolbarDefinition::orden));
@@ -183,9 +185,58 @@ public class ToolbarManager implements ThemeChangeListener{
                     case LEFT: leftPanel.add(toolbar); break;
                     case CENTER: centerPanel.add(toolbar); break;
                     case RIGHT: rightPanel.add(toolbar); break;
+                    case EAST:
+                        toolbar.setOrientation(JToolBar.VERTICAL);
+                        toolbar.setFloatable(false);
+                        toolbar.setMaximumSize(new java.awt.Dimension(
+                            toolbar.getPreferredSize().width,
+                            toolbar.getPreferredSize().height));
+                        if (eastPanel != null) eastPanel.add(toolbar);
+                        break;
                     default: leftPanel.add(toolbar); break;
                 }
             }
+        }
+        
+        // Procesar colocaciones adicionales (misma toolbar en múltiples ubicaciones)
+        for (ToolbarDefinition def : todasLasBarras) {
+            if (!def.modosVisibles().contains(modoActual)) continue;
+            if (def.alignment() == ToolbarAlignment.FREE) continue;
+            if (def.colocaciones() == null || def.colocaciones().isEmpty()) continue;
+            
+            for (ToolbarAlignment extraAlign : def.colocaciones()) {
+                String claveExtra = def.claveBarra() + "_" + extraAlign.name().toLowerCase();
+                JToolBar extraToolbar = managedToolbars.get(claveExtra);
+                
+                if (extraToolbar == null) {
+                    ToolbarDefinition extraDef = new ToolbarDefinition(
+                        claveExtra, def.titulo(), def.orden(), def.modosVisibles(),
+                        def.componentes(), extraAlign, java.util.Collections.emptySet());
+                    extraToolbar = buildAndConfigureToolbar(extraDef);
+                    managedToolbars.put(claveExtra, extraToolbar);
+                    String registryKey = "toolbar." + claveExtra;
+                    this.registry.register(registryKey, extraToolbar);
+                }
+                
+                String configKeyVisibilidad = ConfigKeys.buildKey("interfaz.herramientas", claveExtra, "visible");
+                boolean isVisibleInConfig = configuration.getBoolean(configKeyVisibilidad, true);
+                extraToolbar.setVisible(isVisibleInConfig);
+                extraToolbar.setOpaque(false);
+                
+                if (extraAlign == ToolbarAlignment.EAST && eastPanel != null) {
+                    extraToolbar.setOrientation(JToolBar.VERTICAL);
+                    extraToolbar.setFloatable(false);
+                    extraToolbar.setMaximumSize(new java.awt.Dimension(
+                        extraToolbar.getPreferredSize().width,
+                        extraToolbar.getPreferredSize().height));
+                    eastPanel.add(extraToolbar);
+                }
+            }
+        }
+        
+        // Añadir glue al final del panel EAST para que las toolbars queden arriba
+        if (eastPanel != null) {
+            eastPanel.add(javax.swing.Box.createVerticalGlue());
         }
         
         JToolBar barraEstadoControles = getToolbar("barra_estado_controles");
@@ -201,6 +252,7 @@ public class ToolbarManager implements ThemeChangeListener{
         centerPanel.repaint();
         rightPanel.revalidate();
         rightPanel.repaint();
+        if (eastPanel != null) { eastPanel.revalidate(); eastPanel.repaint(); }
 
 	     if (this.backgroundControlManager != null) {
 	         logger.debug("  [ToolbarManager] Notificando a BackgroundControlManager para que se re-inicialice...");

@@ -7,5 +7,6 @@ public enum ToolbarAlignment {
     LEFT,
     CENTER,
     RIGHT,
+    EAST,
     FREE
 } // --- FIN del enum ToolbarAlignment ---

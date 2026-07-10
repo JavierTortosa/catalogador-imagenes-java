@@ -1,5 +1,6 @@
 package vista.config;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -11,19 +12,26 @@ public record ToolbarDefinition(
     String titulo,
     int orden,
     Set<WorkMode> modosVisibles,
-    List<ToolbarComponentDefinition> componentes, // <-- CAMBIO DE NOMBRE: de "botones" a "componentes"
-    ToolbarAlignment alignment
+    List<ToolbarComponentDefinition> componentes,
+    ToolbarAlignment alignment,
+    Set<ToolbarAlignment> colocaciones
 ) {
     
     public ToolbarDefinition {
         if (alignment == null) {
             alignment = ToolbarAlignment.LEFT;
         }
+        if (colocaciones == null) {
+            colocaciones = Collections.emptySet();
+        }
     }
 
     public ToolbarDefinition(String claveBarra, String titulo, int orden, Set<WorkMode> modosVisibles, List<ToolbarButtonDefinition> botones) {
-        // La llamada al constructor principal ahora usa el nuevo nombre "componentes"
-        this(claveBarra, titulo, orden, modosVisibles, List.copyOf(botones), ToolbarAlignment.LEFT);
+        this(claveBarra, titulo, orden, modosVisibles, List.copyOf(botones), ToolbarAlignment.LEFT, Collections.emptySet());
+    }
+
+    public ToolbarDefinition(String claveBarra, String titulo, int orden, Set<WorkMode> modosVisibles, List<ToolbarComponentDefinition> componentes, ToolbarAlignment alignment) {
+        this(claveBarra, titulo, orden, modosVisibles, componentes, alignment, Collections.emptySet());
     }
     
 } // --- FIN del record ToolbarDefinition ---

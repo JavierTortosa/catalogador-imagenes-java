@@ -1012,9 +1012,6 @@ public class UIDefinitionService {
 
         // Toolbar de Exportar
         List<ToolbarComponentDefinition> componentesExportacion = List.of(
-                // Campo de texto con un tamaño de 30 columnas.
-
-                new TextFieldDefinition("textfield.export.destino", "Seleccione una carpeta de destino...", 30),
 
                 new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_DETALLES_SELECCION,
                         "21014-Merge.png", "Detalles de Archivos", "acciones_exportacion",
@@ -1093,7 +1090,7 @@ public class UIDefinitionService {
                 // Flechas de navegacion
                 new ToolbarDefinition("navegacion", "Navegación",
                 		20, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.CARROUSEL, WorkMode.CLIENTE), List.copyOf(botonesNavegacion), 
-                		ToolbarAlignment.LEFT)
+                		ToolbarAlignment.LEFT)//, Set.of(ToolbarAlignment.EAST))
 
                 // Boton aislado de Abrir Carpeta
                 ,new ToolbarDefinition("abrir_carpeta", "Abrir Carpeta", 				
@@ -1159,27 +1156,27 @@ public class UIDefinitionService {
                 // Botones de Refresco, Localizar, Borrar
                 ,new ToolbarDefinition("control", "Utilidades", 						
                 		60, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.CLIENTE), List.copyOf(botonesUtils), 
-                		ToolbarAlignment.RIGHT)
+                		ToolbarAlignment.RIGHT/*, Set.of(ToolbarAlignment.EAST)*/)
 
                 // Botones de Marcar, Zoom y Reset
                 ,new ToolbarDefinition("proyecto_vista", "Proyecto (Vista)",		 	
                 		80, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.CARROUSEL), List.copyOf(botonesProyectoEnVista), 
-                		ToolbarAlignment.RIGHT)
+                		ToolbarAlignment.EAST /*RIGHT*/)
 
                 // Botones de ver subcarpetas, mantener proporciones, pantalla completa
                 ,new ToolbarDefinition("toggle", "Toggles", 							
                 		90, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL), List.copyOf(botonesToggle), 
-                		ToolbarAlignment.RIGHT)
+                		ToolbarAlignment.RIGHT)/*, Set.of(ToolbarAlignment.EAST))*/
 
                 // Boton de sincronizacion Visor / Carrousel
                 ,new ToolbarDefinition("sincronizacion", "Sincronización", 				
                 		10, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL), List.copyOf(botonesSincronizacion),  
-                		ToolbarAlignment.RIGHT)
+                		ToolbarAlignment.EAST)
                 
                 //Botones de Acceiones de proyecto
                 ,new ToolbarDefinition("proyecto_accion", "Acciones", 			
                 		50, EnumSet.of(WorkMode.PROYECTO), List.copyOf(botonesAccionesProyecto), 
-                		ToolbarAlignment.RIGHT)
+                		ToolbarAlignment.EAST)/* RIGHT, Set.of(ToolbarAlignment.EAST))*/
                 
                 // Selector de carpetas, Menu principal, Botones ocultos
                 ,new ToolbarDefinition("especiales", "Apoyo", 							
@@ -1189,12 +1186,12 @@ public class UIDefinitionService {
                 // Barra de Compartir con el Cliente
                 ,new ToolbarDefinition("compartir_cliente", "Compartir con el Cliente", 		
                 		10, EnumSet.of(WorkMode.CLIENTE), List.copyOf(componentesCompartirCliente), 
-                		ToolbarAlignment.RIGHT)
+                		ToolbarAlignment.EAST)
                 
                 // Barra Visor/Editor del Modo Cliente
                 ,new ToolbarDefinition("visor_editor", "Visor/Editor", 				
                 		20, EnumSet.of(WorkMode.CLIENTE), List.copyOf(botonesVisorEditor), 
-                		ToolbarAlignment.RIGHT)
+                		ToolbarAlignment.EAST)
                 
                 
                 
@@ -1213,14 +1210,20 @@ public class UIDefinitionService {
                 List.of(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR,
                         "60205-User-Check-Validate.png",
                         "Cerrar y sincronizar con el cliente", "cliente_cerrar")),
-                ToolbarAlignment.RIGHT)
+                ToolbarAlignment.EAST)
 
-                
 
                 // Barras especiales
+                ,new ToolbarDefinition("textfield_destino", "Carpeta Destino",
+                	    1490, EnumSet.of(WorkMode.PROYECTO),
+                	    List.of(new TextFieldDefinition("textfield.export.destino", 
+                	        "Seleccione una carpeta de destino...", 30)),
+                	    ToolbarAlignment.FREE)
+
                 ,new ToolbarDefinition("acciones_exportacion", "Acciones de Exportación", 		
                 		1500, EnumSet.of(WorkMode.PROYECTO), componentesExportacion, 
-                		ToolbarAlignment.FREE)
+                		ToolbarAlignment.EAST)
+                
                 ,new ToolbarDefinition("acciones_det_exportacion", "Detalles de Exportación", 	
                 		1550, EnumSet.of(WorkMode.PROYECTO), componentesDetallesExportacion, 
                 		ToolbarAlignment.FREE)

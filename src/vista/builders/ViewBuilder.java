@@ -15,6 +15,7 @@ import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -247,6 +248,14 @@ public class ViewBuilder {
         sidebarPanel.add(Box.createVerticalGlue(), BorderLayout.CENTER);
         sidebarPanel.add(bottomToolbar, BorderLayout.SOUTH);
         mainFrame.add(sidebarPanel, BorderLayout.WEST);
+        // ===========================================
+        
+        // === BARRA LATERAL VERTICAL DERECHA (EAST Toolbars) ===
+        JPanel eastSidebarPanel = new JPanel();
+        eastSidebarPanel.setLayout(new BoxLayout(eastSidebarPanel, BoxLayout.Y_AXIS));
+        eastSidebarPanel.setBorder(BorderFactory.createMatteBorder(0, 1, 0, 0, java.awt.Color.GRAY));
+        registry.register("container.toolbars.east", eastSidebarPanel);
+        mainFrame.add(eastSidebarPanel, BorderLayout.EAST);
         // ===========================================
 
         JPanel bottomStatusBar = createBottomStatusBar();

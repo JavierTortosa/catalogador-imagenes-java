@@ -95,12 +95,14 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
 
         ToolbarManager toolbarManager = projectController.getGeneralController().getToolbarManager(); 
         if (toolbarManager != null) {
-            JToolBar exportActionsToolbar = toolbarManager.getToolbar("acciones_exportacion");
+            JToolBar exportActionsToolbar = toolbarManager.getToolbar("textfield_destino");
             if (exportActionsToolbar != null) {
                 exportActionsToolbar.setOrientation(JToolBar.VERTICAL);
                 exportActionsToolbar.setFloatable(false);
                 this.add(exportActionsToolbar, BorderLayout.EAST);
             }
+            // Asegurar que los botones de acciones_exportacion están registrados en ComponentRegistry
+            toolbarManager.getToolbar("acciones_exportacion");
         }
         
         JPanel mainContentPanel = new JPanel(new BorderLayout(5, 5));
@@ -422,9 +424,9 @@ public class ExportPanel extends JPanel implements vista.theme.ThemeChangeListen
 
     public void setActionsToolbar(JToolBar newToolbar) {
         BorderLayout layout = (BorderLayout) getLayout();
-        Component oldToolbar = layout.getLayoutComponent(BorderLayout.SOUTH);
+        Component oldToolbar = layout.getLayoutComponent(BorderLayout.EAST);
         if (oldToolbar != null) remove(oldToolbar);
-        if (newToolbar != null) add(newToolbar, BorderLayout.SOUTH);
+        if (newToolbar != null) add(newToolbar, BorderLayout.EAST);
         revalidate();
         repaint();
     } // ---FIN de metodo [setActionsToolbar]---

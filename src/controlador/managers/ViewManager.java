@@ -726,7 +726,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
         if (exportPanel != null) {
             // 2. Pedimos al ToolbarManager la barra reconstruida.
             // Como la caché se vació, esto creará una nueva instancia con el tema correcto.
-            JToolBar nuevaBarraExportacion = toolbarManager.getToolbar("acciones_exportacion");
+            JToolBar nuevaBarraExportacion = toolbarManager.getToolbar("textfield_destino");
 
             if (nuevaBarraExportacion != null) {
                 // 3. Forzamos la actualización de la UI de la nueva barra y sus botones.
@@ -738,9 +738,9 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
                 exportPanel.setActionsToolbar(nuevaBarraExportacion);
 
                 logger.debug(
-                        "    -> Nueva barra 'acciones_exportacion' entregada al ExportPanel para su actualización.");
+                        "    -> Nueva barra 'textfield_destino' entregada al ExportPanel para su actualización.");
             } else {
-                logger.warn("  WARN: ToolbarManager no pudo proporcionar la barra 'acciones_exportacion'.");
+                logger.warn("  WARN: ToolbarManager no pudo proporcionar la barra 'textfield_destino'.");
             }
         } else {
             logger.warn("  WARN: No se encontró el componente 'panel.proyecto.exportacion.completo' en el registro.");
