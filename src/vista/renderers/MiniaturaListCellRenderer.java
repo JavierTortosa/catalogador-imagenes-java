@@ -84,12 +84,16 @@ public class MiniaturaListCellRenderer extends JPanel implements ListCellRendere
         this.panelContenedorIcono.setOpaque(false);
         this.panelContenedorIcono.add(this.etiquetaIcono, new GridBagConstraints());
 
-        this.etiquetaNombre = new JLabel();
-        this.etiquetaNombre.setHorizontalAlignment(SwingConstants.CENTER);
-        this.etiquetaNombre.setFont(this.etiquetaNombre.getFont().deriveFont(10.0f));
-
-        add(this.panelContenedorIcono, BorderLayout.CENTER);
-        add(this.etiquetaNombre, BorderLayout.SOUTH);
+        if (this.mostrarNombresConfigurado) {
+            this.etiquetaNombre = new JLabel();
+            this.etiquetaNombre.setHorizontalAlignment(SwingConstants.CENTER);
+            this.etiquetaNombre.setFont(this.etiquetaNombre.getFont().deriveFont(10.0f));
+            add(this.panelContenedorIcono, BorderLayout.CENTER);
+            add(this.etiquetaNombre, BorderLayout.SOUTH);
+        } else {
+            this.etiquetaNombre = null;
+            add(this.panelContenedorIcono, BorderLayout.CENTER);
+        }
 
         // --- CÁLCULO DE DIMENSIONES DE CELDA (CON LA CORRECCIÓN) ---
         final int paddingHorizontalTotalCelda = 10;
@@ -145,7 +149,7 @@ public class MiniaturaListCellRenderer extends JPanel implements ListCellRendere
             this.etiquetaIcono.setText(null);
         }
 
-        if (this.mostrarNombresConfigurado) {
+        if (this.etiquetaNombre != null) {
             String nombreParaMostrar = "N/A";
             if (rutaCompleta != null) {
                 Path fileNamePath = rutaCompleta.getFileName();
@@ -155,9 +159,6 @@ public class MiniaturaListCellRenderer extends JPanel implements ListCellRendere
             }
             this.etiquetaNombre.setText(nombreParaMostrar);
             this.etiquetaNombre.setVisible(true);
-        } else {
-            this.etiquetaNombre.setText(" ");
-            this.etiquetaNombre.setVisible(false);
         }
 
         boolean isMarked = false;
@@ -170,7 +171,7 @@ public class MiniaturaListCellRenderer extends JPanel implements ListCellRendere
         
         if (isSelected) {
             setBackground(temaActual.colorSeleccionFondo());
-            this.etiquetaNombre.setForeground(temaActual.colorSeleccionTexto());
+            if (this.etiquetaNombre != null) this.etiquetaNombre.setForeground(temaActual.colorSeleccionTexto());
             
             Border bordeFoco = BorderFactory.createLineBorder(temaActual.colorBordeSeleccionActiva(), 2);
             
@@ -183,7 +184,7 @@ public class MiniaturaListCellRenderer extends JPanel implements ListCellRendere
             }
         } else {
             setBackground(temaActual.colorFondoPrincipal());
-            this.etiquetaNombre.setForeground(temaActual.colorTextoPrimario());
+            if (this.etiquetaNombre != null) this.etiquetaNombre.setForeground(temaActual.colorTextoPrimario());
             
             if (isMarked) {
                 // Solo borde de Marcada (Verde)

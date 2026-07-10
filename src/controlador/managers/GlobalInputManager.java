@@ -415,10 +415,21 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
             Action action = null;
             if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_T) action = actionMap.get(AppActionCommands.CMD_GRID_SET_TEXT);
             else if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_DELETE) action = actionMap.get(AppActionCommands.CMD_GRID_REMOVE_TEXT);
-            else if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_ADD) action = actionMap.get(AppActionCommands.CMD_GRID_SIZE_UP_MINIATURA);
-            else if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_SUBTRACT) action = actionMap.get(AppActionCommands.CMD_GRID_SIZE_DOWN_MINIATURA);
             
             if (action != null) {
+                action.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, null));
+                e.consume();
+                return true;
+            }
+        }
+        
+        // Ctrl++ / Ctrl+-: cambiar tamaño de miniaturas (grid o tira), en cualquier modo
+        if (e.isControlDown()) {
+            Action action = null;
+            if (e.getKeyCode() == KeyEvent.VK_ADD) action = actionMap.get(AppActionCommands.CMD_GRID_SIZE_UP_MINIATURA);
+            else if (e.getKeyCode() == KeyEvent.VK_SUBTRACT) action = actionMap.get(AppActionCommands.CMD_GRID_SIZE_DOWN_MINIATURA);
+            
+            if (action != null && action.isEnabled()) {
                 action.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, null));
                 e.consume();
                 return true;

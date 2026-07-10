@@ -315,12 +315,13 @@ public class ToolbarManager implements ThemeChangeListener{
             if (polaroidAction != null) polaroidAction.setEnabled(hasSelection);
         }
 
-        // 2. Botones de Zoom de Grid (Tamaño de miniatura): Solo activos en modo GRID.
+        // 2. Botones de Zoom de Grid (Tamaño de miniatura): siempre activos.
+        //    En modo GRID cambian el tamaño de las celdas del grid;
+        //    en SINGLE/POLAROID cambian el tamaño de la tira de miniaturas inferior.
         Action gridZoomUp = actionMap.get(AppActionCommands.CMD_GRID_SIZE_UP_MINIATURA);
         Action gridZoomDown = actionMap.get(AppActionCommands.CMD_GRID_SIZE_DOWN_MINIATURA);
-        boolean isGrid = (displayMode == DisplayMode.GRID);
-        if (gridZoomUp != null) gridZoomUp.setEnabled(isGrid);
-        if (gridZoomDown != null) gridZoomDown.setEnabled(isGrid);
+        if (gridZoomUp != null) gridZoomUp.setEnabled(true);
+        if (gridZoomDown != null) gridZoomDown.setEnabled(true);
 
         // 3. Botones de Zoom de Toolbar (Modo/Porcentaje): Solo activos en SINGLE o POLAROID.
         // Deshabilitamos todas las acciones cuya clave empiece con "cmd.zoom"

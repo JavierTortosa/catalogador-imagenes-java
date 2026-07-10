@@ -477,10 +477,22 @@ public class VisorView extends JFrame {
         listaMiniaturas.setCellRenderer(newRenderer);
         listaMiniaturas.setFixedCellHeight(newRenderer.getAlturaCalculadaDeCelda());
         listaMiniaturas.setFixedCellWidth(newRenderer.getAnchoCalculadaDeCelda());
-        listaMiniaturas.revalidate();
-        listaMiniaturas.repaint();
 
-        
+        // --- 6. ACTUALIZAR EL SCROLLPANE Y FORZAR RE-LAYOUT DEL CONTENEDOR ---
+        JScrollPane scrollPane = this.registry.get("scroll.miniaturas");
+        if (scrollPane != null) {
+            int nuevaAlturaScrollPane = newRenderer.getAlturaCalculadaDeCelda() + 20;
+            Dimension newSize = new Dimension(scrollPane.getWidth(), nuevaAlturaScrollPane);
+            scrollPane.setPreferredSize(newSize);
+            scrollPane.setMaximumSize(newSize);
+        }
+
+        JPanel visualizerPanel = this.registry.get("panel.workmode.visualizador");
+        if (visualizerPanel != null) {
+            visualizerPanel.revalidate();
+            visualizerPanel.repaint();
+        }
+
         logger.debug("[VisorView] Refresco de renderers de miniaturas completado.");
     } // --- FIN del metodo solicitarRefrescoRenderersMiniaturas ---
     
