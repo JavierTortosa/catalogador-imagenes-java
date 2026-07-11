@@ -57,6 +57,7 @@ public class ToolbarBuilder {
 
     private Map<String, AbstractButton> botonesPorNombre;
     private final Map<String, ButtonGroup> radioGroups = new HashMap<>();
+
     public ToolbarBuilder(
             ThemeManager themeManager,
             IconUtils iconUtils,
@@ -337,7 +338,11 @@ public class ToolbarBuilder {
             String claveBaseBoton = ConfigKeys.buildKey("interfaz.boton", definition.categoriaLayout(),
                     nombreBotonParaClave);
 
-            this.registry.register(claveBaseBoton, abstractButtonComponent);
+            // Solo registrar si la clave no existe aún (evita sobrescribir el botón
+            // original cuando se construye un clon por colocaciones)
+            if (this.registry.get(claveBaseBoton) == null) {
+                this.registry.register(claveBaseBoton, abstractButtonComponent);
+            }
 
             // Registrar botones específicos con claves fijas para acceso desde los controladores
             String cmd = definition.comandoCanonico();

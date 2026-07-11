@@ -979,20 +979,6 @@ public class ProjectController implements IModoController {
             return;
         }
 
-        // --- Fase 7: guardia proyecto compartido ---
-        if (projectManager.getCurrentProject() != null
-                && projectManager.getCurrentProject().isSharedWithClient()) {
-            int confirm = JOptionPane.showConfirmDialog(view,
-                    "Estás modificando las especificaciones enviadas al cliente.\n"
-                    + "¿Continuar?",
-                    "Proyecto Compartido",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE);
-            if (confirm != JOptionPane.YES_OPTION) {
-                return;
-            }
-        }
-
         JList<String> listaDescartesUI = registry.get("list.proyecto.descartes");
         if (listaDescartesUI == null) {
             return;
@@ -1358,10 +1344,11 @@ public class ProjectController implements IModoController {
         } else {
             boolean puedeCompartirCliente = todosLosSeleccionadosEstanListos && seleccionados > 0 && !hayConflictos;
             if (accionCompartir != null) accionCompartir.setEnabled(puedeCompartirCliente);
-            // Export buttons only if project is shared with client
+            // Export buttons only if project is shared and all images have catalog codes
             ProjectModel proyecto = projectManager != null ? projectManager.getCurrentProject() : null;
-            boolean proyectoCompartido = proyecto != null && proyecto.isSharedWithClient();
-            boolean puedeExportarCliente = puedeCompartirCliente && proyectoCompartido;
+            boolean proyectoCompartidoYCompleto = proyecto != null && proyecto.isSharedWithClient()
+                    && !proyecto.hasAnyImageWithoutCode();
+            boolean puedeExportarCliente = puedeCompartirCliente && proyectoCompartidoYCompleto;
             if (accionExportHtml != null) accionExportHtml.setEnabled(puedeExportarCliente);
             if (accionExportWeb != null) accionExportWeb.setEnabled(puedeExportarCliente);
         }

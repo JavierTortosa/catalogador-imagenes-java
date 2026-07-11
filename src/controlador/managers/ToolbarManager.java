@@ -196,45 +196,32 @@ public class ToolbarManager implements ThemeChangeListener{
                     default: leftPanel.add(toolbar); break;
                 }
             }
-        }
-        
-        // Procesar colocaciones adicionales (misma toolbar en múltiples ubicaciones)
-        for (ToolbarDefinition def : todasLasBarras) {
-            if (!def.modosVisibles().contains(modoActual)) continue;
-            if (def.alignment() == ToolbarAlignment.FREE) continue;
-            if (def.colocaciones() == null || def.colocaciones().isEmpty()) continue;
             
-            for (ToolbarAlignment extraAlign : def.colocaciones()) {
-                String claveExtra = def.claveBarra() + "_" + extraAlign.name().toLowerCase();
+            // Colocaciones EAST: clon en la posición que corresponde por orden
+            if (def.colocaciones() != null && def.colocaciones().contains(ToolbarAlignment.EAST) && eastPanel != null) {
+                String claveExtra = def.claveBarra() + "_east";
                 JToolBar extraToolbar = managedToolbars.get(claveExtra);
-                
                 if (extraToolbar == null) {
                     ToolbarDefinition extraDef = new ToolbarDefinition(
                         claveExtra, def.titulo(), def.orden(), def.modosVisibles(),
-                        def.componentes(), extraAlign, java.util.Collections.emptySet());
+                        def.componentes(), ToolbarAlignment.EAST, java.util.Collections.emptySet());
                     extraToolbar = buildAndConfigureToolbar(extraDef);
                     managedToolbars.put(claveExtra, extraToolbar);
-                    String registryKey = "toolbar." + claveExtra;
-                    this.registry.register(registryKey, extraToolbar);
+                    this.registry.register("toolbar." + claveExtra, extraToolbar);
                 }
-                
                 String configKeyVisibilidad = ConfigKeys.buildKey("interfaz.herramientas", claveExtra, "visible");
-                boolean isVisibleInConfig = configuration.getBoolean(configKeyVisibilidad, true);
-                extraToolbar.setVisible(isVisibleInConfig);
+                extraToolbar.setVisible(configuration.getBoolean(configKeyVisibilidad, true));
                 extraToolbar.setOpaque(false);
-                
-                if (extraAlign == ToolbarAlignment.EAST && eastPanel != null) {
-                    extraToolbar.setOrientation(JToolBar.VERTICAL);
-                    extraToolbar.setFloatable(false);
-                    extraToolbar.setMaximumSize(new java.awt.Dimension(
-                        extraToolbar.getPreferredSize().width,
-                        extraToolbar.getPreferredSize().height));
-                    eastPanel.add(extraToolbar);
-                }
+                extraToolbar.setOrientation(JToolBar.VERTICAL);
+                extraToolbar.setFloatable(false);
+                extraToolbar.setMaximumSize(new java.awt.Dimension(
+                    extraToolbar.getPreferredSize().width,
+                    extraToolbar.getPreferredSize().height));
+                eastPanel.add(extraToolbar);
             }
         }
         
-        // Añadir glue al final del panel EAST para que las toolbars queden arriba
+        // Glue al final del panel EAST para que las toolbars queden arriba
         if (eastPanel != null) {
             eastPanel.add(javax.swing.Box.createVerticalGlue());
         }

@@ -3,6 +3,7 @@ package vista.config;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import controlador.commands.AppActionCommands;
@@ -10,6 +11,20 @@ import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
 
 public class UIDefinitionService {
+
+    // ========== CONSTANTES DE MODO DE TRABAJO ==========
+    private static final WorkMode VISOR = WorkMode.VISUALIZADOR;
+    private static final WorkMode PROJECT = WorkMode.PROYECTO;
+    private static final WorkMode CLIENT = WorkMode.CLIENTE;
+    private static final WorkMode DATA = WorkMode.DATOS;
+    private static final WorkMode SLIDER = WorkMode.CARROUSEL;
+
+    // ========== CONSTANTES DE ALINEACIÓN ==========
+    private static final ToolbarAlignment tbarLeft = ToolbarAlignment.LEFT;
+    private static final ToolbarAlignment tbarCenter = ToolbarAlignment.CENTER;
+    private static final ToolbarAlignment tbarRight = ToolbarAlignment.RIGHT;
+    private static final ToolbarAlignment tbarEast = ToolbarAlignment.EAST;
+    private static final ToolbarAlignment tbarFree = ToolbarAlignment.FREE;
 
     public UIDefinitionService() {
 
@@ -591,10 +606,12 @@ public class UIDefinitionService {
                 MenuItemType.MAIN_MENU, "Ayuda", ayudaSubItems));
 
         // --- SECCIÓN 9: FIN DE LA DEFINICIÓN DE TODOS LOS MENÚS ---
+        
         return menuBarStructure;
+        
     }// --- FIN del metodo generateMenuStructure ---
 
-    // --- Método para definir la estructura de barras de herramientas modulares ---
+    
     /**
      * Define la estructura completa de todas las barras de herramientas modulares.
      * Cada `ToolbarDefinition` representa una barra de herramientas temática que
@@ -613,7 +630,8 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_SIGUIENTE, "1003-siguiente_48x48.png",
                         "Imagen Siguiente", "navegacion"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_ULTIMA, "1004-ultima_48x48.png", "Última Imagen",
-                        "navegacion"));
+                        "navegacion")
+        );
 
         // --- BARRA DE EDICIÓN ---
         List<ToolbarButtonDefinition> botonesEdicion = List.of(
@@ -626,7 +644,8 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_VOLTEAR_V, "2004-espejo_vertical_48x48.png",
                         "Voltear Vertical", "edicion"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_RECORTAR, "2005-recortar_48x48.png",
-                        "Recortar", "edicion"));
+                        "Recortar", "edicion")
+        );
 
         // --- BARRA DE ZOOM ---
         List<ToolbarButtonDefinition> botonesZoom = List.of(
@@ -662,7 +681,8 @@ public class UIDefinitionService {
                         "vista", ButtonType.TOGGLE)
                 // FIN GRUPO DE BOTONES
                 , new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, "4004-lista_48x48.png",
-                        "Vista Lista", "vista"));
+                        "Vista Lista", "vista")
+        );
 
         // --- BARRA DE UITILS ---
         List<ToolbarButtonDefinition> botonesUtils = List.of(
@@ -671,19 +691,22 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_REFRESCAR, "5001-refrescar_48x48.png",
                         "Refrescar", "control"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_LOCALIZAR,
-                        "5003-ubicacion_de_archivo_48x48.png", "Abrir Ubicación", "control"));
+                        "5003-ubicacion_de_archivo_48x48.png", "Abrir Ubicación", "control")
+        );
 
         // --- BARRA DE ABRIR CARPETA ---
         List<ToolbarButtonDefinition> botonesAbrirCarpeta = List.of(
                 new ToolbarButtonDefinition(AppActionCommands.CMD_ARCHIVO_ABRIR, "6001-selector_de_carpetas_48x48.png",
-                        "Abrir Carpeta", "abrir_carpeta"));
+                        "Abrir Carpeta", "abrir_carpeta")
+        );
 
         // --- BARRA DE APOYO ---
         List<ToolbarButtonDefinition> botonesApoyo = List.of(
                 new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_MENU, "6002-menu_48x48.png",
                         "Menú Principal", "especiales"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS,
-                        "6003-botones_ocultos_48x48.png", "Mostrar Botones Ocultos", "especiales"));
+                        "6003-botones_ocultos_48x48.png", "Mostrar Botones Ocultos", "especiales")
+        );
 
         // --- BARRA DE BOTONES TOGGLE ---
         List<ToolbarButtonDefinition> botonesToggle = List.of(
@@ -694,7 +717,8 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP,
                         "7004-siempre_encima_48x48.png", "Mantener Siempre Encima", "toggle", ButtonType.TOGGLE),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA,
-                        "4003-pantalla_completa_48x48.png", "Modo Pantalla Completa", "toggle", ButtonType.TOGGLE));
+                        "4003-pantalla_completa_48x48.png", "Modo Pantalla Completa", "toggle", ButtonType.TOGGLE)
+        );
 
         // --- BARRA ACCIONES DE PROYECTOS ---
         List<ToolbarButtonDefinition> botonesProyectoEnVista = List.of(
@@ -703,7 +727,8 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, "3001-zoom_48x48.png",
                         "Activar/Desactivar Zoom Manual", "proyecto_vista", ButtonType.TOGGLE),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_RESET, "3008-reset_48x48.png", 
-                		"Resetear Zoom", "proyecto_vista"));
+                		"Resetear Zoom", "proyecto_vista")
+		);
 
         // --- BOTONES DE PROYECTOS ---
         List<ToolbarComponentDefinition> botonesProyectoEnProyecto = List.of(
@@ -753,6 +778,7 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition(AppActionCommands.CMD_CONFIG_MOSTRAR_VERSION, "7006-Information-48x48.png",
                         "Ayuda", "modo_bottom", ButtonType.NORMAL)
         );
+        
         // botones para los modos de edicion, carrousel, proyectos, gestion de Datos...
 
         // --- BARRA DE BOTONES carrousel ---
@@ -769,7 +795,8 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_TOGGLE_SHUFFLE, "9014-shuffle_48x48.png",
                         "Modo Aleatorio", "carrousel", ButtonType.TOGGLE),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_FAST_FORWARD, "9009-avance_rapido_48x48.png",
-                        "Avance Rapido", "carrousel"));
+                        "Avance Rapido", "carrousel")
+        );
 
         List<ToolbarComponentDefinition> botonesVelocidadCarrousel = List.of(
                 new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_SPEED_INCREASE,
@@ -783,16 +810,17 @@ public class UIDefinitionService {
         );
 
         // --- BARRA DE BOTONES DEL MODO CLIENTE ---
-        java.util.List<ToolbarComponentDefinition> botonesCliente = new java.util.ArrayList<>();
-        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_NUEVO, "7102-nuevo_proyecto_48x48.png",
-                "Nuevo proyecto", "cliente"));
-        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_ABRIR, "7103-abrir_proyecto_48x48.png",
-                "Abrir proyecto", "cliente"));
-        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR, "7104-guardar_proyecto_48x48.png",
-                "Guardar proyecto", "cliente"));
-        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR_COMO, "7105-guardar_proyecto_como_48x48.png",
-                "Guardar proyecto como...", "cliente"));
-//        botonesCliente.add(new SeparatorDefinition());
+        //java.util.
+        List<ToolbarComponentDefinition> botonesCliente = new java.util.ArrayList<>();
+		        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_NUEVO, "7102-nuevo_proyecto_48x48.png",
+		                "Nuevo proyecto", "cliente"));
+		        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_ABRIR, "7103-abrir_proyecto_48x48.png",
+		                "Abrir proyecto", "cliente"));
+		        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR, "7104-guardar_proyecto_48x48.png",
+		                "Guardar proyecto", "cliente"));
+		        botonesCliente.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR_COMO, "7105-guardar_proyecto_como_48x48.png",
+		                "Guardar proyecto como...", "cliente")
+		);
 
         // --- BARRA DE BOTONES DE COMPARTIR CON EL CLIENTE ---
         List<ToolbarComponentDefinition> componentesCompartirCliente = List.of(
@@ -806,15 +834,10 @@ public class UIDefinitionService {
                         "Exportar catálogo web para el cliente", "compartir_cliente"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML, "60203-User-Share.png",
                         "Exportar HTML único para el cliente", "compartir_cliente"),
-//                );
-                
                 new SeparatorDefinition(),
-//                new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE /*.CMD_CLIENTE_EDITAR*/, "60204-User-Edit-Pencil.png",
-//                		"Editar selección", "cliente", ButtonType.TOGGLE),
-                
                 new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_TOGGLE_OCULTAR_DESCARTES, "60101-Rotate-X-Axis.png",
         				"No exportar descartes", "cliente", ButtonType.TOGGLE)
-        		);
+		);
         
         // --- BARRA DE BOTONES DEL EDITOR DE CHECKBOXES ---
         List<ToolbarComponentDefinition> botonesCheckboxEditor = List.of(
@@ -829,8 +852,6 @@ public class UIDefinitionService {
 
         // --- BARRA DE BOTONES VISOR/EDITOR ---
         List<ToolbarComponentDefinition> botonesVisorEditor = List.of(
-        		
-        		
         		new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_VIEW_VISOR, "60102-Assistant-Square.png",
         				"Editor de checkboxes", "visor_editor", ButtonType.TOGGLE),
         		new SeparatorDefinition(),
@@ -857,27 +878,27 @@ public class UIDefinitionService {
         // --- BARRA DE GESTIÓN DE DATOS (NUEVA) ---
         List<ToolbarButtonDefinition> botonesGestionDatos = List.of(
                 new ToolbarButtonDefinition(AppActionCommands.CMD_COLECCION_AÑADIR_CARPETA_ACTUAL,
-                        "10005-sync_file_collection_48x48.png", "Añadir Carpeta a la Colección", "gestion_datos"));
+                        "10005-sync_file_collection_48x48.png", "Añadir Carpeta a la Colección", "gestion_datos")
+        );
 
         // --- BARRA DE BOTONES orden ---
         List<ToolbarComponentDefinition> botonesOrdenLista = List.of(
-
                 new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_CARPETA_RAIZ, "30001-carpeta_raiz.png",
                         "Carpeta Raiz", "orden_lista"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_CARPETA_ANTERIOR, "30002-subir_carpeta.png",
                         "Subir Subcarpeta", "orden_lista"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_CARPETA_SIGUIENTE, "30003-bajar_carpeta.png",
                         "Entrar en Subcarpeta", "orden_lista"),
-                new SeparatorDefinition()
-
-                , new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_CICLO, "30004-orden_ascendente.png",
-                        "Orden de Archivos", "orden_lista")
-
-                , new SeparatorDefinition(), new TextFieldDefinition("textfield.filtro.orden", "", 30),
+                new SeparatorDefinition(),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_CICLO, "30004-orden_ascendente.png",
+                        "Orden de Archivos", "orden_lista"),
+                new SeparatorDefinition(), 
+                new TextFieldDefinition("textfield.filtro.orden", "", 30),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER, "40001-filter_48x48.png",
                         "Activar/Desactivar Filtro en Vivo", "orden_lista", ButtonType.TOGGLE),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_ACTIVO, "40011-cambio_de_filtro_48x48.png",
-                        "Añadir Filtro Positivo (+)", "orden_lista", ButtonType.NORMAL));
+                        "Añadir Filtro Positivo (+)", "orden_lista", ButtonType.NORMAL)
+        );
 
         // --- BARRA DE BOTONES filtros ---
         // filtrado por extension (bmp, gif, png...), filtros por tags, filtros por
@@ -893,16 +914,16 @@ public class UIDefinitionService {
                 // new TextFieldDefinition("textfield.filtro.texto", "",30)
                 new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_ADD_POSITIVE,
                         "40002-filter_positive_48x48.png", "Añadir Filtro Positivo (+)", "barra_filtros",
-                        ButtonType.NORMAL)
+                        ButtonType.NORMAL),
                 // ,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_ADD_NEGATIVE,
                 // "40003-filter_negative_48x48.png","Añadir Filtro Negativo
-                // (-)","barra_filtros",ButtonType.NORMAL)
-                ,
+                // (-)","barra_filtros",ButtonType.NORMAL),
+                
                 new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_REMOVE_SELECTED,
                         "40006-filter_delete_48x48.png", "Quitar Filtro Seleccionado", "barra_filtros",
-                        ButtonType.NORMAL)
+                        ButtonType.NORMAL),
 
-                , new SeparatorDefinition()
+                new SeparatorDefinition(),
 
                 // ,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_SET_TYPE_FILENAME,
                 // "40007-filter_file_48x48.png", "Filtro tipo
@@ -914,20 +935,20 @@ public class UIDefinitionService {
                 // "40009-filter_tag_48x48.png", "Filtro tipo
                 // etiqueta","barra_filtros",ButtonType.TOGGLE)
 
-                , new SeparatorDefinition()
+                new SeparatorDefinition(),
 
                 // new ButtonGroupDefinition.ButtonGroupDefinition("start")
-                // ,new ButtonGroupDefinition("start")
-                ,
+                // ,new ButtonGroupDefinition("start"),
+                
                 new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_UP, "40004-filter_up_48x48.png",
                         "Subir 1 nivel", "barra_filtros", ButtonType.NORMAL),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_DOWN, "40005-filter_down_48x48.png",
-                        "Bajar 1 nivel", "barra_filtros", ButtonType.NORMAL)
+                        "Bajar 1 nivel", "barra_filtros", ButtonType.NORMAL),
                 // ,new ButtonGroupDefinition("end")
 
-                , new SeparatorDefinition()
+                new SeparatorDefinition(),
 
-                , new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_CLEAR_ALL, "40010-filter_clear_48x48.png",
+                new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_CLEAR_ALL, "40010-filter_clear_48x48.png",
                         "Limpiar Todos los Filtros", "barra_filtros", ButtonType.NORMAL)
 
         );
@@ -939,7 +960,8 @@ public class UIDefinitionService {
                         ButtonType.NORMAL),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SIZE_DOWN_MINIATURA,
                         "50004-reducir_miniatura_48x48.png", "Reducir Miniaturas", "barra_zoom_miniaturas",
-                        ButtonType.NORMAL));
+                        ButtonType.NORMAL)
+        );
 
         // --- BARRA DE BOTONES Grid Control de proyecto---
         List<ToolbarComponentDefinition> botones_grid_proyecto = List.of(
@@ -952,7 +974,8 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SET_TEXT, "50001-add_texto_48x48.png",
                         "Añadir/Modificar Etiqueta", "barra_grid_proyecto", ButtonType.NORMAL),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_REMOVE_TEXT, "50002-subst_texto_48x48.png",
-                        "Borrar Etiqueta", "barra_grid_proyecto", ButtonType.NORMAL));
+                        "Borrar Etiqueta", "barra_grid_proyecto", ButtonType.NORMAL)
+        );
 
         // --- BARRA DE CONTROL DE IMAGEN INFERIOR (CONSOLIDADA: D-Pad, Colores,
         // Cuadros, Paleta) ---
@@ -966,7 +989,8 @@ public class UIDefinitionService {
                 new HotspotDefinition(AppActionCommands.CMD_PAN_LEFT_EDGE, "d-pad_left_48x48.png", "Panear Izquierda",
                         IconScope.COMMON),
                 new HotspotDefinition(AppActionCommands.CMD_PAN_RIGHT_EDGE, "d-pad_right_48x48.png", "Panear Derecha",
-                        IconScope.COMMON));
+                        IconScope.COMMON)
+        );
 
         List<ToolbarButtonDefinition> botonesControlesImagenInferior = List.of(
                 // 1. D-Pad (Definición actualizada)
@@ -1008,7 +1032,8 @@ public class UIDefinitionService {
                         /* ButtpmType.NORMAL), // */ButtonType.TRANSPARENT),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR,
                         "paint-palette--streamline-core.png", IconScope.COMMON, "Seleccionar Color Personalizado...",
-                        "controles_imagen_inferior", ButtonType.TRANSPARENT));
+                        "controles_imagen_inferior", ButtonType.TRANSPARENT)
+        );
 
         // Toolbar de Exportar
         List<ToolbarComponentDefinition> componentesExportacion = List.of(
@@ -1042,16 +1067,19 @@ public class UIDefinitionService {
                 		"Detalles del PDF", "acciones_exportacion",ButtonType.TOGGLE),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORTAR_PDF, "21013-File-Pdf.png",
                 		"Crear PDF", "acciones_exportacion"),
+                
                 new SeparatorDefinition(),
+                
                 new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_COMPARTIR_CLIENTE, "21016-Ar-Environment.png",
                         "Compartir al Cliente", "acciones_exportacion"),
+                
                 new SeparatorDefinition(),
                 
                 new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_WEB, "60202-User-Following.png",
                         "Exportar catálogo web para el cliente", "acciones_exportacion"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_EXPORTAR_HTML, "60203-User-Share.png", 
                         "Exportar HTML único para el cliente", "acciones_exportacion")
-        		);
+		);
 
         List<ToolbarComponentDefinition> componentesDetallesExportacion = List.of(
                 new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_ADD_ASSOCIATED_FILE,
@@ -1059,7 +1087,8 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_DEL_ASSOCIATED_FILE,
                         "21008-del_item_exportar.png", "Borrar Archivos", "acciones_det_exportacion"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_LOCATE_ASSOCIATED_FILE,
-                        "21009-locate_item_exportar.png", "Localizar Archivos", "acciones_det_exportacion"));
+                        "21009-locate_item_exportar.png", "Localizar Archivos", "acciones_det_exportacion")
+        );
 
         // Toolbar de Statusbar
         List<ToolbarComponentDefinition> componentesBarraEstado = List.of(
@@ -1074,179 +1103,232 @@ public class UIDefinitionService {
                         "7004-siempre_encima_48x48.png", "Mantener Siempre Encima", "barra_estado", ButtonType.TOGGLE),
                 new SeparatorDefinition(),
                 new LabelDefinition("label.control.zoomPorcentaje", "Z: 100%"),
+                
                 // new ToolbarButtonDefinition("cmd.control.modoZoom", "imagen.png", "Cambiar
                 // Modo de Zoom", "barra_estado") // Usamos un comando simple, no de
                 // AppActionCommands
+                
                 new ToolbarButtonDefinition("cmd.control.modoZoom", "3005-escalar_para_ajustar_48x48.png",
                         "Cambiar Modo de Zoom", "barra_estado", /* ButtonType.NORMAL)// */ButtonType.STATUS_BAR_BUTTON)
 
         );
 
-        // --- DEFINICION DE TOOLBAR ---
+        // =====================================================================
+        // DEFINICIÓN DE TOOLBARS
+        // =====================================================================
+        // Cada toolbar se declara como variable local, agrupada por alineación.
+        // Rangos de orden:
+        //   LEFT   10-199  | CENTER 200-399 | RIGHT 400-599
+        //   EAST   600-799 | FREE   1000+
+        // =====================================================================
 
-        return List.of(
-                // Grupo Izquierda
+        // ==================== LEFT ====================
 
-                // Flechas de navegacion
-                new ToolbarDefinition("navegacion", "Navegación",
-                		20, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.CARROUSEL, WorkMode.CLIENTE), List.copyOf(botonesNavegacion), 
-                		ToolbarAlignment.LEFT)//, Set.of(ToolbarAlignment.EAST))
+        final ToolbarDefinition tbAbrirCarpeta = new ToolbarDefinition(
+                "abrir_carpeta", "Abrir Carpeta", 10,
+                EnumSet.of(VISOR, SLIDER),
+                List.copyOf(botonesAbrirCarpeta), tbarLeft, Set.of(tbarEast));
 
-                // Boton aislado de Abrir Carpeta
-                ,new ToolbarDefinition("abrir_carpeta", "Abrir Carpeta", 				
-//                		10, EnumSet.allOf(WorkMode.class), List.copyOf(botonesAbrirCarpeta), 
-                		10, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL), List.copyOf(botonesAbrirCarpeta),
-                		ToolbarAlignment.LEFT)
-                
-                // Botones de gestion de Proyecto
-                ,new ToolbarDefinition("proyecto", "Proyecto", 			
-                		40, EnumSet.of(WorkMode.PROYECTO), List.copyOf(botonesProyectoEnProyecto), 
-                		ToolbarAlignment.LEFT)
-                
-                // Barra específica para el Modo Cliente
-                ,new ToolbarDefinition("cliente", "Cliente", 							
-                		155, EnumSet.of(WorkMode.CLIENTE), List.copyOf(botonesCliente), 
-                		ToolbarAlignment.LEFT)
-                
-                
-                // Grupo Centro
+        final ToolbarDefinition tbNavegacion = new ToolbarDefinition(
+        		"navegacion", "Navegación", 20,
+        		EnumSet.of(VISOR, PROJECT, SLIDER, CLIENT),
+        		List.copyOf(botonesNavegacion), tbarLeft);
+        
+        final ToolbarDefinition tbProyecto = new ToolbarDefinition(
+                "proyecto", "Proyecto", 30,
+                EnumSet.of(PROJECT),
+                List.copyOf(botonesProyectoEnProyecto), tbarLeft);
 
-                // Botones de edicion de imagen
-                ,new ToolbarDefinition("edicion", "Edición", 							
-                		20, EnumSet.of(WorkMode.VISUALIZADOR),List.copyOf(botonesEdicion), 
-                		ToolbarAlignment.CENTER)
+        final ToolbarDefinition tbCliente = new ToolbarDefinition(
+                "cliente", "Cliente", 40,
+                EnumSet.of(CLIENT),
+                List.copyOf(botonesCliente), tbarLeft);
 
-                // Botones de modos de zoom
-                ,new ToolbarDefinition("zoom", "Zoom", 								
-                		30, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.PROYECTO, WorkMode.CLIENTE), List.copyOf(botonesZoom), 
-                		ToolbarAlignment.CENTER)
+        // ==================== CENTER ====================
+        final ToolbarDefinition tbEdicion = new ToolbarDefinition(
+                "edicion", "Edición", 200,
+                EnumSet.of(VISOR),
+                List.copyOf(botonesEdicion), tbarCenter);
 
-                // Botones de DisplayMode
-                ,new ToolbarDefinition("vista", "Vista", 								
-                		40,EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CLIENTE), List.copyOf(botonesVista),
-                		ToolbarAlignment.CENTER)
+        final ToolbarDefinition tbZoom = new ToolbarDefinition(
+                "zoom", "Zoom", 210,
+                EnumSet.of(VISOR, DATA, PROJECT, CLIENT),
+                List.copyOf(botonesZoom), tbarCenter);
 
-                // Cambio tamaño de miniaturas
-                ,new ToolbarDefinition("barra_zoom_miniaturas", "Zoom de Miniaturas", 	
-                		50, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.PROYECTO, WorkMode.CLIENTE), botones_zoom_miniaturas, 
-                		ToolbarAlignment.CENTER)
-                
-                // Toolbars específicas del modo Carrusel
-                ,new ToolbarDefinition("carrousel", "Carrousel", 						
-                		130, EnumSet.of(WorkMode.CARROUSEL), List.copyOf(botonesCarrousel), 
-                		ToolbarAlignment.CENTER)
-                
-                ,new ToolbarDefinition("velocidad_carrousel", "Velocidad", 
-                		140, EnumSet.of(WorkMode.CARROUSEL), botonesVelocidadCarrousel, 
-                		ToolbarAlignment.CENTER)
+        final ToolbarDefinition tbVista = new ToolbarDefinition(
+                "vista", "Vista", 220,
+                EnumSet.of(VISOR, PROJECT, DATA, CLIENT),
+                List.copyOf(botonesVista), tbarCenter);
 
-                // Barra específica para el Modo Datos
-                ,new ToolbarDefinition("gestion_datos", "Gestión de Colección", 		
-                		150, EnumSet.of(WorkMode.DATOS), List.copyOf(botonesGestionDatos), 
-                		ToolbarAlignment.CENTER)
+        final ToolbarDefinition tbZoomMiniaturas = new ToolbarDefinition(
+                "barra_zoom_miniaturas", "Zoom de Miniaturas", 230,
+                EnumSet.of(VISOR, DATA, PROJECT, CLIENT),
+                botones_zoom_miniaturas, tbarCenter);
 
-                // Barra del Editor de Checkboxes (no se muestra en toolbar principal, se coloca dentro del panel editor)
-                ,new ToolbarDefinition("editor_checkboxes", "Editor de Checkboxes", 	
-                		157, EnumSet.noneOf(WorkMode.class), List.copyOf(botonesCheckboxEditor), 
-                		ToolbarAlignment.CENTER)
-                
-                
-                // Grupo Derecha
+        final ToolbarDefinition tbCarrousel = new ToolbarDefinition(
+                "carrousel", "Carrousel", 240,
+                EnumSet.of(SLIDER),
+                List.copyOf(botonesCarrousel), tbarCenter);
 
-                // Botones de Refresco, Localizar, Borrar
-                ,new ToolbarDefinition("control", "Utilidades", 						
-                		60, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.CLIENTE), List.copyOf(botonesUtils), 
-                		ToolbarAlignment.RIGHT/*, Set.of(ToolbarAlignment.EAST)*/)
+        final ToolbarDefinition tbVelocidadCarrousel = new ToolbarDefinition(
+                "velocidad_carrousel", "Velocidad", 250,
+                EnumSet.of(SLIDER),
+                botonesVelocidadCarrousel, tbarCenter);
 
-                // Botones de Marcar, Zoom y Reset
-                ,new ToolbarDefinition("proyecto_vista", "Proyecto (Vista)",		 	
-                		80, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.CARROUSEL), List.copyOf(botonesProyectoEnVista), 
-                		ToolbarAlignment.EAST /*RIGHT*/)
+        final ToolbarDefinition tbGestionDatos = new ToolbarDefinition(
+                "gestion_datos", "Gestión de Colección", 260,
+                EnumSet.of(DATA),
+                List.copyOf(botonesGestionDatos), tbarCenter);
 
-                // Botones de ver subcarpetas, mantener proporciones, pantalla completa
-                ,new ToolbarDefinition("toggle", "Toggles", 							
-                		90, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL), List.copyOf(botonesToggle), 
-                		ToolbarAlignment.RIGHT)/*, Set.of(ToolbarAlignment.EAST))*/
+        final ToolbarDefinition tbEditorCheckboxes = new ToolbarDefinition(
+                "editor_checkboxes", "Editor de Checkboxes", 270,
+                EnumSet.noneOf(WorkMode.class),
+                List.copyOf(botonesCheckboxEditor), tbarCenter);
 
-                // Boton de sincronizacion Visor / Carrousel
-                ,new ToolbarDefinition("sincronizacion", "Sincronización", 				
-                		10, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL), List.copyOf(botonesSincronizacion),  
-                		ToolbarAlignment.EAST)
-                
-                //Botones de Acceiones de proyecto
-                ,new ToolbarDefinition("proyecto_accion", "Acciones", 			
-                		50, EnumSet.of(WorkMode.PROYECTO), List.copyOf(botonesAccionesProyecto), 
-                		ToolbarAlignment.EAST)/* RIGHT, Set.of(ToolbarAlignment.EAST))*/
-                
-                // Selector de carpetas, Menu principal, Botones ocultos
-                ,new ToolbarDefinition("especiales", "Apoyo", 							
-                		120, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CLIENTE, WorkMode.CARROUSEL), List.copyOf(botonesApoyo), 
-                		ToolbarAlignment.RIGHT)
-                
-                // Barra de Compartir con el Cliente
-                ,new ToolbarDefinition("compartir_cliente", "Compartir con el Cliente", 		
-                		10, EnumSet.of(WorkMode.CLIENTE), List.copyOf(componentesCompartirCliente), 
-                		ToolbarAlignment.EAST)
-                
-                // Barra Visor/Editor del Modo Cliente
-                ,new ToolbarDefinition("visor_editor", "Visor/Editor", 				
-                		20, EnumSet.of(WorkMode.CLIENTE), List.copyOf(botonesVisorEditor), 
-                		ToolbarAlignment.EAST)
-                
-                
-                
-                // Botones de WorkMode
-                ,new ToolbarDefinition("modo", "Modo", 									
-                		105, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CARROUSEL, WorkMode.CLIENTE), List.copyOf(botonesModo), 
-                		ToolbarAlignment.FREE)
-                ,new ToolbarDefinition("modo_bottom", "Modo Bottom", 					
-                		106, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CARROUSEL, WorkMode.CLIENTE), List.copyOf(botonesModoBottom), 
-                		ToolbarAlignment.FREE)
+        // ==================== RIGHT ====================
+        final ToolbarDefinition tbControl = new ToolbarDefinition(
+                "control", "Utilidades", 400,
+                EnumSet.of(VISOR, PROJECT, CLIENT),
+                List.copyOf(botonesUtils), tbarRight);
 
-                // Barra aislada para cerrar cliente (evitar cierres accidentales)
-                ,new ToolbarDefinition("cliente_cerrar", "Cerrar Cliente", 			
-                		30, EnumSet.of(WorkMode.CLIENTE),
-                		
+        final ToolbarDefinition tbToggle = new ToolbarDefinition(
+                "toggle", "Toggles", 410,
+                EnumSet.of(VISOR, SLIDER),
+                List.copyOf(botonesToggle), tbarRight);
+
+        final ToolbarDefinition tbEspeciales = new ToolbarDefinition(
+                "especiales", "Apoyo", 420,
+                EnumSet.of(VISOR, PROJECT, DATA, CLIENT, SLIDER),
+                List.copyOf(botonesApoyo), tbarRight);
+
+        // ==================== EAST ====================
+        final ToolbarDefinition tbProyectoVista = new ToolbarDefinition(
+                "proyecto_vista", "Proyecto (Vista)", 600,
+                EnumSet.of(VISOR, DATA, SLIDER),
+                List.copyOf(botonesProyectoEnVista), tbarEast);
+
+        final ToolbarDefinition tbSincronizacion = new ToolbarDefinition(
+                "sincronizacion", "Sincronización", 610,
+                EnumSet.of(VISOR, SLIDER),
+                List.copyOf(botonesSincronizacion), tbarEast);
+
+        final ToolbarDefinition tbProyectoAccion = new ToolbarDefinition(
+                "proyecto_accion", "Acciones", 620,
+                EnumSet.of(PROJECT),
+                List.copyOf(botonesAccionesProyecto), tbarEast);
+
+        final ToolbarDefinition tbCompartirCliente = new ToolbarDefinition(
+                "compartir_cliente", "Compartir con el Cliente", 630,
+                EnumSet.of(CLIENT),
+                List.copyOf(componentesCompartirCliente), tbarEast);
+
+        final ToolbarDefinition tbVisorEditor = new ToolbarDefinition(
+                "visor_editor", "Visor/Editor", 640,
+                EnumSet.of(CLIENT),
+                List.copyOf(botonesVisorEditor), tbarEast);
+
+        final ToolbarDefinition tbClienteCerrar = new ToolbarDefinition(
+                "cliente_cerrar", "Cerrar Cliente", 650,
+                EnumSet.of(CLIENT),
                 List.of(new ToolbarButtonDefinition(AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR,
                         "60205-User-Check-Validate.png",
                         "Cerrar y sincronizar con el cliente", "cliente_cerrar")),
-                ToolbarAlignment.EAST)
+                tbarEast);
 
+        final ToolbarDefinition tbAccionesExportacion = new ToolbarDefinition(
+                "acciones_exportacion", "Acciones de Exportación", 660,
+                EnumSet.of(PROJECT),
+                componentesExportacion, tbarEast);
 
-                // Barras especiales
-                ,new ToolbarDefinition("textfield_destino", "Carpeta Destino",
-                	    1490, EnumSet.of(WorkMode.PROYECTO),
-                	    List.of(new TextFieldDefinition("textfield.export.destino", 
-                	        "Seleccione una carpeta de destino...", 30)),
-                	    ToolbarAlignment.FREE)
+        // ==================== FREE ====================
+        final ToolbarDefinition tbTextfieldDestino = new ToolbarDefinition(
+                "textfield_destino", "Carpeta Destino", 1000,
+                EnumSet.of(PROJECT),
+                List.of(new TextFieldDefinition("textfield.export.destino",
+                        "Seleccione una carpeta de destino...", 30)),
+                tbarFree);
 
-                ,new ToolbarDefinition("acciones_exportacion", "Acciones de Exportación", 		
-                		1500, EnumSet.of(WorkMode.PROYECTO), componentesExportacion, 
-                		ToolbarAlignment.EAST)
-                
-                ,new ToolbarDefinition("acciones_det_exportacion", "Detalles de Exportación", 	
-                		1550, EnumSet.of(WorkMode.PROYECTO), componentesDetallesExportacion, 
-                		ToolbarAlignment.FREE)
-                ,new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 		
-                		1600, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CLIENTE), List.copyOf(botonesControlesImagenInferior), 
-                		ToolbarAlignment.FREE)
-                ,new ToolbarDefinition("barra_estado_controles", "Controles de Estado", 			
-                		1650, EnumSet.allOf(WorkMode.class), componentesBarraEstado, 
-                		ToolbarAlignment.FREE)                
-                ,new ToolbarDefinition("botonesOrdenLista", "Orden de Lista", 					
-                		1700, EnumSet.allOf(WorkMode.class), botonesOrdenLista, 
-                		ToolbarAlignment.FREE)
-                ,new ToolbarDefinition("barra_filtros", "Herramientas de Filtro", 				
-                		1750, EnumSet.allOf(WorkMode.class), componentesFiltro, 
-                		ToolbarAlignment.FREE)
-                
-                // ,new ToolbarDefinition("barra_grid_tamano", "Controles de Tamaño de Grid",
-                // 1850, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO),
-                // botones_grid_tamano, ToolbarAlignment.FREE)
-                
-                ,new ToolbarDefinition("barra_grid_proyecto", "Controles de Proyecto de Grid", 
-                		1900, EnumSet.of(WorkMode.PROYECTO), botones_grid_proyecto, 
-                		ToolbarAlignment.FREE));
+        final ToolbarDefinition tbAccionesDetExportacion = new ToolbarDefinition(
+                "acciones_det_exportacion", "Detalles de Exportación", 1010,
+                EnumSet.of(PROJECT),
+                componentesDetallesExportacion, tbarFree);
+
+        final ToolbarDefinition tbControlesImagenInferior = new ToolbarDefinition(
+                "controles_imagen_inferior", "Controles de Imagen", 1020,
+                EnumSet.of(VISOR, CLIENT),
+                List.copyOf(botonesControlesImagenInferior), tbarFree);
+
+        final ToolbarDefinition tbBarraEstadoControles = new ToolbarDefinition(
+                "barra_estado_controles", "Controles de Estado", 1030,
+                EnumSet.allOf(WorkMode.class),
+                componentesBarraEstado, tbarFree);
+
+        final ToolbarDefinition tbBotonesOrdenLista = new ToolbarDefinition(
+                "botonesOrdenLista", "Orden de Lista", 1040,
+                EnumSet.allOf(WorkMode.class),
+                botonesOrdenLista, tbarFree);
+
+        final ToolbarDefinition tbBarraFiltros = new ToolbarDefinition(
+                "barra_filtros", "Herramientas de Filtro", 1050,
+                EnumSet.allOf(WorkMode.class),
+                componentesFiltro, tbarFree);
+
+        final ToolbarDefinition tbBarraGridProyecto = new ToolbarDefinition(
+                "barra_grid_proyecto", "Controles de Proyecto de Grid", 1060,
+                EnumSet.of(PROJECT),
+                botones_grid_proyecto, tbarFree);
+
+        final ToolbarDefinition tbModo = new ToolbarDefinition(
+                "modo", "Modo", 1070,
+                EnumSet.of(VISOR, PROJECT, DATA, SLIDER, CLIENT),
+                List.copyOf(botonesModo), tbarFree);
+
+        final ToolbarDefinition tbModoBottom = new ToolbarDefinition(
+                "modo_bottom", "Modo Bottom", 1080,
+                EnumSet.of(VISOR, PROJECT, DATA, SLIDER, CLIENT),
+                List.copyOf(botonesModoBottom), tbarFree);
+
+        return List.of(
+                // LEFT
+                tbNavegacion,
+                tbAbrirCarpeta,
+                tbProyecto,
+                tbCliente,
+
+                // CENTER
+                tbEdicion,
+                tbZoom,
+                tbVista,
+                tbZoomMiniaturas,
+                tbCarrousel,
+                tbVelocidadCarrousel,
+                tbGestionDatos,
+                tbEditorCheckboxes,
+
+                // RIGHT
+                tbControl,
+                tbToggle,
+                tbEspeciales,
+
+                // EAST
+                tbProyectoVista,
+                tbSincronizacion,
+                tbProyectoAccion,
+                tbCompartirCliente,
+                tbVisorEditor,
+                tbClienteCerrar,
+                tbAccionesExportacion,
+
+                // FREE
+                tbTextfieldDestino,
+                tbAccionesDetExportacion,
+                tbControlesImagenInferior,
+                tbBarraEstadoControles,
+                tbBotonesOrdenLista,
+                tbBarraFiltros,
+                tbBarraGridProyecto,
+                tbModo,
+                tbModoBottom);
 
     }// --- FIN DEL METODO generateModularToolbarStructure ---
 

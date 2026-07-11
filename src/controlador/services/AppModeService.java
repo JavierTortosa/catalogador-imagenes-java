@@ -464,8 +464,6 @@ public class AppModeService {
                                 || contextoCarrusel.getModeloLista().isEmpty())
                             contextoCarrusel.clonarDesde(model.getVisualizadorListContext());
                         visorController.restaurarUiCarrusel();
-                        if (visorController.getActionFactory().getCarouselManager() != null)
-                            visorController.getActionFactory().getCarouselManager().onCarouselModeChanged(true);
                         break;
                     case DATOS:
                         if (dataController != null) {
@@ -498,6 +496,7 @@ public class AppModeService {
                     toolbarManager.reconstruirContenedorDeToolbars(modoAlQueSeEntra);
                 if (modoAlQueSeEntra == WorkMode.CARROUSEL
                         && visorController.getActionFactory().getCarouselManager() != null) {
+                    visorController.getActionFactory().getCarouselManager().onCarouselModeChanged(true);
                     visorController.getActionFactory().getCarouselManager().findAndWireUpFastMoveButtons();
                     visorController.getActionFactory().getCarouselManager().findAndWireUpSpeedButtons();
                     visorController.getActionFactory().getCarouselManager().wireUpEventListeners();

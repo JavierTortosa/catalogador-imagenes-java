@@ -723,6 +723,21 @@ public class DataController {
 
         boolean todasMarcadas = paths.stream().allMatch(p -> projectManager.estaMarcada(p));
 
+        // Guardia: si vamos a desmarcar imágenes y el proyecto está compartido, avisar
+        if (todasMarcadas && projectManager.getCurrentProject() != null
+                && projectManager.getCurrentProject().isSharedWithClient()) {
+            int confirm = javax.swing.JOptionPane.showConfirmDialog(
+                    registry.get("frame.main"),
+                    "Vas a quitar imágenes de la selección del proyecto.\n"
+                    + "El proyecto está compartido con el cliente. ¿Continuar?",
+                    "Proyecto Compartido",
+                    javax.swing.JOptionPane.YES_NO_OPTION,
+                    javax.swing.JOptionPane.WARNING_MESSAGE);
+            if (confirm != javax.swing.JOptionPane.YES_OPTION) {
+                return;
+            }
+        }
+
         for (Path path : paths) {
             if (todasMarcadas) {
                 projectManager.desmarcarImagen(path);

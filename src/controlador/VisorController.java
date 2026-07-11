@@ -1646,6 +1646,22 @@ public class VisorController implements IModoController, ThemeChangeListener {
 	    java.util.List<String> clavesSeleccionadas = listaNombres.getSelectedValuesList();
 	    if (clavesSeleccionadas == null || clavesSeleccionadas.isEmpty()) return;
 
+	    // Guardia: si vamos a desmarcar imágenes y el proyecto está compartido, avisar
+	    boolean algunaMarcada = clavesSeleccionadas.stream()
+	            .anyMatch(c -> c != null && !c.isEmpty() && projectManager.estaMarcada(model.getRutaCompleta(c)));
+	    if (algunaMarcada && projectManager.getCurrentProject() != null
+	            && projectManager.getCurrentProject().isSharedWithClient()) {
+	        int confirm = javax.swing.JOptionPane.showConfirmDialog(view,
+	                "Vas a quitar imágenes de la selección del proyecto.\n"
+	                + "El proyecto está compartido con el cliente. ¿Continuar?",
+	                "Proyecto Compartido",
+	                javax.swing.JOptionPane.YES_NO_OPTION,
+	                javax.swing.JOptionPane.WARNING_MESSAGE);
+	        if (confirm != javax.swing.JOptionPane.YES_OPTION) {
+	            return;
+	        }
+	    }
+
 	    boolean huboCambio = false;
 
 	    for (String clave : clavesSeleccionadas) {

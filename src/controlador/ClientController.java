@@ -547,8 +547,7 @@ public class ClientController implements IModoController {
         // Crear copia local para preparación atómica
         Map<String, ProjectImage> nuevasMaster = new LinkedHashMap<>(masterActual);
 
-        // Detectar nuevas imgenes en el proyecto no presentes en masterImages
-        int newCount = 0;
+        // Añadir imágenes de selectedImages/discardedImages que falten en master
         for (String ruta : selectedImages.keySet()) {
             String canonical = ProjectModel.normalizarClaveImagen(ruta);
             if (!nuevasMaster.containsKey(canonical)) {
@@ -556,7 +555,6 @@ public class ClientController implements IModoController {
                 pi.setEnSeleccionProyecto(true);
                 pi.setEstadoCliente(SelectionState.UNDEFINED);
                 nuevasMaster.put(canonical, pi);
-                newCount++;
             }
         }
         for (String ruta : discardedImages) {
@@ -566,11 +564,10 @@ public class ClientController implements IModoController {
                 pi.setEnSeleccionProyecto(false);
                 pi.setEstadoCliente(SelectionState.DISCARDED);
                 nuevasMaster.put(canonical, pi);
-                newCount++;
             }
         }
 
-        // Generar códigos para todas las imágenes que no tengan (nuevas o añadidas desde el visor)
+        // Generar códigos para imágenes que no tengan (nuevas o añadidas desde el visor)
         int maxCode = 0;
         for (ProjectImage pi : nuevasMaster.values()) {
             String code = pi.getCodigoCatalogo();
@@ -584,9 +581,11 @@ public class ClientController implements IModoController {
         int numDigitos = Math.max(3, String.valueOf(nuevasMaster.size()).length());
         String formato = "C%0" + numDigitos + "d";
         int idx = maxCode;
+        int codigosGenerados = 0;
         for (ProjectImage pi : nuevasMaster.values()) {
             if (pi.getCodigoCatalogo() == null || pi.getCodigoCatalogo().isEmpty()) {
                 pi.setCodigoCatalogo(String.format(formato, ++idx));
+                codigosGenerados++;
             }
         }
 
@@ -629,7 +628,7 @@ public class ClientController implements IModoController {
         }
 
         JOptionPane.showMessageDialog(null,
-                "Nueva iteracion compartida con exito.\n" + (newCount > 0 ? "Se han generado codigos para " + newCount + " imagenes nuevas." : "No hubo imagenes nuevas."),
+                "Nueva iteracion compartida con exito.\n" + (codigosGenerados > 0 ? "Se han generado codigos para " + codigosGenerados + " imagenes nuevas." : "No hubo imagenes nuevas."),
                 "Compartir Iteracion", JOptionPane.INFORMATION_MESSAGE);
     } // --- Fin de metodo compartirIteracion ---
 
