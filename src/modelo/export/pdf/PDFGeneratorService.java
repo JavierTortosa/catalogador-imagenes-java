@@ -9,6 +9,7 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import modelo.proyecto.CommentThread;
 import modelo.proyecto.ExportItem;
 import modelo.proyecto.ImageCheckboxOverlay;
 import modelo.proyecto.ProjectImage;
@@ -315,19 +316,29 @@ public class PDFGeneratorService {
         cs.stroke();
 
         float pad = 6;
-        // Código + Precio en la misma línea (código izq, precio der)
+        // Código + Nombre + Precio en la misma línea
         String codigo = pi.getCodigoCatalogo() != null ? pi.getCodigoCatalogo() : "-";
+        String nombre = pi.getRutaImagen() != null
+                ? new java.io.File(pi.getRutaImagen()).getName().replaceAll("\\.[^.]+$", "")
+                : "";
+        String codigoYNombre = codigo + (nombre.isEmpty() ? "" : " - " + nombre);
         String precio = String.format("%.2f   EUR", pi.getPrice());
+
+        float precioW = bold.getStringWidth(precio) / 1000f * 10f;
+        float maxNombreW = (w - pad * 2) - precioW - 10;
+        if (textWidth(codigoYNombre, bold, 10) > maxNombreW) {
+            codigoYNombre = ellipsizeToWidth(codigoYNombre, bold, 10, maxNombreW);
+        }
+
         cs.setFont(bold, 10);
         cs.setNonStrokingColor(0, 0, 0);
         cs.beginText();
         cs.newLineAtOffset(x + pad, y + h - 14);
-        showText(cs, codigo);
+        showText(cs, codigoYNombre);
         cs.endText();
 
         cs.setFont(bold, 10);
         cs.setNonStrokingColor(new Color(0, 100, 0));
-        float precioW = bold.getStringWidth(precio) / 1000f * 10f;
         cs.beginText();
         cs.newLineAtOffset(x + w - pad - precioW, y + h - 14);
         showText(cs, precio);
@@ -340,11 +351,19 @@ public class PDFGeneratorService {
         cs.lineTo(x + w - pad, sepY);
         cs.stroke();
 
+        // Obtener checkboxes y último mensaje del hilo de chat para calcular espacio necesario
+        List<ImageCheckboxOverlay> cbs = pi.getCheckboxes();
+        CommentThread thread = pi.getCommentThreadAccess();
+        String imgComment = (thread != null) ? thread.getLastText() : (pi.getComment() != null ? pi.getComment() : "");
+        int numCbs = cbs != null ? cbs.size() : 0;
+        boolean hasMsg = imgComment != null && !imgComment.isBlank();
+        float commentAreaH = Math.max(40, (numCbs + (hasMsg ? 1 : 0)) * 8 + 8);
+
         // Imagen: área entre separador superior y zona de comentarios
-        float commentAreaH = 36;
         float imgTop = sepY - 4;
         float imgBottom = y + commentAreaH;
         float imgH = imgTop - imgBottom;
+        if (imgH <= 0) imgH = 1;
         float imgW = w - pad * 2;
 
         try {
@@ -362,12 +381,11 @@ public class PDFGeneratorService {
             logger.debug("No se pudo incluir imagen en PDF cliente: {}", pi.getRutaImagen());
         }
 
-        // Comentarios compactos abajo
-        float commentY = y + 32;
+        // Checkboxes + último mensaje debajo de la imagen
+        float commentY = y + commentAreaH - 8;
         cs.setFont(normal, 6);
         cs.setNonStrokingColor(new Color(60, 60, 60));
 
-        List<ImageCheckboxOverlay> cbs = pi.getCheckboxes();
         if (cbs != null && !cbs.isEmpty()) {
             float maxW = w - pad * 2;
             for (ImageCheckboxOverlay cb : cbs) {
@@ -387,8 +405,7 @@ public class PDFGeneratorService {
             }
         }
 
-        String imgComment = pi.getComment();
-        if (imgComment != null && !imgComment.isBlank()) {
+        if (hasMsg) {
             float maxW = w - pad * 2;
             String commentLine = imgComment.length() > 60 ? imgComment.substring(0, 57) + "..." : imgComment;
             if (textWidth(commentLine, italic, 6) > maxW) {

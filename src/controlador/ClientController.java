@@ -36,6 +36,8 @@ import modelo.proyecto.ProjectImage;
 import modelo.proyecto.ProjectModel;
 import modelo.proyecto.SelectionState;
 import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import javax.swing.SwingWorker;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -847,6 +849,19 @@ public class ClientController implements IModoController {
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE);
         if (confirm != JOptionPane.YES_OPTION) return;
+
+        // Backup pre-cierre: copia de seguridad antes de modificar el proyecto
+        Path prjPath = projectManager != null ? projectManager.getArchivoProyectoActivo() : null;
+        if (prjPath != null) {
+            String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+            String backupName = prjPath.getFileName().toString()
+                    .replaceAll("(?i)\\.prj$", "") + "_precierre_" + ts + ".prj";
+            Path backupPath = prjPath.resolveSibling(backupName);
+            projectManager.saveAsCopy(backupPath);
+            logger.info("[ClientController] Backup pre-cierre creado: {}", backupPath);
+        } else {
+            logger.warn("[ClientController] No se pudo crear backup: no hay archivo de proyecto activo");
+        }
 
         // Paso 1: UNDEFINED → DISCARDED (im�genes sin marcar se tratan como descartadas)
         if (project.getMasterImages() != null) {
