@@ -16,11 +16,11 @@ Sistema DAM (Digital Asset Management) de escritorio para gestionar bibliotecas 
 ```bash
 mvn compile          # compilar
 mvn package          # empaquetar fat JAR en D:/Descargas/VisorV2/VisorV2.jar
-                     #   + copia JARs JavaFX a D:/Descargas/VisorV2/lib/
 ```
 
 **Lanzamiento:**
-- `D:/Descargas/VisorV2/VisorV2.bat` → lanza con `--module-path` para JavaFX 3D
+- `D:/Descargas/VisorV2/VisorV2.jar` → doble clic o `java -jar`
+- `D:/Descargas/VisorV2/VisorV2.bat` → lanza con `-jar`
 - Desde Eclipse: Run As → Java Application (las dependencias Maven incluyen JavaFX)
 
 **Entrypoint:** `principal.VisorV2.main()` → programa `AppInitializer` en EDT.

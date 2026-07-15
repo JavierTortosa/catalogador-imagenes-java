@@ -12,6 +12,7 @@ module VisorImagenes {
     requires com.formdev.flatlaf;
     
     // El módulo necesita JavaFX para la previsualización 3D interactiva de modelos STL.
+    // (Embebido en el fat JAR; los requires permiten la compilación)
     requires javafx.graphics;
     requires javafx.swing;
     requires com.formdev.flatlaf.extras;
