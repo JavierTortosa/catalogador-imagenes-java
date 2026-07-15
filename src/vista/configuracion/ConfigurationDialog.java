@@ -133,6 +133,7 @@ public class ConfigurationDialog extends JDialog {
         addCategoryNode(root, "Grid");
         addCategoryNode(root, "Proyecto");
         addCategoryNode(root, "Base de Datos");
+        addCategoryNode(root, "Renderizado");
         return root;
     } // --- Fin del metodo/clase buildTreeNodes ---
 
@@ -213,6 +214,7 @@ public class ConfigurationDialog extends JDialog {
         registerPanel(cards, new vista.configuracion.panels.GridPanel(config));
         registerPanel(cards, new vista.configuracion.panels.ProjectPanel(config));
         registerPanel(cards, new vista.configuracion.panels.DatabaseMaintenancePanel(dataManager, registry, config));
+        registerPanel(cards, new vista.configuracion.panels.Zip2PngConfigPanel());
     } // --- Fin del metodo/clase registerPanels ---
 
 

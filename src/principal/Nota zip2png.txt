@@ -1,0 +1,136 @@
+
+================================================================================
+  ZIP2PNG — Generación automática de thumbnails para archivos 3D sin imagen
+================================================================================
+
+OBJETIVO
+--------
+Que la aplicación pueda generar una imagen PNG a partir de un archivo 3D (STL,
+OBJ, 3MF) cuando este no tenga una imagen asociada, permitiendo visualizar el
+contenido aunque el modelo esté comprimido en ZIP/RAR/7z (incluyendo multi-
+volumen).
+
+ARQUITECTURA GENERAL
+--------------------
+
+    Interface: ModelRenderer
+    ├── AwtModelRenderer       (✔ siempre disponible, 0 dependencias)
+    ├── JavaFxModelRenderer    (si JavaFX está en classpath)
+    ├── OpenScadRenderer       (si existe tools/openscad/openscad.exe)
+    └── BlenderRenderer        (si la ruta está configurada)
+
+    RenderEngineManager:
+      - Al arrancar, registra los renderers disponibles
+      - Devuelve el motor activo según configuración
+      - Fallback: si el motor configurado falla, usa AwtModelRenderer
+
+SELECCIÓN DEL MOTOR (Configurador Avanzado)
+--------------------------------------------
+Sección nueva "Renderizado" en el panel de configuración avanzada:
+
+  Motor por defecto: [AWT ▼]   ← desplegable con los disponibles
+    ⬤ AWT (siempre disponible - recomendado)
+    ○ OpenSCAD (requiere ruta)
+    ○ Blender (requiere ruta)
+
+  Ruta OpenSCAD: [___________] [Examinar...]
+  Ruta Blender:  [___________] [Examinar...]
+
+  Límite descompresión: [512] MB
+  Carpeta temporal:     [___________] [Examinar...]
+  [✔] Ignorar límite de MB
+
+COMPARATIVA DE MOTORES
+-----------------------
+
+  Motor      Calidad  Dep. externa  Peso añadido  Se rompe si...
+  ──────     ───────  ────────────  ────────────  ──────────────
+  AWT        4/10     ninguna       0             nunca (código propio)
+  JavaFX     8/10     JavaFX SDK    ~0 (dep. Mav. opc.)  API JavaFX cambia
+  OpenSCAD   7/10     openscad.exe  28MB en /tools/       CLI OpenSCAD cambia
+  Blender   10/10     blender.exe   externo (no incluir)  ruta perdida
+
+  RECOMENDACIÓN: AWT puro para empezar. Interfaz limpia para migrar después.
+
+MOTOR AWT (software renderer en Java puro ~500 líneas)
+-------------------------------------------------------
+  Clases:
+    servici├│s/renderer/AwtModelRenderer.java
+    servici├│s/renderer/StlParser.java
+
+  Algoritmo:
+    1. StlParser.parse(file) → List<Triangle> con vértices 3D + normal
+    2. Calcular centro de la malla y escalar para que quepa en 512x512
+    3. Rotar 30° en X, -45° en Y (vista isométrica)
+    4. Para cada triángulo:
+       a. Calcular intensidad de luz = dot(normal, vectorLuz)
+       b. Color gris = intensidad * 200 + 55
+       c. Proyectar vértices 3D → 2D
+       d. Graphics2D.fillPolygon() con z-buffer
+    5. Resultado: BufferedImage 512x512, fondo blanco
+
+  Calidad: similar a thumbnails técnicos de Thingiverse/Printables
+  No necesita: JavaFX, OpenSCAD, ni ninguna librería externa
+
+MULTIVOLUMEN
+------------
+  - En la lista del Zip2PNG se agrupan como una sola entrada:
+    ej: coleccion_piezas.part1.rar  ← (multivolumen, 3 partes)
+    ej: trofeo_campeon.7z.001       ← (multivolumen, 2 partes)
+    ej: escudo_final.zip             ← (normal)
+  - Para extraer/renderizar: se pasa el primer volumen a 7z
+
+LÍMITE DE MB
+------------
+  - Si el archivo supera el límite configurado → icono ⚠️ + tamaño en rojo
+  - Al intentar procesar → diálogo:
+    "El archivo X pesa Y MB, superando el límite de Z MB.
+     ¿Quieres procesarlo igualmente bajo tu responsabilidad?"
+    Opciones: [Procesar esta vez] [Procesar siempre] [Saltar]
+  - Checkbox "Ignorar límite" en el configurador elimina la advertencia
+
+ALMACENAMIENTO DE RESULTADOS
+----------------------------
+  1. Los PNGs generados se guardan primero en CARPETA TEMPORAL (configurable)
+  2. El usuario revisa en el panel Zip2PNG (grid + preview)
+  3. Al dar visto bueno → "Copiar a carpeta origen" (junto al archivo 3D)
+     o a la ubicación que el usuario elija
+
+    Así no se ensucia la carpeta del usuario hasta que él decida.
+
+DETECCIÓN DE ARCHIVOS SIN IMAGEN
+----------------------------------
+  - El escáner recorre la carpeta actual (o las del proyecto)
+  - Para cada archivo 3D sin un PNG/JPG/BMP/GIF asociado → lo añade a la lista
+  - Asociación: mismo nombre, extensión diferente
+    ej: modelo.stl → busca modelo.png, modelo.jpg...
+
+MODO AUTOMÁTICO (2 fases)
+--------------------------
+  Fase 1 — Imágenes internas:
+    Si el ZIP contiene imágenes (PNG/JPG), se muestran en grid + preview
+    para que el usuario seleccione cuál usar.
+
+  Fase 2 — Renderizado:
+    Si no hay imágenes internas, se selecciona el STL más grande y se renderiza
+    con el motor activo. El usuario puede modificar después.
+
+UI DEL PANEL ZIP2PNG
+---------------------
+  - Grid central con los archivos procesados
+  - Panel derecho con preview ampliado
+  - Botones:
+    [Copiar a carpeta origen]  [Copiar a...]  [Abrir carpeta temporal]
+    [Regenerar]  [Seleccionar otro STL interno]
+
+================================================================================
+  Notas de la conversación original (2026-07-13)
+================================================================================
+  - Se decidió evitar descargas externas por riesgo de rotura de URLs
+  - OpenSCAD portable (28MB) podría incluirse en /tools/openscad/
+  - Blender NO se incluye por peso (~350MB), solo ruta configurable
+  - JavaFX se descartó por complejidad del build (module-path, nativos)
+  - AWT puro será el motor por defecto y el fallback universal
+  - El motor activo se elige en configuración avanzada > sección "Renderizado"
+  - Los multivolumen se agrupan en la UI como un solo elemento
+  - Límite de MB configurable con opción de ignorar

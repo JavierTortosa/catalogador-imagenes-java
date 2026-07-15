@@ -484,6 +484,7 @@ public class AppInitializer {
         this.appModeService.setClientController(this.clientController);
         this.appModeService.setConfiguration(this.configuration);
         this.appModeService.setRegistry(this.registry);
+        this.appModeService.setInfobarImageManager(this.infobarImageManager);
 
         // --- TaggingManager (contexto compartido entre modos) ---
         controlador.managers.TaggingManager taggingManager = new controlador.managers.TaggingManager();
@@ -656,6 +657,7 @@ public class AppInitializer {
                 this.generalController.setImageListManager(imageListManager);
                 this.actionFactory.setImageListManager(imageListManager);
                 this.actionFactory.setClientController(this.clientController);
+                this.actionFactory.setRenderController(this.viewBuilder.getRenderController());
                 this.clientController.setActionFactory(this.actionFactory);
                 this.actionFactory.initializeLateActions();
 

@@ -44,6 +44,11 @@
             <configuration>
               <outputDirectory>D:/Descargas/VisorV2</outputDirectory>
               <finalName>VisorV2</finalName>
+              <artifactSet>
+                <excludes>
+                  <exclude>org.openjfx:javafx-*</exclude>
+                </excludes>
+              </artifactSet>
               <transformers>
                 <transformer>
                   <mainClass>principal.VisorV2</mainClass>
@@ -67,9 +72,52 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.7.1</version>
+        <executions>
+          <execution>
+            <id>copy-javafx</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <includeGroupIds>org.openjfx</includeGroupIds>
+              <includeClassifiers>${javafx.platform}</includeClassifiers>
+              <outputDirectory>D:/Descargas/VisorV2/lib</outputDirectory>
+              <excludeTransitive>false</excludeTransitive>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
+  <dependencies>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-graphics</artifactId>
+      <version>21</version>
+      <classifier>win</classifier>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-swing</artifactId>
+      <version>21</version>
+      <classifier>win</classifier>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-base</artifactId>
+      <version>21</version>
+      <classifier>win</classifier>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
   <properties>
+    <javafx.platform>win</javafx.platform>
     <twelvemonkeys.version>3.10.1</twelvemonkeys.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>

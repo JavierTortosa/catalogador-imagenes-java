@@ -623,6 +623,14 @@ public class ConfigurationManager
 	    defaults.put(ConfigKeys.BOTON_MODO_BOTTOM_CONFIG_MOSTRAR_VERSION_VISIBLE, "true");
 	    defaults.put(ConfigKeys.HERRAMIENTAS_MODO_BOTTOM_VISIBLE, "true");
 	    defaults.put(ConfigKeys.BOTON_PROYECTO_PROYECTO_TOGGLE_LAYOUT_VISIBLE, "true");
+
+	    // --- Zip2PNG / Renderizado ---
+	    defaults.put(ConfigKeys.ZIP2PNG_MOTOR, "awt");
+	    defaults.put(ConfigKeys.ZIP2PNG_LIMITE_MB, "512");
+	    String tempDir = System.getProperty("java.io.tmpdir") + File.separator + "visor_zip2png";
+	    defaults.put(ConfigKeys.ZIP2PNG_CARPETA_TEMP, tempDir);
+	    defaults.put(ConfigKeys.ZIP2PNG_RUTA_OPENSCAD, "");
+	    defaults.put(ConfigKeys.ZIP2PNG_RUTA_BLENDER, "");
 	return defaults;
 	
 	}

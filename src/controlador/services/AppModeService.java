@@ -21,6 +21,7 @@ import controlador.commands.AppActionCommands;
 import controlador.managers.CarouselManager;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.DisplayModeManager;
+import controlador.managers.InfobarImageManager;
 import controlador.managers.InfobarStatusManager;
 import controlador.managers.ToolbarManager;
 import controlador.managers.ViewManager;
@@ -45,6 +46,7 @@ public class AppModeService {
     private final DisplayModeManager displayModeManager;
     private final ConfigApplicationManager configAppManager;
     private final InfobarStatusManager statusBarManager;
+    private InfobarImageManager infobarImageManager;
 
     private VisorController visorController;
     private ProjectController projectController;
@@ -88,6 +90,11 @@ public class AppModeService {
     } // --- FIN de metodo setClientController ---
 
 
+    public void setInfobarImageManager(InfobarImageManager infobarImageManager) {
+        this.infobarImageManager = infobarImageManager;
+    } // --- FIN de metodo setInfobarImageManager ---
+
+
     public void setConfiguration(ConfigurationManager configuration) {
         this.configuration = configuration;
     } // --- FIN de metodo setConfiguration ---
@@ -118,6 +125,7 @@ public class AppModeService {
             case DATOS -> "VISTA_DATOS";
             case CLIENTE -> "VISTA_CLIENTE";
             case CARROUSEL -> "VISTA_CARROUSEL_WORKMODE";
+            case RENDER -> "VISTA_RENDER";
         };
         viewManager.cambiarAVista("container.workmodes", vistaName);
         logger.debug("[AppModeService] Vista cambiada a: {}", vistaName);
@@ -245,6 +253,7 @@ public class AppModeService {
             case DATOS         -> AppActionCommands.CMD_MODO_DATOS;
             case CLIENTE       -> AppActionCommands.CMD_MODO_CLIENTE;
             case CARROUSEL     -> AppActionCommands.CMD_VISTA_CAROUSEL;
+            case RENDER        -> AppActionCommands.CMD_MODO_RENDER;
         };
 
         List<String> comandosDeModo = List.of(
@@ -252,7 +261,8 @@ public class AppModeService {
                 AppActionCommands.CMD_PROYECTO_GESTIONAR,
                 AppActionCommands.CMD_MODO_DATOS,
                 AppActionCommands.CMD_MODO_CLIENTE,
-                AppActionCommands.CMD_VISTA_CAROUSEL);
+                AppActionCommands.CMD_VISTA_CAROUSEL,
+                AppActionCommands.CMD_MODO_RENDER);
 
         for (String comando : comandosDeModo) {
             Action action = actionMap.get(comando);
@@ -437,6 +447,12 @@ public class AppModeService {
                 case CARROUSEL:
                     viewManager.cambiarAVista("container.workmodes", "VISTA_CARROUSEL_WORKMODE");
                     break;
+                case RENDER:
+                    viewManager.cambiarAVista("container.workmodes", "VISTA_RENDER");
+                    if (infobarImageManager != null) {
+                        infobarImageManager.limpiar();
+                    }
+                    break;
 
             }
 
@@ -489,6 +505,8 @@ public class AppModeService {
                         if (projectController != null && projectController.getProjectManager() != null) {
                             projectController.getProjectManager().markProjectAsSaved();
                         }
+                        break;
+                    case RENDER:
                         break;
                 }
                 actualizarUiModo(modoAlQueSeEntra, actionMap);

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Modo Render</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <h1><img src="ICON_PLACEHOLDER_8005-render mode.png" class="header-icon">Modo Render</h1>
+
+    <p>
+        El <strong>Modo Render</strong> permite procesar archivos de modelo 3D (STL comprimidos en ZIP/RAR/7Z) para generar
+        imágenes de renderizado de alta calidad. Está diseñado para el flujo de trabajo de escaneado 3D: escanea una carpeta
+        en busca de archivos comprimidos, los procesa con distintos motores, y produce una imagen PNG para cada modelo que
+        servirá como preview en los demás modos del visor.
+    </p>
+
+    <h2>Flujo de Trabajo Típico</h2>
+    <ol>
+        <li><strong>Escanear Carpeta:</strong> Localiza todos los archivos comprimidos (ZIP, RAR, 7Z) con STL dentro de una carpeta.</li>
+        <li><strong>Seleccionar Candidatos:</strong> En la lista de resultados, elige los modelos que quieres procesar.</li>
+        <li><strong>Ajustar Preview:</strong> En el panel 3D, rota el modelo, ajusta brillo/contraste y configura el fondo a tu gusto.</li>
+        <li><strong>Procesar:</strong> Ejecuta el renderizado de los seleccionados o del archivo actual. La imagen generada se guarda junto al modelo.</li>
+        <li><strong>Copiar Archivos:</strong> Copia los archivos procesados a su carpeta de origen.</li>
+        <li><strong>Revisar:</strong> Abre la carpeta temporal para ver los resultados.</li>
+    </ol>
+
+    <h2>Barra de Herramientas</h2>
+    <p>La barra superior del modo Render contiene las siguientes acciones:</p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70001 - escanear carpeta.png"></td>
+            <td><strong>Escanear carpeta:</strong> Abre un diálogo para seleccionar una carpeta y la escanea en busca de archivos comprimidos (ZIP, RAR, 7Z) que contengan modelos STL. Los resultados aparecen en el panel izquierdo como lista de candidatos.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70002 - procesar seleccionados.png"></td>
+            <td><strong>Procesar seleccionados:</strong> Renderiza todos los candidatos marcados en la lista. Para cada uno genera una imagen PNG con la configuración actual de preview (rotación, fondo, brillo, contraste).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70003 - procesar archivo.png"></td>
+            <td><strong>Procesar archivo:</strong> Renderiza únicamente el candidato actualmente seleccionado en el panel 3D. Útil para probar ajustes antes de procesar el lote completo.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70004 - copiar a origen.png"></td>
+            <td><strong>Copiar archivos:</strong> Copia los archivos procesados desde la carpeta temporal a la carpeta de origen del modelo.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70006 - abrir temp.png"></td>
+            <td><strong>Abrir carpeta temporal:</strong> Abre el explorador de archivos en la carpeta donde se guardan los renders temporales.</td>
+        </tr>
+        <tr><td colspan="2"><hr class="separator"></td></tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70007 - establece_imagen.png"></td>
+            <td><strong>Asigna preview al archivo:</strong> Captura la orientación actual del modelo en el panel 3D (rotación X/Y), los ajustes de la pestaña "Imagen" (brillo, contraste, anti-aliasing) y la configuración de la pestaña "Fondo", y re-renderiza el PNG con esos parámetros. Reemplaza la imagen preview existente.</td>
+        </tr>
+    </table>
+
+    <h2>Panel de Previsualización 3D</h2>
+    <p>
+        El centro del modo Render muestra un visor 3D interactivo (<strong>PreviewPanel3DFX</strong>) basado en JavaFX.
+        Permite inspeccionar el modelo STL antes de generar la imagen final.
+    </p>
+    <ul>
+        <li><strong>Rotación:</strong> Arrastra con el ratón para rotar el modelo libremente en 3D.</li>
+        <li><strong>Zoom:</strong> Usa la rueda del ratón para acercar o alejar la vista.</li>
+        <li><strong>Pan:</strong> Arrastra con el botón central para desplazar la cámara.</li>
+        <li><strong>Iluminación:</strong> Ajustable desde los controles del panel.</li>
+    </ul>
+    <p>
+        En la parte lateral derecha hay un <strong>JTabbedPane</strong> con dos pestañas de configuración que afectan
+        al renderizado final:
+    </p>
+
+    <h3>Pestaña "Imagen"</h3>
+    <p>Controles para ajustar la calidad visual del render:</p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_brightness.png"></td>
+            <td><strong>Brillo:</strong> Barra deslizadora para ajustar el brillo de la imagen renderizada. Afecta al PNG final.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_contrast.png"></td>
+            <td><strong>Contraste:</strong> Barra deslizadora para ajustar el contraste. Valores más altos aumentan la diferencia entre luces y sombras.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_eye.png"></td>
+            <td><strong>Anti-Aliasing (Suavizado):</strong> Barra deslizadora para controlar el nivel de suavizado de bordes. Reduce el efecto de escalera en las aristas del modelo.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_crosshair.png"></td>
+            <td><strong>Ver cruceta:</strong> Checkbox que muestra u oculta una cruceta (ejes de referencia X/Y/Z) sobre el preview 3D para orientación espacial.</td>
+        </tr>
+    </table>
+
+    <h3>Pestaña "Fondo"</h3>
+    <p>
+        Controla el aspecto del fondo en el render final. Ofrece cuatro modos seleccionables mediante botones de radio:
+    </p>
+
+    <table class="help-table">
+        <tr><th>Modo</th><th>Descripción</th></tr>
+        <tr>
+            <td><strong>Sólido</strong></td>
+            <td>Fondo de un solo color. Muestra un selector de color para elegir el color de fondo. Por defecto usa el color de la aplicación.</td>
+        </tr>
+        <tr>
+            <td><strong>Degradado</strong></td>
+            <td>Fondo con degradado lineal de dos colores. Muestra dos selectores de color (inicio y final) en la misma línea y una vista previa del degradado debajo. El degradado va de arriba a abajo.</td>
+        </tr>
+        <tr>
+            <td><strong>Imagen</strong></td>
+            <td>Fondo con una imagen personalizada. Un botón "Seleccionar imagen" abre un diálogo para elegir un archivo de imagen. Un deslizador ajusta la escala de la imagen de fondo (zoom in/out).</td>
+        </tr>
+        <tr>
+            <td><strong>Transparente</strong></td>
+            <td>Fondo transparente (canal alfa). Al activar esta opción, los controles de color e imagen se deshabilitan y el fondo del preview muestra un patrón de cuadros (checkerboard) como referencia visual de la transparencia.</td>
+        </tr>
+    </table>
+
+    <p>
+        Debajo de los modos de fondo hay un <strong>checkbox "Ver cuadros"</strong> que superpone un patrón
+        de cuadros (checkerboard) sobre el fondo actual. Esto ayuda a visualizar cómo quedaría la transparencia
+        o el contraste del modelo contra un fondo neutro.
+    </p>
+
+    <h2>Barra de Información Superior</h2>
+    <p>
+        Al seleccionar un candidato en la lista, la barra de información superior se actualiza automáticamente
+        con los datos del archivo de modelo:
+    </p>
+    <ul>
+        <li><strong>Nombre archivo:</strong> Nombre del ZIP/RAR/7Z o STL seleccionado.</li>
+        <li><strong>Ruta:</strong> Carpeta donde se encuentra el archivo original.</li>
+        <li><strong>Tam:</strong> Tamaño del archivo comprimido.</li>
+        <li><strong>Fch:</strong> Fecha de última modificación del archivo.</li>
+        <li><strong>Fmt:</strong> Formato del comprimido (ZIP, RAR, 7Z) o del modelo (STL, OBJ).</li>
+        <li><strong>Idx:</strong> Índice del candidato actual respecto al total de la lista.</li>
+    </ul>
+    <p>
+        Los campos Dim, Modo y %Z se muestran como "N/A" en modo Render, ya que no aplican a modelos 3D.
+    </p>
+
+    <hr>
+    <p>
+        Para más información sobre la generación de renders, consulta la documentación del motor de renderizado
+        <code>AwtModelRenderer</code> en el código fuente.
+    </p>
+
+</body>
+</html>

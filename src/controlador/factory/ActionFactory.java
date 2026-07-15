@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import controlador.GeneralController;
 import controlador.ProjectController;
 import controlador.ClientController;
+import controlador.RenderController;
 import controlador.actions.archivo.DeleteAction;
 // --- SECCIÓN 0: IMPORTS DE CLASES ACTION ESPECCÍFICAS ---
 import controlador.actions.archivo.OpenFileAction;
@@ -173,6 +174,7 @@ public class ActionFactory {
     private final GeneralController generalController;
     private final ProjectController projectControllerRef;
     private ClientController clientController;
+    private RenderController renderController;
     private final ThemeManager themeManager;
 
     private CarouselManager carouselManager;
@@ -191,8 +193,10 @@ public class ActionFactory {
     // 1.5. Mapa para almacenar las Actions creadas.
     private final Map<String, Action> actionMap;
 
-    // 1.6. Referencia a la Action genérica para funcionalidades pendientes.
+    // 1.6. Acción placeholder para comandos no implementados.
     private Action funcionalidadPendienteAction;
+    // Acción real para "Asignar preview al archivo" (Modo Render).
+    private Action renderAsignarPreviewAction;
 
     // 1.7. CAMPO para registrar acciones sensibles al contexto
     private final List<ContextSensitiveAction> contextSensitiveActions;
@@ -242,6 +246,10 @@ public class ActionFactory {
      */
     public void setClientController(ClientController clientController) {
         this.clientController = clientController;
+    }
+
+    public void setRenderController(RenderController renderController) {
+        this.renderController = renderController;
     }
 
     public ActionFactory(
@@ -346,9 +354,12 @@ public class ActionFactory {
      */
     private void createCoreActions() {
 
-        // 3.1. Crear la Action genérica para funcionalidades pendientes primero.
+        // 3.1 Placeholder para comandos no implementados.
         this.funcionalidadPendienteAction = createFuncionalidadPendienteAction();
-        actionMap.put(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, this.funcionalidadPendienteAction);
+
+        // 3.2 Acción de Render: asignar preview al archivo.
+        this.renderAsignarPreviewAction = createRenderAsignarPreviewAction();
+        actionMap.put(AppActionCommands.CMD_RENDER_ASIGNAR_PREVIEW, this.renderAsignarPreviewAction);
 
         actionMap.put(AppActionCommands.CMD_AYUDA_VER_ATAJOS, createVerAtajosAction());
         // actionMap.put(AppActionCommands.CMD_AYUDA_MOSTRAR_GUIA,
@@ -675,6 +686,8 @@ public class ActionFactory {
                 createSwitchWorkModeAction(WorkMode.DATOS, AppActionCommands.CMD_MODO_DATOS, "Modo Datos"));
         registerAction(AppActionCommands.CMD_MODO_CLIENTE,
                 createSolicitarModoClienteAction());
+        registerAction(AppActionCommands.CMD_MODO_RENDER,
+                createSwitchWorkModeAction(WorkMode.RENDER, AppActionCommands.CMD_MODO_RENDER, "Modo Render"));
 
         // --- Acciones específicas del Modo Cliente ---
         registerAction(AppActionCommands.CMD_CLIENTE_ABRIR_PRJCL,
@@ -714,6 +727,13 @@ public class ActionFactory {
         registerAction(AppActionCommands.CMD_DATOS_TAG_RENOMBRAR, createTagRenombrarAction());
         registerAction(AppActionCommands.CMD_DATOS_TAG_BORRAR, createTagBorrarAction());
         registerAction(AppActionCommands.CMD_DATOS_ORDEN_CICLO, createDatosSortAction());
+
+        // --- Acciones del Modo Render ---
+        registerAction(AppActionCommands.CMD_RENDER_ESCANEAR_CARPETA, createRenderEscanearCarpetaAction());
+        registerAction(AppActionCommands.CMD_RENDER_PROCESAR_SELECCIONADOS, createRenderProcesarSeleccionadosAction());
+        registerAction(AppActionCommands.CMD_RENDER_PROCESAR_ARCHIVO, createRenderProcesarArchivoAction());
+        registerAction(AppActionCommands.CMD_RENDER_COPIAR_ARCHIVOS, createRenderCopiarArchivosAction());
+        registerAction(AppActionCommands.CMD_RENDER_ABRIR_TEMP, createRenderAbrirTempAction());
 
         // --- Acciones para el Árbol de Carpetas ---
         registerAction(AppActionCommands.CMD_TREE_OPEN_FOLDER, createOpenFolderAction());
@@ -1065,6 +1085,83 @@ public class ActionFactory {
             }
         };
     } // --- FIN del metodo createFuncionalidadPendienteAction ---
+
+
+    // ========================================================================
+    // Métodos fábrica: Acciones del Modo Render
+    // ========================================================================
+
+    private Action createRenderEscanearCarpetaAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) {
+                    renderController.ejecutarScan();
+                }
+            }
+        };
+    } // --- Fin del metodo createRenderEscanearCarpetaAction ---
+
+
+    private Action createRenderProcesarSeleccionadosAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) {
+                    renderController.ejecutarProcess();
+                }
+            }
+        };
+    } // --- Fin del metodo createRenderProcesarSeleccionadosAction ---
+
+
+    private Action createRenderProcesarArchivoAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) {
+                    renderController.procesarArchivo();
+                }
+            }
+        };
+    } // --- Fin del metodo createRenderProcesarArchivoAction ---
+
+
+    private Action createRenderCopiarArchivosAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) {
+                    renderController.copiarArchivos();
+                }
+            }
+        };
+    } // --- Fin del metodo createRenderCopiarArchivosAction ---
+
+
+    private Action createRenderAbrirTempAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) {
+                    renderController.ejecutarAbrirTemp();
+                }
+            }
+        };
+    } // --- Fin del metodo createRenderAbrirTempAction ---
+
+
+    private Action createRenderAsignarPreviewAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) {
+                    renderController.asignarPreviewAlArchivo();
+                }
+            }
+        };
+    } // --- Fin del metodo createRenderAsignarPreviewAction ---
+
 
     /**
      * 4.2. Helper para obtener el ImageIcon para un comando dado.

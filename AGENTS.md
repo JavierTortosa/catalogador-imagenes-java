@@ -16,7 +16,12 @@ Sistema DAM (Digital Asset Management) de escritorio para gestionar bibliotecas 
 ```bash
 mvn compile          # compilar
 mvn package          # empaquetar fat JAR en D:/Descargas/VisorV2/VisorV2.jar
+                     #   + copia JARs JavaFX a D:/Descargas/VisorV2/lib/
 ```
+
+**Lanzamiento:**
+- `D:/Descargas/VisorV2/VisorV2.bat` → lanza con `--module-path` para JavaFX 3D
+- Desde Eclipse: Run As → Java Application (las dependencias Maven incluyen JavaFX)
 
 **Entrypoint:** `principal.VisorV2.main()` → programa `AppInitializer` en EDT.
 
@@ -70,9 +75,13 @@ mvn package          # empaquetar fat JAR en D:/Descargas/VisorV2/VisorV2.jar
 - `.proyectos/*.prj` y `config.cfg` están en `.gitignore` (datos locales).
 - `config.cfg` tiene 246+ claves definidas en `ConfigKeys.java`.
 - **FlatLaf temas:** los temas personalizados se guardan en `.temas_personalizados/`.
+- **JavaFX + Maven classifier:** las dependencias JavaFX usan `<classifier>${javafx.platform}</classifier>` con `win` para Windows. El `maven-dependency-plugin` copia solo los JARs con classifier `win` a `D:/Descargas/VisorV2/lib/`. El `VisorV2.bat` lanza con `--module-path lib;VisorV2.jar`.
 
 ## Herramientas
 
+- **JavaFX 21** → previsualización 3D interactiva de modelos STL con hardware acceleration
+- **StlMeshBuilder** → convierte `List<Triangle>` a `TriangleMesh` de JavaFX
+- **PreviewPanel3DFX** → `JFXPanel` embebido con `PerspectiveCamera`, órbita ratón, zoom/pan, iluminación ajustable
 - **Thumbnailator** 0.4.20 → generar miniaturas con `Thumbnails.of(...).crop(Positions.CENTER)`
 - **TwelveMonkeys** 3.10.1 → soporte JPEG CMYK, TIFF, PSD, WebP, TGA, PCX, BMP
 - **SLF4J + Logback** → logging (salida a `log.txt` por configuración)

@@ -9,7 +9,8 @@ package controlador.commands;
 public interface AppActionCommands {
 
  // --- Generico pendiente de implementar ---
-	public static final String CMD_FUNCIONALIDAD_PENDIENTE 			= "cmd.todo.funcionalidad_pendiente";
+	public static final String CMD_RENDER_ASIGNAR_PREVIEW              = "cmd.render.asignar_preview";
+	public static final String CMD_FUNCIONALIDAD_PENDIENTE             = "cmd.todo.funcionalidad_pendiente";
 
  // --- Ayuda ---
 	public static final String CMD_AYUDA_VER_ATAJOS 				= "cmd.ayuda.ver_atajos";
@@ -213,6 +214,12 @@ public interface AppActionCommands {
     public static final String CMD_PROYECTO_COMPARTIR_CLIENTE		= "cmd.proyecto.compartir_cliente";
     public static final String CMD_MODO_CLIENTE 					= "cmd.modo.cliente";
     public static final String CMD_VISTA_CAROUSEL 					= "cmd.vista.carousel";
+    public static final String CMD_MODO_RENDER                      = "cmd.modo.render";
+    public static final String CMD_RENDER_ESCANEAR_CARPETA          = "cmd.render.escanear_carpeta";
+    public static final String CMD_RENDER_PROCESAR_SELECCIONADOS    = "cmd.render.procesar_seleccionados";
+    public static final String CMD_RENDER_PROCESAR_ARCHIVO          = "cmd.render.procesar_archivo";
+    public static final String CMD_RENDER_COPIAR_ARCHIVOS           = "cmd.render.copiar_archivos";
+    public static final String CMD_RENDER_ABRIR_TEMP                = "cmd.render.abrir_temp";
     public static final String CMD_CONFIG_CUSTOM_THEME				= "cmd.config.custom_theme";
     public static final String CMD_CONFIG_AVANZADA					= "cmd.config.avanzada";
 

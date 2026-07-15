@@ -35,6 +35,7 @@ import javax.swing.border.TitledBorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import controlador.RenderController;
 import controlador.managers.ToolbarManager;
 import controlador.managers.interfaces.IProjectManager;
 import controlador.managers.tree.FolderTreeManager;
@@ -81,6 +82,7 @@ public class ViewBuilder {
     private ToolbarManager toolbarManager;
 
     private FolderTreeManager folderTreeManager;
+    private RenderController renderController;
 
     private Map<controlador.managers.filter.FilterCriterion.Logic, javax.swing.Icon> logicIcons;
     private Map<controlador.managers.filter.FilterCriterion.SourceType, javax.swing.Icon> typeIcons;
@@ -379,6 +381,26 @@ public class ViewBuilder {
         workModesContainer.add(clientWorkModePanel, "VISTA_CLIENTE");
         registry.register("panel.workmode.cliente", clientWorkModePanel);
 
+
+        // Panel para el WorkMode RENDER
+        vista.panels.render.RenderPanel renderWorkModePanel = new vista.panels.render.RenderPanel();
+        renderWorkModePanel.setName("VISTA_RENDER");
+        workModesContainer.add(renderWorkModePanel, "VISTA_RENDER");
+        registry.register("panel.workmode.render", renderWorkModePanel);
+        this.renderController = new controlador.RenderController(renderWorkModePanel, configuration, mainFrame);
+        this.renderController.setRegistry(this.registry);
+        javax.swing.Icon paletteIcon = iconUtils.getScaledCommonIcon("paint-palette--streamline-core.png", 16, 16);
+        if (paletteIcon != null) {
+            renderWorkModePanel.setColorPickerIcons(paletteIcon);
+        }
+        javax.swing.Icon brightnessIcon = iconUtils.getScaledCommonIcon("brightness.png", 16, 16);
+        javax.swing.Icon contrastIcon = iconUtils.getScaledCommonIcon("contrast.png", 16, 16);
+        javax.swing.Icon eyeIcon = iconUtils.getScaledCommonIcon("eye.png", 16, 16);
+        javax.swing.Icon crosshairIcon = iconUtils.getScaledCommonIcon("crosshair.png", 16, 16);
+        if (brightnessIcon != null) renderWorkModePanel.setBrightnessIcon(brightnessIcon);
+        if (contrastIcon != null) renderWorkModePanel.setContrastIcon(contrastIcon);
+        if (eyeIcon != null) renderWorkModePanel.setAntiAliasIcon(eyeIcon);
+        if (crosshairIcon != null) renderWorkModePanel.setCrosshairIcon(crosshairIcon);
 
         // Asignar el CardLayout de WorkModes al centro del mainFrame
         mainFrame.add(workModesContainer, BorderLayout.CENTER);
@@ -1071,5 +1093,9 @@ public class ViewBuilder {
     public void setClientBuilder(ClientBuilder clientBuilder) {
         this.clientBuilder = Objects.requireNonNull(clientBuilder, "ClientBuilder no puede ser null en ViewBuilder");
     } // ---FIN de metodo [setClientBuilder]---
+
+    public RenderController getRenderController() {
+        return renderController;
+    } // ---FIN de metodo [getRenderController]---
 
 } // --- FIN de la clase ViewBuilder ---

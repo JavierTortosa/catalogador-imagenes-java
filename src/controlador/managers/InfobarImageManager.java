@@ -424,6 +424,48 @@ public class InfobarImageManager implements ThemeChangeListener{
         panel.repaint();
     } // ---FIN de metodo [applyCustomStatusBarStyle]---
 
+    /**
+     * Limpia la barra de información superior, estableciendo todos los valores
+     * a "N/A". Útil al cambiar a un modo de trabajo que no muestra imágenes.
+     */
+    public void limpiar() {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(this::limpiar);
+            return;
+        }
+        JPanel panel = registry.get("panel.info.superior");
+        if (panel == null) return;
+
+        javax.swing.JTextField pathField = registry.get("textfield.info.rutaImagen");
+        if (pathField != null) pathField.setText("Ruta: N/A");
+
+        JLabel label;
+        label = registry.get("label.info.nombreArchivo");
+        if (label != null) label.setText("Archivo: (ninguno)");
+
+        label = registry.get("label.info.dimensiones");
+        if (label != null) label.setText("Dim: N/A");
+
+        label = registry.get("label.info.indiceTotal");
+        if (label != null) label.setText("Idx: 0/0");
+
+        label = registry.get("label.info.tamano");
+        if (label != null) label.setText("Tam: N/A");
+
+        label = registry.get("label.info.fecha");
+        if (label != null) label.setText("Fch: N/A");
+
+        label = registry.get("label.info.formatoImagen");
+        if (label != null) label.setText("Fmt: N/A");
+
+        label = registry.get("label.info.modoZoom");
+        if (label != null) label.setText("Modo: N/A");
+
+        label = registry.get("label.info.porcentajeZoom");
+        if (label != null) label.setText("%Z: N/A");
+    } // --- Fin del metodo limpiar ---
+
+
     private Path resolvePath(String selectedKey) {
         if (selectedKey == null) return null;
         Path ruta = model.getRutaCompleta(selectedKey);

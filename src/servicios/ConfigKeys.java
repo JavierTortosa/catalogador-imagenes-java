@@ -282,4 +282,11 @@ public final class ConfigKeys {
     public static final String HERRAMIENTAS_MODO_BOTTOM_VISIBLE = toolbarVisible("modo_bottom");
     public static final String BOTON_PROYECTO_PROYECTO_TOGGLE_LAYOUT_VISIBLE = buttonVisible("proyecto", "proyecto_toggle_layout");
 
+    // --- Configuración de Zip2PNG / Renderizado ---
+    public static final String ZIP2PNG_MOTOR = "zip2png.motor";
+    public static final String ZIP2PNG_LIMITE_MB = "zip2png.limite_mb";
+    public static final String ZIP2PNG_CARPETA_TEMP = "zip2png.carpeta_temp";
+    public static final String ZIP2PNG_RUTA_OPENSCAD = "zip2png.ruta_openscad";
+    public static final String ZIP2PNG_RUTA_BLENDER = "zip2png.ruta_blender";
+
 } // --- FIN DE LA CLASE ConfigKeys ---

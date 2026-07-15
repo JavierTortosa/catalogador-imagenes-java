@@ -25,7 +25,8 @@ public class VisorModel {
         PROYECTO,
         DATOS,
         CLIENTE,
-        CARROUSEL
+        CARROUSEL,
+        RENDER
     }
 
     public enum DisplayMode {

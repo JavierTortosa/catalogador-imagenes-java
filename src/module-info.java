@@ -8,8 +8,12 @@ module VisorImagenes {
     // El módulo necesita el kit de herramientas de escritorio de Java (para Swing/AWT).
     requires java.desktop;
     
-    // El módulo necesita la librería FlatLaf para el Look and Feel.
+	// El módulo necesita la librería FlatLaf para el Look and Feel.
     requires com.formdev.flatlaf;
+    
+    // El módulo necesita JavaFX para la previsualización 3D interactiva de modelos STL.
+    requires javafx.graphics;
+    requires javafx.swing;
     requires com.formdev.flatlaf.extras;
     requires com.formdev.flatlaf.swingx;
     requires com.formdev.flatlaf.intellijthemes;

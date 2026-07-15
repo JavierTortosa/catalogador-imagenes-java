@@ -1,0 +1,191 @@
+================================================================================
+  HOJA DE RUTA — Zip2PNG / Modo Render
+================================================================================
+
+OBJETIVO
+--------
+Generar automáticamente un PNG thumbnail a partir de archivos 3D (STL, OBJ, 3MF)
+que no tengan imagen asociada, incluyendo archivos comprimidos en ZIP/RAR/7z
+(multivolumen incluido). Todo ello integrado en un nuevo flujo de trabajo con
+su propio panel y configuración.
+
+ARQUITECTURA GENERAL
+--------------------
+
+    Interface: ModelRenderer
+    ├── AwtModelRenderer       (✔ siempre disponible, 0 dependencias)
+    ├── JavaFxModelRenderer    (si JavaFX está en classpath)
+    ├── OpenScadRenderer       (si existe tools/openscad/openscad.exe)
+    └── BlenderRenderer        (si la ruta está configurada)
+
+    RenderEngineManager:
+      - Al arrancar, registra los renderers disponibles
+      - Devuelve el motor activo según configuración
+      - Fallback: si el motor configurado falla, usa AwtModelRenderer
+
+MODO DE TRABAJO: RENDER
+------------------------
+Se añade un nuevo WorkMode en VisorModel.WorkMode: RENDER
+El icono del modo es "8005-render mode.png"
+
+El modo Render tiene su propio panel con:
+  - Lista de archivos 3D sin imagen asociada
+  - Grid de thumbnails generados
+  - Preview lateral ampliado
+  - Botones de acción
+
+Configurable desde el panel de configuración avanzada → sección "Renderizado"
+
+
+FASES DE IMPLEMENTACIÓN
+-----------------------
+
+FASE 0 — Fundación: Parser STL + Renderer AWT
+------------------------------------------------
+Clases a crear:
+  modelo/renderer/Triangle.java
+      Record con 3 vértices 3D (x,y,z) + normal (nx,ny,nz)
+
+  servicios/renderer/StlParser.java
+      parse(File) → List<Triangle>
+      Soporta STL binario y ASCII
+      Lanza excepción si el formato no es válido
+
+  servicios/renderer/ModelRenderer.java
+      Interfaz: void render(File input, File output) throws Exception
+
+  servicios/renderer/AwtModelRenderer.java
+      Implementación software puro con Graphics2D
+      Algoritmo:
+        1. StlParser.parse(file) → List<Triangle>
+        2. Calcular centro y escalar a 512x512
+        3. Rotar 30° X, -45° Y (vista isométrica)
+        4. Para cada triángulo: normal → luz direccional → color gris
+        5. Proyectar vértices 3D → 2D con z-buffer
+        6. Graphics2D.fillPolygon()
+        7. BufferedImage resultado
+
+  Prueba: Renderizar un STL de prueba y verificar PNG generado
+
+
+FASE 1 — Extracción y Escaneo
+-------------------------------
+Clases a crear:
+  servicios/renderer/ZipExtractor.java
+      Extrae ZIP/RAR/7z a carpeta temporal usando 7z.exe
+      Sigue el patrón de ArchiveAnalysisService.extractToTemp()
+      Limpia temporales al finalizar
+
+  servicios/renderer/Zip2PngScanner.java
+      Escanea una carpeta (o lista de rutas) buscando archivos 3D sin imagen
+      Para cada ZIP/RAR/7z: busca imágenes internas (Fase 1 del modo auto)
+      Si no hay imágenes: selecciona el STL más grande para renderizar (Fase 2)
+      Detecta y agrupa multivolumen
+
+  controlador/worker/Zip2PngWorker.java
+      SwingWorker<Void, String>
+      Procesa archivos en background
+      TaskProgressDialog con barra de progreso
+      Sigue el patrón de IndexationWorker / ArchiveAnalysisWorker
+
+
+FASE 2 — Configuración
+------------------------
+Archivos a modificar:
+  servicios/ConfigKeys.java
+      ZIP2PNG_LIMITE_MB       = "zip2png.limite_mb"
+      ZIP2PNG_CARPETA_TEMP    = "zip2png.carpeta_temp"
+      ZIP2PNG_RUTA_OPENSCAD   = "zip2png.ruta_openscad"
+      ZIP2PNG_RUTA_BLENDER    = "zip2png.ruta_blender"
+      ZIP2PNG_MOTOR           = "zip2png.motor"
+
+  servicios/ConfigurationManager.java
+      Defaults: limite=512, temp=tmpdir/visor_zip2png/, motor="awt"
+
+Archivos a crear:
+  vista/configuracion/panels/Zip2PngConfigPanel.java
+      Implementa ConfigurationPanel
+      Sección "Renderizado" con:
+        - Motor por defecto (desplegable)
+        - Ruta OpenSCAD + examinar
+        - Ruta Blender + examinar
+        - Límite MB (spinner)
+        - Carpeta temporal + examinar
+        - Checkbox "Ignorar límite"
+
+  vista/configuracion/ConfigurationDialog.java
+      buildTreeNodes(): addCategoryNode(root, "Renderizado")
+      registerPanels(): registerPanel(cards, new Zip2PngConfigPanel(config))
+
+
+FASE 3 — UI del Modo Render
+-----------------------------
+Archivos a crear:
+  vista/panels/render/RenderPanel.java
+      Panel principal del modo RENDER
+      Layout:
+        - Izquierda: lista de archivos 3D sin imagen
+        - Centro: grid de thumbnails (generados o pendientes)
+        - Derecha: preview ampliado
+      Botones: [Escanear carpeta] [Procesar seleccionados]
+               [Copiar a origen] [Copiar a...] [Abrir temp]
+
+  vista/panels/render/RenderListCellRenderer.java
+      Renderer para la lista con icono, nombre, tamaño, estado
+
+  controlador/RenderController.java
+      Controlador del modo RENDER
+      Gestiona escaneo, procesado, selección, copia
+
+  Integración en la aplicación:
+      VisorModel.WorkMode: añadir RENDER
+      ActionFactory: registrar acciones del modo
+      ToolbarBuilder: botón para cambiar a modo RENDER
+      UIDefinitionService: toolbar específica del modo
+
+
+FASE 4 — Multivolumen + Límite MB
+-----------------------------------
+  - Detección de multivolumen por patrón (.partN.rar, .7z.NNN, .zNN)
+  - Agrupación en UI como una sola entrada
+  - Al extraer: pasar solo el primer volumen a 7z
+  - Límite MB:
+      Si el archivo supera el límite → icono ⚠️ + tamaño en rojo
+      Al procesar → diálogo de advertencia
+      Opciones: [Procesar esta vez] [Siempre] [Saltar]
+
+
+FASE 5 — Motores Avanzados (post-MVP)
+----------------------------------------
+  servicios/renderer/RenderEngineManager.java
+      Al arrancar: registra AWT + OpenSCAD (si existe) + Blender (si configurado)
+      getActiveRenderer(): devuelve el motor por defecto
+      Fallback automático si el motor activo falla
+
+  servicios/renderer/OpenScadRenderer.java
+      ProcessBuilder(openscad.exe -o out.png --imgsize=512,512 in.stl)
+
+  servicios/renderer/BlenderRenderer.java
+      ProcessBuilder(blender.exe --background --python script_render.py -- in.stl out.png)
+
+  servicios/renderer/JavaFxRenderer.java (futuro)
+      Solo si JavaFX está en classpath
+
+
+NOTAS ADICIONALES
+-----------------
+- OpenSCAD portable (~28MB) puede incluirse en /tools/openscad/
+- Blender NO se incluye (~350MB), solo ruta configurable
+- JavaFX se descartó por ahora (complejidad build)
+- AWT es el motor por defecto y el fallback universal
+- Los multivolumen se agrupan como un solo elemento en UI
+- Los PNGs se guardan primero en carpeta temporal; el usuario decide cuándo copiar
+- El formato STL no ha cambiado desde 1987 → nuestro parser no se rompe nunca
+
+
+IDEAS SOBRE LA MARCHA
+---------------------
+
+[] si seleccionamos varias imagenes de un .zip que monte una unica imagen con esas imagenes
+[] recordar ultima carpeta abierta
+[v] poner un slicer para controlar brillo y contraste
