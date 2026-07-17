@@ -60,6 +60,7 @@ import controlador.managers.interfaces.IListCoordinator;
 import controlador.managers.interfaces.IViewManager;
 import controlador.managers.interfaces.IZoomManager;
 import controlador.utils.ComponentRegistry;
+import javafx.application.Platform;
 import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
@@ -400,6 +401,7 @@ public class VisorController implements IModoController, ThemeChangeListener {
         } else {
             logger.error("GeneralController es nulo. Realizando cierre de emergencia.");
             finalizarRecursosAlCerrar();
+            Platform.exit();
             System.exit(0);
         }
     } // --- FIN del metodo shutdownApplication ---

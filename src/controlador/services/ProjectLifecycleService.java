@@ -4,6 +4,7 @@ import controlador.GeneralController;
 import controlador.ProjectController;
 import controlador.VisorController;
 import controlador.managers.interfaces.IProjectManager;
+import javafx.application.Platform;
 import modelo.ListContext;
 import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
@@ -243,6 +244,7 @@ public class ProjectLifecycleService {
 
         logger.info("--- Apagado limpio completado. Saliendo de la JVM. ---\n\n");
 
+        Platform.exit();
         System.exit(0);
     }
 }

@@ -566,6 +566,7 @@ public class ConfigurationManager
 	    defaults.put(ConfigKeys.GRID_THUMBNAIL_WIDTH, "120");
 	    defaults.put(ConfigKeys.GRID_THUMBNAIL_HEIGHT, "120");
 	    
+	    defaults.put(ConfigKeys.HERRAMIENTAS_ABRIR_CARPETA_EAST_VISIBLE, "true");
 	    defaults.put("interfaz.herramientas.botonesOrdenLista.visible", "true");
 
 	    defaults.put("proyectos.estado.recuperacion_pendiente", "true");

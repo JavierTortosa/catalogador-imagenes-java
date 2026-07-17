@@ -1,0 +1,30 @@
+<launch4jConfig>
+  <headerType>gui</headerType>
+  <jar>VisorV2.jar</jar>
+  <dontWrapJar>true</dontWrapJar>
+  <outfile>D:\Descargas\VisorV2\Instalacion\VisorV2.exe</outfile>
+  <errTitle>Visor de Imágenes V2</errTitle>
+  <chdir>.</chdir>
+  <restartOnCrash>false</restartOnCrash>
+  <jre>
+    <path>jre</path>
+    <minVersion>21</minVersion>
+    <maxHeapSize>4096</maxHeapSize>
+    <jvmArgs>
+      <arg>--add-modules</arg>
+      <arg>jdk.unsupported.desktop</arg>
+    </jvmArgs>
+  </jre>
+  <stayAlive>false</stayAlive>
+  <versionInfo>
+    <fileVersion>2.0.0.0</fileVersion>
+    <txtFileVersion>2.0.0</txtFileVersion>
+    <fileDescription>Visor de Imágenes V2 - DAM</fileDescription>
+    <copyright>2026</copyright>
+    <productVersion>2.0.0.0</productVersion>
+    <txtProductVersion>2.0.0</txtProductVersion>
+    <productName>Visor de Imágenes V2</productName>
+    <internalName>VisorV2</internalName>
+    <originalFilename>VisorV2.exe</originalFilename>
+  </versionInfo>
+</launch4jConfig>

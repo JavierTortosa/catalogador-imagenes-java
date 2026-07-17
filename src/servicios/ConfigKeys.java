@@ -231,6 +231,9 @@ public final class ConfigKeys {
     // === NUEVAS CLAVES PARA LA REFACTORIZACIÓN DE BARRAS DE HERRAMIENTAS (Toolbars) ===
     // =================================================================================
 
+    // --- Barra Abrir Carpeta East ---
+    public static final String HERRAMIENTAS_ABRIR_CARPETA_EAST_VISIBLE               = "interfaz.herramientas.abrir_carpeta_east.visible";
+
     // --- Barra de Navegación ---
     public static final String HERRAMIENTAS_NAVEGACION_VISIBLE 					= "interfaz.herramientas.navegacion.visible";
     public static final String HERRAMIENTAS_NAVEGACION_BOTON_PRIMERA_VISIBLE 	= "interfaz.herramientas.navegacion.boton.primera.visible";
