@@ -85,6 +85,7 @@ public class RenderController {
     // Punteros de selección por pestaña
     private int pointerSinRenderizar = 0;
     private int pointerConImagen = 0;
+    private boolean syncingFromGrid;
 
     public RenderController(RenderPanel panel, ConfigurationManager config, Component parentFrame) {
         this.panel = panel;
@@ -347,21 +348,57 @@ public class RenderController {
     }
 
     private void onCandidateSelected() {
+        if (syncingFromGrid) return;
         RenderCandidate selected = getSelectedCandidate();
         contentModel.clear();
         panel.getContentImageListModel().clear();
         actualizarInfobarRender(selected);
-        // Actualizar puntero activo
-        if (panel.isCandidateTabSinRenderizar()) {
-            int idx = panel.getCandidateListSinImagen().getSelectedIndex();
-            if (idx >= 0) pointerSinRenderizar = idx;
-        } else {
-            int idx = panel.getCandidateListConImagen().getSelectedIndex();
-            if (idx >= 0) pointerConImagen = idx;
-        }
+        int idxSin = panel.getCandidateListSinImagen().getSelectedIndex();
+        if (idxSin >= 0) pointerSinRenderizar = idxSin;
+        int idxCon = panel.getCandidateListConImagen().getSelectedIndex();
+        if (idxCon >= 0) pointerConImagen = idxCon;
         if (selected == null || !selected.esComprimido) return;
 
         actualizarContenidoInferior();
+        if (panel.isCandidateTabSinRenderizar()) {
+            seleccionarThumbnailDeCandidato(selected);
+        }
+    }
+
+    private void seleccionarThumbnailDeCandidato(RenderCandidate candidate) {
+        Path thumbnailPath = encontrarThumbnailDelCandidato(candidate);
+        if (thumbnailPath != null && Files.exists(thumbnailPath)) {
+            showPreview(thumbnailPath);
+        } else if (panel.isCandidateTabSinRenderizar() && candidate.esComprimido) {
+            // Sin thumbnail todavía: mostrar el primer STL en el visor
+            try {
+                List<StlEntry> entries = ZipExtractor.listStlContents(candidate.path);
+                if (!entries.isEmpty()) {
+                    mostrarStlEnVisor(candidate, entries.get(0));
+                }
+            } catch (Exception ex) {
+                logger.warn("No se pudo listar STLs para preview: {}", candidate.nombreBase, ex);
+            }
+        }
+    }
+
+    private Path encontrarThumbnailDelCandidato(RenderCandidate candidate) {
+        Path assigned = outputDir.resolve(candidate.nombreBase + ".png");
+        if (Files.exists(assigned)) return assigned;
+        if (candidate.tieneImagenesDentro()) {
+            Path imgDir = imagesDir.resolve(candidate.nombreBase);
+            if (Files.isDirectory(imgDir)) {
+                try (var walk = Files.walk(imgDir, 3)) {
+                    return walk.filter(Files::isRegularFile)
+                            .filter(p -> {
+                                String n = p.getFileName().toString().toLowerCase();
+                                return n.endsWith(".png") || n.endsWith(".jpg") || n.endsWith(".jpeg");
+                            })
+                            .findFirst().orElse(null);
+                } catch (IOException ignored) {}
+            }
+        }
+        return null;
     }
 
     private void actualizarContenidoInferior() {
@@ -383,11 +420,6 @@ public class RenderController {
                 entries.sort(Comparator.comparingLong(StlEntry::sizeBytes).reversed());
                 for (StlEntry entry : entries) {
                     contentModel.addElement(entry);
-                }
-                // Auto-seleccionar primer STL y mostrar en visor 3D
-                if (!entries.isEmpty()) {
-                    panel.getContentList().setSelectedIndex(0);
-                    mostrarStlEnVisor(selected, entries.get(0));
                 }
             } catch (Exception ex) {
                 logger.warn("No se pudo listar STLs de {}: {}", selected.nombreBase, ex.getMessage());
@@ -464,6 +496,10 @@ public class RenderController {
             protected void done() {
                 refreshThumbnails(null);
                 panel.syncGridToCandidateTab();
+                RenderCandidate current = getSelectedCandidate();
+                if (current != null && current.nombreBase.equals(baseName)) {
+                    seleccionarThumbnailDeCandidato(current);
+                }
             }
         }.execute();
     }
@@ -789,7 +825,7 @@ public class RenderController {
             RenderCandidate c = sinRender.nextElement();
             Path png = outputDir.resolve(c.nombreBase + ".png");
             if (Files.exists(png)) {
-                addThumbnailToGrid(png, panel.getRendersGrid(), highlightPng, c.nombreBase);
+                addThumbnailToGrid(png, panel.getRendersGrid(), highlightPng, c.nombreBase, c);
             }
         }
 
@@ -799,7 +835,7 @@ public class RenderController {
             RenderCandidate c = conImg.nextElement();
             Path png = outputDir.resolve(c.nombreBase + ".png");
             if (Files.exists(png)) {
-                addThumbnailToGrid(png, panel.getImagenesGrid(), highlightPng, c.nombreBase);
+                addThumbnailToGrid(png, panel.getImagenesGrid(), highlightPng, c.nombreBase, c);
                 continue;
             }
             Path imgDir = imagesDir.resolve(c.nombreBase);
@@ -812,7 +848,7 @@ public class RenderController {
                                         || n.endsWith(".gif") || n.endsWith(".bmp") || n.endsWith(".webp");
                             })
                             .findFirst()
-                            .ifPresent(imgPath -> addThumbnailToGrid(imgPath, panel.getImagenesGrid(), highlightPng, c.nombreBase));
+                            .ifPresent(imgPath -> addThumbnailToGrid(imgPath, panel.getImagenesGrid(), highlightPng, c.nombreBase, c));
                 } catch (IOException ignored) {}
             }
         }
@@ -823,7 +859,7 @@ public class RenderController {
         panel.getImagenesGrid().repaint();
     }
 
-    private void addThumbnailToGrid(Path p, JPanel grid, Path highlightPng, String labelText) {
+    private void addThumbnailToGrid(Path p, JPanel grid, Path highlightPng, String labelText, RenderCandidate candidate) {
         try {
             var icon = new javax.swing.ImageIcon(
                     new javax.swing.ImageIcon(p.toFile().toURI().toURL())
@@ -842,6 +878,7 @@ public class RenderController {
             label.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
                 public void mouseClicked(java.awt.event.MouseEvent ev) {
+                    seleccionarCandidatoEnLista(candidate);
                     showPreview(p);
                 }
             });
@@ -849,6 +886,28 @@ public class RenderController {
         } catch (Exception ex) {
             logger.warn("No se pudo cargar thumbnail: {}", p);
         }
+    }
+
+    private void seleccionarCandidatoEnLista(RenderCandidate candidate) {
+        if (candidate == null) return;
+        syncingFromGrid = true;
+        if (panel.getListModelSinImagen().getSize() > 0) {
+            int idx = java.util.Collections.list(panel.getListModelSinImagen().elements()).indexOf(candidate);
+            if (idx >= 0) {
+                panel.getCandidateTabs().setSelectedIndex(0);
+                panel.getCandidateListSinImagen().setSelectedIndex(idx);
+                syncingFromGrid = false;
+                return;
+            }
+        }
+        if (panel.getListModelConImagen().getSize() > 0) {
+            int idx = java.util.Collections.list(panel.getListModelConImagen().elements()).indexOf(candidate);
+            if (idx >= 0) {
+                panel.getCandidateTabs().setSelectedIndex(1);
+                panel.getCandidateListConImagen().setSelectedIndex(idx);
+            }
+        }
+        syncingFromGrid = false;
     }
 
     private boolean isPathInImagesDir(Path p) {
@@ -864,7 +923,8 @@ public class RenderController {
 
         resaltarThumbnail(pngPath);
 
-        if (isPathInImagesDir(pngPath)) {
+        // En pestaña "Con imagen" siempre mostrar en 2D (imagen asignada o extraída)
+        if (panel.isCandidateTabConImagen() || isPathInImagesDir(pngPath)) {
             showImagePreview(pngPath);
         } else {
             showRenderPreview(pngPath);
@@ -1308,9 +1368,16 @@ public class RenderController {
             return;
         }
         try {
+            BufferedImage captura = panel.capturarVistaActual();
             Path dest = outputDir.resolve(selected.nombreBase + ".png");
-            Files.copy(currentPreviewPath, dest, StandardCopyOption.REPLACE_EXISTING);
-            logger.info("Imagen asignada al grid: {} -> {}", currentPreviewPath.getFileName(), dest.getFileName());
+            if (captura != null) {
+                ImageIO.write(captura, "PNG", dest.toFile());
+                logger.info("Vista capturada guardada: {} (zoom={})",
+                        dest.getFileName(), String.format("%.2f", panel.getImageZoom()));
+            } else {
+                Files.copy(currentPreviewPath, dest, StandardCopyOption.REPLACE_EXISTING);
+                logger.info("Imagen original copiada al grid: {}", dest.getFileName());
+            }
             refreshThumbnails(dest);
         } catch (IOException e) {
             logger.error("Error al asignar imagen al grid", e);

@@ -3,19 +3,23 @@ package vista.panels.render;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
+import java.awt.RenderingHints;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseWheelListener;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -58,7 +62,13 @@ public class RenderPanel extends JPanel {
 
     // --- Visor (panel derecho) ---
     private final PreviewPanel3DFX preview3DFX;
-    private final JLabel imagePreviewLabel;
+    private final JPanel imageDisplayPanel;
+    private BufferedImage currentImage2D;
+    private double imageZoom = 1.0;
+    private double imageOffsetX = 0;
+    private double imageOffsetY = 0;
+    private int lastPanX;
+    private int lastPanY;
     private final JPanel viewerCardPanel;
     private static final String CARD_VISTA_3D = "Vista3D";
     private static final String CARD_VISTA_2D = "Vista2D";
@@ -182,12 +192,90 @@ public class RenderPanel extends JPanel {
         preview3DFX.setBorder(BorderFactory.createTitledBorder("Preview 3D"));
         viewerCardPanel.add(preview3DFX, CARD_VISTA_3D);
 
-        imagePreviewLabel = new JLabel();
-        imagePreviewLabel.setHorizontalAlignment(JLabel.CENTER);
-        imagePreviewLabel.setVerticalAlignment(JLabel.CENTER);
-        imagePreviewLabel.setBackground(new Color(30, 30, 35));
-        imagePreviewLabel.setOpaque(true);
-        JScrollPane imagePreviewScroll = new JScrollPane(imagePreviewLabel);
+        imageDisplayPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (currentImage2D == null) {
+                    g.setColor(new Color(30, 30, 35));
+                    g.fillRect(0, 0, getWidth(), getHeight());
+                    g.setColor(Color.GRAY);
+                    String msg = "Sin imagen";
+                    java.awt.FontMetrics fm = g.getFontMetrics();
+                    int x = (getWidth() - fm.stringWidth(msg)) / 2;
+                    int y = getHeight() / 2;
+                    g.drawString(msg, x, y);
+                    return;
+                }
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                int pw = getWidth();
+                int ph = getHeight();
+                double panelW = pw;
+                double panelH = ph;
+                double imgW = currentImage2D.getWidth();
+                double imgH = currentImage2D.getHeight();
+                double scale = imageZoom * Math.min(panelW / imgW, panelH / imgH);
+                double xOff = (panelW - imgW * scale) / 2 + imageOffsetX;
+                double yOff = (panelH - imgH * scale) / 2 + imageOffsetY;
+                AffineTransform at = AffineTransform.getTranslateInstance(xOff, yOff);
+                at.scale(scale, scale);
+                g2.drawImage(currentImage2D, at, null);
+                g2.dispose();
+            }
+        };
+        imageDisplayPanel.setBackground(new Color(30, 30, 35));
+        imageDisplayPanel.setFocusable(true);
+        // Zoom con rueda del ratón
+        imageDisplayPanel.addMouseWheelListener(e -> {
+            double oldZoom = imageZoom;
+            double rot = e.getPreciseWheelRotation();
+            if (rot < 0) {
+                imageZoom *= 1.15;
+            } else {
+                imageZoom /= 1.15;
+            }
+            imageZoom = Math.max(0.05, Math.min(50.0, imageZoom));
+            // Zoom hacia el cursor
+            double factor = imageZoom / oldZoom;
+            java.awt.Point mp = e.getPoint();
+            double panelW = imageDisplayPanel.getWidth();
+            double panelH = imageDisplayPanel.getHeight();
+            double imgW = currentImage2D != null ? currentImage2D.getWidth() : 1;
+            double imgH = currentImage2D != null ? currentImage2D.getHeight() : 1;
+            double scaleBase = Math.min(panelW / imgW, panelH / imgH);
+            double mx = (mp.x - (panelW - imgW * oldZoom * scaleBase) / 2 - imageOffsetX) / (oldZoom * scaleBase);
+            double my = (mp.y - (panelH - imgH * oldZoom * scaleBase) / 2 - imageOffsetY) / (oldZoom * scaleBase);
+            imageOffsetX = mp.x - (panelW - imgW * imageZoom * scaleBase) / 2 - mx * imageZoom * scaleBase;
+            imageOffsetY = mp.y - (panelH - imgH * imageZoom * scaleBase) / 2 - my * imageZoom * scaleBase;
+            imageDisplayPanel.repaint();
+        });
+        // Pan con arrastre
+        MouseAdapter panAdapter = new MouseAdapter() {
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                lastPanX = e.getX();
+                lastPanY = e.getY();
+                imageDisplayPanel.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+            }
+            @Override
+            public void mouseReleased(java.awt.event.MouseEvent e) {
+                imageDisplayPanel.setCursor(Cursor.getDefaultCursor());
+            }
+            @Override
+            public void mouseDragged(java.awt.event.MouseEvent e) {
+                int dx = e.getX() - lastPanX;
+                int dy = e.getY() - lastPanY;
+                imageOffsetX += dx;
+                imageOffsetY += dy;
+                lastPanX = e.getX();
+                lastPanY = e.getY();
+                imageDisplayPanel.repaint();
+            }
+        };
+        imageDisplayPanel.addMouseListener(panAdapter);
+        imageDisplayPanel.addMouseMotionListener(panAdapter);
+        JScrollPane imagePreviewScroll = new JScrollPane(imageDisplayPanel);
         imagePreviewScroll.setBorder(BorderFactory.createTitledBorder("Vista previa"));
         viewerCardPanel.add(imagePreviewScroll, CARD_VISTA_2D);
 
@@ -492,7 +580,7 @@ public class RenderPanel extends JPanel {
     }
 
     public PreviewPanel3DFX getPreview3DFX() { return preview3DFX; }
-    public JLabel getImagePreviewLabel() { return imagePreviewLabel; }
+    public JPanel getImageDisplayPanel() { return imageDisplayPanel; }
 
     // --- Visor dual ---
     public void show3DView() {
@@ -509,13 +597,30 @@ public class RenderPanel extends JPanel {
     }
 
     public void set2DImage(BufferedImage image) {
-        if (image != null) {
-            imagePreviewLabel.setIcon(new ImageIcon(image));
-            imagePreviewLabel.setText(null);
-        } else {
-            imagePreviewLabel.setIcon(null);
-            imagePreviewLabel.setText("Sin imagen");
-        }
+        this.currentImage2D = image;
+        resetImageZoom();
+        imageDisplayPanel.repaint();
+    }
+
+    public double getImageZoom() { return imageZoom; }
+    public double getImageOffsetX() { return imageOffsetX; }
+    public double getImageOffsetY() { return imageOffsetY; }
+
+    public void resetImageZoom() {
+        imageZoom = 1.0;
+        imageOffsetX = 0;
+        imageOffsetY = 0;
+    }
+
+    public BufferedImage capturarVistaActual() {
+        int w = imageDisplayPanel.getWidth();
+        int h = imageDisplayPanel.getHeight();
+        if (w < 1 || h < 1 || currentImage2D == null) return null;
+        BufferedImage capture = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = capture.createGraphics();
+        imageDisplayPanel.paint(g2);
+        g2.dispose();
+        return capture;
     }
 
     public int getBrightness() {
