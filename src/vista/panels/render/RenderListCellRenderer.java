@@ -33,7 +33,12 @@ public class RenderListCellRenderer extends DefaultListCellRenderer {
             RenderCandidate c = (RenderCandidate) value;
             String sizeStr = formatearTamano(c.tamanoBytes);
             String tipo = c.esComprimido ? "[ZIP]" : "[3D]";
-            label.setText(tipo + " " + c.nombreBase + "  (" + sizeStr + ")");
+            StringBuilder sb = new StringBuilder();
+            sb.append(tipo).append(" ").append(c.nombreBase).append("  (").append(sizeStr).append(")");
+            if (c.tieneImagenesDentro()) {
+                sb.append(" [").append(c.imagenesInternas.size()).append(" img]");
+            }
+            label.setText(sb.toString());
             label.setFont(baseFont);
 
             if (c.excedeLimite) {

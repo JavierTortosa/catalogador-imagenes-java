@@ -10,10 +10,12 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -27,18 +29,41 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 
+import modelo.renderer.ImageEntry;
 import modelo.renderer.StlEntry;
 import servicios.renderer.Zip2PngScanner.RenderCandidate;
 
 public class RenderPanel extends JPanel {
 
-    private final DefaultListModel<RenderCandidate> listModel;
-    private final JList<RenderCandidate> candidateList;
+    // --- Listas de candidatos (panel izquierdo) ---
+    private final DefaultListModel<RenderCandidate> listModelSinImagen;
+    private final JList<RenderCandidate> candidateListSinImagen;
+    private final DefaultListModel<RenderCandidate> listModelConImagen;
+    private final JList<RenderCandidate> candidateListConImagen;
+    private final JTabbedPane candidateTabs;
     private final DefaultListModel<StlEntry> contentListModel;
     private final JList<StlEntry> contentList;
-    private final JPanel thumbnailGrid;
-    private final PreviewPanel3DFX preview3DFX;
+    private final DefaultListModel<ImageEntry> contentImageListModel;
+    private final JList<ImageEntry> contentImageList;
+    private final JPanel bottomCardPanel;
+    private static final String CARD_CONTENT_STL = "stl";
+    private static final String CARD_CONTENT_IMG = "img";
 
+    // --- Grid de resultados (panel central) ---
+    private final JPanel gridCardPanel;
+    private final JPanel imagenesGrid;
+    private final JPanel rendersGrid;
+    private static final String CARD_GRID_IMG = "img";
+    private static final String CARD_GRID_RENDER = "render";
+
+    // --- Visor (panel derecho) ---
+    private final PreviewPanel3DFX preview3DFX;
+    private final JLabel imagePreviewLabel;
+    private final JPanel viewerCardPanel;
+    private static final String CARD_VISTA_3D = "Vista3D";
+    private static final String CARD_VISTA_2D = "Vista2D";
+
+    // --- Controles de imagen ---
     private final JLabel brightnessLabel;
     private final JSlider brightnessSlider;
     private final JTextField brightnessField;
@@ -85,38 +110,90 @@ public class RenderPanel extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         setBackground(new Color(35, 35, 40));
 
-        listModel = new DefaultListModel<>();
-        candidateList = new JList<>(listModel);
-        candidateList.setCellRenderer(new RenderListCellRenderer());
-        candidateList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        JScrollPane listScroll = new JScrollPane(candidateList);
-        listScroll.setBorder(BorderFactory.createTitledBorder("Archivos sin imagen"));
-        listScroll.setPreferredSize(new Dimension(280, 0));
+        // ---------- PANEL IZQUIERDO: listas de candidatos ----------
+        listModelSinImagen = new DefaultListModel<>();
+        candidateListSinImagen = new JList<>(listModelSinImagen);
+        candidateListSinImagen.setCellRenderer(new RenderListCellRenderer());
+        candidateListSinImagen.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane listScrollSin = new JScrollPane(candidateListSinImagen);
 
+        listModelConImagen = new DefaultListModel<>();
+        candidateListConImagen = new JList<>(listModelConImagen);
+        candidateListConImagen.setCellRenderer(new RenderListCellRenderer());
+        candidateListConImagen.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane listScrollCon = new JScrollPane(candidateListConImagen);
+
+        candidateTabs = new JTabbedPane();
+        candidateTabs.setBackground(new Color(40, 40, 45));
+        candidateTabs.setForeground(Color.WHITE);
+        candidateTabs.addTab("Sin renderizar", listScrollSin);
+        candidateTabs.addTab("Con imagen", listScrollCon);
+
+        // --- Contenido del ZIP (STLs) ---
         contentListModel = new DefaultListModel<>();
         contentList = new JList<>(contentListModel);
         contentList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane contentScroll = new JScrollPane(contentList);
-        contentScroll.setBorder(BorderFactory.createTitledBorder("Contenido del ZIP"));
+        contentScroll.setBorder(BorderFactory.createTitledBorder("STLs en el ZIP"));
 
-        JSplitPane leftSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, listScroll, contentScroll);
-        leftSplit.setResizeWeight(0.6);
-        leftSplit.setDividerLocation(0.6);
+        // --- Contenido del ZIP (imágenes) ---
+        contentImageListModel = new DefaultListModel<>();
+        contentImageList = new JList<>(contentImageListModel);
+        contentImageList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        JScrollPane contentImageScroll = new JScrollPane(contentImageList);
+        contentImageScroll.setBorder(BorderFactory.createTitledBorder("Imágenes en el ZIP"));
+
+        // CardLayout: contenido inferior contextual a la pestaña activa
+        bottomCardPanel = new JPanel(new CardLayout());
+        bottomCardPanel.add(contentScroll, CARD_CONTENT_STL);
+        bottomCardPanel.add(contentImageScroll, CARD_CONTENT_IMG);
+
+        JSplitPane leftSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, candidateTabs, bottomCardPanel);
+        leftSplit.setResizeWeight(0.5);
+        leftSplit.setDividerLocation(0.5);
         leftSplit.setBorder(null);
+        leftSplit.setPreferredSize(new Dimension(280, 0));
 
-        thumbnailGrid = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
-        thumbnailGrid.setBackground(new Color(40, 40, 45));
-        JScrollPane gridScroll = new JScrollPane(thumbnailGrid);
-        gridScroll.setBorder(BorderFactory.createTitledBorder("Thumbnails generados"));
+        // ---------- PANEL CENTRAL: grid contextual a la pestaña de candidatos ----------
+        imagenesGrid = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
+        imagenesGrid.setBackground(new Color(40, 40, 45));
+        JScrollPane imagenesScroll = new JScrollPane(imagenesGrid);
+        imagenesScroll.setBorder(BorderFactory.createTitledBorder("Imágenes extraídas"));
 
+        rendersGrid = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
+        rendersGrid.setBackground(new Color(40, 40, 45));
+        JScrollPane rendersScroll = new JScrollPane(rendersGrid);
+        rendersScroll.setBorder(BorderFactory.createTitledBorder("Renders 3D generados"));
+
+        gridCardPanel = new JPanel(new CardLayout());
+        gridCardPanel.add(imagenesScroll, CARD_GRID_IMG);
+        gridCardPanel.add(rendersScroll, CARD_GRID_RENDER);
+
+        // ---------- PANEL DERECHO: visor dual + controles ----------
         JPanel rightPanel = new JPanel(new BorderLayout(4, 4));
         rightPanel.setBackground(new Color(30, 30, 35));
         rightPanel.setPreferredSize(new Dimension(340, 0));
 
-        preview3DFX = new PreviewPanel3DFX();
-        preview3DFX.setBorder(BorderFactory.createTitledBorder("Preview"));
-        rightPanel.add(preview3DFX, BorderLayout.CENTER);
+        // CardLayout para conmutar vista 3D / 2D
+        viewerCardPanel = new JPanel(new CardLayout());
+        viewerCardPanel.setBackground(new Color(30, 30, 35));
 
+        preview3DFX = new PreviewPanel3DFX();
+        preview3DFX.setBorder(BorderFactory.createTitledBorder("Preview 3D"));
+        viewerCardPanel.add(preview3DFX, CARD_VISTA_3D);
+
+        imagePreviewLabel = new JLabel();
+        imagePreviewLabel.setHorizontalAlignment(JLabel.CENTER);
+        imagePreviewLabel.setVerticalAlignment(JLabel.CENTER);
+        imagePreviewLabel.setBackground(new Color(30, 30, 35));
+        imagePreviewLabel.setOpaque(true);
+        JScrollPane imagePreviewScroll = new JScrollPane(imagePreviewLabel);
+        imagePreviewScroll.setBorder(BorderFactory.createTitledBorder("Vista previa"));
+        viewerCardPanel.add(imagePreviewScroll, CARD_VISTA_2D);
+
+        rightPanel.add(viewerCardPanel, BorderLayout.CENTER);
+
+        // --- Pestañas de configuración (Imagen + Fondo) ---
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.setBackground(new Color(40, 40, 45));
         tabbedPane.setForeground(Color.WHITE);
@@ -161,7 +238,6 @@ public class RenderPanel extends JPanel {
         JPanel fondoTab = new JPanel(new BorderLayout(4, 4));
         fondoTab.setBackground(new Color(40, 40, 45));
 
-        // Radio buttons
         rbSolid = new JRadioButton("S\u00F3lido");
         rbGradient = new JRadioButton("Degradado");
         rbImage = new JRadioButton("Cargar fondo");
@@ -190,7 +266,6 @@ public class RenderPanel extends JPanel {
         radioContainer.add(new javax.swing.JSeparator(), BorderLayout.SOUTH);
         fondoTab.add(radioContainer, BorderLayout.NORTH);
 
-        // CardLayout con las opciones de cada radio
         cardPanel = new JPanel(new CardLayout());
         cardPanel.setBackground(new Color(40, 40, 45));
 
@@ -317,7 +392,6 @@ public class RenderPanel extends JPanel {
 
         fondoTab.add(cardPanel, BorderLayout.CENTER);
 
-        // Checkerboard visual
         chkCheckerboard = new JCheckBox("Fondo a cuadros (preview)");
         chkCheckerboard.setBackground(new Color(40, 40, 45));
         chkCheckerboard.setForeground(Color.WHITE);
@@ -330,8 +404,12 @@ public class RenderPanel extends JPanel {
 
         rightPanel.add(tabbedPane, BorderLayout.SOUTH);
 
+        // Sincronizar grid con la pestaña inicial ("Sin renderizar")
+        showGridCard(CARD_GRID_RENDER);
+
+        // ---------- ENSAMBLAR PANEL PRINCIPAL ----------
         add(leftSplit, BorderLayout.WEST);
-        add(gridScroll, BorderLayout.CENTER);
+        add(gridCardPanel, BorderLayout.CENTER);
         add(rightPanel, BorderLayout.EAST);
     }
 
@@ -357,22 +435,99 @@ public class RenderPanel extends JPanel {
         gradientEndPreview.repaint();
     }
 
-    // --- Getters existentes ---
-    public DefaultListModel<RenderCandidate> getListModel() { return listModel; }
-    public JList<RenderCandidate> getCandidateList() { return candidateList; }
+    // --- Getters backward compat (delegan a "Sin imagen") ---
+    public DefaultListModel<RenderCandidate> getListModel() { return listModelSinImagen; }
+    public JList<RenderCandidate> getCandidateList() { return candidateListSinImagen; }
+
+    // --- Getters duales ---
+    public DefaultListModel<RenderCandidate> getListModelSinImagen() { return listModelSinImagen; }
+    public JList<RenderCandidate> getCandidateListSinImagen() { return candidateListSinImagen; }
+    public DefaultListModel<RenderCandidate> getListModelConImagen() { return listModelConImagen; }
+    public JList<RenderCandidate> getCandidateListConImagen() { return candidateListConImagen; }
+
+    public void actualizarTitulosPestanyas() {
+        int sinCount = listModelSinImagen.getSize();
+        int conCount = listModelConImagen.getSize();
+        candidateTabs.setTitleAt(0, "Sin renderizar (" + sinCount + ")");
+        candidateTabs.setTitleAt(1, "Con imagen (" + conCount + ")");
+    }
+
     public DefaultListModel<StlEntry> getContentListModel() { return contentListModel; }
     public JList<StlEntry> getContentList() { return contentList; }
-    public JPanel getThumbnailGrid() { return thumbnailGrid; }
+    public DefaultListModel<ImageEntry> getContentImageListModel() { return contentImageListModel; }
+    public JList<ImageEntry> getContentImageList() { return contentImageList; }
+
+    public JTabbedPane getCandidateTabs() { return candidateTabs; }
+
+    public void showContentCard(String card) {
+        ((CardLayout) bottomCardPanel.getLayout()).show(bottomCardPanel, card);
+    }
+
+    public boolean isCandidateTabSinRenderizar() {
+        return candidateTabs.getSelectedIndex() == 0;
+    }
+
+    public boolean isCandidateTabConImagen() {
+        return candidateTabs.getSelectedIndex() == 1;
+    }
+
+    public JPanel getImagenesGrid() { return imagenesGrid; }
+    public JPanel getRendersGrid() { return rendersGrid; }
+
+    // Backward compat: getThumbnailGrid() devuelve el grid de renders 3D
+    public JPanel getThumbnailGrid() { return rendersGrid; }
+
+    public void showGridCard(String card) {
+        ((CardLayout) gridCardPanel.getLayout()).show(gridCardPanel, card);
+        gridCardPanel.revalidate();
+        gridCardPanel.repaint();
+    }
+
+    public void syncGridToCandidateTab() {
+        if (isCandidateTabSinRenderizar()) {
+            showGridCard(CARD_GRID_RENDER);
+        } else {
+            showGridCard(CARD_GRID_IMG);
+        }
+    }
+
     public PreviewPanel3DFX getPreview3DFX() { return preview3DFX; }
+    public JLabel getImagePreviewLabel() { return imagePreviewLabel; }
+
+    // --- Visor dual ---
+    public void show3DView() {
+        ((CardLayout) viewerCardPanel.getLayout()).show(viewerCardPanel, CARD_VISTA_3D);
+    }
+
+    public void show2DView() {
+        ((CardLayout) viewerCardPanel.getLayout()).show(viewerCardPanel, CARD_VISTA_2D);
+    }
+
+    public boolean isShowing3DView() {
+        return viewerCardPanel.getComponents().length > 0
+                && preview3DFX.isShowing();
+    }
+
+    public void set2DImage(BufferedImage image) {
+        if (image != null) {
+            imagePreviewLabel.setIcon(new ImageIcon(image));
+            imagePreviewLabel.setText(null);
+        } else {
+            imagePreviewLabel.setIcon(null);
+            imagePreviewLabel.setText("Sin imagen");
+        }
+    }
 
     public int getBrightness() {
         try { return Integer.parseInt(brightnessField.getText().trim()); }
         catch (NumberFormatException e) { return brightnessSlider.getValue(); }
     }
+
     public int getContrast() {
         try { return Integer.parseInt(contrastField.getText().trim()); }
         catch (NumberFormatException e) { return contrastSlider.getValue(); }
     }
+
     public boolean isCheckerboard() { return chkCheckerboard.isSelected(); }
     public boolean isAntiAlias() { return chkAntiAlias.isSelected(); }
     public boolean isCrosshair() { return chkCrosshair.isSelected(); }
@@ -385,7 +540,7 @@ public class RenderPanel extends JPanel {
     public JCheckBox getChkAntiAlias() { return chkAntiAlias; }
     public JCheckBox getChkCrosshair() { return chkCrosshair; }
 
-    // --- Getters nuevos: fondo ---
+    // --- Getters fondo ---
     public ButtonGroup getBgGroup() { return bgGroup; }
     public JRadioButton getRbSolid() { return rbSolid; }
     public JRadioButton getRbGradient() { return rbGradient; }

@@ -11,140 +11,171 @@
 
     <p>
         El <strong>Modo Render</strong> permite procesar archivos de modelo 3D (STL comprimidos en ZIP/RAR/7Z) para generar
-        imágenes de renderizado de alta calidad. Está diseñado para el flujo de trabajo de escaneado 3D: escanea una carpeta
-        en busca de archivos comprimidos, los procesa con distintos motores, y produce una imagen PNG para cada modelo que
-        servirá como preview en los demás modos del visor.
+        imágenes de renderizado de alta calidad, así como explorar y extraer imágenes embebidas dentro de los comprimidos.
     </p>
 
     <h2>Flujo de Trabajo Típico</h2>
     <ol>
-        <li><strong>Escanear Carpeta:</strong> Localiza todos los archivos comprimidos (ZIP, RAR, 7Z) con STL dentro de una carpeta.</li>
-        <li><strong>Seleccionar Candidatos:</strong> En la lista de resultados, elige los modelos que quieres procesar.</li>
-        <li><strong>Ajustar Preview:</strong> En el panel 3D, rota el modelo, ajusta brillo/contraste y configura el fondo a tu gusto.</li>
-        <li><strong>Procesar:</strong> Ejecuta el renderizado de los seleccionados o del archivo actual. La imagen generada se guarda junto al modelo.</li>
-        <li><strong>Copiar Archivos:</strong> Copia los archivos procesados a su carpeta de origen.</li>
-        <li><strong>Revisar:</strong> Abre la carpeta temporal para ver los resultados.</li>
+        <li><strong>Escanear Carpeta:</strong> Localiza todos los archivos comprimidos (ZIP, RAR, 7Z) con STL dentro de una carpeta y detecta automáticamente cuáles contienen imágenes embebidas.</li>
+        <li><strong>Seleccionar Candidatos:</strong> Los candidatos se organizan en dos pestañas: "Sin renderizar" (sin imagen detectada) y "Con imagen" (contienen imágenes en su interior).</li>
+        <li><strong>Inspeccionar Contenido:</strong> Al seleccionar un candidato, el panel inferior muestra los archivos internos: STLs (pestaña Sin renderizar) o imágenes (pestaña Con imagen).</li>
+        <li><strong>Previsualizar:</strong> Haz doble clic en un STL para verlo en 3D, o en una imagen para verla en el visor 2D.</li>
+        <li><strong>Ajustar y Asignar:</strong> En el visor 3D, rota el modelo y ajusta brillo/contraste/fondo. Pulsa "Asignar preview" para guardar el render. En el visor 2D, pulsa "Asignar" para copiar la imagen al grid.</li>
+        <li><strong>Procesar:</strong> Ejecuta el renderizado por lotes de todos los candidatos.</li>
     </ol>
 
-    <h2>Barra de Herramientas</h2>
-    <p>La barra superior del modo Render contiene las siguientes acciones:</p>
-    <table class="controls-table">
+    <h2>Panel Izquierdo: Lista de Candidatos</h2>
+    <p>
+        La lista de candidatos se organiza en dos pestañas (<strong>JTabbedPane</strong>):
+    </p>
+    <table class="help-table">
+        <tr><th>Pestaña</th><th>Descripción</th></tr>
         <tr>
-            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70001 - escanear carpeta.png"></td>
-            <td><strong>Escanear carpeta:</strong> Abre un diálogo para seleccionar una carpeta y la escanea en busca de archivos comprimidos (ZIP, RAR, 7Z) que contengan modelos STL. Los resultados aparecen en el panel izquierdo como lista de candidatos.</td>
+            <td><strong>Sin renderizar</strong></td>
+            <td>Archivos comprimidos (ZIP/RAR/7Z) que contienen STL pero no tienen imágenes embebidas. Se mostrarán en el grid de renders 3D tras procesarlos.</td>
         </tr>
         <tr>
-            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70002 - procesar seleccionados.png"></td>
-            <td><strong>Procesar seleccionados:</strong> Renderiza todos los candidatos marcados en la lista. Para cada uno genera una imagen PNG con la configuración actual de preview (rotación, fondo, brillo, contraste).</td>
-        </tr>
-        <tr>
-            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70003 - procesar archivo.png"></td>
-            <td><strong>Procesar archivo:</strong> Renderiza únicamente el candidato actualmente seleccionado en el panel 3D. Útil para probar ajustes antes de procesar el lote completo.</td>
-        </tr>
-        <tr>
-            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70004 - copiar a origen.png"></td>
-            <td><strong>Copiar archivos:</strong> Copia los archivos procesados desde la carpeta temporal a la carpeta de origen del modelo.</td>
-        </tr>
-        <tr>
-            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70006 - abrir temp.png"></td>
-            <td><strong>Abrir carpeta temporal:</strong> Abre el explorador de archivos en la carpeta donde se guardan los renders temporales.</td>
-        </tr>
-        <tr><td colspan="2"><hr class="separator"></td></tr>
-        <tr>
-            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70007 - establece_imagen.png"></td>
-            <td><strong>Asigna preview al archivo:</strong> Captura la orientación actual del modelo en el panel 3D (rotación X/Y), los ajustes de la pestaña "Imagen" (brillo, contraste, anti-aliasing) y la configuración de la pestaña "Fondo", y re-renderiza el PNG con esos parámetros. Reemplaza la imagen preview existente.</td>
+            <td><strong>Con imagen</strong></td>
+            <td>Archivos comprimidos que contienen imágenes (PNG, JPG, etc.) en su interior además de los STL. Sus imágenes se extraen automáticamente y se muestran en el grid de imágenes. Muestra el número de imágenes encontradas como <code>[N img]</code> junto al nombre.</td>
         </tr>
     </table>
 
-    <h2>Panel de Previsualización 3D</h2>
+    <h3>Contenido Inferior Contextual</h3>
     <p>
-        El centro del modo Render muestra un visor 3D interactivo (<strong>PreviewPanel3DFX</strong>) basado en JavaFX.
-        Permite inspeccionar el modelo STL antes de generar la imagen final.
+        Al seleccionar un candidato, el panel inferior cambia según la pestaña activa:
     </p>
     <ul>
-        <li><strong>Rotación:</strong> Arrastra con el ratón para rotar el modelo libremente en 3D.</li>
-        <li><strong>Zoom:</strong> Usa la rueda del ratón para acercar o alejar la vista.</li>
+        <li><strong>Sin renderizar:</strong> Lista todos los archivos STL dentro del comprimido, ordenados por tamaño descendente. El primer STL se selecciona y previsualiza automáticamente en 3D.</li>
+        <li><strong>Con imagen:</strong> Lista todas las imágenes embebidas. Al hacer doble clic en una imagen, se extrae y se muestra en el visor 2D.</li>
+    </ul>
+
+    <h3>Puntero entre Pestañas</h3>
+    <p>
+        El sistema recuerda el último elemento seleccionado en cada pestaña. Al cambiar entre "Sin renderizar" y "Con imagen", se restaura automáticamente la selección anterior de cada lista.
+    </p>
+
+    <h2>Panel Central: Grid Contextual</h2>
+    <p>
+        El grid central cambia según la pestaña activa de candidatos, mostrando una miniatura por archivo comprimido:
+    </p>
+    <table class="help-table">
+        <tr><th>Pestaña activa</th><th>Grid mostrado</th></tr>
+        <tr>
+            <td><strong>Sin renderizar</strong></td>
+            <td>Muestra los renders 3D generados (<code>nombreBase.png</code>) en la carpeta temporal. Cada thumbnail tiene 180px y al hacer clic se abre en el visor 3D.</td>
+        </tr>
+        <tr>
+            <td><strong>Con imagen</strong></td>
+            <td>Muestra la primera imagen extraída de cada comprimido. Las imágenes se buscan recursivamente hasta 3 niveles dentro de <code>outputDir/imagenes/nombreBase/</code>. Si se ha asignado una imagen manualmente (<code>nombreBase.png</code> en la raíz de <code>outputDir</code>), esta tiene prioridad.</td>
+        </tr>
+    </table>
+
+    <h2>Panel Derecho: Visor Dual 2D/3D</h2>
+    <p>
+        El panel derecho cuenta con un <strong>visor dual</strong> que alterna automáticamente según el tipo de contenido:
+    </p>
+
+    <h3>Vista 3D (PreviewPanel3DFX)</h3>
+    <p>
+        Visor 3D interactivo basado en JavaFX para inspeccionar modelos STL:
+    </p>
+    <ul>
+        <li><strong>Rotación:</strong> Arrastra con el ratón para rotar el modelo libremente.</li>
+        <li><strong>Zoom:</strong> Usa la rueda del ratón para acercar o alejar.</li>
         <li><strong>Pan:</strong> Arrastra con el botón central para desplazar la cámara.</li>
         <li><strong>Iluminación:</strong> Ajustable desde los controles del panel.</li>
     </ul>
+
+    <h3>Vista 2D</h3>
     <p>
-        En la parte lateral derecha hay un <strong>JTabbedPane</strong> con dos pestañas de configuración que afectan
-        al renderizado final:
+        Muestra imágenes extraídas de los comprimidos o renders generados. Aparece automáticamente al hacer doble clic en una imagen del panel inferior o del grid de imágenes.
     </p>
 
+    <h2>Pestañas de Configuración</h2>
+    <p>En la parte inferior derecha hay dos pestañas que afectan al renderizado 3D:</p>
+
     <h3>Pestaña "Imagen"</h3>
-    <p>Controles para ajustar la calidad visual del render:</p>
     <table class="controls-table">
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_brightness.png"></td>
-            <td><strong>Brillo:</strong> Barra deslizadora para ajustar el brillo de la imagen renderizada. Afecta al PNG final.</td>
+            <td><strong>Brillo:</strong> Barra deslizadora para ajustar el brillo de la imagen renderizada.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_contrast.png"></td>
-            <td><strong>Contraste:</strong> Barra deslizadora para ajustar el contraste. Valores más altos aumentan la diferencia entre luces y sombras.</td>
+            <td><strong>Contraste:</strong> Barra deslizadora para ajustar el contraste.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_eye.png"></td>
-            <td><strong>Anti-Aliasing (Suavizado):</strong> Barra deslizadora para controlar el nivel de suavizado de bordes. Reduce el efecto de escalera en las aristas del modelo.</td>
+            <td><strong>Anti-Aliasing:</strong> Suavizado de bordes para reducir el efecto de escalera.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_crosshair.png"></td>
-            <td><strong>Ver cruceta:</strong> Checkbox que muestra u oculta una cruceta (ejes de referencia X/Y/Z) sobre el preview 3D para orientación espacial.</td>
+            <td><strong>Ver cruceta:</strong> Muestra ejes de referencia X/Y/Z en el preview 3D.</td>
         </tr>
     </table>
 
     <h3>Pestaña "Fondo"</h3>
-    <p>
-        Controla el aspecto del fondo en el render final. Ofrece cuatro modos seleccionables mediante botones de radio:
-    </p>
-
     <table class="help-table">
         <tr><th>Modo</th><th>Descripción</th></tr>
         <tr>
             <td><strong>Sólido</strong></td>
-            <td>Fondo de un solo color. Muestra un selector de color para elegir el color de fondo. Por defecto usa el color de la aplicación.</td>
+            <td>Fondo de un solo color con selector de color.</td>
         </tr>
         <tr>
             <td><strong>Degradado</strong></td>
-            <td>Fondo con degradado lineal de dos colores. Muestra dos selectores de color (inicio y final) en la misma línea y una vista previa del degradado debajo. El degradado va de arriba a abajo.</td>
+            <td>Degradado lineal de dos colores con vista previa.</td>
         </tr>
         <tr>
             <td><strong>Imagen</strong></td>
-            <td>Fondo con una imagen personalizada. Un botón "Seleccionar imagen" abre un diálogo para elegir un archivo de imagen. Un deslizador ajusta la escala de la imagen de fondo (zoom in/out).</td>
+            <td>Imagen personalizada como fondo con control de escala.</td>
         </tr>
         <tr>
             <td><strong>Transparente</strong></td>
-            <td>Fondo transparente (canal alfa). Al activar esta opción, los controles de color e imagen se deshabilitan y el fondo del preview muestra un patrón de cuadros (checkerboard) como referencia visual de la transparencia.</td>
+            <td>Fondo con canal alfa. Opcionalmente superpone un patrón de cuadros.</td>
         </tr>
     </table>
 
-    <p>
-        Debajo de los modos de fondo hay un <strong>checkbox "Ver cuadros"</strong> que superpone un patrón
-        de cuadros (checkerboard) sobre el fondo actual. Esto ayuda a visualizar cómo quedaría la transparencia
-        o el contraste del modelo contra un fondo neutro.
-    </p>
+    <h2>Barra de Herramientas</h2>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70001 - escanear carpeta.png"></td>
+            <td><strong>Escanear carpeta:</strong> Abre un diálogo para seleccionar una carpeta y la escanea en busca de archivos comprimidos. Los resultados se clasifican automáticamente en las pestañas "Sin renderizar" y "Con imagen" según si contienen imágenes embebidas.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70002 - procesar seleccionados.png"></td>
+            <td><strong>Procesar seleccionados:</strong> Renderiza todos los candidatos. Genera un PNG por cada uno y extrae las imágenes embebidas de los que las contengan. Al finalizar, selecciona automáticamente el primer candidato en la pestaña "Sin renderizar".</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70003 - procesar archivo.png"></td>
+            <td><strong>Procesar archivo:</strong> Renderiza únicamente el candidato actualmente seleccionado.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70004 - copiar a origen.png"></td>
+            <td><strong>Copiar archivos:</strong> Copia los archivos procesados desde la carpeta temporal a la carpeta de origen.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70006 - abrir temp.png"></td>
+            <td><strong>Abrir carpeta temporal:</strong> Abre el explorador en la carpeta temporal de renders.</td>
+        </tr>
+        <tr><td colspan="2"><hr class="separator"></td></tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70007 - establece_imagen.png"></td>
+            <td><strong>Asignar preview al archivo:</strong> Comportamiento dual según la pestaña activa:
+                <ul>
+                    <li><strong>Sin renderizar:</strong> Captura la orientación actual del modelo 3D, los ajustes de imagen y fondo, y re-renderiza el PNG con esos parámetros.</li>
+                    <li><strong>Con imagen:</strong> Copia la imagen actual del visor 2D a <code>outputDir/nombreBase.png</code> y la muestra en el grid de imágenes, dándole prioridad sobre las imágenes extraídas automáticamente.</li>
+                </ul>
+            </td>
+        </tr>
+    </table>
 
     <h2>Barra de Información Superior</h2>
-    <p>
-        Al seleccionar un candidato en la lista, la barra de información superior se actualiza automáticamente
-        con los datos del archivo de modelo:
-    </p>
-    <ul>
-        <li><strong>Nombre archivo:</strong> Nombre del ZIP/RAR/7Z o STL seleccionado.</li>
-        <li><strong>Ruta:</strong> Carpeta donde se encuentra el archivo original.</li>
-        <li><strong>Tam:</strong> Tamaño del archivo comprimido.</li>
-        <li><strong>Fch:</strong> Fecha de última modificación del archivo.</li>
-        <li><strong>Fmt:</strong> Formato del comprimido (ZIP, RAR, 7Z) o del modelo (STL, OBJ).</li>
-        <li><strong>Idx:</strong> Índice del candidato actual respecto al total de la lista.</li>
-    </ul>
-    <p>
-        Los campos Dim, Modo y %Z se muestran como "N/A" en modo Render, ya que no aplican a modelos 3D.
-    </p>
+    <p>Al seleccionar un candidato se muestran: nombre, ruta, tamaño, fecha, formato e índice respecto al total.</p>
 
     <hr>
     <p>
-        Para más información sobre la generación de renders, consulta la documentación del motor de renderizado
-        <code>AwtModelRenderer</code> en el código fuente.
+        Para más información sobre el motor de renderizado, consulta la documentación de
+        <code>AwtModelRenderer</code>, <code>Zip2PngScanner</code> y <code>ZipExtractor</code> en el código fuente.
     </p>
 
 </body>

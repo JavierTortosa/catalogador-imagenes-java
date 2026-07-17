@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import controlador.utils.ComponentRegistry;
 import controlador.worker.Zip2PngWorker;
 import controlador.worker.Zip2PngWorker.SourceInfo;
+import modelo.renderer.ImageEntry;
 import modelo.renderer.StlEntry;
 import modelo.renderer.StlMeshBuilder;
 import modelo.renderer.Triangle;
@@ -74,11 +75,16 @@ public class RenderController {
 
     private Path lastScanFolder;
     private Path outputDir;
+    private Path imagesDir;
     private volatile Path currentPreviewPath;
     private List<Triangle> currentTriangles;
     private Zip2PngWorker currentWorker;
     private volatile boolean loadingTriangles;
     private ComponentRegistry registry;
+
+    // Punteros de selección por pestaña
+    private int pointerSinRenderizar = 0;
+    private int pointerConImagen = 0;
 
     public RenderController(RenderPanel panel, ConfigurationManager config, Component parentFrame) {
         this.panel = panel;
@@ -98,6 +104,7 @@ public class RenderController {
         String temp = config.getString(ConfigKeys.ZIP2PNG_CARPETA_TEMP,
                 System.getProperty("java.io.tmpdir") + File.separator + "visor_zip2png");
         outputDir = Path.of(temp);
+        imagesDir = outputDir.resolve("imagenes");
         try {
             if (Files.exists(outputDir)) {
                 try (var files = Files.list(outputDir)) {
@@ -111,16 +118,35 @@ public class RenderController {
     }
 
     private void wireControls() {
-        panel.getCandidateList().addListSelectionListener(e -> {
+        // Listener para ambas listas de candidatos
+        javax.swing.event.ListSelectionListener candidateListener = e -> {
             if (e.getValueIsAdjusting()) return;
             onCandidateSelected();
+        };
+        panel.getCandidateListSinImagen().addListSelectionListener(candidateListener);
+        panel.getCandidateListConImagen().addListSelectionListener(candidateListener);
+
+        // Cambio de pestaña de candidatos: actualiza contenido inferior y card
+        panel.getCandidateTabs().addChangeListener(e -> {
+            onCandidateTabChanged();
         });
 
+        // Doble clic en STL del ZIP
         panel.getContentList().addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (e.getClickCount() == 2) {
                     onStlDoubleClick();
+                }
+            }
+        });
+
+        // Doble clic en imagen del ZIP → extrae y muestra en visor 2D
+        panel.getContentImageList().addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    onImageDoubleClick();
                 }
             }
         });
@@ -282,44 +308,195 @@ public class RenderController {
         panel.getPreview3DFX().setCrosshairVisible(panel.isCrosshair());
     }
 
+    private RenderCandidate getSelectedCandidate() {
+        if (panel.isCandidateTabSinRenderizar()) {
+            return panel.getCandidateListSinImagen().getSelectedValue();
+        }
+        return panel.getCandidateListConImagen().getSelectedValue();
+    }
+
+    private void onCandidateTabChanged() {
+        guardarPunteroActual();
+        restaurarPunteroNuevo();
+        panel.syncGridToCandidateTab();
+    }
+
+    private void guardarPunteroActual() {
+        int idxSin = panel.getCandidateListSinImagen().getSelectedIndex();
+        if (idxSin >= 0) pointerSinRenderizar = idxSin;
+        int idxCon = panel.getCandidateListConImagen().getSelectedIndex();
+        if (idxCon >= 0) pointerConImagen = idxCon;
+    }
+
+    private void restaurarPunteroNuevo() {
+        if (panel.isCandidateTabSinRenderizar()) {
+            int size = panel.getListModelSinImagen().getSize();
+            int idx = Math.min(pointerSinRenderizar, size - 1);
+            if (idx >= 0 && idx < size) {
+                panel.getCandidateListSinImagen().clearSelection();
+                panel.getCandidateListSinImagen().setSelectedIndex(idx);
+            }
+        } else {
+            int size = panel.getListModelConImagen().getSize();
+            int idx = Math.min(pointerConImagen, size - 1);
+            if (idx >= 0 && idx < size) {
+                panel.getCandidateListConImagen().clearSelection();
+                panel.getCandidateListConImagen().setSelectedIndex(idx);
+            }
+        }
+    }
+
     private void onCandidateSelected() {
-        RenderCandidate selected = panel.getCandidateList().getSelectedValue();
+        RenderCandidate selected = getSelectedCandidate();
         contentModel.clear();
+        panel.getContentImageListModel().clear();
         actualizarInfobarRender(selected);
+        // Actualizar puntero activo
+        if (panel.isCandidateTabSinRenderizar()) {
+            int idx = panel.getCandidateListSinImagen().getSelectedIndex();
+            if (idx >= 0) pointerSinRenderizar = idx;
+        } else {
+            int idx = panel.getCandidateListConImagen().getSelectedIndex();
+            if (idx >= 0) pointerConImagen = idx;
+        }
         if (selected == null || !selected.esComprimido) return;
 
-        try {
-            List<StlEntry> entries = ZipExtractor.listStlContents(selected.path);
-            entries.sort(Comparator.comparingLong(StlEntry::sizeBytes).reversed());
-            for (StlEntry entry : entries) {
-                contentModel.addElement(entry);
-            }
-        } catch (Exception ex) {
-            logger.warn("No se pudo listar contenido de {}: {}", selected.nombreBase, ex.getMessage());
+        actualizarContenidoInferior();
+    }
+
+    private void actualizarContenidoInferior() {
+        RenderCandidate selected = getSelectedCandidate();
+        contentModel.clear();
+        panel.getContentImageListModel().clear();
+        panel.getImagenesGrid().removeAll();
+        panel.getImagenesGrid().revalidate();
+        panel.getImagenesGrid().repaint();
+        if (selected == null || !selected.esComprimido) {
+            panel.showContentCard(panel.isCandidateTabSinRenderizar() ? "stl" : "img");
+            return;
         }
+
+        if (panel.isCandidateTabSinRenderizar()) {
+            panel.showContentCard("stl");
+            try {
+                List<StlEntry> entries = ZipExtractor.listStlContents(selected.path);
+                entries.sort(Comparator.comparingLong(StlEntry::sizeBytes).reversed());
+                for (StlEntry entry : entries) {
+                    contentModel.addElement(entry);
+                }
+                // Auto-seleccionar primer STL y mostrar en visor 3D
+                if (!entries.isEmpty()) {
+                    panel.getContentList().setSelectedIndex(0);
+                    mostrarStlEnVisor(selected, entries.get(0));
+                }
+            } catch (Exception ex) {
+                logger.warn("No se pudo listar STLs de {}: {}", selected.nombreBase, ex.getMessage());
+            }
+        } else {
+            panel.showContentCard("img");
+            try {
+                List<ImageEntry> images = ZipExtractor.listImageContents(selected.path);
+                for (ImageEntry img : images) {
+                    panel.getContentImageListModel().addElement(img);
+                }
+            } catch (Exception ex) {
+                logger.warn("No se pudo listar imágenes de {}: {}", selected.nombreBase, ex.getMessage());
+            }
+            extraerImagenesCandidato(selected);
+        }
+    }
+
+    private void mostrarStlEnVisor(RenderCandidate candidate, StlEntry stl) {
+        panel.show3DView();
+        new SwingWorker<Void, Void>() {
+            private Path tempDir;
+            @Override
+            protected Void doInBackground() throws Exception {
+                Path stlPath;
+                if (candidate.esComprimido) {
+                    tempDir = ZipExtractor.extractToTemp(candidate.path);
+                    stlPath = tempDir.resolve(stl.filename());
+                    if (!Files.exists(stlPath)) return null;
+                } else {
+                    stlPath = candidate.path;
+                }
+                List<Triangle> triangles = StlParser.parse(stlPath.toFile());
+                SwingUtilities.invokeLater(() -> {
+                    panel.getPreview3DFX().setMesh(triangles);
+                    resetPreviewAdjustments();
+                });
+                return null;
+            }
+            @Override
+            protected void done() {
+                if (tempDir != null) ZipExtractor.deleteDir(tempDir);
+            }
+        }.execute();
+    }
+
+    private void extraerImagenesCandidato(RenderCandidate candidate) {
+        if (candidate == null || !candidate.esComprimido || candidate.imagenesInternas.isEmpty()) return;
+
+        new SwingWorker<Void, Void>() {
+            private final String baseName = candidate.nombreBase;
+            @Override
+            protected Void doInBackground() throws Exception {
+                Path imgOut = imagesDir.resolve(baseName);
+                // Limpiar extracción previa de este candidato
+                if (Files.exists(imgOut)) {
+                    try (var walk = Files.walk(imgOut)) {
+                        walk.sorted(java.util.Comparator.reverseOrder())
+                                .forEach(p -> { try { Files.deleteIfExists(p); } catch (Exception ignored) {} });
+                    }
+                }
+                Files.createDirectories(imgOut);
+                for (ImageEntry img : candidate.imagenesInternas) {
+                    if (isCancelled()) return null;
+                    try {
+                        ZipExtractor.extractSingleFile(candidate.path, img.filename(), imgOut);
+                    } catch (Exception ex) {
+                        logger.warn("No se pudo extraer {} de {}: {}", img.filename(), baseName, ex.getMessage());
+                    }
+                }
+                return null;
+            }
+            @Override
+            protected void done() {
+                refreshThumbnails(null);
+                panel.syncGridToCandidateTab();
+            }
+        }.execute();
     }
 
     private void actualizarInfobarRender(RenderCandidate candidate) {
         if (registry == null) return;
-        java.util.List<RenderCandidate> all = java.util.Collections.list(panel.getListModel().elements());
-        int total = all.size();
-        int idx = -1;
         String nombre = "(ninguno)";
         String ruta = "N/A";
         String tam = "N/A";
         String fecha = "N/A";
         String fmt = "N/A";
+        String idxStr = "0/0";
 
         if (candidate != null) {
             nombre = candidate.path.getFileName().toString();
             ruta = candidate.path.getParent() != null ? candidate.path.getParent().toString() : "";
-            idx = all.indexOf(candidate);
             fmt = candidate.esComprimido ? extraerExtension(candidate.path) : "STL/OBJ";
             try {
                 java.nio.file.attribute.BasicFileAttributes attrs = java.nio.file.Files.readAttributes(candidate.path, java.nio.file.attribute.BasicFileAttributes.class);
                 tam = formatFileSize(attrs.size());
                 fecha = new java.text.SimpleDateFormat("dd/MM/yy HH:mm").format(new java.util.Date(attrs.lastModifiedTime().toMillis()));
             } catch (Exception ignored) {}
+
+            // Índice relativo a la pestaña activa
+            if (panel.isCandidateTabSinRenderizar()) {
+                List<RenderCandidate> lista = java.util.Collections.list(panel.getListModelSinImagen().elements());
+                int idx = lista.indexOf(candidate);
+                if (idx >= 0) idxStr = (idx + 1) + "/" + lista.size();
+            } else {
+                List<RenderCandidate> lista = java.util.Collections.list(panel.getListModelConImagen().elements());
+                int idx = lista.indexOf(candidate);
+                if (idx >= 0) idxStr = (idx + 1) + "/" + lista.size();
+            }
         }
 
         javax.swing.JTextField pathField = registry.get("textfield.info.rutaImagen");
@@ -333,7 +510,7 @@ public class RenderController {
         if (label != null) label.setText("Dim: N/A");
 
         label = registry.get("label.info.indiceTotal");
-        if (label != null) label.setText("Idx: " + (idx >= 0 ? (idx + 1) + "/" + total : "0/0"));
+        if (label != null) label.setText("Idx: " + idxStr);
 
         label = registry.get("label.info.tamano");
         if (label != null) label.setText("Tam: " + tam);
@@ -365,73 +542,92 @@ public class RenderController {
     }
 
     private void onStlDoubleClick() {
-        RenderCandidate candidate = panel.getCandidateList().getSelectedValue();
+        RenderCandidate candidate = getSelectedCandidate();
         StlEntry stl = panel.getContentList().getSelectedValue();
         if (candidate == null || stl == null) return;
 
-        String stem = stl.filename().replaceFirst("(?i)\\.stl$", "");
-        stem = stem.replaceAll("[\\\\/:*?\"<>|]", "_");
-        String pngName = candidate.nombreBase + "_" + stem + ".png";
-        Path pngPath = outputDir.resolve(pngName);
-
-        SourceInfo info = new SourceInfo(pngPath, candidate, stl);
-
-        if (Files.exists(pngPath)) {
-            pngSourceMap.put(pngPath, info);
-            selectPreviewThumbnail(pngPath);
-            return;
-        }
+        panel.show3DView();
 
         TaskProgressDialog dialog = new TaskProgressDialog(getParentFrame(),
-                "Renderizando", "Extrayendo y renderizando " + stl.filename() + "...");
+                "Previsualizando", "Cargando " + stl.filename() + "...");
 
         new SwingWorker<Void, Void>() {
+            private Path tempDir;
             @Override
             protected Void doInBackground() throws Exception {
-                Path tempDir = ZipExtractor.extractToTemp(candidate.path);
-                try {
-                    Path stlPath = tempDir.resolve(stl.filename());
+                Path stlPath;
+                if (candidate.esComprimido) {
+                    tempDir = ZipExtractor.extractToTemp(candidate.path);
+                    stlPath = tempDir.resolve(stl.filename());
                     if (!Files.exists(stlPath)) return null;
-                    List<Triangle> triangles = StlParser.parse(stlPath.toFile());
-                    BufferedImage img = renderer.renderizar(triangles);
-                    ImageIO.write(img, "PNG", pngPath.toFile());
-                    pngSourceMap.put(pngPath, info);
-                    triangleCache.put(pngPath, triangles);
-                } finally {
-                    ZipExtractor.deleteDir(tempDir);
+                } else {
+                    stlPath = candidate.path;
                 }
+                List<Triangle> triangles = StlParser.parse(stlPath.toFile());
+                SwingUtilities.invokeLater(() -> {
+                    panel.getPreview3DFX().setMesh(triangles);
+                    resetPreviewAdjustments();
+                });
                 return null;
             }
             @Override
             protected void done() {
+                if (tempDir != null) ZipExtractor.deleteDir(tempDir);
                 dialog.closeDialog();
-                if (Files.exists(pngPath)) {
-                    refreshThumbnails(pngPath);
-                }
             }
         }.execute();
         dialog.setVisible(true);
     }
 
-    private void selectPreviewThumbnail(Path pngPath) {
-        showPreview(pngPath);
-        for (Component comp : panel.getThumbnailGrid().getComponents()) {
-            if (comp instanceof JLabel label) {
-                String tip = label.getToolTipText();
-                if (tip != null && tip.equals(pngPath.getFileName().toString())) {
-                    label.setBorder(javax.swing.BorderFactory.createLineBorder(
-                            new java.awt.Color(100, 200, 255), 3));
-                } else if (label.getBorder() != null) {
-                    label.setBorder(null);
-                }
-            }
-        }
+    private void resetPreviewAdjustments() {
+        panel.getBrightnessSlider().setValue(0);
+        panel.getBrightnessField().setText("0");
+        panel.getContrastSlider().setValue(0);
+        panel.getContrastField().setText("0");
+        panel.getChkCheckerboard().setSelected(false);
+        panel.getChkAntiAlias().setSelected(false);
+        panel.getChkCrosshair().setSelected(true);
     }
 
-    private JFrame getParentFrame() {
-        if (parentFrame instanceof JFrame) return (JFrame) parentFrame;
-        java.awt.Window win = SwingUtilities.getWindowAncestor(parentFrame);
-        return (win instanceof JFrame) ? (JFrame) win : null;
+    private void onImageDoubleClick() {
+        RenderCandidate candidate = getSelectedCandidate();
+        ImageEntry img = panel.getContentImageList().getSelectedValue();
+        if (candidate == null || img == null) return;
+
+        // Extraer la imagen a outputDir/imagenes/ y mostrarla
+        TaskProgressDialog dialog = new TaskProgressDialog(getParentFrame(),
+                "Extrayendo imagen", "Extrayendo " + img.filename() + "...");
+
+        new SwingWorker<Path, Void>() {
+            @Override
+            protected Path doInBackground() throws Exception {
+                Path imgOutput = imagesDir.resolve(candidate.nombreBase);
+                Files.createDirectories(imgOutput);
+                ZipExtractor.extractSingleFile(candidate.path, img.filename(), imgOutput);
+                Path extracted = imgOutput.resolve(img.filename());
+                if (Files.exists(extracted)) return extracted;
+                // Buscar recursivamente
+                try (var walk = Files.walk(imgOutput)) {
+                    return walk.filter(Files::isRegularFile)
+                            .filter(p -> p.getFileName().toString().equalsIgnoreCase(
+                                    Path.of(img.filename()).getFileName().toString()))
+                            .findFirst().orElse(null);
+                }
+            }
+            @Override
+            protected void done() {
+                dialog.closeDialog();
+                try {
+                    Path extracted = get();
+                    if (extracted != null && Files.exists(extracted)) {
+                        showImagePreview(extracted);
+                    }
+                } catch (Exception ex) {
+                    logger.warn("Error extrayendo imagen {}", img.filename(), ex);
+                }
+            }
+        }.execute();
+        dialog.setVisible(true);
     }
 
     private void onScan(ActionEvent e) {
@@ -452,38 +648,65 @@ public class RenderController {
         long limiteMb = config.getInt(ConfigKeys.ZIP2PNG_LIMITE_MB, 512);
         long limiteBytes = limiteMb * 1024L * 1024L;
 
-        panel.getListModel().clear();
+        panel.getListModelSinImagen().clear();
+        panel.getListModelConImagen().clear();
+        panel.actualizarTitulosPestanyas();
         contentModel.clear();
+        panel.getContentImageListModel().clear();
         pngSourceMap.clear();
         triangleCache.clear();
 
         TaskProgressDialog dialog = new TaskProgressDialog(frame, "Escaneando", "Buscando archivos sin imagen...");
-        new SwingWorker<Void, Integer>() {
+        new SwingWorker<List<RenderCandidate>, Integer>() {
             @Override
-            protected Void doInBackground() {
+            protected List<RenderCandidate> doInBackground() {
                 Zip2PngScanner scanner = new Zip2PngScanner(limiteBytes);
-                List<RenderCandidate> candidates = scanner.scanFolder(folder, c -> {
-                    SwingUtilities.invokeLater(() -> panel.getListModel().addElement(c));
-                });
+                List<RenderCandidate> candidates = scanner.scanFolder(folder);
+                Zip2PngScanner.detectarImagenesEnArchivos(candidates);
                 publish(candidates.size());
                 logger.info("Escaneo completado: {} candidatos encontrados en {}", candidates.size(), folder);
-                return null;
+                return candidates;
             }
             @Override
             protected void process(List<Integer> chunks) {
                 int count = chunks.get(chunks.size() - 1);
-                dialog.updateStatusText("Archivos sin imagen: " + count);
+                dialog.updateStatusText("Candidatos encontrados: " + count);
             }
             @Override
             protected void done() {
+                try {
+                    List<RenderCandidate> candidates = get();
+                    int sinImg = 0, conImg = 0;
+                    for (RenderCandidate c : candidates) {
+                        if (c.tieneImagenesDentro()) {
+                            panel.getListModelConImagen().addElement(c);
+                            conImg++;
+                        } else {
+                            panel.getListModelSinImagen().addElement(c);
+                            sinImg++;
+                        }
+                    }
+                    panel.actualizarTitulosPestanyas();
+                    dialog.updateStatusText("Sin renderizar: " + sinImg + " | Con imagen: " + conImg);
+                } catch (Exception ex) {
+                    logger.error("Error al finalizar escaneo", ex);
+                }
                 dialog.closeDialog();
             }
         }.execute();
         dialog.setVisible(true);
     }
 
+    private List<RenderCandidate> getAllCandidates() {
+        List<RenderCandidate> all = new ArrayList<>();
+        java.util.Collections.list(panel.getListModelSinImagen().elements()).forEach(all::add);
+        java.util.Collections.list(panel.getListModelConImagen().elements()).forEach(all::add);
+        return all;
+    }
+
     private void onProcess(ActionEvent e) {
-        if (panel.getListModel().isEmpty()) {
+        List<RenderCandidate> candidates = getAllCandidates();
+        if (candidates.isEmpty()) {
             JOptionPane.showMessageDialog(parentFrame,
                     "No hay candidatos. Escanea una carpeta primero.",
                     "Zip2PNG", JOptionPane.INFORMATION_MESSAGE);
@@ -491,21 +714,24 @@ public class RenderController {
         }
 
         limpiarOutputDir();
-        panel.getThumbnailGrid().removeAll();
-        panel.getThumbnailGrid().revalidate();
-        panel.getThumbnailGrid().repaint();
+        panel.getImagenesGrid().removeAll();
+        panel.getRendersGrid().removeAll();
+        panel.getRendersGrid().revalidate();
+        panel.getRendersGrid().repaint();
+        panel.getImagenesGrid().revalidate();
+        panel.getImagenesGrid().repaint();
         pngSourceMap.clear();
         triangleCache.clear();
         currentPreviewPath = null;
         currentTriangles = null;
         currentWorker = null;
 
-        List<RenderCandidate> candidates = java.util.Collections.list(panel.getListModel().elements());
         JFrame frame = getParentFrame();
         if (frame == null) {
             logger.warn("No se pudo obtener JFrame padre para TaskProgressDialog");
             return;
         }
+        panel.actualizarTitulosPestanyas();
         TaskProgressDialog dialog = new TaskProgressDialog(frame, "Zip2PNG", "Procesando...");
 
         Zip2PngWorker worker = new Zip2PngWorker(candidates, outputDir, dialog, () -> {
@@ -522,7 +748,20 @@ public class RenderController {
                 pngSourceMap.put(si.pngPath(), si);
             }
         }
-        SwingUtilities.invokeLater(() -> refreshThumbnails(null));
+        SwingUtilities.invokeLater(() -> {
+            refreshThumbnails(null);
+            // Auto-seleccionar primer candidato en "Sin renderizar"
+            if (panel.getListModelSinImagen().getSize() > 0) {
+                panel.getCandidateTabs().setSelectedIndex(0);
+                pointerSinRenderizar = 0;
+                panel.getCandidateListSinImagen().setSelectedIndex(0);
+            } else if (panel.getListModelConImagen().getSize() > 0) {
+                panel.getCandidateTabs().setSelectedIndex(1);
+                pointerConImagen = 0;
+                panel.getCandidateListConImagen().setSelectedIndex(0);
+            }
+            panel.syncGridToCandidateTab();
+        });
     }
 
     private void limpiarOutputDir() {
@@ -541,45 +780,79 @@ public class RenderController {
     }
 
     private void refreshThumbnails(Path highlightPng) {
-        panel.getThumbnailGrid().removeAll();
-        try (var files = Files.list(outputDir)) {
-            List<Path> sorted = files.filter(p -> p.getFileName().toString().toLowerCase().endsWith(".png"))
-                    .sorted()
-                    .toList();
-            logger.debug("Thumbnails a mostrar: {} (total={})", sorted, sorted.size());
-            for (Path p : sorted) {
-                try {
-                    var icon = new javax.swing.ImageIcon(
-                            new javax.swing.ImageIcon(p.toFile().toURI().toURL())
-                                    .getImage()
-                                    .getScaledInstance(180, 180, java.awt.Image.SCALE_SMOOTH));
-                    var label = new javax.swing.JLabel(icon);
-                    label.setToolTipText(p.getFileName().toString());
-                    label.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+        panel.getRendersGrid().removeAll();
+        panel.getImagenesGrid().removeAll();
 
-                    boolean highlighted = highlightPng != null
-                            && p.getFileName().equals(highlightPng.getFileName());
-                    if (highlighted) {
-                        label.setBorder(javax.swing.BorderFactory.createLineBorder(
-                                new java.awt.Color(100, 200, 255), 3));
-                    }
-
-                    label.addMouseListener(new java.awt.event.MouseAdapter() {
-                        @Override
-                        public void mouseClicked(java.awt.event.MouseEvent ev) {
-                            showPreview(p);
-                        }
-                    });
-                    panel.getThumbnailGrid().add(label);
-                } catch (Exception ex) {
-                    logger.warn("No se pudo cargar thumbnail: {}", p);
-                }
+        // Renders 3D: un thumbnail por candidato sin imagen
+        java.util.Enumeration<RenderCandidate> sinRender = panel.getListModelSinImagen().elements();
+        while (sinRender.hasMoreElements()) {
+            RenderCandidate c = sinRender.nextElement();
+            Path png = outputDir.resolve(c.nombreBase + ".png");
+            if (Files.exists(png)) {
+                addThumbnailToGrid(png, panel.getRendersGrid(), highlightPng, c.nombreBase);
             }
-        } catch (IOException ex) {
-            logger.error("Error listando thumbnails", ex);
         }
-        panel.getThumbnailGrid().revalidate();
-        panel.getThumbnailGrid().repaint();
+
+        // Imágenes: un thumbnail por candidato con imagen (primera imagen encontrada)
+        java.util.Enumeration<RenderCandidate> conImg = panel.getListModelConImagen().elements();
+        while (conImg.hasMoreElements()) {
+            RenderCandidate c = conImg.nextElement();
+            Path png = outputDir.resolve(c.nombreBase + ".png");
+            if (Files.exists(png)) {
+                addThumbnailToGrid(png, panel.getImagenesGrid(), highlightPng, c.nombreBase);
+                continue;
+            }
+            Path imgDir = imagesDir.resolve(c.nombreBase);
+            if (Files.isDirectory(imgDir)) {
+                try (var walk = Files.walk(imgDir, 3)) {
+                    walk.filter(Files::isRegularFile)
+                            .filter(p -> {
+                                String n = p.getFileName().toString().toLowerCase();
+                                return n.endsWith(".png") || n.endsWith(".jpg") || n.endsWith(".jpeg")
+                                        || n.endsWith(".gif") || n.endsWith(".bmp") || n.endsWith(".webp");
+                            })
+                            .findFirst()
+                            .ifPresent(imgPath -> addThumbnailToGrid(imgPath, panel.getImagenesGrid(), highlightPng, c.nombreBase));
+                } catch (IOException ignored) {}
+            }
+        }
+
+        panel.getRendersGrid().revalidate();
+        panel.getRendersGrid().repaint();
+        panel.getImagenesGrid().revalidate();
+        panel.getImagenesGrid().repaint();
+    }
+
+    private void addThumbnailToGrid(Path p, JPanel grid, Path highlightPng, String labelText) {
+        try {
+            var icon = new javax.swing.ImageIcon(
+                    new javax.swing.ImageIcon(p.toFile().toURI().toURL())
+                            .getImage()
+                            .getScaledInstance(180, 180, java.awt.Image.SCALE_SMOOTH));
+            var label = new javax.swing.JLabel(icon);
+            String tooltip = labelText + " - " + p.getFileName().toString();
+            label.setToolTipText(tooltip);
+            label.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+
+            if (highlightPng != null && p.getFileName().equals(highlightPng.getFileName())) {
+                label.setBorder(javax.swing.BorderFactory.createLineBorder(
+                        new java.awt.Color(100, 200, 255), 3));
+            }
+
+            label.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mouseClicked(java.awt.event.MouseEvent ev) {
+                    showPreview(p);
+                }
+            });
+            grid.add(label);
+        } catch (Exception ex) {
+            logger.warn("No se pudo cargar thumbnail: {}", p);
+        }
+    }
+
+    private boolean isPathInImagesDir(Path p) {
+        return p.startsWith(imagesDir);
     }
 
     private void showPreview(Path pngPath) {
@@ -587,16 +860,30 @@ public class RenderController {
         this.currentPreviewPath = pngPath;
         this.loadingTriangles = false;
 
-        panel.getBrightnessSlider().setValue(0);
-        panel.getBrightnessField().setText("0");
-        panel.getContrastSlider().setValue(0);
-        panel.getContrastField().setText("0");
-        panel.getChkCheckerboard().setSelected(false);
-        panel.getChkAntiAlias().setSelected(false);
-        panel.getChkCrosshair().setSelected(true);
-        
+        resetPreviewAdjustments();
+
         resaltarThumbnail(pngPath);
 
+        if (isPathInImagesDir(pngPath)) {
+            showImagePreview(pngPath);
+        } else {
+            showRenderPreview(pngPath);
+        }
+    }
+
+    private void showImagePreview(Path imagePath) {
+        panel.show2DView();
+        try {
+            BufferedImage img = ImageIO.read(imagePath.toFile());
+            panel.set2DImage(img);
+        } catch (IOException e) {
+            logger.warn("No se pudo cargar imagen 2D: {}", imagePath, e);
+            panel.set2DImage(null);
+        }
+    }
+
+    private void showRenderPreview(Path pngPath) {
+        panel.show3DView();
         currentTriangles = triangleCache.get(pngPath);
         logger.debug("[RenderController] triangleCache hit: " + (currentTriangles != null));
         if (currentTriangles != null) {
@@ -615,10 +902,16 @@ public class RenderController {
     }
 
     private void resaltarThumbnail(Path pngPath) {
-        for (java.awt.Component comp : panel.getThumbnailGrid().getComponents()) {
+        resaltarEnGrid(pngPath, panel.getRendersGrid());
+        resaltarEnGrid(pngPath, panel.getImagenesGrid());
+    }
+
+    private void resaltarEnGrid(Path pngPath, JPanel grid) {
+        for (java.awt.Component comp : grid.getComponents()) {
             if (comp instanceof javax.swing.JLabel label) {
                 String tip = label.getToolTipText();
-                if (tip != null && tip.equals(pngPath.getFileName().toString())) {
+                if (tip != null && (tip.startsWith(pngPath.getFileName().toString())
+                        || tip.endsWith(pngPath.getFileName().toString()))) {
                     label.setBorder(javax.swing.BorderFactory.createLineBorder(
                             new java.awt.Color(100, 200, 255), 3));
                 } else if (label.getBorder() != null) {
@@ -626,6 +919,11 @@ public class RenderController {
                 }
             }
         }
+    }
+
+    private void selectPreviewThumbnail(Path pngPath) {
+        showPreview(pngPath);
+        resaltarThumbnail(pngPath);
     }
 
     private void mostrarErrorCarga(String mensaje) {
@@ -728,8 +1026,14 @@ public class RenderController {
         }.execute();
     }
 
+    private JFrame getParentFrame() {
+        if (parentFrame instanceof JFrame) return (JFrame) parentFrame;
+        java.awt.Window win = SwingUtilities.getWindowAncestor(parentFrame);
+        return (win instanceof JFrame) ? (JFrame) win : null;
+    }
+
     private void copyToSource() {
-        RenderCandidate selected = panel.getCandidateList().getSelectedValue();
+        RenderCandidate selected = getSelectedCandidate();
         if (selected == null) {
             JOptionPane.showMessageDialog(parentFrame, "Selecciona un candidato de la lista.",
                     "Copiar a origen", JOptionPane.INFORMATION_MESSAGE);
@@ -775,7 +1079,7 @@ public class RenderController {
      * Procesa un único ZIP seleccionado en la lista de candidatos.
      */
     public void procesarArchivo() {
-        RenderCandidate selected = panel.getCandidateList().getSelectedValue();
+        RenderCandidate selected = getSelectedCandidate();
         if (selected == null) {
             JOptionPane.showMessageDialog(parentFrame,
                     "Selecciona un candidato de la lista primero.",
@@ -784,9 +1088,12 @@ public class RenderController {
         }
 
         limpiarOutputDir();
-        panel.getThumbnailGrid().removeAll();
-        panel.getThumbnailGrid().revalidate();
-        panel.getThumbnailGrid().repaint();
+        panel.getRendersGrid().removeAll();
+        panel.getRendersGrid().revalidate();
+        panel.getRendersGrid().repaint();
+        panel.getImagenesGrid().removeAll();
+        panel.getImagenesGrid().revalidate();
+        panel.getImagenesGrid().repaint();
         pngSourceMap.clear();
         triangleCache.clear();
         currentPreviewPath = null;
@@ -795,6 +1102,8 @@ public class RenderController {
 
         JFrame frame = getParentFrame();
         if (frame == null) return;
+
+        panel.actualizarTitulosPestanyas();
 
         List<RenderCandidate> single = List.of(selected);
         TaskProgressDialog dialog = new TaskProgressDialog(frame, "Zip2PNG",
@@ -826,8 +1135,8 @@ public class RenderController {
             return;
         }
 
-        String rutaOrigen = panel.getCandidateList().getModel().getSize() > 0
-                ? panel.getCandidateList().getModel().getElementAt(0).path.getParent().toString()
+        String rutaOrigen = !panel.getListModelSinImagen().isEmpty()
+                ? panel.getListModelSinImagen().getElementAt(0).path.getParent().toString()
                 : "";
 
         JDialog dialog = new JDialog(getParentFrame(), "Copiar Archivos Generados", true);
@@ -982,6 +1291,36 @@ public class RenderController {
      * y actualiza la rejilla de thumbnails.
      */
     public void asignarPreviewAlArchivo() {
+        if (panel.isCandidateTabConImagen()) {
+            asignarImagenAlGrid();
+        } else {
+            asignarRenderAlGrid();
+        }
+    } // --- Fin del metodo asignarPreviewAlArchivo ---
+
+    private void asignarImagenAlGrid() {
+        RenderCandidate selected = getSelectedCandidate();
+        if (selected == null || currentPreviewPath == null || !Files.exists(currentPreviewPath)) {
+            JOptionPane.showMessageDialog(parentFrame,
+                    "No hay imagen cargada en el visor.\n"
+                    + "Haz doble clic en una imagen de la lista primero.",
+                    "Asignar al grid", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        try {
+            Path dest = outputDir.resolve(selected.nombreBase + ".png");
+            Files.copy(currentPreviewPath, dest, StandardCopyOption.REPLACE_EXISTING);
+            logger.info("Imagen asignada al grid: {} -> {}", currentPreviewPath.getFileName(), dest.getFileName());
+            refreshThumbnails(dest);
+        } catch (IOException e) {
+            logger.error("Error al asignar imagen al grid", e);
+            JOptionPane.showMessageDialog(parentFrame,
+                    "Error al guardar la imagen:\n" + e.getMessage(),
+                    "Asignar al grid", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void asignarRenderAlGrid() {
         if (currentTriangles == null || currentPreviewPath == null) {
             JOptionPane.showMessageDialog(parentFrame,
                     "No hay ning\u00FAn modelo cargado en el preview.\n"
@@ -1028,7 +1367,7 @@ public class RenderController {
                     "Error al guardar la imagen:\n" + e.getMessage(),
                     "Asignar preview", JOptionPane.ERROR_MESSAGE);
         }
-    } // --- Fin del metodo asignarPreviewAlArchivo ---
+    } // --- Fin del metodo asignarRenderAlGrid ---
 
 
 } // --- Fin de la clase RenderController ---

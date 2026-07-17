@@ -1139,10 +1139,16 @@ public class UIDefinitionService {
         		
         		new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_ESCANEAR_CARPETA,
                         "70001 - escanear carpeta.png", "Escanear carpeta", "toolbarRender")
+        		
+        		, new SeparatorDefinition()
+        		
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_PROCESAR_SELECCIONADOS,
                         "70002 - procesar seleccionados.png", "Procesar seleccionados", "toolbarRender")
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_PROCESAR_ARCHIVO,
                         "70003 - procesar archivo.png", "Procesar archivo", "toolbarRender")
+        		
+        		, new SeparatorDefinition()
+        		
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_COPIAR_ARCHIVOS,
                         "70004 - copiar a origen.png", "Copiar archivos", "toolbarRender")
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_ABRIR_TEMP,
@@ -1168,7 +1174,7 @@ public class UIDefinitionService {
 
         final ToolbarDefinition tbAbrirCarpeta = new ToolbarDefinition(
                 "abrir_carpeta", "Abrir Carpeta", 10,
-                EnumSet.of(VISOR, SLIDER, RENDER),
+                EnumSet.of(VISOR, SLIDER/*, RENDER*/),
                 List.copyOf(botonesAbrirCarpeta), tbarLeft, Set.of(tbarEast));
 
         final ToolbarDefinition tbNavegacion = new ToolbarDefinition(

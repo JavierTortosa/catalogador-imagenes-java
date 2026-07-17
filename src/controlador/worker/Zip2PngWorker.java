@@ -13,6 +13,7 @@ import javax.swing.SwingWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import modelo.renderer.ImageEntry;
 import modelo.renderer.StlEntry;
 import modelo.renderer.Triangle;
 import servicios.renderer.AwtModelRenderer;
@@ -110,6 +111,23 @@ public class Zip2PngWorker extends SwingWorker<Void, String> {
 
                 if (tempDir != null) {
                     ZipExtractor.deleteDir(tempDir);
+                }
+
+                // Extraer imágenes embebidas si las hay
+                if (candidate.tieneImagenesDentro()) {
+                    Path imgBaseDir = outputDir.resolve("imagenes").resolve(candidate.nombreBase);
+                    Files.createDirectories(imgBaseDir);
+                    for (ImageEntry imgEntry : candidate.imagenesInternas) {
+                        if (isCancelled()) return null;
+                        publish("Extrayendo imagen " + imgEntry.filename());
+                        try {
+                            ZipExtractor.extractSingleFile(candidate.path, imgEntry.filename(), imgBaseDir);
+                        } catch (Exception ex) {
+                            logger.warn("No se pudo extraer imagen {} de {}: {}",
+                                    imgEntry.filename(), candidate.nombreBase, ex.getMessage());
+                        }
+                    }
+                    publish("Imágenes extraídas de " + candidate.nombreBase);
                 }
             } catch (Exception e) {
                 logger.error("Error procesando {}: {}", candidate.nombreBase, e.getMessage());

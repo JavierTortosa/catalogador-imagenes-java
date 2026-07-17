@@ -495,27 +495,6 @@ public class PreviewPanel3DFX extends JFXPanel {
      * Reemplaza el SubScene actual por uno nuevo con el antialiasing indicado.
      */
     private void rebuildSubScene(SceneAntialiasing aa) {
-//        if (subRoot == null) return;
-//        int idx = root.getChildren().indexOf(subScene);
-//        if (idx >= 0) {
-//            root.getChildren().remove(idx);
-//        }
-//        subScene.setRoot(new Group());
-//        SubScene nueva = new SubScene(subRoot, getWidth(), getHeight(), true, aa);
-//        nueva.setCamera(camera);
-//        nueva.setFill(Color.TRANSPARENT);
-//        nueva.widthProperty().bind(root.widthProperty());
-//        nueva.heightProperty().bind(root.heightProperty());
-//        nueva.setOnMousePressed(this::onMousePressed);
-//        nueva.setOnMouseDragged(this::onMouseDragged);
-//        nueva.setOnScroll(this::onScroll);
-//        if (idx >= 0) {
-//            root.getChildren().add(idx, nueva);
-//        } else {
-//            root.getChildren().add(1, nueva);
-//        }
-//        subScene = nueva;
-//        logger.info("[PreviewPanel3DFX] Antialiasing cambiado a {}", aa);
     	
     	if (subRoot == null) return;
 
@@ -548,7 +527,10 @@ public class PreviewPanel3DFX extends JFXPanel {
         }
         
         subScene = nueva;
+        //SceneAntialiasing aaTemp = aa;
+        
         logger.info("[PreviewPanel3DFX] Antialiasing cambiado a {}", aa);
+        
         
     } // --- Fin del metodo rebuildSubScene ---
 

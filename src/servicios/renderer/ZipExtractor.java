@@ -7,8 +7,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
+import modelo.renderer.ImageEntry;
 import modelo.renderer.StlEntry;
 
 import org.slf4j.Logger;
@@ -23,6 +25,9 @@ import servicios.ExternalToolsManager;
 public class ZipExtractor {
 
     private static final Logger logger = LoggerFactory.getLogger(ZipExtractor.class);
+
+    private static final Set<String> EXT_IMAGEN = Set.of(
+            ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tiff", ".tif");
 
     /**
      * Extrae el contenido completo de un archivo comprimido a un directorio temporal.
@@ -145,6 +150,90 @@ public class ZipExtractor {
             throw new IOException("Interrupción listando " + archivePath, e);
         }
         return entries;
+    }
+
+    /**
+     * Lista archivos de imagen dentro de un comprimido con sus tamaños,
+     * usando 7z con formato -slt (etiquetado) para parseo robusto.
+     *
+     * @param archivePath ruta del archivo comprimido
+     * @return lista de ImageEntry encontrados
+     * @throws IOException si ocurre un error
+     */
+    public static List<ImageEntry> listImageContents(Path archivePath) throws IOException {
+        List<ImageEntry> entries = new ArrayList<>();
+        String exePath = ExternalToolsManager.get7zPath();
+        ProcessBuilder pb = new ProcessBuilder(exePath, "l", "-slt", archivePath.toString());
+        pb.redirectErrorStream(true);
+        try {
+            Process p = pb.start();
+            String output = new String(p.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            if (!p.waitFor(120, java.util.concurrent.TimeUnit.SECONDS)) {
+                p.destroyForcibly();
+                throw new IOException("Timeout listando imágenes en " + archivePath);
+            }
+            String currentPath = null;
+            long currentSize = 0;
+            for (String line : output.split("\\r?\\n")) {
+                String trimmed = line.trim();
+                if (trimmed.startsWith("Path = ")) {
+                    currentPath = trimmed.substring(6).trim();
+                } else if (trimmed.startsWith("Size = ")) {
+                    try {
+                        currentSize = Long.parseLong(trimmed.substring(6).trim());
+                    } catch (NumberFormatException e) {
+                        currentSize = 0;
+                    }
+                } else if (trimmed.equals("--") || trimmed.isEmpty()) {
+                    if (currentPath != null && esExtensionImagen(currentPath)) {
+                        entries.add(new ImageEntry(currentPath, currentSize));
+                    }
+                    currentPath = null;
+                    currentSize = 0;
+                }
+            }
+            if (currentPath != null && esExtensionImagen(currentPath)) {
+                entries.add(new ImageEntry(currentPath, currentSize));
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Interrupción listando imágenes en " + archivePath, e);
+        }
+        return entries;
+    }
+
+    private static boolean esExtensionImagen(String path) {
+        String lower = path.toLowerCase();
+        return EXT_IMAGEN.stream().anyMatch(lower::endsWith);
+    }
+
+    /**
+     * Extrae un único archivo de un comprimido a un directorio de salida,
+     * preservando la estructura de subdirectorios interna.
+     *
+     * @param archivePath  ruta del archivo comprimido
+     * @param internalPath ruta interna del archivo a extraer
+     * @param outputDir    directorio de salida
+     * @throws IOException si ocurre un error
+     */
+    public static void extractSingleFile(Path archivePath, String internalPath, Path outputDir) throws IOException {
+        String exePath = ExternalToolsManager.get7zPath();
+        ProcessBuilder pb = new ProcessBuilder(exePath, "x", archivePath.toString(),
+                "-o" + outputDir.toString(), internalPath, "-y");
+        pb.redirectErrorStream(true);
+        try {
+            Process p = pb.start();
+            if (!p.waitFor(120, java.util.concurrent.TimeUnit.SECONDS)) {
+                p.destroyForcibly();
+                throw new IOException("Timeout extrayendo " + internalPath + " de " + archivePath);
+            }
+            if (p.exitValue() != 0) {
+                throw new IOException("7z exit code " + p.exitValue() + " extrayendo " + internalPath);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Interrupción extrayendo " + internalPath, e);
+        }
     }
 
     /**

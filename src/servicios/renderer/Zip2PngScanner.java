@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import modelo.renderer.ImageEntry;
+
 /**
  * Escanea una carpeta buscando archivos 3D/archivo (STL, OBJ, 3MF, ZIP, RAR, 7z)
  * que NO tengan una imagen asociada (mismo nombre base, misma carpeta).
@@ -39,6 +41,7 @@ public class Zip2PngScanner {
         public final boolean esComprimido;
         public final boolean excedeLimite;
         public final List<Path> volumenesAgrupados;
+        public List<ImageEntry> imagenesInternas = List.of();
 
         public RenderCandidate(Path path, String nombreBase, long tamanoBytes,
                 boolean esComprimido, boolean excedeLimite, List<Path> volumenesAgrupados) {
@@ -48,6 +51,10 @@ public class Zip2PngScanner {
             this.esComprimido = esComprimido;
             this.excedeLimite = excedeLimite;
             this.volumenesAgrupados = volumenesAgrupados;
+        }
+
+        public boolean tieneImagenesDentro() {
+            return esComprimido && !imagenesInternas.isEmpty();
         }
     }
 
@@ -136,6 +143,31 @@ public class Zip2PngScanner {
         return scanFolder(folderPath, null);
     }
 
+    /**
+     * Escanea imágenes dentro de archivos comprimidos para todos los candidatos.
+     * Pobla el campo {@code imagenesInternas} de cada candidato comprimido.
+     *
+     * @param candidates lista de candidatos a procesar
+     */
+    public static void detectarImagenesEnArchivos(List<RenderCandidate> candidates) {
+        for (RenderCandidate c : candidates) {
+            if (!c.esComprimido) continue;
+            try {
+                c.imagenesInternas = ZipExtractor.listImageContents(c.path);
+            } catch (Exception e) {
+                // Si falla, dejamos lista vacía
+            }
+        }
+    }
+
+    public static boolean esExtensionArchivo(String name) {
+        return name.endsWith(".zip") || name.endsWith(".rar") || name.endsWith(".7z");
+    }
+
+    public static boolean esExtensionImagen(String name) {
+        return EXT_IMAGEN.stream().anyMatch(name::endsWith);
+    }
+
     private String claveGrupo(String name) {
         String lower = name.toLowerCase();
         if (lower.matches(".+\\.part\\d+\\.(rar|7z)$")
@@ -153,16 +185,8 @@ public class Zip2PngScanner {
         return (dot == -1) ? name : name.substring(0, dot);
     }
 
-    private boolean esExtensionArchivo(String name) {
-        return name.endsWith(".zip") || name.endsWith(".rar") || name.endsWith(".7z");
-    }
-
     private boolean esExtension3D(String name) {
         return name.endsWith(".stl") || name.endsWith(".obj") || name.endsWith(".3mf");
-    }
-
-    private boolean esExtensionImagen(String name) {
-        return EXT_IMAGEN.stream().anyMatch(name::endsWith);
     }
 
 } // --- Fin de la clase Zip2PngScanner ---
