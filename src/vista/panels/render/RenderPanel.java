@@ -34,6 +34,7 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 
 import modelo.renderer.ImageEntry;
+import modelo.renderer.ImageLayer;
 import modelo.renderer.StlEntry;
 import servicios.renderer.Zip2PngScanner.RenderCandidate;
 
@@ -65,6 +66,13 @@ public class RenderPanel extends JPanel {
     private final JPanel imageDisplayPanel;
     private BufferedImage currentImage2D;
     private double imageZoom = 1.0;
+    private boolean collageMode;
+
+    // --- Capas (collage multi-imagen) ---
+    private final DefaultListModel<ImageLayer> layersListModel;
+    private final JList<ImageLayer> layersList;
+    private int selectedLayerIndex = -1;
+
     private double imageOffsetX = 0;
     private double imageOffsetY = 0;
     private int lastPanX;
@@ -109,6 +117,8 @@ public class RenderPanel extends JPanel {
 
     private final JCheckBox chkCheckerboard;
 
+    private final JTabbedPane tabbedPane;
+    private JScrollPane layersScroll;
     private final JPanel cardPanel;
     private static final String CARD_SOLID = "solid";
     private static final String CARD_GRADIENT = "gradient";
@@ -196,28 +206,49 @@ public class RenderPanel extends JPanel {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                if (currentImage2D == null) {
-                    g.setColor(new Color(30, 30, 35));
-                    g.fillRect(0, 0, getWidth(), getHeight());
-                    g.setColor(Color.GRAY);
-                    String msg = "Sin imagen";
-                    java.awt.FontMetrics fm = g.getFontMetrics();
-                    int x = (getWidth() - fm.stringWidth(msg)) / 2;
-                    int y = getHeight() / 2;
-                    g.drawString(msg, x, y);
-                    return;
-                }
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-                int pw = getWidth();
-                int ph = getHeight();
-                double panelW = pw;
-                double panelH = ph;
+                int w = getWidth();
+                int h = getHeight();
+
+                if (collageMode && layersListModel != null && !layersListModel.isEmpty()) {
+                    for (int i = 0; i < layersListModel.size(); i++) {
+                        ImageLayer layer = layersListModel.getElementAt(i);
+                        if (!layer.isVisible()) continue;
+
+                        BufferedImage img = layer.getImage();
+                        double layerZoom = layer.getZoom();
+                        double lx = layer.getOffsetX();
+                        double ly = layer.getOffsetY();
+                        double scale = layerZoom * Math.min((double) w / img.getWidth(), (double) h / img.getHeight());
+                        double xOff = (w - img.getWidth() * scale) / 2 + lx;
+                        double yOff = (h - img.getHeight() * scale) / 2 + ly;
+                        AffineTransform at = AffineTransform.getTranslateInstance(xOff, yOff);
+                        at.scale(scale, scale);
+                        g2.drawImage(img, at, null);
+                    }
+                    g2.dispose();
+                    return;
+                }
+
+                if (currentImage2D == null) {
+                    g2.setColor(new Color(30, 30, 35));
+                    g2.fillRect(0, 0, w, h);
+                    g2.setColor(Color.GRAY);
+                    String msg = "Sin imagen";
+                    java.awt.FontMetrics fm = g2.getFontMetrics();
+                    int x = (w - fm.stringWidth(msg)) / 2;
+                    int y = h / 2;
+                    g2.drawString(msg, x, y);
+                    g2.dispose();
+                    return;
+                }
+
                 double imgW = currentImage2D.getWidth();
                 double imgH = currentImage2D.getHeight();
-                double scale = imageZoom * Math.min(panelW / imgW, panelH / imgH);
-                double xOff = (panelW - imgW * scale) / 2 + imageOffsetX;
-                double yOff = (panelH - imgH * scale) / 2 + imageOffsetY;
+                double scale = imageZoom * Math.min((double) w / imgW, (double) h / imgH);
+                double xOff = (w - imgW * scale) / 2 + imageOffsetX;
+                double yOff = (h - imgH * scale) / 2 + imageOffsetY;
                 AffineTransform at = AffineTransform.getTranslateInstance(xOff, yOff);
                 at.scale(scale, scale);
                 g2.drawImage(currentImage2D, at, null);
@@ -228,6 +259,17 @@ public class RenderPanel extends JPanel {
         imageDisplayPanel.setFocusable(true);
         // Zoom con rueda del ratón
         imageDisplayPanel.addMouseWheelListener(e -> {
+            if (collageMode) {
+                ImageLayer layer = getSelectedLayer();
+                if (layer == null) return;
+                double oldZoom = layer.getZoom();
+                double rot = e.getPreciseWheelRotation();
+                double newZoom = rot < 0 ? oldZoom * 1.15 : oldZoom / 1.15;
+                newZoom = Math.max(0.05, Math.min(50.0, newZoom));
+                layer.setZoom(newZoom);
+                imageDisplayPanel.repaint();
+                return;
+            }
             double oldZoom = imageZoom;
             double rot = e.getPreciseWheelRotation();
             if (rot < 0) {
@@ -236,7 +278,6 @@ public class RenderPanel extends JPanel {
                 imageZoom /= 1.15;
             }
             imageZoom = Math.max(0.05, Math.min(50.0, imageZoom));
-            // Zoom hacia el cursor
             double factor = imageZoom / oldZoom;
             java.awt.Point mp = e.getPoint();
             double panelW = imageDisplayPanel.getWidth();
@@ -264,6 +305,18 @@ public class RenderPanel extends JPanel {
             }
             @Override
             public void mouseDragged(java.awt.event.MouseEvent e) {
+                if (collageMode) {
+                    ImageLayer layer = getSelectedLayer();
+                    if (layer == null) return;
+                    int dx = e.getX() - lastPanX;
+                    int dy = e.getY() - lastPanY;
+                    layer.setOffsetX(layer.getOffsetX() + dx);
+                    layer.setOffsetY(layer.getOffsetY() + dy);
+                    lastPanX = e.getX();
+                    lastPanY = e.getY();
+                    imageDisplayPanel.repaint();
+                    return;
+                }
                 int dx = e.getX() - lastPanX;
                 int dy = e.getY() - lastPanY;
                 imageOffsetX += dx;
@@ -282,7 +335,7 @@ public class RenderPanel extends JPanel {
         rightPanel.add(viewerCardPanel, BorderLayout.CENTER);
 
         // --- Pestañas de configuración (Imagen + Fondo) ---
-        JTabbedPane tabbedPane = new JTabbedPane();
+        this.tabbedPane = new JTabbedPane();
         tabbedPane.setBackground(new Color(40, 40, 45));
         tabbedPane.setForeground(Color.WHITE);
 
@@ -490,6 +543,35 @@ public class RenderPanel extends JPanel {
 
         tabbedPane.addTab("Fondo", fondoTab);
 
+        // --- Tab "Capas" ---
+        layersListModel = new DefaultListModel<>();
+        layersList = new JList<>(layersListModel);
+        layersList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        layersList.setBackground(new Color(40, 40, 45));
+        layersList.setForeground(Color.WHITE);
+        layersList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                selectedLayerIndex = layersList.getSelectedIndex();
+            }
+        });
+        layersList.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int idx = layersList.locationToIndex(e.getPoint());
+                    if (idx >= 0) {
+                        ImageLayer layer = layersListModel.getElementAt(idx);
+                        layer.setVisible(!layer.isVisible());
+                        layersList.repaint();
+                        imageDisplayPanel.repaint();
+                    }
+                }
+            }
+        });
+        this.layersScroll = new JScrollPane(layersList);
+        layersScroll.setBorder(BorderFactory.createTitledBorder("Capas"));
+        tabbedPane.addTab("Capas", layersScroll);
+
         rightPanel.add(tabbedPane, BorderLayout.SOUTH);
 
         // Sincronizar grid con la pestaña inicial ("Sin renderizar")
@@ -547,6 +629,10 @@ public class RenderPanel extends JPanel {
 
     public JTabbedPane getCandidateTabs() { return candidateTabs; }
 
+    public void selectCandidateTab(int index) {
+        candidateTabs.setSelectedIndex(index);
+    }
+
     public void showContentCard(String card) {
         ((CardLayout) bottomCardPanel.getLayout()).show(bottomCardPanel, card);
     }
@@ -564,6 +650,68 @@ public class RenderPanel extends JPanel {
 
     // Backward compat: getThumbnailGrid() devuelve el grid de renders 3D
     public JPanel getThumbnailGrid() { return rendersGrid; }
+
+    public boolean isCollageMode() { return collageMode; }
+
+    public void setCollageMode(boolean collageMode) {
+        this.collageMode = collageMode;
+        // Mostrar/ocultar la pestaña Capas
+        for (int i = 0; i < tabbedPane.getTabCount(); i++) {
+            if ("Capas".equals(tabbedPane.getTitleAt(i))) {
+                tabbedPane.setEnabledAt(i, collageMode);
+                break;
+            }
+        }
+        if (collageMode) {
+            show2DView();
+            imageDisplayPanel.setBorder(BorderFactory.createTitledBorder("Composición (collage)"));
+        } else {
+            imageDisplayPanel.setBorder(BorderFactory.createTitledBorder("Vista previa"));
+        }
+        imageDisplayPanel.repaint();
+    }
+
+    // --- Gestión de capas ---
+    public DefaultListModel<ImageLayer> getLayersListModel() { return layersListModel; }
+    public JList<ImageLayer> getLayersList() { return layersList; }
+    public int getSelectedLayerIndex() { return selectedLayerIndex; }
+
+    public ImageLayer getSelectedLayer() {
+        if (selectedLayerIndex >= 0 && selectedLayerIndex < layersListModel.size()) {
+            return layersListModel.getElementAt(selectedLayerIndex);
+        }
+        return null;
+    }
+
+    public void addLayer(ImageLayer layer) {
+        layersListModel.addElement(layer);
+        int idx = layersListModel.size() - 1;
+        layersList.setSelectedIndex(idx);
+        imageDisplayPanel.repaint();
+    }
+
+    public void removeLayer(int index) {
+        if (index >= 0 && index < layersListModel.size()) {
+            layersListModel.remove(index);
+            if (selectedLayerIndex == index) selectedLayerIndex = -1;
+            if (selectedLayerIndex > index) selectedLayerIndex--;
+            imageDisplayPanel.repaint();
+        }
+    }
+
+    public void moveLayer(int from, int to) {
+        if (from < 0 || from >= layersListModel.size() || to < 0 || to >= layersListModel.size()) return;
+        ImageLayer layer = layersListModel.remove(from);
+        layersListModel.add(to, layer);
+        layersList.setSelectedIndex(to);
+        imageDisplayPanel.repaint();
+    }
+
+    public void clearLayers() {
+        layersListModel.clear();
+        selectedLayerIndex = -1;
+        imageDisplayPanel.repaint();
+    }
 
     public void showGridCard(String card) {
         ((CardLayout) gridCardPanel.getLayout()).show(gridCardPanel, card);
@@ -598,6 +746,12 @@ public class RenderPanel extends JPanel {
 
     public void set2DImage(BufferedImage image) {
         this.currentImage2D = image;
+        resetImageZoom();
+        imageDisplayPanel.repaint();
+    }
+
+    public void clearViewer2D() {
+        this.currentImage2D = null;
         resetImageZoom();
         imageDisplayPanel.repaint();
     }

@@ -734,6 +734,21 @@ public class ActionFactory {
         registerAction(AppActionCommands.CMD_RENDER_PROCESAR_ARCHIVO, createRenderProcesarArchivoAction());
         registerAction(AppActionCommands.CMD_RENDER_COPIAR_ARCHIVOS, createRenderCopiarArchivosAction());
         registerAction(AppActionCommands.CMD_RENDER_ABRIR_TEMP, createRenderAbrirTempAction());
+        registerAction(AppActionCommands.CMD_RENDER_DESCARGAR_ARCHIVOS, createRenderDescargarArchivosAction());
+        registerAction(AppActionCommands.CMD_RENDER_CLEAR_PREVIEW, createRenderClearPreviewAction());
+
+        registerAction(AppActionCommands.CMD_PREVIEW_RENDER_3DGRID, createPreviewRender3DGridAction());
+        registerAction(AppActionCommands.CMD_PREVIEW_RENDER_2DGRID, createPreviewRender2DGridAction());
+        registerAction(AppActionCommands.CMD_PREVIEW_RENDER_COLLAGE, createPreviewRenderCollageAction());
+
+        registerAction(AppActionCommands.CMD_PREVIEW_RENDER_BRING_TO_FRONT, createBringToFrontAction());
+        registerAction(AppActionCommands.CMD_PREVIEW_RENDER_BRING_FORWARD, createBringForwardAction());
+        registerAction(AppActionCommands.CMD_PREVIEW_RENDER_SEND_BACKWARD, createSendBackwardAction());
+        registerAction(AppActionCommands.CMD_PREVIEW_RENDER_SEND_TO_BACK, createSendToBackAction());
+
+        registerAction(AppActionCommands.CMD_PREVIEW_RENDER_CLEAN_AND_ADD, createCleanAndAddAction());
+        registerAction(AppActionCommands.CMD_PREVIEW_RENDER_ADD_IMAGE, createAddLayerAction());
+        registerAction(AppActionCommands.CMD_PREVIEW_RENDER_DELETE_LAYER, createDeleteLayerAction());
 
         // --- Acciones para el Árbol de Carpetas ---
         registerAction(AppActionCommands.CMD_TREE_OPEN_FOLDER, createOpenFolderAction());
@@ -1161,6 +1176,128 @@ public class ActionFactory {
             }
         };
     } // --- Fin del metodo createRenderAsignarPreviewAction ---
+
+
+    private Action createRenderDescargarArchivosAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) {
+                    renderController.descargarPreview();
+                }
+            }
+        };
+    } // --- Fin del metodo createRenderDescargarArchivosAction ---
+
+
+    private Action createRenderClearPreviewAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) renderController.clearPreview();
+            }
+        };
+    } // --- Fin del metodo createRenderClearPreviewAction ---
+
+
+    private Action createPreviewRender3DGridAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) renderController.mostrarGrid3D();
+            }
+        };
+    } // --- Fin del metodo createPreviewRender3DGridAction ---
+
+
+    private Action createPreviewRender2DGridAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) renderController.mostrarGrid2D();
+            }
+        };
+    } // --- Fin del metodo createPreviewRender2DGridAction ---
+
+
+    private Action createPreviewRenderCollageAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) renderController.toggleCollageMode();
+            }
+        };
+    } // --- Fin del metodo createPreviewRenderCollageAction ---
+
+
+    private Action createBringToFrontAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) renderController.capaAlFrente();
+            }
+        };
+    } // --- Fin del metodo createBringToFrontAction ---
+
+
+    private Action createBringForwardAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) renderController.capaSubirNivel();
+            }
+        };
+    } // --- Fin del metodo createBringForwardAction ---
+
+
+    private Action createSendBackwardAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) renderController.capaBajarNivel();
+            }
+        };
+    } // --- Fin del metodo createSendBackwardAction ---
+
+
+    private Action createSendToBackAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) renderController.capaAlFondo();
+            }
+        };
+    } // --- Fin del metodo createSendToBackAction ---
+
+
+    private Action createCleanAndAddAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) renderController.cleanAndAddLayer();
+            }
+        };
+    } // --- Fin del metodo createCleanAndAddAction ---
+
+
+    private Action createAddLayerAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) renderController.addLayer();
+            }
+        };
+    } // --- Fin del metodo createAddLayerAction ---
+
+
+    private Action createDeleteLayerAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) renderController.deleteLayer();
+            }
+        };
+    } // --- Fin del metodo createDeleteLayerAction ---
 
 
     /**

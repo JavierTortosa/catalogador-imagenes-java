@@ -47,6 +47,7 @@ import controlador.utils.ComponentRegistry;
 import controlador.worker.Zip2PngWorker;
 import controlador.worker.Zip2PngWorker.SourceInfo;
 import modelo.renderer.ImageEntry;
+import modelo.renderer.ImageLayer;
 import modelo.renderer.StlEntry;
 import modelo.renderer.StlMeshBuilder;
 import modelo.renderer.Triangle;
@@ -469,18 +470,24 @@ public class RenderController {
     private void extraerImagenesCandidato(RenderCandidate candidate) {
         if (candidate == null || !candidate.esComprimido || candidate.imagenesInternas.isEmpty()) return;
 
+        Path imgOut = imagesDir.resolve(candidate.nombreBase);
+        // Si ya hay imágenes extraídas, refrescar grid y seleccionar thumbnail sin re-extraer
+        if (Files.isDirectory(imgOut)) {
+            try (var files = Files.list(imgOut)) {
+                if (files.anyMatch(Files::isRegularFile)) {
+                    refreshThumbnails(null);
+                    panel.syncGridToCandidateTab();
+                    seleccionarThumbnailDeCandidato(candidate);
+                    return;
+                }
+            } catch (IOException ignored) {}
+        }
+
         new SwingWorker<Void, Void>() {
             private final String baseName = candidate.nombreBase;
             @Override
             protected Void doInBackground() throws Exception {
                 Path imgOut = imagesDir.resolve(baseName);
-                // Limpiar extracción previa de este candidato
-                if (Files.exists(imgOut)) {
-                    try (var walk = Files.walk(imgOut)) {
-                        walk.sorted(java.util.Comparator.reverseOrder())
-                                .forEach(p -> { try { Files.deleteIfExists(p); } catch (Exception ignored) {} });
-                    }
-                }
                 Files.createDirectories(imgOut);
                 for (ImageEntry img : candidate.imagenesInternas) {
                     if (isCancelled()) return null;
@@ -1435,6 +1442,279 @@ public class RenderController {
                     "Asignar preview", JOptionPane.ERROR_MESSAGE);
         }
     } // --- Fin del metodo asignarRenderAlGrid ---
+
+
+    // ========== Métodos de control de vista ==========
+
+
+    /**
+     * Limpia el panel de preview (visor 2D y 3D).
+     */
+    public void clearPreview() {
+        panel.clearViewer2D();
+        panel.getPreview3DFX().clearMesh();
+        currentPreviewPath = null;
+        currentTriangles = null;
+        logger.info("[RenderController] Preview limpiado.");
+    } // --- Fin del metodo clearPreview ---
+
+
+    /**
+     * Cambia a la pestaña "Sin renderizar" y sincroniza el grid.
+     */
+    public void mostrarGrid3D() {
+        panel.selectCandidateTab(0);
+    } // --- Fin del metodo mostrarGrid3D ---
+
+
+    /**
+     * Cambia a la pestaña "Con imagen" y sincroniza el grid.
+     */
+    public void mostrarGrid2D() {
+        panel.selectCandidateTab(1);
+    } // --- Fin del metodo mostrarGrid2D ---
+
+
+    /**
+     * Alterna el modo collage (multi-imagen).
+     */
+    public void toggleCollageMode() {
+        boolean nuevo = !panel.isCollageMode();
+        panel.setCollageMode(nuevo);
+        // Mostrar/ocultar toolbars de capas vía registry
+        if (registry != null) {
+            String[] toolbarKeys = {"toolbar.layerorderpreview", "toolbar.layerloadpreview"};
+            for (String key : toolbarKeys) {
+                java.awt.Component tb = registry.get(key);
+                if (tb != null) {
+                    tb.setVisible(nuevo);
+                    if (tb.getParent() != null) {
+                        tb.getParent().revalidate();
+                        tb.getParent().repaint();
+                    }
+                } else {
+                    logger.warn("[RenderController] Toolbar '{}' no encontrada en registry", key);
+                }
+            }
+        }
+        logger.info("[RenderController] Modo collage: {}", nuevo);
+    } // --- Fin del metodo toggleCollageMode ---
+
+
+    // ========== Stubs gestión de capas ==========
+
+
+    public void capaAlFrente() {
+        int idx = panel.getSelectedLayerIndex();
+        int size = panel.getLayersListModel().getSize();
+        if (idx >= 0 && idx < size - 1) {
+            panel.moveLayer(idx, size - 1);
+        }
+    }
+
+
+    public void capaSubirNivel() {
+        int idx = panel.getSelectedLayerIndex();
+        int size = panel.getLayersListModel().getSize();
+        if (idx >= 0 && idx < size - 1) {
+            panel.moveLayer(idx, idx + 1);
+        }
+    }
+
+
+    public void capaBajarNivel() {
+        int idx = panel.getSelectedLayerIndex();
+        if (idx > 0) {
+            panel.moveLayer(idx, idx - 1);
+        }
+    }
+
+
+    public void capaAlFondo() {
+        int idx = panel.getSelectedLayerIndex();
+        if (idx > 0) {
+            panel.moveLayer(idx, 0);
+        }
+    }
+
+
+    public void cleanAndAddLayer() {
+        if (!panel.isCollageMode()) {
+            JOptionPane.showMessageDialog(parentFrame,
+                    "Activa el modo collage primero.",
+                    "Capas", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        panel.clearLayers();
+        addLayerInternal();
+    }
+
+
+    public void addLayer() {
+        if (!panel.isCollageMode()) {
+            JOptionPane.showMessageDialog(parentFrame,
+                    "Activa el modo collage primero.",
+                    "Capas", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        addLayerInternal();
+    }
+
+
+    private void addLayerInternal() {
+        // Si hay imagen en el contenedor de imágenes (tab "Con imagen"), extraerla
+        if (!panel.isCandidateTabConImagen()) return;
+        ImageEntry img = panel.getContentImageList().getSelectedValue();
+        if (img == null) {
+            JOptionPane.showMessageDialog(parentFrame,
+                    "Selecciona una imagen de la lista primero.",
+                    "Añadir capa", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        RenderCandidate candidate = getSelectedCandidate();
+        if (candidate == null) return;
+
+        TaskProgressDialog dialog = new TaskProgressDialog(getParentFrame(),
+                "Extrayendo imagen", "Extrayendo " + img.filename() + "...");
+
+        new SwingWorker<BufferedImage, Void>() {
+            @Override
+            protected BufferedImage doInBackground() throws Exception {
+                Path imgOutput = imagesDir.resolve(candidate.nombreBase);
+                Files.createDirectories(imgOutput);
+                ZipExtractor.extractSingleFile(candidate.path, img.filename(), imgOutput);
+                Path extracted = imgOutput.resolve(img.filename());
+                if (!Files.exists(extracted)) {
+                    try (var walk = Files.walk(imgOutput)) {
+                        extracted = walk.filter(Files::isRegularFile)
+                                .filter(p -> p.getFileName().toString()
+                                        .equalsIgnoreCase(Path.of(img.filename()).getFileName().toString()))
+                                .findFirst().orElse(null);
+                    }
+                }
+                if (extracted != null && Files.exists(extracted)) {
+                    return ImageIO.read(extracted.toFile());
+                }
+                return null;
+            }
+            @Override
+            protected void done() {
+                dialog.closeDialog();
+                try {
+                    BufferedImage bi = get();
+                    if (bi != null) {
+                        ImageLayer layer = new ImageLayer(bi, img.filename());
+                        panel.addLayer(layer);
+                        logger.info("Capa añadida: {}", img.filename());
+                    }
+                } catch (Exception ex) {
+                    logger.warn("Error al añadir capa {}", img.filename(), ex);
+                }
+            }
+        }.execute();
+        dialog.setVisible(true);
+    }
+
+    public void deleteLayer() {
+        int idx = panel.getSelectedLayerIndex();
+        if (idx >= 0) {
+            panel.removeLayer(idx);
+        }
+    }
+
+
+    /**
+     * Abre un selector de carpeta y guarda la imagen actual del visor como PNG.
+     * En modo "Con imagen" captura la vista 2D con zoom/pan.
+     * En modo "Sin renderizar" re-renderiza el 3D con los ajustes actuales.
+     */
+    public void descargarPreview() {
+        RenderCandidate selected = getSelectedCandidate();
+        if (selected == null) {
+            JOptionPane.showMessageDialog(parentFrame,
+                    "Selecciona un candidato de la lista primero.",
+                    "Guardar Preview", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        Path folderInicial = selected.path.getParent();
+
+        JFileChooser chooser = new JFileChooser(folderInicial.toFile());
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        chooser.setDialogTitle("Seleccionar carpeta de destino para el preview");
+        if (chooser.showSaveDialog(parentFrame) != JFileChooser.APPROVE_OPTION) return;
+
+        Path destFolder = chooser.getSelectedFile().toPath();
+        Path destFile = destFolder.resolve(selected.nombreBase + ".png");
+
+        try {
+            if (panel.isCandidateTabConImagen()) {
+                BufferedImage captura = panel.capturarVistaActual();
+                if (captura != null) {
+                    ImageIO.write(captura, "PNG", destFile.toFile());
+                    logger.info("Preview 2D descargado: {} (zoom={})",
+                            destFile.getFileName(), String.format("%.2f", panel.getImageZoom()));
+                } else {
+                    if (currentPreviewPath == null || !Files.exists(currentPreviewPath)) {
+                        JOptionPane.showMessageDialog(parentFrame,
+                                "No hay imagen cargada en el visor.",
+                                "Guardar Preview", JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+                    Files.copy(currentPreviewPath, destFile, StandardCopyOption.REPLACE_EXISTING);
+                    logger.info("Imagen original copiada: {}", destFile.getFileName());
+                }
+            } else {
+                if (currentTriangles == null) {
+                    JOptionPane.showMessageDialog(parentFrame,
+                            "No hay ning\u00FAn modelo cargado en el preview.",
+                            "Guardar Preview", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                double rotX = panel.getPreview3DFX().getRotateXAngle();
+                double rotY = panel.getPreview3DFX().getRotateYAngle();
+                int brightness = panel.getBrightnessSlider().getValue();
+                int contrast = panel.getContrastSlider().getValue();
+                boolean antiAlias = panel.getChkAntiAlias().isSelected();
+
+                String bgMode = panel.getSelectedBgMode();
+                Color solidColor = panel.getSolidBgColor();
+                Color gradientStart = panel.getGradientStartColor();
+                Color gradientEnd = panel.getGradientEndColor();
+                BufferedImage bgImage = null;
+                double bgImageScale = 1.0;
+                if ("image".equals(bgMode)) {
+                    String imgPath = panel.getBgImageField().getText();
+                    if (!imgPath.isEmpty()) {
+                        bgImage = loadBgImageAWT(Path.of(imgPath));
+                    }
+                    bgImageScale = panel.getBgImageScaleSlider().getValue() / 50.0;
+                }
+
+                BufferedImage img = renderer.renderizarConAjustes(currentTriangles,
+                        rotX, rotY, antiAlias, brightness, contrast,
+                        bgMode, solidColor, gradientStart, gradientEnd,
+                        bgImage, bgImageScale);
+                ImageIO.write(img, "PNG", destFile.toFile());
+                logger.info("Preview 3D descargado: {} (rotX={}, rotY={}, AA={}, fondo={})",
+                        destFile.getFileName(),
+                        String.format("%.1f", rotX), String.format("%.1f", rotY),
+                        antiAlias, bgMode);
+            }
+
+            JOptionPane.showMessageDialog(parentFrame,
+                    "Preview guardado en:\n" + destFile,
+                    "Guardar Preview", JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception e) {
+            logger.error("Error al descargar preview", e);
+            JOptionPane.showMessageDialog(parentFrame,
+                    "Error al guardar el preview:\n" + e.getMessage(),
+                    "Guardar Preview", JOptionPane.ERROR_MESSAGE);
+        }
+    } // --- Fin del metodo descargarPreview ---
 
 
 } // --- Fin de la clase RenderController ---

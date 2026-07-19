@@ -80,40 +80,45 @@ public class Zip2PngWorker extends SwingWorker<Void, String> {
                     publish("Extrayendo " + candidate.nombreBase + "...");
                     tempDir = ZipExtractor.extractToTemp(candidate.path);
                     List<StlEntry> allStls = buscarTodosSTL(tempDir);
-                    if (allStls.isEmpty()) {
+                    if (!allStls.isEmpty()) {
+                        largest = allStls.stream()
+                                .max(Comparator.comparingLong(StlEntry::sizeBytes))
+                                .orElse(allStls.get(0));
+                        stlPath = tempDir.resolve(largest.filename());
+
+                        publish("Renderizando " + stlPath.getFileName().toString());
+                        List<Triangle> triangles = StlParser.parse(stlPath.toFile());
+                        java.awt.image.BufferedImage img = renderer.renderizar(triangles);
+
+                        String pngName = candidate.nombreBase + ".png";
+                        Path pngPath = outputDir.resolve(pngName);
+                        javax.imageio.ImageIO.write(img, "PNG", pngPath.toFile());
+                        generatedFiles.add(pngPath);
+                        sourceInfos.add(new SourceInfo(pngPath, candidate, largest));
+                        publish("Generado " + pngName);
+                    } else {
                         publish("No se encontró STL en " + candidate.nombreBase);
-                        if (tempDir != null) ZipExtractor.deleteDir(tempDir);
-                        continue;
                     }
-                    largest = allStls.stream()
-                            .max(Comparator.comparingLong(StlEntry::sizeBytes))
-                            .orElse(allStls.get(0));
-                    stlPath = tempDir.resolve(largest.filename());
                 } else {
                     stlPath = candidate.path;
-                }
+                    publish("Renderizando " + stlPath.getFileName().toString());
+                    List<Triangle> triangles = StlParser.parse(stlPath.toFile());
+                    java.awt.image.BufferedImage img = renderer.renderizar(triangles);
 
-                publish("Renderizando " + stlPath.getFileName().toString());
-                List<Triangle> triangles = StlParser.parse(stlPath.toFile());
-                java.awt.image.BufferedImage img = renderer.renderizar(triangles);
-
-                String pngName = candidate.nombreBase + ".png";
-                Path pngPath = outputDir.resolve(pngName);
-                javax.imageio.ImageIO.write(img, "PNG", pngPath.toFile());
-                generatedFiles.add(pngPath);
-                if (candidate.esComprimido && largest != null) {
-                    sourceInfos.add(new SourceInfo(pngPath, candidate, largest));
-                } else {
+                    String pngName = candidate.nombreBase + ".png";
+                    Path pngPath = outputDir.resolve(pngName);
+                    javax.imageio.ImageIO.write(img, "PNG", pngPath.toFile());
+                    generatedFiles.add(pngPath);
                     sourceInfos.add(new SourceInfo(pngPath, candidate,
                             new StlEntry(stlPath.getFileName().toString(), stlPath.toFile().length())));
+                    publish("Generado " + pngName);
                 }
-                publish("Generado " + pngName);
 
                 if (tempDir != null) {
                     ZipExtractor.deleteDir(tempDir);
                 }
 
-                // Extraer imágenes embebidas si las hay
+                // Extraer imágenes embebidas siempre que el candidato las tenga
                 if (candidate.tieneImagenesDentro()) {
                     Path imgBaseDir = outputDir.resolve("imagenes").resolve(candidate.nombreBase);
                     Files.createDirectories(imgBaseDir);

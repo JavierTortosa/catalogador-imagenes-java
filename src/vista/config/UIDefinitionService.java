@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import controlador.commands.AppActionCommands;
 import modelo.VisorModel.WorkMode;
+import vista.config.ButtonType;
 import servicios.ConfigKeys;
 
 public class UIDefinitionService {
@@ -1134,7 +1135,7 @@ public class UIDefinitionService {
 
         );
         
-        
+        // 
         List<ToolbarComponentDefinition> componentesToolbarRender = List.of(
         		
         		new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_ESCANEAR_CARPETA,
@@ -1151,15 +1152,60 @@ public class UIDefinitionService {
         		
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_COPIAR_ARCHIVOS,
                         "70004 - copiar a origen.png", "Copiar archivos", "toolbarRender")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_DESCARGAR_ARCHIVOS,
+                        "7008 - descarga.png", "Guardar Prevew en Disco", "toolbarRender")
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_ABRIR_TEMP,
                         "70006 - abrir temp.png", "Abrir carpeta temporal", "toolbarRender")
+        		
+        		
         		
         		, new SeparatorDefinition()
         		
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_ASIGNAR_PREVIEW,
                         "70007 - establece_imagen.png", "Asigna preview al archivo", "toolbarRender")
         		
+        		, new SeparatorDefinition()
+        		
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_CLEAR_PREVIEW,
+                        "70008-clear-preview.png", "Limpia el Panel de Preview", "toolbarRender")
+        		
+        		
         );
+        
+        List<ToolbarComponentDefinition> componentesPreviewRenderView = List.of(
+        		
+        		new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_3DGRID,
+                        "70101-3d_grid.png", "Grid Archivos Sin Imagen", "previewrenderview", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_2DGRID,
+                        "70102-2d_grid.png", "Grid Archivos Con Imagen", "previewrenderview", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_COLLAGE,
+                        "70103-multimage.png", "Panel Edicion Multi-Imagen", "previewrenderview", ButtonType.TOGGLE)
+        		
+		);
+        
+        List<ToolbarComponentDefinition> componentesLayerOrderPreviewRender = List.of(
+        		
+        		new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_BRING_TO_FRONT,
+                        "70201-bring-to-front.png", "Traer al frente", "layerorderpreview")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_BRING_FORWARD,
+                        "70202-bring-forward.png", "Subir un Nivel", "layerorderpreview")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_SEND_BACKWARD,
+                        "70203-send-backward.png", "Bajar un Nivel", "layerorderpreview")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_SEND_TO_BACK,
+                        "70204-send-to-back.png", "Enviar al Fondo", "layerorderpreview")
+        		
+		);
+        		
+        List<ToolbarComponentDefinition> componentesLayerLoadPreviewRender = List.of(
+        		
+        		new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_CLEAN_AND_ADD,
+                        "70301-clean-and-add-image.png", "Borra Preview y Muestra Imagen", "previewRender")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ADD_IMAGE,
+                        "70302-add-image-to-group.png", "Añade Capa Con Una Nueva Imagen", "previewRender")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DELETE_LAYER,
+                        "70303-delete-layer.png", "Borra Capa Actual", "previewRender")
+        		
+    	);
 
         // =====================================================================
         // DEFINICIÓN DE TOOLBARS
@@ -1293,6 +1339,21 @@ public class UIDefinitionService {
 		        EnumSet.of(RENDER),
 		        componentesToolbarRender, tbarEast);
 
+        final ToolbarDefinition tbPreviewRenderView = new ToolbarDefinition(
+                "previewrenderview", "Vista Preview Render", 680,
+                EnumSet.of(RENDER),
+                componentesPreviewRenderView, tbarCenter);
+
+        final ToolbarDefinition tbLayerOrderPreview = new ToolbarDefinition(
+                "layerorderpreview", "Orden de Capas", 681,
+                EnumSet.of(RENDER),
+                componentesLayerOrderPreviewRender, tbarEast);
+
+        final ToolbarDefinition tbLayerLoadPreview = new ToolbarDefinition(
+                "layerloadpreview", "Carga de Capas", 682,
+                EnumSet.of(RENDER),
+                componentesLayerLoadPreviewRender, tbarEast);
+
         // ==================== FREE ====================
         final ToolbarDefinition tbTextfieldDestino = new ToolbarDefinition(
                 "textfield_destino", "Carpeta Destino", 1000,
@@ -1357,6 +1418,7 @@ public class UIDefinitionService {
                 tbVelocidadCarrousel,
                 tbGestionDatos,
                 tbEditorCheckboxes,
+                tbPreviewRenderView,
 
                 // RIGHT
                 tbControl,
@@ -1372,6 +1434,8 @@ public class UIDefinitionService {
                 tbClienteCerrar,
                 tbAccionesExportacion,
                 tbToolbarRender,
+                tbLayerOrderPreview,
+                tbLayerLoadPreview,
 
                 // FREE
                 tbTextfieldDestino,

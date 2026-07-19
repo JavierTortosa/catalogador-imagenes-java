@@ -135,7 +135,7 @@ public class ToolbarBuilder {
         }
 
         // La lista ahora es 'vista', 'zoom' y 'modo'
-        List<String> groupToolbarKeys = List.of("vista", "zoom", "modo", "visor_editor");
+        List<String> groupToolbarKeys = List.of("vista", "zoom", "modo", "visor_editor", "previewrenderview");
 
         ButtonGroup group = null;
         if (groupToolbarKeys.contains(toolbarDef.claveBarra())) {
@@ -198,6 +198,7 @@ public class ToolbarBuilder {
                     // Esto evita que "robe" todo el espacio horizontal.
                     textField.setMaximumSize(textField.getPreferredSize());
 
+                    registry.unregister(textFieldDef.comandoCanonico());
                     registry.register(textFieldDef.comandoCanonico(), textField);
                     toolbar.add(textField);
                     logger.debug("    -> JTextField '" + textFieldDef.comandoCanonico() + "' añadido a la barra.");

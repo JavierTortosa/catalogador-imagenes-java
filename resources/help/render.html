@@ -167,7 +167,86 @@
                 </ul>
             </td>
         </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70008 - descargar.png"></td>
+            <td><strong>Guardar preview en disco:</strong> Abre un selector de carpeta (empezando en la carpeta del comprimido original) y guarda el preview actual como PNG. Si el visor 3D está activo, renderiza el modelo con los ajustes actuales; si el visor 2D está activo, captura la imagen mostrada.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70009 - clear.png"></td>
+            <td><strong>Limpiar preview:</strong> Limpia el visor 2D/3D actual y el panel de capas.</td>
+        </tr>
     </table>
+
+    <h2>Barra de Vista Preview (<em>previewrenderview</em>)</h2>
+    <p>Barra de botones toggle agrupados en el centro que controlan el modo de visualización del panel de preview:</p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70101-3d_grid.png"></td>
+            <td><strong>Grid 3D:</strong> Muestra el panel de preview en modo rejilla 3D. Los renders 3D se organizan en una cuadrícula para comparar múltiples modelos.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70102-2d_grid.png"></td>
+            <td><strong>Grid 2D:</strong> Cambia el panel de preview a modo rejilla 2D, mostrando las imágenes extraídas o renders en una cuadrícula.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70103-multimage.png"></td>
+            <td><strong>Collage:</strong> Activa el modo de edición multi-imagen (collage). Muestra las toolbars de ordenación y carga de capas en el lateral EAST, y habilita la pestaña "Capas" en el panel derecho para gestionar las imágenes apiladas.</td>
+        </tr>
+    </table>
+    <p>Estos tres botones son <strong>excluyentes</strong> (solo uno puede estar activo a la vez).</p>
+
+    <h2>Barra de Orden de Capas (<em>layerorderpreview</em>)</h2>
+    <p>Barra vertical en el lateral EAST, visible únicamente en modo <strong>Collage</strong>. Permite reordenar las capas de imágenes apiladas:</p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70201-bring-to-front.png"></td>
+            <td><strong>Traer al frente:</strong> Mueve la capa seleccionada a la posición más alta (sobre todas las demás).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70202-bring-forward.png"></td>
+            <td><strong>Subir un nivel:</strong> Desplaza la capa seleccionada una posición hacia arriba.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70203-send-backward.png"></td>
+            <td><strong>Bajar un nivel:</strong> Desplaza la capa seleccionada una posición hacia abajo.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70204-send-to-back.png"></td>
+            <td><strong>Enviar al fondo:</strong> Mueve la capa seleccionada a la posición más baja (detrás de todas).</td>
+        </tr>
+    </table>
+
+    <h2>Barra de Carga de Capas (<em>layerloadpreview</em>)</h2>
+    <p>Barra vertical en el lateral EAST, visible únicamente en modo <strong>Collage</strong>. Gestiona la adición y eliminación de capas:</p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70301-clean-and-add-image.png"></td>
+            <td><strong>Limpiar y añadir imagen:</strong> Borra todas las capas existentes y extrae la imagen seleccionada del comprimido para mostrarla como nueva capa.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70302-add-image-to-group.png"></td>
+            <td><strong>Añadir capa:</strong> Extrae la imagen seleccionada del comprimido actual y la añade como una nueva capa sobre las existentes, sin borrar las anteriores.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70303-delete-layer.png"></td>
+            <td><strong>Borrar capa:</strong> Elimina la capa actualmente seleccionada en la lista de capas.</td>
+        </tr>
+    </table>
+
+    <h2>Modo Collage (Edición Multi-Imagen)</h2>
+    <p>
+        El <strong>Modo Collage</strong> permite apilar varias imágenes como capas superpuestas para componer una imagen final. Se activa desde el botón "Collage" en la barra central de vista preview.
+    </p>
+    <h3>Pestaña "Capas"</h3>
+    <p>
+        Al activar el modo collage aparece una nueva pestaña <strong>"Capas"</strong> en el panel derecho (junto a las pestañas "Imagen" y "Fondo"). Contiene una lista (<code>JList</code>) con todas las capas apiladas. Cada capa tiene:
+    </p>
+    <ul>
+        <li><strong>Nombre:</strong> Identificador de la imagen de origen.</li>
+        <li><strong>Zoom y Pan por capa:</strong> Cada capa mantiene su propio nivel de zoom y desplazamiento (offset X/Y), permitiendo ajustar la posición y tamaño de cada imagen de forma independiente.</li>
+        <li><strong>Orden apilado:</strong> La primera capa en la lista se pinta al fondo; la última, al frente.</li>
+    </ul>
+    <p>La imagen compuesta se renderiza en el visor 2D pintando las capas en orden (de fondo a frente), aplicando el zoom/pan individual de cada una.</p>
 
     <h2>Barra de Información Superior</h2>
     <p>Al seleccionar un candidato se muestran: nombre, ruta, tamaño, fecha, formato e índice respecto al total.</p>

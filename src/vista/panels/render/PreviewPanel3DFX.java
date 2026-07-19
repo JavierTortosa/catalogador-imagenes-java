@@ -68,6 +68,7 @@ public class PreviewPanel3DFX extends JFXPanel {
     private double zoom = 500;
 
     private double pressX, pressY;
+    private SceneAntialiasing currentAA;
     private double pressRotX, pressRotY;
     private double pressPanX, pressPanY;
     private MouseButton dragButton;
@@ -77,7 +78,8 @@ public class PreviewPanel3DFX extends JFXPanel {
     private SubScene subScene;
     private Group subRoot;
     private LinearGradient backgroundGradient;
-
+    
+    
     // --- Background mode support ---
     public enum BgMode { SOLID, GRADIENT, IMAGE, TRANSPARENT }
 
@@ -481,6 +483,8 @@ public class PreviewPanel3DFX extends JFXPanel {
      */
     public void setAntiAlias(boolean enabled) {
         SceneAntialiasing aa = enabled ? SceneAntialiasing.BALANCED : SceneAntialiasing.DISABLED;
+        if (aa == currentAA) return;
+        
         Platform.runLater(() -> {
             try {
                 rebuildSubScene(aa);
@@ -527,10 +531,11 @@ public class PreviewPanel3DFX extends JFXPanel {
         }
         
         subScene = nueva;
-        //SceneAntialiasing aaTemp = aa;
         
-        logger.info("[PreviewPanel3DFX] Antialiasing cambiado a {}", aa);
-        
+        if (currentAA != aa) {
+            logger.info("[PreviewPanel3DFX] Antialiasing cambiado a {}", aa);
+            currentAA = aa;
+        }
         
     } // --- Fin del metodo rebuildSubScene ---
 

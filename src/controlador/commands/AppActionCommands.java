@@ -219,7 +219,23 @@ public interface AppActionCommands {
     public static final String CMD_RENDER_PROCESAR_SELECCIONADOS    = "cmd.render.procesar_seleccionados";
     public static final String CMD_RENDER_PROCESAR_ARCHIVO          = "cmd.render.procesar_archivo";
     public static final String CMD_RENDER_COPIAR_ARCHIVOS           = "cmd.render.copiar_archivos";
+    public static final String CMD_RENDER_DESCARGAR_ARCHIVOS        = "cmd.render.descargar_archivos";
     public static final String CMD_RENDER_ABRIR_TEMP                = "cmd.render.abrir_temp";
+    public static final String CMD_RENDER_CLEAR_PREVIEW             = "cmd.render.clear_preview";
+
+    public static final String CMD_PREVIEW_RENDER_3DGRID            = "cmd.preview.render.3dgrid";
+    public static final String CMD_PREVIEW_RENDER_2DGRID            = "cmd.preview.render.2dgrid";
+    public static final String CMD_PREVIEW_RENDER_COLLAGE           = "cmd.preview.render.collage";
+
+    public static final String CMD_PREVIEW_RENDER_BRING_TO_FRONT    = "cmd.preview.render.bring_to_front";
+    public static final String CMD_PREVIEW_RENDER_BRING_FORWARD     = "cmd.preview.render.bring_forward";
+    public static final String CMD_PREVIEW_RENDER_SEND_BACKWARD     = "cmd.preview.render.send_backward";
+    public static final String CMD_PREVIEW_RENDER_SEND_TO_BACK      = "cmd.preview.render.send_to_back";
+
+    public static final String CMD_PREVIEW_RENDER_CLEAN_AND_ADD     = "cmd.preview.render.clean_and_add";
+    public static final String CMD_PREVIEW_RENDER_ADD_IMAGE         = "cmd.preview.render.add_image";
+    public static final String CMD_PREVIEW_RENDER_DELETE_LAYER      = "cmd.preview.render.delete_layer";
+
     public static final String CMD_CONFIG_CUSTOM_THEME				= "cmd.config.custom_theme";
     public static final String CMD_CONFIG_AVANZADA					= "cmd.config.avanzada";
 
