@@ -45,9 +45,19 @@
         Al seleccionar un candidato, el panel inferior cambia según la pestaña activa:
     </p>
     <ul>
-        <li><strong>Sin renderizar:</strong> Lista todos los archivos STL dentro del comprimido, ordenados por tamaño descendente. El primer STL se selecciona y previsualiza automáticamente en 3D.</li>
+        <li><strong>Sin renderizar:</strong> Lista todos los archivos STL dentro del comprimido en texto, ordenados por tamaño descendente. El primer STL se previsualiza automáticamente en 3D.</li>
         <li><strong>Con imagen:</strong> Lista todas las imágenes embebidas. Al hacer doble clic en una imagen, se extrae y se muestra en el visor 2D.</li>
     </ul>
+
+    <h3>Galería Visual (Derecha, bajo el Preview)</h3>
+    <p>
+        Al activar el botón <strong>Galería ZIP</strong> en la barra de vista preview, se muestran miniaturas de todos los STLs (en "Sin renderizar") o imágenes (en "Con imagen") del comprimido seleccionado en un filmstrip horizontal bajo el visor. Los STLs aparecen como placeholders y se renderizan en segundo plano, con una barra de progreso indicando el avance. Al hacer clic en una miniatura:
+    </p>
+    <ul>
+        <li>Se carga en el visor 2D para inspección.</li>
+        <li>Se sincroniza con la lista de texto izquierda, seleccionando el nombre correspondiente.</li>
+    </ul>
+    <p>El orden de las miniaturas coincide con el de la lista izquierda (tamaño descendente).</p>
 
     <h3>Puntero entre Pestañas</h3>
     <p>
@@ -194,7 +204,12 @@
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_70104-gallery-view.png"></td>
-            <td><strong>Galería ZIP:</strong> Botón toggle independiente (no se agrupa con los anteriores). Al activarlo, extrae todas las imágenes del comprimido seleccionado y las muestra en un filmstrip horizontal bajo el visor. Al hacer clic en una miniatura, se selecciona para usarla en collage o vista previa. Muestra una barra de progreso durante la extracción. Al desactivarlo, se oculta el filmstrip.</td>
+            <td><strong>Galería ZIP:</strong> Botón toggle independiente. Al activarlo, extrae todo el contenido del comprimido seleccionado y lo muestra en miniaturas bajo el visor:
+                <ul>
+                    <li><strong>Sin renderizar:</strong> Muestra todos los STLs como placeholders. Los renderiza en segundo plano con barra de progreso.</li>
+                    <li><strong>Con imagen:</strong> Extrae y muestra todas las imágenes del ZIP.</li>
+                </ul>
+                Al hacer clic en una miniatura se carga en el visor y se sincroniza la selección con la lista de texto izquierda.</td>
         </tr>
     </table>
     <p>Los tres primeros botones son <strong>excluyentes</strong> (solo uno puede estar activo a la vez). El botón Galería ZIP es independiente y puede combinarse con cualquiera de ellos.</p>

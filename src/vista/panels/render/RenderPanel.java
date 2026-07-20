@@ -26,6 +26,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
@@ -126,6 +127,7 @@ public class RenderPanel extends JPanel {
     private final JPanel filmstripPanel;
     private final JList<ImageLayer> filmstripList;
     private final DefaultListModel<ImageLayer> filmstripListModel;
+    private final JProgressBar galleryProgress;
     private boolean filmstripVisible;
     private static final String CARD_SOLID = "solid";
     private static final String CARD_GRADIENT = "gradient";
@@ -373,8 +375,13 @@ public class RenderPanel extends JPanel {
         JScrollPane filmstripScroll = new JScrollPane(filmstripList);
         filmstripScroll.setPreferredSize(new java.awt.Dimension(200, 100));
         filmstripScroll.setBorder(BorderFactory.createTitledBorder("Contenido del ZIP"));
+        galleryProgress = new JProgressBar(0, 100);
+        galleryProgress.setStringPainted(true);
+        galleryProgress.setVisible(false);
+
         filmstripPanel = new JPanel(new BorderLayout());
         filmstripPanel.add(filmstripScroll, BorderLayout.CENTER);
+        filmstripPanel.add(galleryProgress, BorderLayout.SOUTH);
         filmstripPanel.setVisible(false);
         filmstripVisible = false;
 
@@ -776,6 +783,19 @@ public class RenderPanel extends JPanel {
 
     public void clearFilmstrip() {
         filmstripListModel.clear();
+    }
+
+    public JProgressBar getGalleryProgress() { return galleryProgress; }
+
+    public void showGalleryProgress(int min, int max) {
+        galleryProgress.setMinimum(min);
+        galleryProgress.setMaximum(max);
+        galleryProgress.setValue(min);
+        galleryProgress.setVisible(true);
+    }
+
+    public void hideGalleryProgress() {
+        galleryProgress.setVisible(false);
     }
 
     public void showGridCard(String card) {

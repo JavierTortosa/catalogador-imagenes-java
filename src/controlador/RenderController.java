@@ -82,6 +82,7 @@ public class RenderController {
     private Zip2PngWorker currentWorker;
     private volatile boolean loadingTriangles;
     private ComponentRegistry registry;
+    private javax.swing.SwingWorker<?, ?> galleryWorker;
 
     // Punteros de selección por pestaña
     private int pointerSinRenderizar = 0;
@@ -108,11 +109,6 @@ public class RenderController {
         outputDir = Path.of(temp);
         imagesDir = outputDir.resolve("imagenes");
         try {
-            if (Files.exists(outputDir)) {
-                try (var files = Files.list(outputDir)) {
-                    files.forEach(p -> { try { Files.deleteIfExists(p); } catch (Exception ex) {} });
-                }
-            }
             Files.createDirectories(outputDir);
         } catch (IOException e) {
             logger.error("No se pudo inicializar directorio temporal: {}", outputDir, e);
@@ -131,6 +127,61 @@ public class RenderController {
         // Cambio de pestaña de candidatos: actualiza contenido inferior y card
         panel.getCandidateTabs().addChangeListener(e -> {
             onCandidateTabChanged();
+            refreshGallery();
+        });
+
+        // Refrescar galería al cambiar selección (si está visible)
+        panel.getCandidateListSinImagen().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) refreshGallery();
+        });
+        panel.getCandidateListConImagen().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) refreshGallery();
+        });
+
+        // Selección en filmstrip → cargar en visor 2D + sincronizar lista de contenido
+        panel.addPropertyChangeListener("filmstripSelected", evt -> {
+            ImageLayer sel = (ImageLayer) evt.getNewValue();
+            if (sel == null || sel.getImage() == null) return;
+            panel.set2DImage(sel.getImage());
+            panel.show2DView();
+            sincronizarFilmstripConListaContenido(sel);
+        });
+
+        // Sincronizar lista de contenido → filmstrip
+        javax.swing.event.ListSelectionListener syncContentToFilmstrip = e -> {
+            if (e.getValueIsAdjusting() || !panel.isFilmstripVisible()) return;
+            String nombre = null;
+            if (panel.isCandidateTabConImagen()) {
+                ImageEntry entry = panel.getContentImageList().getSelectedValue();
+                if (entry != null) nombre = entry.filename();
+            }
+            if (nombre == null) return;
+            var model = panel.getFilmstripListModel();
+            for (int i = 0; i < model.size(); i++) {
+                if (model.getElementAt(i).getName().equals(nombre)
+                        || model.getElementAt(i).getName().endsWith(nombre)) {
+                    panel.getFilmstripList().setSelectedIndex(i);
+                    panel.getFilmstripList().ensureIndexIsVisible(i);
+                    break;
+                }
+            }
+        };
+        panel.getContentImageList().addListSelectionListener(syncContentToFilmstrip);
+
+        // Sincronizar lista de STLs → filmstrip
+        panel.getContentList().addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting() || !panel.isFilmstripVisible() || panel.isCandidateTabConImagen()) return;
+            StlEntry entry = panel.getContentList().getSelectedValue();
+            if (entry == null) return;
+            String stlName = entry.filename();
+            var model = panel.getFilmstripListModel();
+            for (int i = 0; i < model.size(); i++) {
+                if (model.getElementAt(i).getName().equals(stlName)) {
+                    panel.getFilmstripList().setSelectedIndex(i);
+                    panel.getFilmstripList().ensureIndexIsVisible(i);
+                    break;
+                }
+            }
         });
 
         // Doble clic en STL del ZIP
@@ -1562,18 +1613,28 @@ public class RenderController {
 
 
     private void addLayerInternal() {
-        // Si hay imagen en el contenedor de imágenes (tab "Con imagen"), extraerla
+        RenderCandidate candidate = getSelectedCandidate();
+        if (candidate == null) return;
+
+        // Si la galería está visible y hay una selección, usar esa imagen directamente
+        if (panel.isFilmstripVisible()) {
+            ImageLayer filmstripSel = panel.getFilmstripList().getSelectedValue();
+            if (filmstripSel != null && filmstripSel.getImage() != null) {
+                panel.addLayer(new ImageLayer(filmstripSel.getImage(), filmstripSel.getName()));
+                logger.info("Capa añadida desde filmstrip: {}", filmstripSel.getName());
+                return;
+            }
+        }
+
+        // Fallback: extraer del ZIP vía lista de contenido (tab "Con imagen")
         if (!panel.isCandidateTabConImagen()) return;
         ImageEntry img = panel.getContentImageList().getSelectedValue();
         if (img == null) {
             JOptionPane.showMessageDialog(parentFrame,
-                    "Selecciona una imagen de la lista primero.",
+                    "Selecciona una imagen de la galería o de la lista de contenido.",
                     "Añadir capa", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        RenderCandidate candidate = getSelectedCandidate();
-        if (candidate == null) return;
 
         TaskProgressDialog dialog = new TaskProgressDialog(getParentFrame(),
                 "Extrayendo imagen", "Extrayendo " + img.filename() + "...");
@@ -1717,28 +1778,165 @@ public class RenderController {
     } // --- Fin del metodo descargarPreview ---
 
 
-    public void toggleGallery() {
+    private void sincronizarFilmstripConListaContenido(ImageLayer sel) {
+        String selName = sel.getName();
+        if (panel.isCandidateTabConImagen()) {
+            for (int i = 0; i < panel.getContentImageListModel().getSize(); i++) {
+                var entry = panel.getContentImageListModel().getElementAt(i);
+                if (entry.filename().equals(selName) || entry.filename().endsWith(selName)) {
+                    panel.getContentImageList().setSelectedIndex(i);
+                    break;
+                }
+            }
+        } else {
+            // Pestaña "Sin renderizar": sincronizar con lista de STLs
+            String stlName = selName.endsWith(".stl") ? selName : null;
+            if (stlName == null) return;
+            for (int i = 0; i < panel.getContentListModel().getSize(); i++) {
+                var entry = panel.getContentListModel().getElementAt(i);
+                if (entry.filename().equals(stlName)) {
+                    panel.getContentList().setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void refreshGallery() {
+        if (!panel.isFilmstripVisible()) return;
+        cancelGalleryWorker();
+        panel.clearFilmstrip();
+        loadGalleryContent();
+    }
+
+    private void cancelGalleryWorker() {
+        if (galleryWorker != null && !galleryWorker.isDone()) {
+            galleryWorker.cancel(true);
+        }
+        galleryWorker = null;
+    }
+
+    public void toggleGallery(java.awt.event.ActionEvent e) {
         boolean nuevo = !panel.isFilmstripVisible();
         if (!nuevo) {
+            cancelGalleryWorker();
             panel.setFilmstripVisible(false);
             panel.clearFilmstrip();
-            logger.info("[RenderController] Galería oculta");
             return;
         }
 
-        RenderCandidate candidate = panel.getCandidateListSinImagen().getSelectedValue();
-        if (candidate == null && panel.getCandidateTabs().getSelectedIndex() == 1) {
-            candidate = panel.getCandidateListConImagen().getSelectedValue();
-        }
+        boolean conImagen = panel.getCandidateTabs().getSelectedIndex() == 1;
+        RenderCandidate candidate = conImagen
+                ? panel.getCandidateListConImagen().getSelectedValue()
+                : panel.getCandidateListSinImagen().getSelectedValue();
         if (candidate == null) {
+            if (e.getSource() instanceof javax.swing.JToggleButton btn) {
+                btn.setSelected(false);
+            }
             JOptionPane.showMessageDialog(parentFrame,
                     "Seleccione un archivo comprimido en la lista de candidatos.",
                     "Galería ZIP", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
+        panel.setFilmstripVisible(true);
+        panel.clearFilmstrip();
+        loadGalleryContent();
+    } // --- Fin del metodo toggleGallery ---
+
+
+    private void loadGalleryContent() {
+        boolean conImagen = panel.getCandidateTabs().getSelectedIndex() == 1;
+        RenderCandidate candidate = conImagen
+                ? panel.getCandidateListConImagen().getSelectedValue()
+                : panel.getCandidateListSinImagen().getSelectedValue();
+        if (candidate == null) return;
+
         final java.nio.file.Path zipPath = candidate.path;
-        logger.info("[RenderController] Extrayendo imágenes de: {}", zipPath.getFileName());
+        final String nombreBase = candidate.nombreBase;
+
+        if (!conImagen) {
+            logger.info("[Gallery] Buscando renders para: {}", nombreBase);
+            var model = panel.getFilmstripListModel();
+            model.clear();
+            cancelGalleryWorker();
+
+            // Placeholders STL + worker de renderizado (mismo orden que la lista izquierda)
+            try {
+                java.util.List<StlEntry> stls = ZipExtractor.listStlContents(zipPath);
+                stls.sort(java.util.Comparator.comparingLong(StlEntry::sizeBytes).reversed());
+                if (!stls.isEmpty()) {
+                    int total = stls.size();
+                    for (StlEntry entry : stls) {
+                        var ph = crearPlaceholder(entry.filename());
+                        var phLayer = new ImageLayer(ph, entry.filename());
+                        phLayer.setPlaceholder(true);
+                        model.addElement(phLayer);
+                    }
+                    panel.showGalleryProgress(0, total);
+
+                    var renders = new java.util.ArrayList<java.awt.image.BufferedImage>();
+
+                        galleryWorker = new SwingWorker<Void, Integer>() {
+                            private java.nio.file.Path tempDir;
+
+                            @Override
+                            protected Void doInBackground() throws Exception {
+                                tempDir = ZipExtractor.extractToTemp(zipPath);
+                                if (tempDir == null) return null;
+                                for (int i = 0; i < total; i++) {
+                                    if (isCancelled()) return null;
+                                    StlEntry entry = stls.get(i);
+                                    try {
+                                        java.nio.file.Path stlFile = tempDir.resolve(entry.filename());
+                                        if (java.nio.file.Files.exists(stlFile)) {
+                                            java.util.List<Triangle> tris = StlParser.parse(stlFile.toFile());
+                                            var renderImg = new AwtModelRenderer().renderizar(tris);
+                                            synchronized (renders) {
+                                                renders.add(renderImg);
+                                            }
+                                            publish(i);
+                                        }
+                                    } catch (Exception ex) {
+                                        logger.warn("[Gallery] Error renderizando {}: {}", entry.filename(), ex.getMessage());
+                                    }
+                                }
+                                return null;
+                            }
+
+                            @Override
+                            protected void process(java.util.List<Integer> chunks) {
+                                int lastIdx = chunks.get(chunks.size() - 1);
+                                synchronized (renders) {
+                                    if (lastIdx < renders.size()) {
+                                        var img = renders.get(lastIdx);
+                                        if (img != null && lastIdx < model.size()) {
+                                            model.get(lastIdx).setImage(img);
+                                            model.get(lastIdx).setPlaceholder(false);
+                                        }
+                                    }
+                                }
+                                panel.getGalleryProgress().setValue(lastIdx + 1);
+                            }
+
+                            @Override
+                            protected void done() {
+                                if (tempDir != null) ZipExtractor.deleteDir(tempDir);
+                                panel.hideGalleryProgress();
+                                renders.clear();
+                            }
+                        };
+                        galleryWorker.execute();
+                    }
+                } catch (Exception ex) {
+                    logger.warn("[Gallery] Error al extraer STLs: {}", ex.getMessage());
+                }
+            logger.info("[Gallery] Sin renderizar: {} elementos", model.size());
+            return;
+        }
+
+        // Pestaña "Con imagen": extraer imágenes del ZIP
+        logger.info("[Gallery] Extrayendo imágenes de: {}", zipPath.getFileName());
 
         final javax.swing.ProgressMonitor monitor = new javax.swing.ProgressMonitor(parentFrame,
                 "Extrayendo imágenes del archivo comprimido...",
@@ -1746,57 +1944,51 @@ public class RenderController {
         monitor.setMillisToDecideToPopup(500);
         monitor.setMillisToPopup(1000);
 
-        new SwingWorker<Void, Integer>() {
+        var worker = new SwingWorker<Void, Integer>() {
             private final java.util.List<ImageLayer> extractedLayers = new java.util.ArrayList<>();
 
             @Override
             protected Void doInBackground() throws Exception {
-                java.util.List<ImageEntry> entries = ZipExtractor.listImageContents(zipPath);
-                if (entries.isEmpty()) {
-                    java.util.List<StlEntry> stlEntries = ZipExtractor.listStlContents(zipPath);
-                    if (!stlEntries.isEmpty()) {
-                        publish(10);
-                        Path tempDir = ZipExtractor.extractToTemp(zipPath);
-                        if (tempDir != null) {
-                            try {
-                                for (StlEntry entry : stlEntries) {
-                                    if (monitor.isCanceled()) break;
-                                    var placeholder = new java.awt.image.BufferedImage(80, 80, java.awt.image.BufferedImage.TYPE_INT_ARGB);
-                                    var g2d = placeholder.createGraphics();
-                                    g2d.setColor(java.awt.Color.DARK_GRAY);
-                                    g2d.fillRect(0, 0, 80, 80);
-                                    g2d.setColor(java.awt.Color.WHITE);
-                                    g2d.drawString("STL", 25, 45);
-                                    g2d.dispose();
-                                    extractedLayers.add(new ImageLayer(placeholder, entry.filename()));
-                                }
-                            } finally {
-                                ZipExtractor.deleteDir(tempDir);
-                            }
-                        }
-                    }
-                    publish(100);
-                    return null;
-                }
-
-                int total = entries.size();
+                publish(5);
                 Path tempDir = ZipExtractor.extractToTemp(zipPath);
                 if (tempDir == null) return null;
                 try {
-                    for (int i = 0; i < total; i++) {
-                        if (monitor.isCanceled()) break;
-                        ImageEntry entry = entries.get(i);
-                        publish((i * 100) / total);
+                    java.util.List<java.nio.file.Path> imageFiles;
+                    try (var ws = java.nio.file.Files.walk(tempDir)) {
+                        imageFiles = ws
+                            .filter(p -> java.nio.file.Files.isRegularFile(p))
+                            .filter(p -> {
+                                String name = p.getFileName().toString().toLowerCase();
+                                return name.endsWith(".png") || name.endsWith(".jpg")
+                                    || name.endsWith(".jpeg") || name.endsWith(".gif")
+                                    || name.endsWith(".bmp") || name.endsWith(".webp")
+                                    || name.endsWith(".tiff") || name.endsWith(".tif");
+                            })
+                            .collect(java.util.stream.Collectors.toList());
+                    }
+
+                    int total = imageFiles.size();
+                    for (int i = 0; i < total && !monitor.isCanceled(); i++) {
+                        publish(10 + (i * 90 / Math.max(total, 1)));
                         try {
-                            Path imgOut = tempDir.resolve(entry.filename());
-                            if (java.nio.file.Files.exists(imgOut)) {
-                                var img = javax.imageio.ImageIO.read(imgOut.toFile());
-                                if (img != null) {
-                                    extractedLayers.add(new ImageLayer(img, entry.filename()));
-                                }
-                            }
+                            var img = javax.imageio.ImageIO.read(imageFiles.get(i).toFile());
+                            if (img != null)
+                                extractedLayers.add(new ImageLayer(img, tempDir.relativize(imageFiles.get(i)).toString()));
                         } catch (Exception ex) {
-                            logger.warn("No se pudo leer imagen: {}", entry.filename());
+                            logger.warn("[Gallery] Error leyendo {}", imageFiles.get(i).getFileName());
+                        }
+                    }
+                    if (extractedLayers.isEmpty()) {
+                        for (var entry : ZipExtractor.listStlContents(zipPath)) {
+                            if (monitor.isCanceled()) break;
+                            var ph = new java.awt.image.BufferedImage(80, 80, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+                            var g2d = ph.createGraphics();
+                            g2d.setColor(java.awt.Color.DARK_GRAY);
+                            g2d.fillRect(0, 0, 80, 80);
+                            g2d.setColor(java.awt.Color.WHITE);
+                            g2d.drawString("STL", 25, 45);
+                            g2d.dispose();
+                            extractedLayers.add(new ImageLayer(ph, entry.filename()));
                         }
                     }
                 } finally {
@@ -1814,27 +2006,46 @@ public class RenderController {
             @Override
             protected void done() {
                 monitor.close();
+                // Si este worker ya no es el activo, ignorar resultado
+                if (galleryWorker != this) return;
                 if (monitor.isCanceled()) {
-                    logger.info("[RenderController] Extracción cancelada por el usuario");
                     panel.clearFilmstrip();
                     return;
                 }
                 try {
                     get();
+                    if (galleryWorker != this) return;
                     var model = panel.getFilmstripListModel();
                     model.clear();
                     extractedLayers.forEach(model::addElement);
-                    panel.setFilmstripVisible(true);
-                    logger.info("[RenderController] Galería mostrada con {} elementos", extractedLayers.size());
+                    logger.info("[Gallery] Con imagen: {} elementos", extractedLayers.size());
                 } catch (Exception ex) {
-                    logger.error("[RenderController] Error extrayendo galería", ex);
-                    JOptionPane.showMessageDialog(parentFrame,
-                            "Error al extraer imágenes:\n" + ex.getMessage(),
-                            "Galería ZIP", JOptionPane.ERROR_MESSAGE);
+                    logger.error("[Gallery] Error extrayendo ZIP", ex);
                 }
             }
-        }.execute();
-    } // --- Fin del metodo toggleGallery ---
+        };
+        galleryWorker = worker;
+        worker.execute();
+    } // --- Fin del metodo loadGalleryContent ---
+
+
+    private java.awt.image.BufferedImage crearPlaceholder(String nombre) {
+        var ph = new java.awt.image.BufferedImage(80, 80, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        var g2d = ph.createGraphics();
+        try {
+            g2d.setColor(java.awt.Color.DARK_GRAY);
+            g2d.fillRect(0, 0, 80, 80);
+            g2d.setColor(java.awt.Color.WHITE);
+            String label = nombre;
+            if (label.length() > 15) label = label.substring(0, 12) + "...";
+            g2d.drawString(label, 5, 45);
+            g2d.setColor(java.awt.Color.GRAY);
+            g2d.drawRect(5, 5, 70, 70);
+        } finally {
+            g2d.dispose();
+        }
+        return ph;
+    }
 
 
 } // --- Fin de la clase RenderController ---

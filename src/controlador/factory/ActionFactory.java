@@ -1235,7 +1235,7 @@ public class ActionFactory {
         return new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (renderController != null) renderController.toggleGallery();
+                if (renderController != null) renderController.toggleGallery(e);
             }
         };
     } // --- Fin del metodo createPreviewRenderGalleryAction ---

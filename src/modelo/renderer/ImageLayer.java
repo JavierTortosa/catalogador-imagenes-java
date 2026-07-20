@@ -4,8 +4,9 @@ import java.awt.image.BufferedImage;
 
 public class ImageLayer {
 
-    private final BufferedImage image;
+    private BufferedImage image;
     private final String name;
+    private boolean placeholder;
     private double zoom = 1.0;
     private double offsetX;
     private double offsetY;
@@ -17,6 +18,9 @@ public class ImageLayer {
     }
 
     public BufferedImage getImage() { return image; }
+    public void setImage(BufferedImage image) { this.image = image; }
+    public boolean isPlaceholder() { return placeholder; }
+    public void setPlaceholder(boolean placeholder) { this.placeholder = placeholder; }
     public String getName() { return name; }
 
     public double getZoom() { return zoom; }
