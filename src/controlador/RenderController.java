@@ -1717,4 +1717,124 @@ public class RenderController {
     } // --- Fin del metodo descargarPreview ---
 
 
+    public void toggleGallery() {
+        boolean nuevo = !panel.isFilmstripVisible();
+        if (!nuevo) {
+            panel.setFilmstripVisible(false);
+            panel.clearFilmstrip();
+            logger.info("[RenderController] Galería oculta");
+            return;
+        }
+
+        RenderCandidate candidate = panel.getCandidateListSinImagen().getSelectedValue();
+        if (candidate == null && panel.getCandidateTabs().getSelectedIndex() == 1) {
+            candidate = panel.getCandidateListConImagen().getSelectedValue();
+        }
+        if (candidate == null) {
+            JOptionPane.showMessageDialog(parentFrame,
+                    "Seleccione un archivo comprimido en la lista de candidatos.",
+                    "Galería ZIP", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        final java.nio.file.Path zipPath = candidate.path;
+        logger.info("[RenderController] Extrayendo imágenes de: {}", zipPath.getFileName());
+
+        final javax.swing.ProgressMonitor monitor = new javax.swing.ProgressMonitor(parentFrame,
+                "Extrayendo imágenes del archivo comprimido...",
+                zipPath.getFileName().toString(), 0, 100);
+        monitor.setMillisToDecideToPopup(500);
+        monitor.setMillisToPopup(1000);
+
+        new SwingWorker<Void, Integer>() {
+            private final java.util.List<ImageLayer> extractedLayers = new java.util.ArrayList<>();
+
+            @Override
+            protected Void doInBackground() throws Exception {
+                java.util.List<ImageEntry> entries = ZipExtractor.listImageContents(zipPath);
+                if (entries.isEmpty()) {
+                    java.util.List<StlEntry> stlEntries = ZipExtractor.listStlContents(zipPath);
+                    if (!stlEntries.isEmpty()) {
+                        publish(10);
+                        Path tempDir = ZipExtractor.extractToTemp(zipPath);
+                        if (tempDir != null) {
+                            try {
+                                for (StlEntry entry : stlEntries) {
+                                    if (monitor.isCanceled()) break;
+                                    var placeholder = new java.awt.image.BufferedImage(80, 80, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+                                    var g2d = placeholder.createGraphics();
+                                    g2d.setColor(java.awt.Color.DARK_GRAY);
+                                    g2d.fillRect(0, 0, 80, 80);
+                                    g2d.setColor(java.awt.Color.WHITE);
+                                    g2d.drawString("STL", 25, 45);
+                                    g2d.dispose();
+                                    extractedLayers.add(new ImageLayer(placeholder, entry.filename()));
+                                }
+                            } finally {
+                                ZipExtractor.deleteDir(tempDir);
+                            }
+                        }
+                    }
+                    publish(100);
+                    return null;
+                }
+
+                int total = entries.size();
+                Path tempDir = ZipExtractor.extractToTemp(zipPath);
+                if (tempDir == null) return null;
+                try {
+                    for (int i = 0; i < total; i++) {
+                        if (monitor.isCanceled()) break;
+                        ImageEntry entry = entries.get(i);
+                        publish((i * 100) / total);
+                        try {
+                            Path imgOut = tempDir.resolve(entry.filename());
+                            if (java.nio.file.Files.exists(imgOut)) {
+                                var img = javax.imageio.ImageIO.read(imgOut.toFile());
+                                if (img != null) {
+                                    extractedLayers.add(new ImageLayer(img, entry.filename()));
+                                }
+                            }
+                        } catch (Exception ex) {
+                            logger.warn("No se pudo leer imagen: {}", entry.filename());
+                        }
+                    }
+                } finally {
+                    ZipExtractor.deleteDir(tempDir);
+                }
+                publish(100);
+                return null;
+            }
+
+            @Override
+            protected void process(java.util.List<Integer> chunks) {
+                monitor.setProgress(chunks.get(chunks.size() - 1));
+            }
+
+            @Override
+            protected void done() {
+                monitor.close();
+                if (monitor.isCanceled()) {
+                    logger.info("[RenderController] Extracción cancelada por el usuario");
+                    panel.clearFilmstrip();
+                    return;
+                }
+                try {
+                    get();
+                    var model = panel.getFilmstripListModel();
+                    model.clear();
+                    extractedLayers.forEach(model::addElement);
+                    panel.setFilmstripVisible(true);
+                    logger.info("[RenderController] Galería mostrada con {} elementos", extractedLayers.size());
+                } catch (Exception ex) {
+                    logger.error("[RenderController] Error extrayendo galería", ex);
+                    JOptionPane.showMessageDialog(parentFrame,
+                            "Error al extraer imágenes:\n" + ex.getMessage(),
+                            "Galería ZIP", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }.execute();
+    } // --- Fin del metodo toggleGallery ---
+
+
 } // --- Fin de la clase RenderController ---

@@ -19,6 +19,7 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -120,6 +121,12 @@ public class RenderPanel extends JPanel {
     private final JTabbedPane tabbedPane;
     private JScrollPane layersScroll;
     private final JPanel cardPanel;
+
+    // --- Filmstrip (galería de imágenes del ZIP) ---
+    private final JPanel filmstripPanel;
+    private final JList<ImageLayer> filmstripList;
+    private final DefaultListModel<ImageLayer> filmstripListModel;
+    private boolean filmstripVisible;
     private static final String CARD_SOLID = "solid";
     private static final String CARD_GRADIENT = "gradient";
     private static final String CARD_IMAGE = "image";
@@ -332,7 +339,49 @@ public class RenderPanel extends JPanel {
         imagePreviewScroll.setBorder(BorderFactory.createTitledBorder("Vista previa"));
         viewerCardPanel.add(imagePreviewScroll, CARD_VISTA_2D);
 
-        rightPanel.add(viewerCardPanel, BorderLayout.CENTER);
+        // --- Filmstrip (galería de imágenes del ZIP) ---
+        filmstripListModel = new DefaultListModel<>();
+        filmstripList = new JList<>(filmstripListModel);
+        filmstripList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+        filmstripList.setVisibleRowCount(1);
+        filmstripList.setCellRenderer(new DefaultListCellRenderer() {
+            public java.awt.Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel label = new JLabel();
+                if (value instanceof ImageLayer layer && layer.getImage() != null) {
+                    java.awt.Image img = layer.getImage().getScaledInstance(80, 80, java.awt.Image.SCALE_SMOOTH);
+                    label.setIcon(new javax.swing.ImageIcon(img));
+                    label.setToolTipText(layer.getName());
+                }
+                label.setPreferredSize(new java.awt.Dimension(90, 90));
+                label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+                if (isSelected) {
+                    label.setBorder(javax.swing.BorderFactory.createLineBorder(java.awt.Color.YELLOW, 2));
+                } else {
+                    label.setBorder(javax.swing.BorderFactory.createEmptyBorder(2, 2, 2, 2));
+                }
+                return label;
+            }
+        });
+        filmstripList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                ImageLayer sel = filmstripList.getSelectedValue();
+                if (sel != null) {
+                    firePropertyChange("filmstripSelected", null, sel);
+                }
+            }
+        });
+        JScrollPane filmstripScroll = new JScrollPane(filmstripList);
+        filmstripScroll.setPreferredSize(new java.awt.Dimension(200, 100));
+        filmstripScroll.setBorder(BorderFactory.createTitledBorder("Contenido del ZIP"));
+        filmstripPanel = new JPanel(new BorderLayout());
+        filmstripPanel.add(filmstripScroll, BorderLayout.CENTER);
+        filmstripPanel.setVisible(false);
+        filmstripVisible = false;
+
+        JPanel viewerWrapper = new JPanel(new BorderLayout());
+        viewerWrapper.add(viewerCardPanel, BorderLayout.CENTER);
+        viewerWrapper.add(filmstripPanel, BorderLayout.SOUTH);
+        rightPanel.add(viewerWrapper, BorderLayout.CENTER);
 
         // --- Pestañas de configuración (Imagen + Fondo) ---
         this.tabbedPane = new JTabbedPane();
@@ -711,6 +760,22 @@ public class RenderPanel extends JPanel {
         layersListModel.clear();
         selectedLayerIndex = -1;
         imageDisplayPanel.repaint();
+    }
+
+    // --- Filmstrip (galería del ZIP) ---
+    public boolean isFilmstripVisible() { return filmstripVisible; }
+    public DefaultListModel<ImageLayer> getFilmstripListModel() { return filmstripListModel; }
+    public JList<ImageLayer> getFilmstripList() { return filmstripList; }
+
+    public void setFilmstripVisible(boolean visible) {
+        filmstripVisible = visible;
+        filmstripPanel.setVisible(visible);
+        revalidate();
+        repaint();
+    }
+
+    public void clearFilmstrip() {
+        filmstripListModel.clear();
     }
 
     public void showGridCard(String card) {

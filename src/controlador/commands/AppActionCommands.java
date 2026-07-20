@@ -226,6 +226,7 @@ public interface AppActionCommands {
     public static final String CMD_PREVIEW_RENDER_3DGRID            = "cmd.preview.render.3dgrid";
     public static final String CMD_PREVIEW_RENDER_2DGRID            = "cmd.preview.render.2dgrid";
     public static final String CMD_PREVIEW_RENDER_COLLAGE           = "cmd.preview.render.collage";
+    public static final String CMD_PREVIEW_RENDER_GALLERY           = "cmd.preview.render.gallery";
 
     public static final String CMD_PREVIEW_RENDER_BRING_TO_FRONT    = "cmd.preview.render.bring_to_front";
     public static final String CMD_PREVIEW_RENDER_BRING_FORWARD     = "cmd.preview.render.bring_forward";

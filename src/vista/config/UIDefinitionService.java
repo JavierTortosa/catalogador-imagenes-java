@@ -1180,6 +1180,8 @@ public class UIDefinitionService {
                         "70102-2d_grid.png", "Grid Archivos Con Imagen", "previewrenderview", ButtonType.TOGGLE)
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_COLLAGE,
                         "70103-multimage.png", "Panel Edicion Multi-Imagen", "previewrenderview", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_GALLERY,
+                        "70104-gallery-view.png", "Ver galeria del archivo comprimido", "previewrenderview", ButtonType.TOGGLE)
         		
 		);
         
