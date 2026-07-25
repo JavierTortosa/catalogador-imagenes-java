@@ -237,6 +237,41 @@ public interface AppActionCommands {
     public static final String CMD_PREVIEW_RENDER_ADD_IMAGE         = "cmd.preview.render.add_image";
     public static final String CMD_PREVIEW_RENDER_DELETE_LAYER      = "cmd.preview.render.delete_layer";
 
+    // --- Alinear capa ---
+    public static final String CMD_PREVIEW_RENDER_ALIGN_BORDE_INFERIOR   = "cmd.preview.render.align.borde_inferior";
+    public static final String CMD_PREVIEW_RENDER_ALIGN_CENTRO_VERTICAL  = "cmd.preview.render.align.centro_vertical";
+    public static final String CMD_PREVIEW_RENDER_ALIGN_BORDE_SUPERIOR   = "cmd.preview.render.align.borde_superior";
+    public static final String CMD_PREVIEW_RENDER_ALIGN_BORDE_IZQUIERDO  = "cmd.preview.render.align.borde_izquierdo";
+    public static final String CMD_PREVIEW_RENDER_ALIGN_CENTRO_HORIZONTAL = "cmd.preview.render.align.centro_horizontal";
+    public static final String CMD_PREVIEW_RENDER_ALIGN_BORDE_DERECHO    = "cmd.preview.render.align.borde_derecho";
+
+    // --- Distribuir capas ---
+    public static final String CMD_PREVIEW_RENDER_DISTRIBUTE_BOTTOM_BORDER   = "cmd.preview.render.distribute.bottom_border";
+    public static final String CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_VERTICAL = "cmd.preview.render.distribute.center_vertical";
+    public static final String CMD_PREVIEW_RENDER_DISTRIBUTE_TOP_BORDER      = "cmd.preview.render.distribute.top_border";
+    public static final String CMD_PREVIEW_RENDER_DISTRIBUTE_LEFT_BORDER     = "cmd.preview.render.distribute.left_border";
+    public static final String CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_HORIZONTAL = "cmd.preview.render.distribute.center_horizontal";
+    public static final String CMD_PREVIEW_RENDER_DISTRIBUTE_RIGHT_BORDER    = "cmd.preview.render.distribute.right_border";
+
+    // --- Distribuir espacios ---
+    public static final String CMD_PREVIEW_RENDER_DISTRIBUTE_HORIZONTAL_SPACE = "cmd.preview.render.distribute.horizontal_space";
+    public static final String CMD_PREVIEW_RENDER_DISTRIBUTE_VERTICAL_SPACE   = "cmd.preview.render.distribute.vertical_space";
+
+    // --- Auto-distribuir ---
+    public static final String CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_FIXED  = "cmd.preview.render.auto_distribute.fixed";
+    public static final String CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_LAYER  = "cmd.preview.render.auto_distribute.layer";
+
+    // --- D-Pad ---
+    public static final String CMD_PREVIEW_RENDER_DPAD_TOP_LEFT      = "cmd.preview.render.dpad.top_left";
+    public static final String CMD_PREVIEW_RENDER_DPAD_TOP_CENTER    = "cmd.preview.render.dpad.top_center";
+    public static final String CMD_PREVIEW_RENDER_DPAD_TOP_RIGHT     = "cmd.preview.render.dpad.top_right";
+    public static final String CMD_PREVIEW_RENDER_DPAD_CENTER_LEFT   = "cmd.preview.render.dpad.center_left";
+    public static final String CMD_PREVIEW_RENDER_DPAD_CENTER        = "cmd.preview.render.dpad.center";
+    public static final String CMD_PREVIEW_RENDER_DPAD_CENTER_RIGHT  = "cmd.preview.render.dpad.center_right";
+    public static final String CMD_PREVIEW_RENDER_DPAD_BOTTOM_LEFT   = "cmd.preview.render.dpad.bottom_left";
+    public static final String CMD_PREVIEW_RENDER_DPAD_BOTTOM_CENTER = "cmd.preview.render.dpad.bottom_center";
+    public static final String CMD_PREVIEW_RENDER_DPAD_BOTTOM_RIGHT  = "cmd.preview.render.dpad.bottom_right";
+
     public static final String CMD_CONFIG_CUSTOM_THEME				= "cmd.config.custom_theme";
     public static final String CMD_CONFIG_AVANZADA					= "cmd.config.avanzada";
 

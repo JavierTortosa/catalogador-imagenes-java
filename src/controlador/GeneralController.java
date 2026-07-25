@@ -81,6 +81,7 @@ public class GeneralController
     private ImageListManager imageListManager;
     private DataController dataController;
     private ClientController clientController;
+    private RenderController renderController;
     private AppModeService appModeService;
     private MenuPopupManager menuPopupManager;
     private ProjectLifecycleService projectLifecycleService;
@@ -330,8 +331,15 @@ public class GeneralController
     } // --- FIN de metodo handleDeleteProject ---
 
     public void handleApplicationShutdown() {
+        if (renderController != null && !renderController.handleCloseWithPendingApprovedRenders()) {
+            return;
+        }
         projectLifecycleService.handleApplicationShutdown();
     } // --- FIN de metodo handleApplicationShutdown ---
+
+    public void setRenderController(RenderController renderController) {
+        this.renderController = renderController;
+    }
 
     /**
      * Orquesta el guardado explícito del archivo de configuración.

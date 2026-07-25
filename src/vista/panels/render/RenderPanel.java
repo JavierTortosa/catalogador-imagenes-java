@@ -143,13 +143,13 @@ public class RenderPanel extends JPanel {
         listModelSinImagen = new DefaultListModel<>();
         candidateListSinImagen = new JList<>(listModelSinImagen);
         candidateListSinImagen.setCellRenderer(new RenderListCellRenderer());
-        candidateListSinImagen.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        candidateListSinImagen.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         JScrollPane listScrollSin = new JScrollPane(candidateListSinImagen);
 
         listModelConImagen = new DefaultListModel<>();
         candidateListConImagen = new JList<>(listModelConImagen);
         candidateListConImagen.setCellRenderer(new RenderListCellRenderer());
-        candidateListConImagen.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        candidateListConImagen.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         JScrollPane listScrollCon = new JScrollPane(candidateListConImagen);
 
         candidateTabs = new JTabbedPane();
@@ -722,7 +722,7 @@ public class RenderPanel extends JPanel {
             show2DView();
             imageDisplayPanel.setBorder(BorderFactory.createTitledBorder("Composición (collage)"));
         } else {
-            imageDisplayPanel.setBorder(BorderFactory.createTitledBorder("Vista previa"));
+            imageDisplayPanel.setBorder(null);
         }
         imageDisplayPanel.repaint();
     }

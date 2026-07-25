@@ -543,7 +543,7 @@ public class PreviewPanel3DFX extends JFXPanel {
     /**
      * Restablece la vista a valores por defecto.
      */
-    private void resetView() {
+    public void resetView() {
         zoom = 500;
         rotateX.setAngle(0);
         rotateY.setAngle(0);

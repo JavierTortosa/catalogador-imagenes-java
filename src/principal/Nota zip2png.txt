@@ -1,3 +1,130 @@
+Plan de Implementación — Editor Central Multi-Capa
+Objetivo
+Al activar el botón Collage (CMD_PREVIEW_RENDER_COLLAGE):
+
+Ocultar el grid central y mostrar un editor central con lienzo grande
+Mover las toolbars de capas al EAST del editor
+El preview derecho se mantiene intacto como punto de entrada rápido
+La galería ZIP alimenta al preview; desde preview se añaden capas al editor
+Fase 1: Estructura del Editor Central
+1.1. Nuevo panel CollageEditorPanel (en vista/panels/render/)
+
+JPanel con BorderLayout
+CENTER: JScrollPane con un JPanel lienzo (CollageCanvas) donde se pintan las capas superpuestas
+NORTH: Toolbar propia del editor (alineación, auto-layout, tamaño lienzo)
+EAST: Contenedor para las toolbars layerorderpreview + layerloadpreview
+Tamaño mínimo del lienzo: 800×600 (configurable por inputs en toolbar)
+1.2. CollageCanvas (en vista/panels/render/)
+
+Extiende JPanel (o JComponent)
+Pinta las capas en orden (fondo → frente) con sus zoom/offset individuales
+Hit testing: detecta qué capa está bajo el cursor al hacer clic → la selecciona
+Zoom/pan propio del canvas (independiente del preview)
+1.3. Integración en RenderPanel
+
+Añadir CollageEditorPanel como una card más en el panel central (junto a gridCardPanel)
+showGridCard() se amplía a showCenterCard(String) con valores "grid", "collage"
+Al activar Collage: ocultar gridCardPanel, mostrar collagePanel
+Al desactivar Collage: ocultar collagePanel, mostrar gridCardPanel
+Fase 2: Toolbars y Controles del Editor
+2.1. Toolbar del editor (NORTH del CollageEditorPanel)
+
+Grupo D-Pad 9 posiciones (3×3): alinea la capa seleccionada a cualquier posición del lienzo (usando DPadComponent.createGridLayout(3, 3) con 9 hotspots)
+TOP_LEFT, TOP_CENTER, TOP_RIGHT
+MIDDLE_LEFT, CENTER, MIDDLE_RIGHT
+BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT
+Grupo Auto-layout: botones para distribuir capas en cuadrícula, fila, columna, etc.
+Grupo Tamaño lienzo: JTextField ancho × alto + botón "Ajustar al contenido"
+Grupo Zoom canvas: acercar/alejar/encajar
+2.2. Toolbars layerorderpreview y layerloadpreview
+
+Actualmente en EAST del rightPanel
+Al activar Collage: se mueven al EAST del CollageEditorPanel
+Al desactivar Collage: vuelven al EAST del rightPanel
+Implementación: ComponentRegistry permite recolocar los componentes, o simplemente cambiar el parent añadiendo/quitando
+Fase 3: Flujo de Capas
+3.1. Añadir capa desde preview
+
+El botón actual "Añadir capa" (CMD_LOAD_LAYER) se modifica:
+Si Collage activo: captura la imagen del visor 2D (panel.get2DImage()) y la añade al CollageCanvas como nueva capa
+Si Collage inactivo: comportamiento actual (extraer del ZIP)
+La galería ZIP selecciona miniaturas → se cargan en preview → desde preview se añaden al editor
+3.2. Enviar collage a preview
+
+Botón "Enviar a preview" (o al desactivar Collage):
+Rasteriza el lienzo del CollageCanvas (todas las capas compuestas) a una BufferedImage
+La coloca en el visor 2D del panel derecho
+El usuario decide si la asigna al grid central con "Asignar preview"
+3.3. Pestaña "Capas" mejorada (tipo Photoshop)
+
+JList<ImageLayer> con ListCellRenderer personalizado:
+Thumbnail pequeño (32×32) de la capa
+Nombre de la capa
+Checkbox de visibilidad
+Click en el CollageCanvas sobre una capa → se selecciona en la lista
+Los botones de layerorderpreview (subir, bajar, frente, fondo) actúan sobre la selección
+Fase 4: Configuración y Definiciones
+4.1. Nuevos comandos AppActionCommands
+
+CMD_COLLAGE_ALIGN_TOP_LEFT, CMD_COLLAGE_ALIGN_TOP_CENTER, etc. (9 posiciones)
+CMD_COLLAGE_AUTO_LAYOUT_GRID, CMD_COLLAGE_AUTO_LAYOUT_ROW, CMD_COLLAGE_AUTO_LAYOUT_COL
+CMD_COLLAGE_FIT_CANVAS, CMD_COLLAGE_SET_SIZE
+CMD_COLLAGE_SEND_TO_PREVIEW
+4.2. Nuevas Actions en ActionFactory
+
+createCollageAlignAction(Direction, Position) para cada hotspot
+createCollageAutoLayoutAction(type)
+createCollageSendToPreviewAction()
+4.3. Definiciones en UIDefinitionService
+
+Toolbar del editor central con los nuevos botones y el D-Pad 9 posiciones
+Hotspots del D-Pad con iconos hover para cada una de las 9 posiciones
+4.4. Iconos nuevos (en resources/iconos/)
+
+d-pad_grid_9_48x48.png — base del D-Pad 9 posiciones
+d-pad_grid_9_pressed_48x48.png — presionado
+d-pad_tl_48x48.png, d-pad_tc_48x48.png, ..., d-pad_br_48x48.png — hovers (9 iconos)
+Iconos para auto-layout y ajuste de lienzo
+Fase 5: Comportamiento en RenderController
+5.1. toggleCollageMode() — modificado:
+
+Activar: ocultar grid, mostrar CollageEditorPanel, recolocar toolbars, sincronizar capas existentes
+Desactivar: rasterizar collage → enviar a preview 2D, restaurar grid, devolver toolbars
+5.2. Nuevos métodos:
+
+addLayerToCollage(BufferedImage) — añade imagen como capa al CollageCanvas
+sendCollageToPreview() — rasteriza y pone en visor 2D
+alignSelectedLayer(int hAlign, int vAlign) — alinea la capa seleccionada
+autoLayoutLayers(LayoutType) — distribuye capas automáticamente
+fitCanvasToContent() — ajusta el lienzo al bounding box de todas las capas
+setCanvasSize(int w, int h) — cambia el tamaño del lienzo
+Fase 6: Pestaña Capas mejorada
+6.1. LayerListCellRenderer (en vista/panels/render/)
+
+Implementa ListCellRenderer<ImageLayer>
+Muestra: thumbnail 32×32 + nombre + checkbox visibilidad
+El checkbox togglea layer.setVisible()
+6.2. Hit testing en CollageCanvas
+
+En mouseClicked, iterar capas de frente a fondo
+Comprobar si las coordenadas del clic caen dentro del área de la capa (considerando zoom/offset)
+Seleccionar la primera capa que coincida
+Orden de Implementación Sugerido
+Paso	Descripción	Dependencias
+1	CollageCanvas (lienzo básico con pintado de capas)	—
+2	CollageEditorPanel (wrapper con toolbar + canvas)	Paso 1
+3	Integración en RenderPanel (card layout grid/collage)	Paso 2
+4	Mover toolbars de capas al EAST del editor	Paso 3
+5	D-Pad 9 posiciones + comandos de alineación	—
+6	Toolbar del editor (NORTH) con D-Pad + auto-layout	Paso 5
+7	Flujo añadir capa desde preview	Paso 3
+8	Enviar collage a preview + desactivación	Paso 3
+9	Pestaña Capas mejorada	Paso 1
+10	Iconos y configuración	—
+
+** HASTA AQUI **
+
+
 
 ================================================================================
   ZIP2PNG — Generación automática de thumbnails para archivos 3D sin imagen

@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.67.10";
+        version = "V2.67.20";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -42,6 +42,8 @@ public class VisorV2 {
 
     }
 
+    
+    
     // GENERAL
     
     // FIXME añadir F1 para que muestre el panel de informacion
@@ -104,4 +106,6 @@ public class VisorV2 {
 	A est ultima propuesta, (stl->2D) habria que añadir la opcion de guardar la imagen. si he añadido el stl es porque no tengo la imagen y puede ser muuuy potente esta opcion.
     */
     
+    
+
     }

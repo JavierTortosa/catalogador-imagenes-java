@@ -5,21 +5,25 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.FlowLayout;
+import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -27,6 +31,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -43,21 +48,22 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import controlador.managers.RenderSceneController;
 import controlador.utils.ComponentRegistry;
 import controlador.worker.Zip2PngWorker;
 import controlador.worker.Zip2PngWorker.SourceInfo;
 import modelo.renderer.ImageEntry;
 import modelo.renderer.ImageLayer;
 import modelo.renderer.StlEntry;
-import modelo.renderer.StlMeshBuilder;
 import modelo.renderer.Triangle;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import servicios.renderer.AwtModelRenderer;
+import servicios.renderer.RenderTempFileManager;
 import servicios.renderer.StlParser;
-import servicios.renderer.ZipExtractor;
 import servicios.renderer.Zip2PngScanner;
 import servicios.renderer.Zip2PngScanner.RenderCandidate;
+import servicios.renderer.ZipExtractor;
 import vista.dialogos.TaskProgressDialog;
 import vista.panels.render.PreviewPanel3DFX;
 import vista.panels.render.RenderPanel;
@@ -71,15 +77,20 @@ public class RenderController {
     private final Component parentFrame;
     private final DefaultListModel<StlEntry> contentModel;
     private final Map<Path, SourceInfo> pngSourceMap = new HashMap<>();
-    private final Map<Path, List<Triangle>> triangleCache = new HashMap<>();
+    private final Map<Path, SoftReference<List<Triangle>>> triangleCache = new HashMap<>();
     private final AwtModelRenderer renderer = new AwtModelRenderer();
+
+    private final RenderTempFileManager tempFileManager;
+    private final RenderSceneController sceneController;
 
     private Path lastScanFolder;
     private Path outputDir;
     private Path imagesDir;
+    private final Set<Path> thumbnailsAprobados = new HashSet<>();
     private volatile Path currentPreviewPath;
     private List<Triangle> currentTriangles;
     private Zip2PngWorker currentWorker;
+    private SwingWorker<List<Triangle>, Void> currentTriangleWorker;
     private volatile boolean loadingTriangles;
     private ComponentRegistry registry;
     private javax.swing.SwingWorker<?, ?> galleryWorker;
@@ -94,25 +105,16 @@ public class RenderController {
         this.config = config;
         this.parentFrame = parentFrame;
         this.contentModel = panel.getContentListModel();
-        initOutputDir();
+        this.tempFileManager = new RenderTempFileManager(config);
+        this.sceneController = new RenderSceneController(panel.getPreview3DFX());
+        this.outputDir = tempFileManager.getOutputDir();
+        this.imagesDir = tempFileManager.getImagesDir();
         wireControls();
         wireBackgroundControls();
     }
 
     public void setRegistry(ComponentRegistry registry) {
         this.registry = registry;
-    }
-
-    private void initOutputDir() {
-        String temp = config.getString(ConfigKeys.ZIP2PNG_CARPETA_TEMP,
-                System.getProperty("java.io.tmpdir") + File.separator + "visor_zip2png");
-        outputDir = Path.of(temp);
-        imagesDir = outputDir.resolve("imagenes");
-        try {
-            Files.createDirectories(outputDir);
-        } catch (IOException e) {
-            logger.error("No se pudo inicializar directorio temporal: {}", outputDir, e);
-        }
     }
 
     private void wireControls() {
@@ -859,17 +861,8 @@ public class RenderController {
     }
 
     private void limpiarOutputDir() {
-        if (outputDir == null) return;
-        try {
-            if (Files.exists(outputDir)) {
-                try (var walk = Files.walk(outputDir)) {
-                    walk.sorted(java.util.Comparator.reverseOrder())
-                            .forEach(p -> { try { Files.deleteIfExists(p); } catch (Exception ex) {} });
-                }
-            }
-            Files.createDirectories(outputDir);
-        } catch (IOException e) {
-            logger.warn("No se pudo limpiar directorio temporal: {}", outputDir, e);
+        if (tempFileManager != null) {
+            tempFileManager.limpiarOutputDir();
         }
     }
 
@@ -919,23 +912,40 @@ public class RenderController {
 
     private void addThumbnailToGrid(Path p, JPanel grid, Path highlightPng, String labelText, RenderCandidate candidate) {
         try {
-            var icon = new javax.swing.ImageIcon(
-                    new javax.swing.ImageIcon(p.toFile().toURI().toURL())
-                            .getImage()
-                            .getScaledInstance(180, 180, java.awt.Image.SCALE_SMOOTH));
+            BufferedImage src = ImageIO.read(p.toFile());
+            if (src == null) {
+                logger.warn("No se pudo leer la imagen: {}", p);
+                return;
+            }
+            Image base = src.getScaledInstance(180, 180, java.awt.Image.SCALE_SMOOTH);
+
+            boolean aprobado = thumbnailsAprobados.contains(p);
+
+            javax.swing.Icon icon;
+            if (aprobado) {
+                icon = crearIconoConCheck(base);
+            } else {
+                icon = new javax.swing.ImageIcon(base);
+            }
+
             var label = new javax.swing.JLabel(icon);
             String tooltip = labelText + " - " + p.getFileName().toString();
             label.setToolTipText(tooltip);
             label.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
 
-            if (highlightPng != null && p.getFileName().equals(highlightPng.getFileName())) {
-                label.setBorder(javax.swing.BorderFactory.createLineBorder(
-                        new java.awt.Color(100, 200, 255), 3));
+            if (aprobado) {
+                label.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(0, 160, 0), 3));
+            } else if (highlightPng != null && p.getFileName().equals(highlightPng.getFileName())) {
+                label.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(100, 200, 255), 3));
             }
 
             label.addMouseListener(new java.awt.event.MouseAdapter() {
                 @Override
                 public void mouseClicked(java.awt.event.MouseEvent ev) {
+                    if (ev.getClickCount() == 2) {
+                        toggleAprobado(p);
+                        return;
+                    }
                     seleccionarCandidatoEnLista(candidate);
                     showPreview(p);
                 }
@@ -944,6 +954,28 @@ public class RenderController {
         } catch (Exception ex) {
             logger.warn("No se pudo cargar thumbnail: {}", p);
         }
+    }
+
+    private javax.swing.Icon crearIconoConCheck(Image base) {
+        BufferedImage img = new BufferedImage(180, 180, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = img.createGraphics();
+        g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+        g.drawImage(base, 0, 0, null);
+        g.setColor(new Color(0, 160, 0));
+        g.setFont(g.getFont().deriveFont(java.awt.Font.BOLD, 22f));
+        g.drawString("\u2714", 153, 24);
+        g.dispose();
+        return new javax.swing.ImageIcon(img);
+    }
+
+
+    private void toggleAprobado(Path p) {
+        if (thumbnailsAprobados.contains(p)) {
+            thumbnailsAprobados.remove(p);
+        } else {
+            thumbnailsAprobados.add(p);
+        }
+        refreshThumbnails(null);
     }
 
     private void seleccionarCandidatoEnLista(RenderCandidate candidate) {
@@ -1000,21 +1032,26 @@ public class RenderController {
         }
     }
 
+    private List<Triangle> getCachedTriangles(Path path) {
+        if (path == null) return null;
+        SoftReference<List<Triangle>> ref = triangleCache.get(path);
+        return ref != null ? ref.get() : null;
+    }
+
+    private void putCachedTriangles(Path path, List<Triangle> tris) {
+        if (path != null && tris != null) {
+            triangleCache.put(path, new SoftReference<>(tris));
+        }
+    }
+
     private void showRenderPreview(Path pngPath) {
         panel.show3DView();
-        currentTriangles = triangleCache.get(pngPath);
+        currentTriangles = getCachedTriangles(pngPath);
         logger.debug("[RenderController] triangleCache hit: " + (currentTriangles != null));
         if (currentTriangles != null) {
-            panel.getPreview3DFX().setMesh(currentTriangles);
-            panel.getPreview3DFX().setBrightness(0);
-            panel.getPreview3DFX().setContrast(0);
-            panel.getPreview3DFX().setCheckerboard(false);
-            float[] bb = StlMeshBuilder.boundingBox(currentTriangles);
-            logger.info("Renderizando el archivo: {} x: {} y: {} z: {}",
-                pngPath.getFileName(), String.format("%.2f", bb[3] - bb[0]),
-                String.format("%.2f", bb[4] - bb[1]), String.format("%.2f", bb[5] - bb[2]));
+            sceneController.cargarMalla3D(currentTriangles, 0, 0, false, panel.isAntiAlias(), panel.isCrosshair());
         } else {
-            panel.getPreview3DFX().clearMesh();
+            sceneController.limpiarEscena();
             cargarTriangulosAsync();
         }
     }
@@ -1049,20 +1086,23 @@ public class RenderController {
             javax.swing.JOptionPane.showMessageDialog(parentFrame,
                     mensaje, "Error al cargar STL",
                     javax.swing.JOptionPane.ERROR_MESSAGE);
-            panel.getPreview3DFX().clearMesh();
+            sceneController.limpiarEscena();
         });
     }
 
     private void cargarTriangulosAsync() {
         if (currentPreviewPath == null) { logger.warn("[RenderController] cargarTriangulosAsync: currentPreviewPath is null"); return; }
-        if (loadingTriangles) { logger.info("[RenderController] cargarTriangulosAsync: ya cargando"); return; }
-        loadingTriangles = true;
+        
+        // Cancelar trabajador anterior si está en ejecución para evitar race conditions
+        if (currentTriangleWorker != null && !currentTriangleWorker.isDone()) {
+            currentTriangleWorker.cancel(true);
+        }
 
         final Path pathSiendoCargado = currentPreviewPath;
         logger.debug("[RenderController] cargarTriangulosAsync iniciando para: " + pathSiendoCargado.getFileName());
         logger.debug("[RenderController] pngSourceMap.size() = " + pngSourceMap.size());
 
-        new SwingWorker<List<Triangle>, Void>() {
+        currentTriangleWorker = new SwingWorker<List<Triangle>, Void>() {
             private String errorMsg;
             @Override
             protected List<Triangle> doInBackground() throws Exception {
@@ -1094,7 +1134,7 @@ public class RenderController {
                         logger.debug("[RenderController] STL parseado: " + tris.size() + " triángulos");
                         return tris;
                     } finally {
-                        ZipExtractor.deleteDir(tempDir);
+                        RenderTempFileManager.deleteDir(tempDir);
                     }
                 } else {
                     logger.debug("[RenderController] Parseando STL (no comprimido)...");
@@ -1103,26 +1143,21 @@ public class RenderController {
             }
             @Override
             protected void done() {
-                loadingTriangles = false;
+                if (isCancelled()) {
+                    logger.debug("[RenderController] Worker cancelado. Omitiendo render.");
+                    return;
+                }
                 logger.debug("[RenderController] Worker done()");
                 try {
                     List<Triangle> tris = get();
                     logger.debug("[RenderController] tris = " + (tris != null ? tris.size() + " triángulos" : "null"));
                     if (tris != null && !tris.isEmpty()) {
-                        triangleCache.put(pathSiendoCargado, tris);
+                        putCachedTriangles(pathSiendoCargado, tris);
                         if (pathSiendoCargado.equals(currentPreviewPath)) {
                             currentTriangles = tris;
-                            logger.debug("[RenderController] Llamando setMesh...");
-                            panel.getPreview3DFX().setMesh(tris);
-                            panel.getPreview3DFX().setBrightness(panel.getBrightness());
-                            panel.getPreview3DFX().setContrast(panel.getContrast());
-                            panel.getPreview3DFX().setCheckerboard(panel.isCheckerboard());
-                            panel.getPreview3DFX().setAntiAlias(panel.isAntiAlias());
-                            panel.getPreview3DFX().setCrosshairVisible(panel.isCrosshair());
-                            float[] bb = StlMeshBuilder.boundingBox(tris);
-                            logger.info("Renderizando el archivo: {} x: {} y: {} z: {}",
-                                pathSiendoCargado.getFileName(), String.format("%.2f", bb[3] - bb[0]),
-                                String.format("%.2f", bb[4] - bb[1]), String.format("%.2f", bb[5] - bb[2]));
+                            logger.debug("[RenderController] Llamando cargarMalla3D...");
+                            sceneController.cargarMalla3D(tris, panel.getBrightness(), panel.getContrast(),
+                                    panel.isCheckerboard(), panel.isAntiAlias(), panel.isCrosshair());
                             logger.debug("[RenderController] setMesh completado");
                         } else {
                             logger.warn("[RenderController] Omitiendo setMesh: path ha cambiado");
@@ -1135,13 +1170,15 @@ public class RenderController {
                         mostrarErrorCarga("El archivo STL no contiene triángulos o está vacío.");
                     }
                 } catch (Exception e) {
-                    logger.warn("[RenderController] Excepción en done(): " + e.getMessage());
-                    e.printStackTrace();
-                    logger.warn("No se pudieron cargar tri\u00E1ngulos para preview", e);
-                    mostrarErrorCarga("Error al cargar STL:\n" + e.getMessage());
+                    if (!isCancelled()) {
+                        logger.warn("[RenderController] Excepción en done(): " + e.getMessage());
+                        logger.warn("No se pudieron cargar triángulos para preview", e);
+                        mostrarErrorCarga("Error al cargar STL:\n" + e.getMessage());
+                    }
                 }
             }
-        }.execute();
+        };
+        currentTriangleWorker.execute();
     }
 
     private JFrame getParentFrame() {
@@ -1404,6 +1441,61 @@ public class RenderController {
 
 
     /**
+     * Consulta si hay renders aprobados pendientes de copiar y, de ser así,
+     * muestra un diálogo con opciones para que el usuario decida qué hacer.
+     * @return true si se debe continuar con el cierre, false para cancelarlo.
+     */
+    public boolean handleCloseWithPendingApprovedRenders() {
+        if (thumbnailsAprobados.isEmpty()) {
+            return true;
+        }
+
+        String msg = "Hay " + thumbnailsAprobados.size() + " render(s) aprobado(s) en la carpeta temporal:\n"
+                + outputDir.toAbsolutePath() + "\n\n¿Qué deseas hacer?";
+        String[] options = { "Salir", "Abrir carpeta temporal y salir", "Cancelar", "Copiar PNGs a..." };
+        int choice = JOptionPane.showOptionDialog(parentFrame,
+                msg, "Render sin copiar",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+                null, options, options[2]);
+
+        switch (choice) {
+            case 0: // Salir
+                tempFileManager.limpiarOutputDir();
+                return true;
+            case 1: // Abrir carpeta temporal y salir
+                openTempFolder();
+                return true;
+            case 3: { // Copiar PNGs a...
+                Path dir = lastScanFolder != null ? lastScanFolder : Path.of(System.getProperty("user.home"));
+                JFileChooser chooser = new JFileChooser(dir.toFile());
+                chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                chooser.setDialogTitle("Seleccionar carpeta de destino");
+                if (chooser.showOpenDialog(parentFrame) != JFileChooser.APPROVE_OPTION) {
+                    return false;
+                }
+                Path dest = chooser.getSelectedFile().toPath();
+                int copied = 0;
+                for (Path png : thumbnailsAprobados) {
+                    try {
+                        Files.copy(png, dest.resolve(png.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+                        copied++;
+                    } catch (IOException ex) {
+                        logger.error("Error copiando {} a {}", png, dest, ex);
+                    }
+                }
+                tempFileManager.limpiarOutputDir();
+                JOptionPane.showMessageDialog(parentFrame,
+                        "Copiados " + copied + " archivo(s) a:\n" + dest,
+                        "Copiar renders", JOptionPane.INFORMATION_MESSAGE);
+                return true;
+            }
+            default: // Cancelar o cerrar diálogo
+                return false;
+        }
+    } // --- Fin del metodo handleCloseWithPendingApprovedRenders ---
+
+
+    /**
      * Re-renderiza el STL actual con la orientación del preview 3D y los
      * ajustes de brillo/contraste/AA/fondo. Sobrescribe el PNG en outputDir
      * y actualiza la rejilla de thumbnails.
@@ -1436,6 +1528,7 @@ public class RenderController {
                 Files.copy(currentPreviewPath, dest, StandardCopyOption.REPLACE_EXISTING);
                 logger.info("Imagen original copiada al grid: {}", dest.getFileName());
             }
+            thumbnailsAprobados.add(dest);
             refreshThumbnails(dest);
         } catch (IOException e) {
             logger.error("Error al asignar imagen al grid", e);
@@ -1484,7 +1577,8 @@ public class RenderController {
                     currentPreviewPath.getFileName(),
                     String.format("%.1f", rotX), String.format("%.1f", rotY),
                     antiAlias, bgMode);
-            triangleCache.put(currentPreviewPath, currentTriangles);
+            putCachedTriangles(currentPreviewPath, currentTriangles);
+            thumbnailsAprobados.add(currentPreviewPath);
             refreshThumbnails(currentPreviewPath);
         } catch (IOException e) {
             logger.error("Error al guardar PNG re-renderizado: {}", currentPreviewPath, e);

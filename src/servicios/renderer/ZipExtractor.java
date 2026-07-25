@@ -244,10 +244,10 @@ public class ZipExtractor {
         try (Stream<Path> walk = Files.walk(dir)) {
             walk.sorted(Comparator.reverseOrder())
                     .forEach(p -> {
-                        try { Files.deleteIfExists(p); } catch (Exception e) {}
+                        try { Files.deleteIfExists(p); } catch (Exception e) { logger.warn("No se pudo eliminar archivo temporal en ZipExtractor: {}", p, e); }
                     });
         } catch (Exception e) {
-            logger.warn("No se pudo limpiar temporal: {}", dir);
+            logger.warn("No se pudo limpiar temporal en ZipExtractor: {}", dir, e);
         }
     }
 

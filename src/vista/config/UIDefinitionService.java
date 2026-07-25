@@ -1208,7 +1208,64 @@ public class UIDefinitionService {
                         "70303-delete-layer.png", "Borra Capa Actual", "previewRender")
         		
     	);
+        
+        List<ToolbarComponentDefinition> componentesLayerAlign = List.of(
+        	
+        		new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_INFERIOR,
+                        "70401-align-borde-inferior.png", "Alinear Bordes Inferiores", "layeralign")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_CENTRO_VERTICAL,
+                        "70402-align-centro-vertical.png", "Alinear Centros Verticales", "layeralign")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_SUPERIOR,
+                        "70403-align-borde-superior.png", "Alinear Bordes Superiores", "layeralign")
+        		
+        		, new SeparatorDefinition()
+        		
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_IZQUIERDO,
+                        "70404-align-borde-izquierdo.png", "Alinear Bordes Izquierdos", "layeralign")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_CENTRO_HORIZONTAL,
+                        "70405-align-centro-horizontal.png", "Alinear Centros Horizontales", "layeralign")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_DERECHO,
+                        "70406-align-borde-derecho.png", "Alinear Bordes Derechos", "layeralign")
+		);
 
+        List<ToolbarComponentDefinition> componentesLayerDistribute = List.of(
+            	
+        		new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_BOTTOM_BORDER,
+                        "70501-distribute-bottom-border.png", "Distribuir Bordes Superiores", "layerDistribute")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_VERTICAL,
+                        "70502-distribute-center-vertical.png", "Distribuir Centros Verticales", "layerDistribute")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_TOP_BORDER,
+                        "70503-distribute-top-border.png", "Distribuir Bordes Inferiores", "layerDistribute")
+        		
+        		, new SeparatorDefinition()
+        		
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_LEFT_BORDER,
+                        "70504-distribute-left-border.png", "Distribuir Bordes Izquierdos", "layerDistribute")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_HORIZONTAL,
+                        "70505-distribute-center-horizontal.png", "Distribuir Centros Horizontales", "layerDistribute")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_RIGHT_BORDER,
+                        "70506-distribute-right--border.png", "Distribuir Bordes Derechos", "layerDistribute")
+        		
+		);
+        
+        List<ToolbarComponentDefinition> componentesLayerDistributeSpace = List.of(
+            	
+        		new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_HORIZONTAL_SPACE,
+                        "70601-distribute-horizontal-space.png", "Distribuye Espacios Horizontales", "layerdistributespace")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_VERTICAL_SPACE,
+                        "70602-distribute-vertical-space.png", "Distribuye Espacios Verticales", "layerdistributespace")
+        		
+		);
+        
+        List<ToolbarComponentDefinition> componentesLayerAutoDistribute = List.of(
+            	
+        		new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_FIXED,
+                        "70701-auto-distribute-fixed.png", "Distribucion Fija por Posicion", "layerautodistribute")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_LAYER,
+                        "70701-auto-distribute-layer.png", "Distribucion por Tamaño de la Capa", "layerautodistribute")
+        		
+		);
+        
         // =====================================================================
         // DEFINICIÓN DE TOOLBARS
         // =====================================================================

@@ -181,8 +181,42 @@ public class Zip2PngScanner {
     }
 
     private String nombreBase(String name) {
-        int dot = name.indexOf('.');
-        return (dot == -1) ? name : name.substring(0, dot);
+        String s = name.toLowerCase();
+        // Quitar extensiones de archivo comprimido conocidas, iterativamente
+        while (true) {
+            String ext = null;
+            if (s.endsWith(".rar")) ext = ".rar";
+            else if (s.endsWith(".zip")) ext = ".zip";
+            else if (s.endsWith(".7z")) ext = ".7z";
+            else if (s.endsWith(".tar")) ext = ".tar";
+            else if (s.endsWith(".gz")) ext = ".gz";
+            else if (s.endsWith(".bz2")) ext = ".bz2";
+            else if (s.endsWith(".xz")) ext = ".xz";
+            else if (s.endsWith(".zst")) ext = ".zst";
+            else if (s.endsWith(".lz")) ext = ".lz";
+            else if (s.endsWith(".lz4")) ext = ".lz4";
+            else if (s.endsWith(".001")) ext = ".001";
+            else if (s.endsWith(".stl")) ext = ".stl";
+            else if (s.endsWith(".obj")) ext = ".obj";
+            else if (s.endsWith(".3mf")) ext = ".3mf";
+            if (ext == null) break;
+            String sinExt = s.substring(0, s.length() - ext.length());
+            if (sinExt.isEmpty()) break;
+            s = sinExt;
+        }
+        // Quitar sufijos de multivolumen (.partN, .rNN, .zNN, .7z.NNN)
+        s = s.replaceAll("\\.part\\d+$", "");
+        s = s.replaceAll("\\.r\\d+$", "");
+        s = s.replaceAll("\\.z\\d{2}$", "");
+        s = s.replaceAll("\\.7z\\.\\d{3,}$", "");
+        // Quitar cualquier extensión de imagen restante
+        for (String imgExt : new String[]{".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp", ".webp", ".gif"}) {
+            if (s.endsWith(imgExt)) {
+                s = s.substring(0, s.length() - imgExt.length());
+                break;
+            }
+        }
+        return s;
     }
 
     private boolean esExtension3D(String name) {

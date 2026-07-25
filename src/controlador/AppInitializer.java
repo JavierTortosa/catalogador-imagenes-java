@@ -657,7 +657,9 @@ public class AppInitializer {
                 this.generalController.setImageListManager(imageListManager);
                 this.actionFactory.setImageListManager(imageListManager);
                 this.actionFactory.setClientController(this.clientController);
-                this.actionFactory.setRenderController(this.viewBuilder.getRenderController());
+                RenderController rc = this.viewBuilder.getRenderController();
+                this.actionFactory.setRenderController(rc);
+                this.generalController.setRenderController(rc);
                 this.clientController.setActionFactory(this.actionFactory);
                 this.actionFactory.initializeLateActions();
 
