@@ -8,17 +8,17 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -28,73 +28,92 @@ import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
+import javax.swing.JToggleButton;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 import controlador.commands.AppActionCommands;
+import vista.config.SeparatorDefinition;
+import vista.config.ToolbarButtonDefinition;
+import vista.config.ToolbarComponentDefinition;
+import vista.config.ToolbarDefinition;
+import vista.config.UIDefinitionService;
+import vista.theme.Tema;
+import vista.theme.ThemeChangeListener;
+import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 
-public class AdvanceEditPanel extends JPanel {
+public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
     private final JPanel canvasPanel;
     private final JPanel advanceEditToolsPanel;
     private final JPanel toolbarContainer;
+    private final JPanel mainContent;
+    private final JSplitPane advanceEditSplit;
     private final JPanel statusBar;
+    private final JLabel statusLabel;
+    private final JLabel toolsTitle;
     private boolean advanceEditToolsVisible;
     private boolean advanceEditActive;
+    private IconUtils iconUtils;
+    private UIDefinitionService uiDefinitionService;
     private int iconWidth = 24;
     private int iconHeight = 24;
-    private IconUtils iconUtils;
+
+    // Colores temáticos (inicializados con defaults oscuros)
+    private Color bgMain = new Color(40, 40, 45);
+    private Color bgTools = new Color(50, 50, 55);
+    private Color bgToolbar = new Color(45, 45, 50);
+    private Color bgHeader = new Color(48, 48, 53);
+    private Color bgStatus = new Color(55, 55, 60);
+    private Color fgStatus = Color.WHITE;
+    private Color borderColor = new Color(60, 60, 65);
+    private Color fgSectionTitle = new Color(180, 180, 190);
 
     public AdvanceEditPanel() {
         setLayout(new BorderLayout());
-        setBackground(new Color(40, 40, 45));
+        setBackground(bgMain);
 
-        // --- Status bar superior ---
         statusBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
-        statusBar.setBackground(new Color(55, 55, 60));
+        statusBar.setBackground(bgStatus);
         statusBar.setPreferredSize(new Dimension(0, 26));
-        JLabel statusLabel = new JLabel("Editor avanzado");
-        statusLabel.setForeground(Color.WHITE);
+        statusLabel = new JLabel("Editor avanzado");
+        statusLabel.setForeground(fgStatus);
         statusBar.add(statusLabel);
         add(statusBar, BorderLayout.NORTH);
 
-        // --- Contenedor principal (toolbar izquierda + split central) ---
-        JPanel mainContent = new JPanel(new BorderLayout());
-        mainContent.setBackground(new Color(40, 40, 45));
+        mainContent = new JPanel(new BorderLayout());
+        mainContent.setBackground(bgMain);
 
-        // --- Toolbar izquierda (toolbox) ---
         toolbarContainer = new JPanel();
         toolbarContainer.setLayout(new BoxLayout(toolbarContainer, BoxLayout.Y_AXIS));
-        toolbarContainer.setBackground(new Color(45, 45, 50));
+        toolbarContainer.setBackground(bgToolbar);
         toolbarContainer.setPreferredSize(new Dimension(36, 0));
         toolbarContainer.setMinimumSize(new Dimension(36, 0));
         mainContent.add(toolbarContainer, BorderLayout.WEST);
 
-        // --- Panel de herramientas derecha ---
         advanceEditToolsVisible = true;
 
         advanceEditToolsPanel = new JPanel(new BorderLayout());
-        advanceEditToolsPanel.setBackground(new Color(50, 50, 55));
+        advanceEditToolsPanel.setBackground(bgTools);
         advanceEditToolsPanel.setPreferredSize(new Dimension(160, 0));
         advanceEditToolsPanel.setMinimumSize(new Dimension(0, 0));
 
         JPanel toolsHeader = new JPanel(new BorderLayout());
-        toolsHeader.setBackground(new Color(55, 55, 60));
+        toolsHeader.setBackground(bgStatus);
         toolsHeader.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 4));
-        JLabel toolsTitle = new JLabel("Herramientas");
-        toolsTitle.setForeground(Color.WHITE);
+        toolsTitle = new JLabel("Herramientas");
+        toolsTitle.setForeground(fgStatus);
         toolsHeader.add(toolsTitle, BorderLayout.WEST);
         advanceEditToolsPanel.add(toolsHeader, BorderLayout.NORTH);
 
         JPanel toolsContent = new JPanel(new BorderLayout());
-        toolsContent.setBackground(new Color(50, 50, 55));
+        toolsContent.setBackground(bgTools);
         advanceEditToolsPanel.add(toolsContent, BorderLayout.CENTER);
 
-        // --- Split central: canvas | tools ---
-        JSplitPane advanceEditSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        advanceEditSplit.setBackground(new Color(40, 40, 45));
+        advanceEditSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        advanceEditSplit.setBackground(bgMain);
         advanceEditSplit.setBorder(null);
         advanceEditSplit.setResizeWeight(1.0);
         advanceEditSplit.setDividerSize(6);
@@ -107,16 +126,59 @@ public class AdvanceEditPanel extends JPanel {
         });
 
         canvasPanel = new JPanel(new BorderLayout());
-        canvasPanel.setBackground(new Color(40, 40, 45));
+        canvasPanel.setBackground(bgMain);
         advanceEditSplit.setLeftComponent(canvasPanel);
         advanceEditSplit.setRightComponent(advanceEditToolsPanel);
         advanceEditSplit.setDividerLocation(Integer.MAX_VALUE);
 
         mainContent.add(advanceEditSplit, BorderLayout.CENTER);
         add(mainContent, BorderLayout.CENTER);
-
-        buildDefaultTools();
     } // --- Fin del constructor AdvanceEditPanel ---
+
+
+    @Override
+    public void onThemeChanged(Tema tema) {
+        SwingUtilities.invokeLater(() -> {
+            bgMain = tema.colorFondoSecundario();
+            bgTools = tema.colorFondoPrincipal();
+            bgToolbar = tema.colorFondoPrincipal();
+            bgHeader = tema.colorFondoPrincipal();
+            bgStatus = tema.colorBarraEstadoFondo();
+            fgStatus = tema.colorBarraEstadoTexto();
+            borderColor = tema.colorBorde();
+            fgSectionTitle = tema.colorTextoSecundario();
+
+            setBackground(bgMain);
+            statusBar.setBackground(bgStatus);
+            statusLabel.setForeground(fgStatus);
+            toolbarContainer.setBackground(bgToolbar);
+            mainContent.setBackground(bgMain);
+            advanceEditSplit.setBackground(bgMain);
+            advanceEditSplit.setDividerSize(6);
+            advanceEditToolsPanel.setBackground(bgTools);
+
+            for (java.awt.Component c : advanceEditToolsPanel.getComponents()) {
+                if (c instanceof JPanel h && ((BorderLayout) advanceEditToolsPanel.getLayout()).getLayoutComponent(BorderLayout.NORTH) == h) {
+                    h.setBackground(bgStatus);
+                    for (java.awt.Component child : ((JPanel) h).getComponents()) {
+                        if (child instanceof JLabel) child.setForeground(fgStatus);
+                    }
+                }
+            }
+
+            canvasPanel.setBackground(bgMain);
+            toolsTitle.setForeground(fgStatus);
+
+            rebuildTools();
+        });
+    } // --- Fin del metodo onThemeChanged ---
+
+
+    public void setThemeManager(ThemeManager themeManager) {
+        if (themeManager != null) {
+            themeManager.addThemeChangeListener(this);
+        }
+    } // --- Fin del metodo setThemeManager ---
 
 
     public void setActive(boolean active) {
@@ -170,14 +232,14 @@ public class AdvanceEditPanel extends JPanel {
         if (buttons.length == 0) return;
         JPanel group = new JPanel();
         group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
-        group.setBackground(new Color(45, 45, 50));
+        group.setBackground(bgToolbar);
         for (javax.swing.JButton btn : buttons) {
             btn.setAlignmentX(javax.swing.JComponent.CENTER_ALIGNMENT);
             btn.setPreferredSize(new Dimension(28, 28));
             btn.setMaximumSize(new Dimension(28, 28));
             btn.setMinimumSize(new Dimension(28, 28));
-            btn.setBackground(new Color(55, 55, 60));
-            btn.setForeground(Color.WHITE);
+            btn.setBackground(bgStatus);
+            btn.setForeground(fgStatus);
             btn.setFocusPainted(false);
             btn.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
             group.add(btn);
@@ -204,64 +266,39 @@ public class AdvanceEditPanel extends JPanel {
     // Construcción del contenido del panel de herramientas (lado derecho)
     // -----------------------------------------------------------------------
 
-    private static final Color BG_TOOLS = new Color(50, 50, 55);
-    private static final Color FG_SECTION_TITLE = new Color(180, 180, 190);
-
     private void buildDefaultTools() {
         JPanel tc = getToolsContent();
         tc.setLayout(new BorderLayout());
 
         JScrollPane scroll = new JScrollPane();
         scroll.setBorder(null);
-        scroll.getViewport().setBackground(BG_TOOLS);
+        scroll.getViewport().setBackground(bgTools);
         scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
 
         JPanel container = new JPanel();
         container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
-        container.setBackground(BG_TOOLS);
+        container.setBackground(bgTools);
         container.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
 
-        container.add(createSection("Alinear", new String[][] {
-            {AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_INFERIOR, "70401-align-borde-inferior.png", "Alinear borde inferior"},
-            {AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_CENTRO_VERTICAL, "70402-align-centro-vertical.png", "Alinear centro vertical"},
-            {AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_SUPERIOR, "70403-align-borde-superior.png", "Alinear borde superior"},
-            {AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_IZQUIERDO, "70404-align-borde-izquierdo.png", "Alinear borde izquierdo"},
-            {AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_CENTRO_HORIZONTAL, "70405-align-centro-horizontal.png", "Alinear centro horizontal"},
-            {AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_DERECHO, "70406-align-borde-derecho.png", "Alinear borde derecho"},
-        }, 3));
-
-        container.add(Box.createVerticalStrut(2));
-        container.add(createSection("Distribuir", new String[][] {
-            {AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_BOTTOM_BORDER, "70501-distribute-bottom-border.png", "Distribuir bordes inferiores"},
-            {AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_VERTICAL, "70502-distribute-center-vertical.png", "Distribuir centros verticales"},
-            {AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_TOP_BORDER, "70503-distribute-top-border.png", "Distribuir bordes superiores"},
-            {AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_LEFT_BORDER, "70504-distribute-left-border.png", "Distribuir bordes izquierdos"},
-            {AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_HORIZONTAL, "70505-distribute-center-horizontal.png", "Distribuir centros horizontales"},
-            {AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_RIGHT_BORDER, "70506-distribute-right-border.png", "Distribuir bordes derechos"},
-        }, 3));
-
-        container.add(Box.createVerticalStrut(2));
-        container.add(createSection("Espacio", new String[][] {
-            {AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_HORIZONTAL_SPACE, "70601-distribute-horizontal-space.png", "Distribuir espacio horizontal"},
-            {AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_VERTICAL_SPACE, "70602-distribute-vertical-space.png", "Distribuir espacio vertical"},
-        }, 2));
-
-        container.add(Box.createVerticalStrut(2));
-        container.add(createSection("Auto distribuir", new String[][] {
-            {AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_FIXED, "70701-auto-distribute-fixed.png", "Distribución fija por posición"},
-            {AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_LAYER, "70701-auto-distribute-layer.png", "Distribución por tamaño de capa"},
-        }, 2));
-
-        container.add(createSection("Auto distribuir", new String[][] {
-            {AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_FIXED, "70701-auto-distribute-fixed.png", "Distribución fija por posición"},
-            {AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_LAYER, "70701-auto-distribute-layer.png", "Distribución por tamaño de capa"},
-        }, 2));
+        if (iconUtils != null && uiDefinitionService != null) {
+            container.add(createSectionFromDefs("Alinear",
+                    uiDefinitionService.getComponentesLayerAlign(), 3));
+            container.add(Box.createVerticalStrut(2));
+            container.add(createSectionFromDefs("Distribuir",
+                    uiDefinitionService.getComponentesLayerDistribute(), 3));
+            container.add(Box.createVerticalStrut(2));
+            container.add(createSectionFromDefs("Espacio",
+                    uiDefinitionService.getComponentesLayerDistributeSpace(), 2));
+            container.add(Box.createVerticalStrut(2));
+            container.add(createSectionFromDefs("Auto distribuir",
+                    uiDefinitionService.getComponentesLayerAutoDistribute(), 2));
+        }
 
         // --- Texto (tabs: alineamiento + fuentes) ---
         JTabbedPane textTabs = new JTabbedPane();
-        textTabs.setBackground(new Color(55, 55, 60));
-        textTabs.setForeground(FG_SECTION_TITLE);
+        textTabs.setBackground(bgStatus);
+        textTabs.setForeground(fgSectionTitle);
         textTabs.setFont(textTabs.getFont().deriveFont(10f));
         textTabs.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
         textTabs.setPreferredSize(new Dimension(160, 140));
@@ -272,13 +309,12 @@ public class AdvanceEditPanel extends JPanel {
 
         // --- Capas (tabs: capas + orden) ---
         JTabbedPane capasTabs = new JTabbedPane();
-        capasTabs.setBackground(new Color(55, 55, 60));
-        capasTabs.setForeground(FG_SECTION_TITLE);
+        capasTabs.setBackground(bgStatus);
+        capasTabs.setForeground(fgSectionTitle);
         capasTabs.setFont(capasTabs.getFont().deriveFont(10f));
         capasTabs.setPreferredSize(new Dimension(160, 150));
         capasTabs.setMinimumSize(new Dimension(160, 100));
 
-        // Pestaña "Capas": tabla con visibilidad + nombre
         DefaultTableModel layerModel = new DefaultTableModel(new String[]{"Visible", "Nombre"}, 0) {
             @Override
             public Class<?> getColumnClass(int col) {
@@ -293,47 +329,47 @@ public class AdvanceEditPanel extends JPanel {
         layerTable.setTableHeader(null);
         layerTable.setShowGrid(false);
         layerTable.setRowHeight(22);
-        layerTable.setBackground(new Color(50, 50, 55));
-        layerTable.setForeground(FG_SECTION_TITLE);
+        layerTable.setBackground(bgTools);
+        layerTable.setForeground(fgSectionTitle);
         layerTable.setSelectionBackground(new Color(65, 65, 75));
-        layerTable.setSelectionForeground(FG_SECTION_TITLE);
+        layerTable.setSelectionForeground(fgSectionTitle);
         layerTable.getColumnModel().getColumn(0).setMaxWidth(28);
         layerTable.getColumnModel().getColumn(0).setMinWidth(28);
         JScrollPane capasScroll = new JScrollPane(layerTable);
         capasScroll.setBorder(null);
-        capasScroll.getViewport().setBackground(new Color(50, 50, 55));
+        capasScroll.getViewport().setBackground(bgTools);
         capasTabs.addTab("Capas", capasScroll);
 
         // Pestaña "Orden": botones de orden
         JPanel ordenPanel = new JPanel(new BorderLayout());
-        ordenPanel.setBackground(BG_TOOLS);
+        ordenPanel.setBackground(bgTools);
         ordenPanel.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
-
-        JPanel orderGrid = new JPanel(new GridLayout(2, 2, 5, 5));
-        orderGrid.setBackground(BG_TOOLS);
-        orderGrid.add(createToolButton(AppActionCommands.CMD_PREVIEW_RENDER_BRING_TO_FRONT,
-                "70201-bring-to-front.png", "Traer al frente"));
-        orderGrid.add(createToolButton(AppActionCommands.CMD_PREVIEW_RENDER_BRING_FORWARD,
-                "70202-bring-forward.png", "Adelantar"));
-        orderGrid.add(createToolButton(AppActionCommands.CMD_PREVIEW_RENDER_SEND_BACKWARD,
-                "70203-send-backward.png", "Retroceder"));
-        orderGrid.add(createToolButton(AppActionCommands.CMD_PREVIEW_RENDER_SEND_TO_BACK,
-                "70204-send-to-back.png", "Enviar al fondo"));
-        ordenPanel.add(orderGrid, BorderLayout.NORTH);
+        if (iconUtils != null && uiDefinitionService != null) {
+            JPanel orderGrid = new JPanel(new GridLayout(2, 2, 5, 5));
+            orderGrid.setBackground(bgTools);
+            for (ToolbarComponentDefinition def : uiDefinitionService.getComponentesLayerOrderPreviewRender()) {
+                if (def instanceof ToolbarButtonDefinition btnDef) {
+                    orderGrid.add(wrapInCell(createButtonFromDef(btnDef)));
+                }
+            }
+            ordenPanel.add(orderGrid, BorderLayout.NORTH);
+        }
         capasTabs.addTab("Orden", ordenPanel);
 
-        // Contenedor capas: tabs + barra de herramientas inferior
         JPanel capasContent = new JPanel(new BorderLayout());
-        capasContent.setBackground(BG_TOOLS);
+        capasContent.setBackground(bgTools);
         capasContent.add(capasTabs, BorderLayout.CENTER);
 
-        JPanel layerToolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
-        layerToolbar.setBackground(BG_TOOLS);
-        layerToolbar.add(createToolButton(AppActionCommands.CMD_PREVIEW_RENDER_CLEAN_AND_ADD,
-                "70301-clean-and-add-image.png", "Limpiar y añadir imagen"));
-        layerToolbar.add(createToolButton(AppActionCommands.CMD_PREVIEW_RENDER_DELETE_LAYER,
-                "70303-delete-layer.png", "Eliminar capa"));
-        capasContent.add(layerToolbar, BorderLayout.SOUTH);
+        if (iconUtils != null && uiDefinitionService != null) {
+            JPanel layerToolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
+            layerToolbar.setBackground(bgTools);
+            for (ToolbarComponentDefinition def : uiDefinitionService.getComponentesLayerLoadPreviewRender()) {
+                if (def instanceof ToolbarButtonDefinition btnDef) {
+                    layerToolbar.add(createButtonFromDef(btnDef));
+                }
+            }
+            capasContent.add(layerToolbar, BorderLayout.SOUTH);
+        }
 
         container.add(Box.createVerticalStrut(2));
         container.add(createSection("Capas", capasContent, true));
@@ -350,38 +386,35 @@ public class AdvanceEditPanel extends JPanel {
 
     private JPanel createSection(String title, JComponent content, boolean stretch) {
         JPanel section = new JPanel(new BorderLayout());
-        section.setBackground(BG_TOOLS);
+        section.setBackground(bgTools);
 
-        // --- Header clicable (flecha + título) ---
         section.setAlignmentX(LEFT_ALIGNMENT);
 
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
-        header.setBackground(new Color(48, 48, 53));
-        header.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, new Color(60, 60, 65)));
+        header.setBackground(bgHeader);
+        header.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, borderColor));
         header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-        JLabel arrowLbl = new JLabel("\u25BC"); // ▼ expandido por defecto
-        arrowLbl.setForeground(FG_SECTION_TITLE);
+        JLabel arrowLbl = new JLabel("\u25BC");
+        arrowLbl.setForeground(fgSectionTitle);
         arrowLbl.setFont(new Font("SansSerif", Font.PLAIN, 9));
 
         JLabel titleLbl = new JLabel(title);
-        titleLbl.setForeground(FG_SECTION_TITLE);
+        titleLbl.setForeground(fgSectionTitle);
         titleLbl.setFont(titleLbl.getFont().deriveFont(Font.BOLD, 11f));
 
         header.add(arrowLbl);
         header.add(titleLbl);
         section.add(header, BorderLayout.NORTH);
 
-        // --- Contenido directamente en CENTER (llena todo el ancho) ---
         section.add(content, BorderLayout.CENTER);
 
-        // --- Toggle colapso al hacer clic en el header ---
         header.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 boolean visible = !content.isVisible();
                 content.setVisible(visible);
-                arrowLbl.setText(visible ? "\u25BC" : "\u25B6"); // ▼ / ▶
+                arrowLbl.setText(visible ? "\u25BC" : "\u25B6");
                 if (visible) {
                     section.invalidate();
                     if (stretch) {
@@ -405,86 +438,165 @@ public class AdvanceEditPanel extends JPanel {
     } // --- Fin del metodo createSection (stretch) ---
 
 
-    private JPanel createSection(String title, String[][] buttons, int columns) {
+    private JPanel createSectionFromDefs(String title, List<ToolbarComponentDefinition> defs, int columns) {
         JPanel grid = new JPanel(new GridLayout(0, columns, 5, 5));
-        grid.setBackground(BG_TOOLS);
+        grid.setBackground(bgTools);
         grid.setBorder(BorderFactory.createEmptyBorder(2, 8, 6, 8));
-        for (String[] btnData : buttons) {
-            JButton btn = createToolButton(btnData[0], btnData[1], btnData[2]);
-            JPanel cell = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-            cell.setBackground(BG_TOOLS);
-            cell.add(btn);
-            grid.add(cell);
+        for (ToolbarComponentDefinition def : defs) {
+            if (def instanceof ToolbarButtonDefinition btnDef) {
+                grid.add(wrapInCell(createButtonFromDef(btnDef)));
+            }
         }
         return createSection(title, grid, false);
-    } // --- Fin del metodo createSection (grid) ---
+    } // --- Fin del metodo createSectionFromDefs ---
 
 
-    private JButton createToolButton(String command, String iconName, String tooltip) {
-        Action stubAction = new AbstractAction() {
+    private JButton createButtonFromDef(ToolbarButtonDefinition def) {
+        Action action = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Stub — sin implementación todavía
+                // Stub — sin implementacion todavia
             }
         };
-        stubAction.putValue(Action.ACTION_COMMAND_KEY, command);
-        stubAction.putValue(Action.SHORT_DESCRIPTION, tooltip);
-
-        ImageIcon icon = loadIcon(iconName);
-        if (icon != null) {
-            stubAction.putValue(Action.SMALL_ICON, icon);
+        action.putValue(Action.ACTION_COMMAND_KEY, def.comandoCanonico());
+        action.putValue(Action.SHORT_DESCRIPTION, def.textoTooltip());
+        if (iconUtils != null) {
+            javax.swing.ImageIcon icon = iconUtils.getScaledIcon(def.claveIcono(), iconWidth, iconHeight);
+            if (icon != null) {
+                action.putValue(Action.SMALL_ICON, icon);
+            }
         }
 
-        JButton btn = new JButton(stubAction);
+        JButton btn = new JButton(action);
         btn.setFocusPainted(false);
         btn.setPreferredSize(new Dimension(iconWidth, iconHeight));
         btn.setMinimumSize(new Dimension(iconWidth, iconHeight));
         btn.setMaximumSize(new Dimension(iconWidth, iconHeight));
-        btn.setBackground(new Color(50, 50, 55));
+        btn.setBackground(bgTools);
         btn.setBorder(BorderFactory.createEmptyBorder());
 
         return btn;
-    } // --- Fin del metodo createToolButton ---
+    } // --- Fin del metodo createButtonFromDef ---
 
 
-    private ImageIcon loadIcon(String name) {
-        if (iconUtils != null) {
-            return iconUtils.getScaledIcon(name, iconWidth, iconHeight);
-        }
-        try {
-            java.net.URL url = getClass().getResource("/iconos/black/" + name);
-            if (url != null) {
-                ImageIcon original = new ImageIcon(url);
-                Image scaled = original.getImage().getScaledInstance(iconWidth, iconHeight, Image.SCALE_SMOOTH);
-                return new ImageIcon(scaled);
-            }
-        } catch (Exception e) {
-            // ignorar
-        }
-        return null;
-    } // --- Fin del metodo loadIcon ---
+    private JPanel wrapInCell(JComponent comp) {
+        JPanel cell = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        cell.setBackground(bgTools);
+        cell.add(comp);
+        return cell;
+    } // --- Fin del metodo wrapInCell ---
 
 
     public void setIconUtils(IconUtils iconUtils) {
         this.iconUtils = iconUtils;
-        JPanel tc = getToolsContent();
-        if (tc.getComponentCount() > 0) {
-            rebuildTools();
-        }
+        rebuildIfReady();
     } // --- Fin del metodo setIconUtils ---
+
+
+    public void setUiDefinitionService(UIDefinitionService service) {
+        this.uiDefinitionService = service;
+        rebuildIfReady();
+    } // --- Fin del metodo setUiDefinitionService ---
 
 
     public void setIconSize(int width, int height) {
         if (width > 0) this.iconWidth = width;
         if (height > 0) this.iconHeight = height;
-        rebuildTools();
+        rebuildIfReady();
     } // --- Fin del metodo setIconSize ---
+
+
+    private void buildLeftToolbar() {
+        toolbarContainer.removeAll();
+
+        if (iconUtils == null || uiDefinitionService == null) return;
+
+        ToolbarDefinition tbDef = uiDefinitionService.getToolbarDefinition("editoravanzado");
+        if (tbDef == null) return;
+
+        List<ToolbarComponentDefinition> comps = tbDef.componentes();
+
+        int separatorCount = 0;
+        for (ToolbarComponentDefinition comp : comps) {
+            if (comp instanceof SeparatorDefinition) separatorCount++;
+        }
+
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBackground(bgToolbar);
+        toolbarContainer.add(mainPanel);
+
+        JPanel bottomPanel = null;
+        ButtonGroup mainGroup = new ButtonGroup();
+        int sepIndex = 0;
+
+        for (ToolbarComponentDefinition comp : comps) {
+            if (comp instanceof SeparatorDefinition) {
+                sepIndex++;
+                if (sepIndex == separatorCount) {
+                    toolbarContainer.add(Box.createVerticalGlue());
+                    toolbarContainer.add(new JSeparator(JSeparator.HORIZONTAL));
+                    bottomPanel = new JPanel();
+                    bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.Y_AXIS));
+                    bottomPanel.setBackground(bgToolbar);
+                    toolbarContainer.add(bottomPanel);
+                }
+            } else if (comp instanceof ToolbarButtonDefinition btnDef) {
+                Action action = new AbstractAction() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        // Stub — sin implementacion todavia
+                    }
+                };
+                action.putValue(Action.ACTION_COMMAND_KEY, btnDef.comandoCanonico());
+                action.putValue(Action.SHORT_DESCRIPTION, btnDef.textoTooltip());
+                if (iconUtils != null) {
+                    javax.swing.ImageIcon icon = iconUtils.getScaledIcon(btnDef.claveIcono(), 20, 20);
+                    if (icon != null) {
+                        action.putValue(Action.SMALL_ICON, icon);
+                    }
+                }
+
+                JToggleButton btn = new JToggleButton(action);
+                btn.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+                btn.setPreferredSize(new Dimension(28, 28));
+                btn.setMaximumSize(new Dimension(28, 28));
+                btn.setMinimumSize(new Dimension(28, 28));
+                btn.setFocusPainted(false);
+                btn.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+                btn.setBackground(bgStatus);
+                btn.setForeground(fgStatus);
+
+                if (separatorCount > 0 && sepIndex == separatorCount) {
+                    bottomPanel.add(btn);
+                } else {
+                    mainGroup.add(btn);
+                    mainPanel.add(btn);
+                }
+            }
+        }
+
+        toolbarContainer.revalidate();
+        toolbarContainer.repaint();
+    } // --- Fin del metodo buildLeftToolbar ---
+
+
+    private void rebuildIfReady() {
+        if (iconUtils == null || uiDefinitionService == null) return;
+        JPanel tc = getToolsContent();
+        tc.removeAll();
+        buildDefaultTools();
+        buildLeftToolbar();
+        tc.revalidate();
+        tc.repaint();
+    } // --- Fin del metodo rebuildIfReady ---
 
 
     private void rebuildTools() {
         JPanel tc = getToolsContent();
         tc.removeAll();
         buildDefaultTools();
+        buildLeftToolbar();
         tc.revalidate();
         tc.repaint();
     } // --- Fin del metodo rebuildTools ---

@@ -1193,86 +1193,87 @@ public class UIDefinitionService {
         		
 		);
         
-        List<ToolbarComponentDefinition> componentesLayerOrderPreviewRender = List.of(
+        List<ToolbarComponentDefinition> toolbarEditorAvanzado = List.of(
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_EDICION,*/
+                        "80000-edicion.png", "Edicion", "tbeditoravanzado", ButtonType.TOGGLE)
+        		  
+        		, new SeparatorDefinition()
         		
-        		new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_BRING_TO_FRONT,
-                        "70201-bring-to-front.png", "Traer al frente", "layerorderpreview")
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_BRING_FORWARD,
-                        "70202-bring-forward.png", "Subir un Nivel", "layerorderpreview")
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_SEND_BACKWARD,
-                        "70203-send-backward.png", "Bajar un Nivel", "layerorderpreview")
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_SEND_TO_BACK,
-                        "70204-send-to-back.png", "Enviar al Fondo", "layerorderpreview")
-        		
-		);
-        		
-        List<ToolbarComponentDefinition> componentesLayerLoadPreviewRender = List.of(
-        		
-        		new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_CLEAN_AND_ADD,
-                        "70301-clean-and-add-image.png", "Borra Preview y Muestra Imagen", "previewRender")
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ADD_IMAGE,
-                        "70302-add-image-to-group.png", "Añade Capa Con Una Nueva Imagen", "previewRender")
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DELETE_LAYER,
-                        "70303-delete-layer.png", "Borra Capa Actual", "previewRender")
-        		
-    	);
-        
-        List<ToolbarComponentDefinition> componentesLayerAlign = List.of(
-        	
-        		new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_INFERIOR,
-                        "70401-align-borde-inferior.png", "Alinear Bordes Inferiores", "layeralign")
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_CENTRO_VERTICAL,
-                        "70402-align-centro-vertical.png", "Alinear Centros Verticales", "layeralign")
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_SUPERIOR,
-                        "70403-align-borde-superior.png", "Alinear Bordes Superiores", "layeralign")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_TRANSFORMAR,*/
+                        "80001-transform.png", "Transformar", "tbeditoravanzado", ButtonType.TOGGLE)
         		
         		, new SeparatorDefinition()
         		
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_IZQUIERDO,
-                        "70404-align-borde-izquierdo.png", "Alinear Bordes Izquierdos", "layeralign")
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_CENTRO_HORIZONTAL,
-                        "70405-align-centro-horizontal.png", "Alinear Centros Horizontales", "layeralign")
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_DERECHO,
-                        "70406-align-borde-derecho.png", "Alinear Bordes Derechos", "layeralign")
-		);
-
-        List<ToolbarComponentDefinition> componentesLayerDistribute = List.of(
-            	
-        		new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_BOTTOM_BORDER,
-                        "70501-distribute-bottom-border.png", "Distribuir Bordes Superiores", "layerDistribute")
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_VERTICAL,
-                        "70502-distribute-center-vertical.png", "Distribuir Centros Verticales", "layerDistribute")
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_TOP_BORDER,
-                        "70503-distribute-top-border.png", "Distribuir Bordes Inferiores", "layerDistribute")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SELECCIÓN_MARCO,*/
+        				"80002-seleccion-marco.png", "Selección por marco", "tbeditoravanzado", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SELECCIÓN_CAPA,*/
+                        "80003-seleccion-layer.png", "Selección por capa", "tbeditoravanzado", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_VARITA,*/
+                        "80004-varita.png", "Varita mágica", "tbeditoravanzado", ButtonType.TOGGLE)
         		
         		, new SeparatorDefinition()
         		
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_LEFT_BORDER,
-                        "70504-distribute-left-border.png", "Distribuir Bordes Izquierdos", "layerDistribute")
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_HORIZONTAL,
-                        "70505-distribute-center-horizontal.png", "Distribuir Centros Horizontales", "layerDistribute")
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_RIGHT_BORDER,
-                        "70506-distribute-right-border.png", "Distribuir Bordes Derechos", "layerDistribute")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_RECORTAR,*/
+                        "80005.-recortar.png", "Recortar", "tbeditoravanzado", ButtonType.TOGGLE)
         		
-		);
+        		, new SeparatorDefinition()
+        		
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_CUENTAGOTAS,*/
+                        "80006-cuentagotas.png", "Capturar el color situado bajo el cursor", "tbeditoravanzado", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_BOTE_PINTURA,*/
+                        "80007-bote-pintura.png", "Rellenar zonas con un color sólido", "tbeditoravanzado", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_DEGRADADO,*/
+                        "80008-degradado.png", "Rellenar mediante un degradado", "tbeditoravanzado", ButtonType.TOGGLE)
+        		
+        		, new SeparatorDefinition()
+        		
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_TEXTO,*/
+                        "80009-text.png", "Crear una nueva capa de texto", "tbeditoravanzado", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_FORMAS,*/
+                        "80010-formas.png", "Crear formas geométricas básicas", "tbeditoravanzado", ButtonType.TOGGLE)
+        		
+        		, new SeparatorDefinition()
+        		
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ZOOM,*/
+                        "80011-zoom.png", "Acercar y alejar", "tbeditoravanzado", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_PANTALLA_COMPLETA,*/
+                        "80012-pantalla_completa_48x48.png", "Expandir el editor ocultando el resto de la interfaz", "tbeditoravanzado", ButtonType.TOGGLE)
+        );
         
-        List<ToolbarComponentDefinition> componentesLayerDistributeSpace = List.of(
-            	
-        		new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_HORIZONTAL_SPACE,
-                        "70601-distribute-horizontal-space.png", "Distribuye Espacios Horizontales", "layerdistributespace")
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_VERTICAL_SPACE,
-                        "70602-distribute-vertical-space.png", "Distribuye Espacios Verticales", "layerdistributespace")
-        		
-		);
+        List<ToolbarComponentDefinition> componentbarEditorAvanzadoTransform = List.of(
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_MOVE,*/
+                        "80101-move.png", "Mover", "editoravanzadotransform", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SCALE,*/
+                        "80102-escalar.png", "Escalar", "editoravanzadotransform", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ROTATE,*/
+                        "80103-rotate.png", "Rotar", "editoravanzadotransform", ButtonType.TOGGLE)
+        );
         
-        List<ToolbarComponentDefinition> componentesLayerAutoDistribute = List.of(
-            	
-        		new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_FIXED,
-                        "70701-auto-distribute-fixed.png", "Distribucion Fija por Posicion", "layerautodistribute")
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_LAYER,
-                        "70701-auto-distribute-layer.png", "Distribucion por Tamaño de la Capa", "layerautodistribute")
-        		
-		);
+        List<ToolbarComponentDefinition> componentbarEditorAvanzadoLayerSelection = List.of(
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_LAYER,*/
+                        "80104-transform-layer.png", "Transformar una capa", "editoravanzadolayerselection", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SELECTION,*/
+                        "80105-transform.png", "Transformar un marco de selección", "editoravanzadolayerselection", ButtonType.TOGGLE)
+        );
+        
+        
+        List<ToolbarComponentDefinition> componentbarEditorAvanzadoZoomType = List.of(
+        		    new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ZOOM_CENTER,*/
+                        "80112-zoom_al_centro_48x48.png", "Zoom al centro de la imagen", "editoravanzadozoomtype", ButtonType.TOGGLE)
+        		  , new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ZOOM_CURSOR,*/
+                          "80111-zoom_al_cursor_48x48.png", "Zoom hacia el puntero del raton", "editoravanzadozoomtype", ButtonType.TOGGLE)
+        );
+        
+        
+        List<ToolbarComponentDefinition> componentbarEditorAvanzadoCrop = List.of(
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SELECTION,*/
+                        "80502-recortar-eliminar.png", "Recorta eliminando seleccion", "editoravanzadocrop", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SELECTION,*/
+                        "80503-recortar-nueva-capa.png", "Recorta Creando una Nueva Capa", "editoravanzadocrop", ButtonType.TOGGLE)
+        );
+        
+        List<ToolbarComponentDefinition> componentesLayerOrderPreviewRender = getComponentesLayerOrderPreviewRender();
+        List<ToolbarComponentDefinition> componentesLayerLoadPreviewRender = getComponentesLayerLoadPreviewRender();
         
         // =====================================================================
         // DEFINICIÓN DE TOOLBARS
@@ -1469,6 +1470,11 @@ public class UIDefinitionService {
                 EnumSet.of(VISOR, PROJECT, DATA, SLIDER, CLIENT, RENDER),
                 List.copyOf(botonesModoBottom), tbarFree);
 
+        final ToolbarDefinition tbEditorAvanzado = new ToolbarDefinition(
+                "editoravanzado", "Editor Avanzado", 1090,
+                EnumSet.of(RENDER),
+                toolbarEditorAvanzado, tbarFree);
+
         return List.of(
                 // LEFT
                 tbNavegacion,
@@ -1513,9 +1519,92 @@ public class UIDefinitionService {
                 tbBarraFiltros,
                 tbBarraGridProyecto,
                 tbModo,
-                tbModoBottom);
+                tbModoBottom,
+                tbEditorAvanzado);
+ 
+     }// --- FIN DEL METODO generateModularToolbarStructure ---
 
-    }// --- FIN DEL METODO generateModularToolbarStructure ---
+    // -----------------------------------------------------------------------
+    // Getters públicos para listas de componentes de capa (AdvanceEditPanel)
+    // -----------------------------------------------------------------------
+
+    public List<ToolbarComponentDefinition> getComponentesLayerAlign() {
+        return List.of(
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_INFERIOR,
+                        "70401-align-borde-inferior.png", "Alinear Bordes Inferiores", "layeralign"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_CENTRO_VERTICAL,
+                        "70402-align-centro-vertical.png", "Alinear Centros Verticales", "layeralign"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_SUPERIOR,
+                        "70403-align-borde-superior.png", "Alinear Bordes Superiores", "layeralign"),
+                new SeparatorDefinition(),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_IZQUIERDO,
+                        "70404-align-borde-izquierdo.png", "Alinear Bordes Izquierdos", "layeralign"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_CENTRO_HORIZONTAL,
+                        "70405-align-centro-horizontal.png", "Alinear Centros Horizontales", "layeralign"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_DERECHO,
+                        "70406-align-borde-derecho.png", "Alinear Bordes Derechos", "layeralign"));
+    } // --- Fin del metodo getComponentesLayerAlign ---
+
+    public List<ToolbarComponentDefinition> getComponentesLayerDistribute() {
+        return List.of(
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_BOTTOM_BORDER,
+                        "70501-distribute-bottom-border.png", "Distribuir Bordes Superiores", "layerDistribute"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_VERTICAL,
+                        "70502-distribute-center-vertical.png", "Distribuir Centros Verticales", "layerDistribute"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_TOP_BORDER,
+                        "70503-distribute-top-border.png", "Distribuir Bordes Inferiores", "layerDistribute"),
+                new SeparatorDefinition(),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_LEFT_BORDER,
+                        "70504-distribute-left-border.png", "Distribuir Bordes Izquierdos", "layerDistribute"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_HORIZONTAL,
+                        "70505-distribute-center-horizontal.png", "Distribuir Centros Horizontales", "layerDistribute"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_RIGHT_BORDER,
+                        "70506-distribute-right-border.png", "Distribuir Bordes Derechos", "layerDistribute"));
+    } // --- Fin del metodo getComponentesLayerDistribute ---
+
+    public List<ToolbarComponentDefinition> getComponentesLayerDistributeSpace() {
+        return List.of(
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_HORIZONTAL_SPACE,
+                        "70601-distribute-horizontal-space.png", "Distribuye Espacios Horizontales", "layerdistributespace"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_VERTICAL_SPACE,
+                        "70602-distribute-vertical-space.png", "Distribuye Espacios Verticales", "layerdistributespace"));
+    } // --- Fin del metodo getComponentesLayerDistributeSpace ---
+
+    public List<ToolbarComponentDefinition> getComponentesLayerAutoDistribute() {
+        return List.of(
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_FIXED,
+                        "70701-auto-distribute-fixed.png", "Distribucion Fija por Posicion", "layerautodistribute"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_LAYER,
+                        "70701-auto-distribute-layer.png", "Distribucion por Tamaño de la Capa", "layerautodistribute"));
+    } // --- Fin del metodo getComponentesLayerAutoDistribute ---
+
+    public List<ToolbarComponentDefinition> getComponentesLayerOrderPreviewRender() {
+        return List.of(
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_BRING_TO_FRONT,
+                        "70201-bring-to-front.png", "Traer al frente", "layerorderpreview"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_BRING_FORWARD,
+                        "70202-bring-forward.png", "Subir un Nivel", "layerorderpreview"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_SEND_BACKWARD,
+                        "70203-send-backward.png", "Bajar un Nivel", "layerorderpreview"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_SEND_TO_BACK,
+                        "70204-send-to-back.png", "Enviar al Fondo", "layerorderpreview"));
+    } // --- Fin del metodo getComponentesLayerOrderPreviewRender ---
+
+    public List<ToolbarComponentDefinition> getComponentesLayerLoadPreviewRender() {
+        return List.of(
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_CLEAN_AND_ADD,
+                        "70301-clean-and-add-image.png", "Borra Preview y Muestra Imagen", "previewRender"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ADD_IMAGE,
+                        "70302-add-image-to-group.png", "Añade Capa Con Una Nueva Imagen", "previewRender"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DELETE_LAYER,
+                        "70303-delete-layer.png", "Borra Capa Actual", "previewRender"));
+    } // --- Fin del metodo getComponentesLayerLoadPreviewRender ---
+
+    public ToolbarDefinition getToolbarDefinition(String clave) {
+        return generateModularToolbarStructure().stream()
+                .filter(td -> td.claveBarra().equals(clave))
+                .findFirst().orElse(null);
+    } // --- Fin del metodo getToolbarDefinition ---
 
     private String extraerNombreClave(String comandoCanonico) {
         if (comandoCanonico == null)

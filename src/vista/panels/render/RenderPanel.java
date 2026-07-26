@@ -82,6 +82,7 @@ public class RenderPanel extends JPanel {
     private int lastPanX;
     private int lastPanY;
     private final JPanel viewerCardPanel;
+    private final JPanel rightPanel;
     private static final String CARD_VISTA_3D = "Vista3D";
     private static final String CARD_VISTA_2D = "Vista2D";
 
@@ -204,7 +205,7 @@ public class RenderPanel extends JPanel {
         gridCardPanel.add(advanceEditPanel, CARD_GRID_ADVANCE_EDIT);
 
         // ---------- PANEL DERECHO: visor dual + controles ----------
-        JPanel rightPanel = new JPanel(new BorderLayout(4, 4));
+        rightPanel = new JPanel(new BorderLayout(4, 4));
         rightPanel.setBackground(new Color(30, 30, 35));
         rightPanel.setPreferredSize(new Dimension(340, 0));
 
@@ -840,6 +841,9 @@ public class RenderPanel extends JPanel {
 
     public PreviewPanel3DFX getPreview3DFX() { return preview3DFX; }
     public JPanel getImageDisplayPanel() { return imageDisplayPanel; }
+    public JPanel getGridCardPanel() { return gridCardPanel; }
+    public JPanel getRightPanel() { return rightPanel; }
+    public JPanel getViewerCardPanel() { return viewerCardPanel; }
 
     // --- Visor dual ---
     public void show3DView() {

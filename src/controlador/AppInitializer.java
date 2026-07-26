@@ -90,6 +90,7 @@ public class AppInitializer {
     private ConfigurationManager configuration;
     private ThemeManager themeManager;
     private IconUtils iconUtils;
+    private UIDefinitionService uiDefSvc;
     private ThumbnailService thumbnailServiceGlobal;
     private ThumbnailService gridThumbnailService;
     private ProjectManager projectManagerService;
@@ -264,7 +265,7 @@ public class AppInitializer {
                 this.gridThumbnailService, this.configuration);
 
         // UI Builders y Servicios de UI
-        UIDefinitionService uiDefSvc = new UIDefinitionService();
+        this.uiDefSvc = new UIDefinitionService();
 
         logger.info("Inicializando Botones");
         this.toolbarBuilder = new ToolbarBuilder(this.themeManager, this.iconUtils, this.controller,
@@ -661,6 +662,8 @@ public class AppInitializer {
                 this.actionFactory.setRenderController(rc);
                 this.generalController.setRenderController(rc);
                 rc.setIconUtils(this.iconUtils);
+                rc.setUiDefinitionService(this.uiDefSvc);
+                rc.setThemeManager(this.themeManager);
                 this.clientController.setActionFactory(this.actionFactory);
                 this.actionFactory.initializeLateActions();
 

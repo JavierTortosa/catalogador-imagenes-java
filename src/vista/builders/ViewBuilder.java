@@ -387,6 +387,9 @@ public class ViewBuilder {
         renderWorkModePanel.setName("VISTA_RENDER");
         workModesContainer.add(renderWorkModePanel, "VISTA_RENDER");
         registry.register("panel.workmode.render", renderWorkModePanel);
+        registry.register("panel.render.grid", renderWorkModePanel.getGridCardPanel());
+        registry.register("panel.render.right", renderWorkModePanel.getRightPanel());
+        registry.register("panel.render.viewer", renderWorkModePanel.getViewerCardPanel());
         this.renderController = new controlador.RenderController(renderWorkModePanel, configuration, mainFrame);
         this.renderController.setRegistry(this.registry);
         javax.swing.Icon paletteIcon = iconUtils.getScaledCommonIcon("paint-palette--streamline-core.png", 16, 16);

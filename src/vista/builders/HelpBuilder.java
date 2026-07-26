@@ -122,5 +122,38 @@ public class HelpBuilder {
     private boolean isCommandRelevant(String command) {
         return command != null && !command.isBlank() && !command.equals("cmd.todo.funcionalidad_pendiente");
     } // --- Fin del método isCommandRelevant ---
-    
+
+
+    public String generateSingleToolbarHelpHtml(String toolbarClave, String... extraClaves) {
+        UIDefinitionService service = new UIDefinitionService();
+        Map<String, HelpTopic> topics = new java.util.LinkedHashMap<>();
+
+        java.util.List<String> claves = new java.util.ArrayList<>();
+        claves.add(toolbarClave);
+        if (extraClaves != null) java.util.Collections.addAll(claves, extraClaves);
+
+        String tituloGeneral = null;
+
+        for (ToolbarDefinition toolbarDef : service.generateModularToolbarStructure()) {
+            if (!claves.contains(toolbarDef.claveBarra())) continue;
+            if (tituloGeneral == null) tituloGeneral = "Editor Avanzado";
+            String cat = toolbarDef.titulo();
+            int idx = 0;
+            for (ToolbarComponentDefinition compDef : toolbarDef.componentes()) {
+                if (compDef instanceof ToolbarButtonDefinition btnDef) {
+                    if (btnDef.comandoCanonico() != null && !btnDef.comandoCanonico().isBlank()) {
+                        topics.put(btnDef.claveIcono() + "@" + cat + "@" + (idx++),
+                                new HelpTopic(btnDef.comandoCanonico(), btnDef.textoTooltip(), btnDef.claveIcono(), cat));
+                    }
+                }
+            }
+        }
+
+        if (topics.isEmpty()) {
+            return "<html><body><h1>Error</h1><p>No se encontraron toolbars: " + toolbarClave + "</p></body></html>";
+        }
+
+        return buildHtmlForTopics("Editor Avanzado", "Herramientas disponibles:", topics);
+    } // --- Fin del método generateSingleToolbarHelpHtml ---
+
 } // --- FIN de la clase HelpBuilder ---

@@ -57,6 +57,8 @@ import modelo.renderer.ImageLayer;
 import modelo.renderer.StlEntry;
 import modelo.renderer.Triangle;
 import servicios.ConfigKeys;
+import vista.config.UIDefinitionService;
+import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 import servicios.ConfigurationManager;
 import servicios.renderer.AwtModelRenderer;
@@ -123,6 +125,16 @@ public class RenderController {
     public void setIconUtils(IconUtils iconUtils) {
         this.iconUtils = iconUtils;
         panel.getAdvanceEditPanel().setIconUtils(iconUtils);
+    }
+
+
+    public void setUiDefinitionService(UIDefinitionService service) {
+        panel.getAdvanceEditPanel().setUiDefinitionService(service);
+    }
+
+
+    public void setThemeManager(ThemeManager themeManager) {
+        panel.getAdvanceEditPanel().setThemeManager(themeManager);
     }
 
     private void wireControls() {

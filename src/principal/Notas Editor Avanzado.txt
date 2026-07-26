@@ -1,0 +1,854 @@
+=========================================================
+EDITOR DE IMÁGENES JAVA
+DOCUMENTO DE DISEÑO FUNCIONAL (v1.0)
+=========================================================
+
+OBJETIVO
+========
+
+El objetivo NO es desarrollar un clon de Photoshop.
+
+El objetivo es crear un editor gráfico sencillo, rápido y cómodo que permita
+componer imágenes (principalmente PNG con transparencia) para generar una
+previsualización de modelos STL contenidos en archivos comprimidos.
+
+Debe permitir montar imágenes con rapidez, utilizando únicamente las
+herramientas realmente necesarias.
+
+La filosofía del proyecto es:
+
+    "Pocas herramientas, bien implementadas."
+
+La interfaz debe ser clara y consistente.
+Cada herramienta únicamente mostrará las opciones que realmente necesita.
+
+
+=========================================================
+FILOSOFÍA GENERAL DE LA INTERFAZ
+=========================================================
+
+La interfaz estará dividida en varias zonas.
+
+---------------------------------------------------------
+1. Barra superior
+---------------------------------------------------------
+
+La barra superior estará dividida en DOS partes.
+
+---------------------------------------------------------
+PARTE A - COMÚN
+---------------------------------------------------------
+
+Siempre visible.
+
+Contendrá información del elemento activo.
+
+Componentes:
+
+- Icono de la herramienta
+- Nombre de la herramienta
+- Posición X
+- Posición Y
+- Anchura (W)
+- Altura (H)
+
+Estos valores podrán editarse cuando tenga sentido.
+
+Si la herramienta actual no utiliza alguno de estos datos,
+el control aparecerá deshabilitado.
+
+Ejemplos:
+
+Transformar
+
+    Herramienta | X | Y | W | H
+
+Texto
+
+    Herramienta | X | Y | W | H
+
+Varita
+
+    Herramienta | X | Y
+
+Zoom
+
+    Solo icono y nombre
+
+
+---------------------------------------------------------
+PARTE B - ESPECÍFICA
+---------------------------------------------------------
+
+Cada herramienta sustituirá únicamente esta parte.
+
+Aquí aparecerán las opciones propias de dicha herramienta.
+
+
+=========================================================
+HERRAMIENTAS DEL EDITOR
+=========================================================
+
+1. Transformar
+   - Mover
+   - Escalar
+   - Rotar
+   - Transformar una capa
+   - Transformar un marco de selección
+
+2. Selección por marco
+   - Crear una selección rectangular sobre cualquier capa visible
+
+3. Selección por capa
+   - Crear una selección rectangular limitada a la capa activa
+
+4. Varita mágica
+   - Seleccionar automáticamente zonas de color similar
+
+5. Recortar
+   - Eliminar el contenido seleccionado
+   - Crear una nueva capa a partir de la selección
+
+6. Cuentagotas
+   - Capturar el color situado bajo el cursor
+
+7. Bote de pintura
+   - Rellenar zonas con un color sólido
+
+8. Degradado
+   - Rellenar mediante un degradado
+
+9. Texto
+   - Crear una nueva capa de texto
+
+10. Formas
+    - Crear formas geométricas básicas
+
+11. Zoom
+    - Acercar y alejar el editor
+    - Zoom al cursor
+    - Zoom al centro
+
+12. Pantalla completa
+    - Expandir el editor ocultando el resto de la interfaz
+
+=========================================================
+HERRAMIENTAS AUXILIARES (NO SON HERRAMIENTAS DE LA BARRA)
+=========================================================
+
+• Gestión del lienzo
+  - Cambiar tamaño del lienzo
+  - Cambiar color de fondo
+  - Transparencia
+  - Ajustar lienzo al contenido
+
+• Gestión de capas
+  - Crear
+  - Duplicar
+  - Eliminar
+  - Reordenar
+  - Mostrar/Ocultar
+  - Bloquear
+  - Opacidad
+
+• Exportación
+  - Exportar PNG
+
+
+
+=========================================================
+HERRAMIENTA TRANSFORMAR
+=========================================================
+
+
+
+OBJETIVO
+
+Manipular objetos mediante un único gizmo.
+
+No existirá una herramienta "Mover".
+
+Transformar realizará:
+
+- mover
+- escalar
+- rotar
+
+sobre:
+
+- una capa
+- una selección
+
+según decida el usuario.
+
+
+---------------------------------------------------------
+Selector de transformación
+---------------------------------------------------------
+
+Existirá un selector con tres opciones.
+
+○ Página
+○ Capa
+○ Selección
+
+Pagina
+
+El gizmo actuará sobre la pagina entera sin hacer distincion de capas
+
+Selección
+
+El gizmo actuará sobre el marco de selección.
+
+Capa
+
+El gizmo actuará sobre la capa activa.
+
+De esta forma el usuario decide qué desea transformar
+evitando modificaciones accidentales.
+
+
+---------------------------------------------------------
+Opciones superiores
+---------------------------------------------------------
+
+X
+
+Posición horizontal.
+
+Y
+
+Posición vertical.
+
+W
+
+Anchura.
+
+H
+
+Altura.
+
+□ Mover
+
+□ Rotar
+
+□ Escalar
+
+□ Mantener proporción / Transformacion Libre
+
+Al escalar mantiene la relación ancho/alto o nos permite cambiar las proporciones a voluntad.
+
+□ Ajustar a cuadrícula (opcional)
+
+Permite alinear los objetos fácilmente.
+
+
+---------------------------------------------------------
+Implementación
+---------------------------------------------------------
+
+Se implementará un único TransformGizmo.
+
+Este objeto será independiente de la herramienta.
+
+Será reutilizable por:
+
+- capas
+- selecciones
+- texto
+- formas
+- cualquier objeto futuro
+
+
+El gizmo será responsable de:
+
+- dibujar el marco
+- dibujar los tiradores
+- detectar el tirador pulsado
+- mover
+- escalar
+- rotar
+- mostrar cursores adecuados
+
+
+La herramienta Transformar únicamente seleccionará
+qué objeto controla el gizmo.
+
+
+=========================================================
+SELECCIÓN POR MARCO
+=========================================================
+
+OBJETIVO
+
+Crear un área de selección rectangular libre.
+
+Puede actuar sobre todas las capas visibles.
+
+
+---------------------------------------------------------
+Funcionamiento
+---------------------------------------------------------
+
+Click
+
+↓
+
+Arrastrar
+
+↓
+
+Crear selección
+
+↓
+
+Realizar operaciones sobre ella
+
+
+No existirán botones:
+
+- Nuevo
+- Añadir
+- Restar
+- Intersecar
+
+Se busca simplicidad.
+
+
+---------------------------------------------------------
+Opciones superiores
+---------------------------------------------------------
+
+Desvanecer
+
+Slider.
+
+Suaviza el borde de la selección.
+
+
+=========================================================
+SELECCIÓN POR CAPA
+=========================================================
+
+OBJETIVO 
+
+Exactamente igual que la selección por marco.
+
+La única diferencia es que únicamente trabaja
+sobre la capa activa.
+
+
+---------------------------------------------------------
+Opciones superiores
+---------------------------------------------------------
+
+Las mismas que selección por marco.
+
+Desvanecer.
+
+
+=========================================================
+VARITA MÁGICA
+=========================================================
+
+OBJETIVO
+
+Seleccionar zonas similares automáticamente.
+
+
+---------------------------------------------------------
+Opciones superiores
+---------------------------------------------------------
+
+Tolerancia
+
+Determina cuánto puede variar un color respecto al
+color pulsado.
+
+Valor pequeño
+
+Selecciona colores muy parecidos.
+
+Valor grande
+
+Selecciona colores más diferentes.
+
+
+□ Contiguo
+
+Activado
+
+Solo selecciona píxeles conectados.
+
+Desactivado
+
+Selecciona todos los píxeles similares del documento.
+
+
+No existirán:
+
+- Añadir selección
+- Muestrear todas las capas
+- AntiAlias
+
+
+=========================================================
+RECORTAR
+=========================================================
+
+OBJETIVO
+
+Trabajar únicamente sobre una selección existente.
+
+
+Opciones
+
+○ Eliminar contenido
+
+Borra la selección.
+
+○ Nueva capa
+
+El contenido seleccionado pasa a una nueva capa.
+
+□ Mantener original
+
+Si está activado se conserva la capa original.
+
+
+=========================================================
+CUENTAGOTAS
+=========================================================
+
+OBJETIVO
+
+Capturar el color situado bajo el cursor.
+
+
+Opciones
+
+Tamaño de muestra
+
+○ 1x1
+
+○ 3x3
+
+○ 5x5
+
+
+Una muestra mayor proporciona un color medio más estable.
+
+
+=========================================================
+BOTE DE PINTURA
+=========================================================
+
+OBJETIVO
+
+Rellenar zonas con un color.
+
+
+Opciones
+
+Color
+
+Color utilizado para rellenar.
+
+Tolerancia
+
+Permite rellenar colores parecidos.
+
+□ Contiguo
+
+Solo zonas conectadas.
+
+No existirán:
+
+- AntiAlias
+- Modos de fusión
+
+
+=========================================================
+DEGRADADO
+=========================================================
+
+OBJETIVO
+
+Rellenar mediante un degradado.
+
+
+Opciones
+
+Vista previa
+
+Tipo
+
+- Lineal
+- Radial
+- Angular
+- Reflejado
+- Diamante
+
+Opacidad
+
+
+=========================================================
+TEXTO
+=========================================================
+
+OBJETIVO
+
+Crear una nueva capa de texto.
+
+
+Versión sencilla.
+
+No se implementarán opciones avanzadas de tipografía.
+
+
+Opciones
+
+Fuente
+
+Tamaño
+
+Negrita
+
+Cursiva
+
+Color
+
+
+=========================================================
+FORMAS
+=========================================================
+
+OBJETIVO
+
+Crear formas vectoriales básicas.
+
+
+Opciones
+
+Tipo
+
+- Rectángulo
+- Elipse
+- Línea
+- Triángulo
+- Polígono
+
+Color de relleno
+
+Color del borde
+
+Grosor del borde
+
+
+=========================================================
+ZOOM
+=========================================================
+
+OBJETIVO
+
+Modificar el nivel de zoom del editor.
+
+
+El zoom se realizará mediante la rueda del ratón.
+
+
+Existirán dos modos.
+
+
+Modo normal
+
+El zoom se realiza respecto al centro de la pantalla.
+
+
+Modo al cursor
+
+El zoom mantiene bajo el cursor el punto sobre el que
+se está trabajando.
+
+Este será el modo recomendado.
+
+
+Opciones
+
+☑ Zoom al cursor
+
+☐ Zoom al centro
+
+
+=========================================================
+PANTALLA COMPLETA
+=========================================================
+
+OBJETIVO
+
+Maximizar el área de trabajo.
+
+
+No es un modo Photoshop.
+
+Es un modo propio del editor.
+
+
+Oculta:
+
+- paneles laterales
+- menús
+- elementos auxiliares
+
+y hace que el editor ocupe toda el área disponible.
+
+
+=========================================================
+LIENZO
+=========================================================
+
+OBJETIVO
+
+Modificar el tamaño del documento.
+
+No modifica las capas.
+
+Solo modifica el espacio disponible.
+
+
+Opciones
+
+Anchura
+
+Altura
+
+Color de fondo
+
+□ Transparente
+
+Botón
+
+Redimensionar lienzo
+
+Botón
+
+Ajustar lienzo al contenido
+
+Este botón reduce o amplía automáticamente el lienzo
+para adaptarlo al contenido existente.
+
+
+=========================================================
+ARQUITECTURA DE HERRAMIENTAS
+=========================================================
+
+Todas las herramientas heredarán de una clase base.
+
+
+Ejemplo
+
+
+abstract class Tool {
+
+    mousePressed(...);
+
+    mouseDragged(...);
+
+    mouseReleased(...);
+
+    paintOverlay(...);
+
+    getOptionsPanel();
+
+}
+
+
+Responsabilidades
+
+mousePressed
+
+Inicio de la acción.
+
+mouseDragged
+
+Actualización mientras se mueve el ratón.
+
+mouseReleased
+
+Finalización.
+
+paintOverlay
+
+Dibujar elementos temporales.
+
+Ejemplos
+
+- marco de selección
+- gizmo
+- vista previa
+
+getOptionsPanel
+
+Devuelve el panel que aparecerá en la parte específica
+de la barra superior.
+
+
+=========================================================
+TRANSFORM GIZMO
+=========================================================
+
+Será uno de los elementos más importantes del editor.
+
+
+Será un objeto independiente.
+
+
+Responsabilidades
+
+- Dibujar el marco.
+- Dibujar los tiradores.
+- Detectar qué tirador se pulsa.
+- Mover.
+- Escalar.
+- Rotar.
+- Mostrar el cursor adecuado.
+- Gestionar transformaciones de capas.
+- Gestionar transformaciones de selecciones.
+- Ser reutilizable por texto y formas.
+
+
+La herramienta Transformar únicamente indicará
+qué objeto controla el gizmo.
+
+
+=========================================================
+PLAN DE IMPLEMENTACIÓN
+=========================================================
+
+FASE 1
+-------
+
+✔ Sistema de capas
+
+✔ Canvas
+
+✔ Render
+
+✔ Selección de capa
+
+
+FASE 2
+-------
+
+✔ Herramienta Transformar
+
+✔ TransformGizmo
+
+✔ Movimiento
+
+✔ Escalado
+
+✔ Rotación
+
+
+FASE 3
+-------
+
+✔ Selección por marco
+
+✔ Selección por capa
+
+✔ Transformación de selecciones
+
+✔ Desvanecer
+
+
+FASE 4
+-------
+
+✔ Varita
+
+✔ Bote de pintura
+
+✔ Cuentagotas
+
+✔ Recortar
+
+
+FASE 5
+-------
+
+✔ Texto
+
+✔ Formas
+
+✔ Degradado
+
+
+FASE 6
+-------
+
+✔ Zoom
+
+✔ Pantalla completa
+
+✔ Ajustar lienzo
+
+✔ Exportación PNG
+
+
+=========================================================
+FILOSOFÍA FINAL DEL PROYECTO
+=========================================================
+
+Este editor no pretende competir con Photoshop.
+
+Pretende ser una herramienta especializada para crear
+imágenes de previsualización de modelos 3D de forma
+rápida, sencilla y cómoda.
+
+Todas las decisiones de diseño deben responder siempre
+a una única pregunta:
+
+"¿Hace más rápido generar una buena previsualización?"
+
+Si la respuesta es sí, la función merece implementarse.
+
+Si la respuesta es no, probablemente no forme parte de
+la filosofía del proyecto.
+
+
+************************************************************************************************************
+************************************************************************************************************
+************************************************************************************************************
+
+
+
+
+
+LAS HERRAMIENTAS SERAN:
+-----------------------
+
+edicion-> mover capas, rotar, escalar 
+seleccion por marco -> se forma un cuadrado y actuamos sobre ese contenido 
+seleccion por capa -> se forma un cuadrado pero solo selecciona sobre la capa actual
+seleccion por varita -> ayuda a seleccionar objetos
+recortar -> recorta lo que esta marcado 
+captura de muestra -> nos permite capturar el color en el que esta el cursor
+bote de pintura -> pone un fondo solido a esa capa
+degradado -> pone un degradado a esa capa
+texto -> añadimos una capa con un texto
+formas -> nos permite añadir formas
+zoom -> nos permite acercar o alejar todo el editor
+pantalla completa -> hace que toda la pantalla se vea el panel del editor ocultando todo lo demas
+
+herramienta edicion (standard): 
+que hace este boton:
+mover capas, rotar, escalar
+
+contenido de la statusbar:
+accion actual: muestra el icono de con que herramienta estamos trabajando (muestra el icono)
+seleccion automatica: checkbox para que seleccionando con el mouse se auto selecciona esa capa o no
+controles de transformacion: checkbox para mostrar los 8 puntos para poder estirar una capa
+transformacion libre: checkbox para que se estire desde ese punto o mantenga las proporciones
+botones de acceso rapido de alineacion y distribucion

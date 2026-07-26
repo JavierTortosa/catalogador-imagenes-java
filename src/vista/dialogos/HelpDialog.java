@@ -98,6 +98,7 @@ public class HelpDialog extends JDialog {
         top.add(carruselFolder);
         
         DefaultMutableTreeNode renderFolder = new DefaultMutableTreeNode(new HelpPageInfo("Modo Render", "render.html"));
+        renderFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Editor Avanzado", "editoravanzado_autogen.html")));
         top.add(renderFolder);
 
         DefaultMutableTreeNode configFolder = new DefaultMutableTreeNode(new HelpPageInfo("Configuración", "configuracion.html"));
@@ -128,6 +129,9 @@ public class HelpDialog extends JDialog {
                 case "menus_autogen.html":
                     loadGeneratedHelp(false); // false para menús
                     break;
+                case "editoravanzado_autogen.html":
+                    loadEditorAvanzadoHelp();
+                    break;
                 default:
                     loadStaticHelpPage(pageInfo.getHtmlFileName());
                     break;
@@ -135,6 +139,20 @@ public class HelpDialog extends JDialog {
             // --- FIN DE LA MODIFICACIÓN ---
         }
     } // --- Fin del método treeSelectionChanged ---
+
+    private void loadEditorAvanzadoHelp() {
+        try {
+            HelpBuilder builder = new HelpBuilder();
+            String htmlContent = builder.generateSingleToolbarHelpHtml("editoravanzado", "layerorderpreview", "layerloadpreview");
+            htmlContent = replaceIconPlaceholders(htmlContent);
+            contentPane.setText(htmlContent);
+            SwingUtilities.invokeLater(() -> contentPane.setCaretPosition(0));
+        } catch (Exception ex) {
+            logger.error("Error al generar la ayuda del Editor Avanzado", ex);
+            contentPane.setText("<html><body><h1>Error</h1><p>No se pudo generar la ayuda del Editor Avanzado.</p></body></html>");
+        }
+    } // --- Fin del método loadEditorAvanzadoHelp ---
+
 
     private void loadGeneratedHelp(boolean forToolbars) {
         try {
