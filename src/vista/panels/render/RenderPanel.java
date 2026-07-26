@@ -60,8 +60,10 @@ public class RenderPanel extends JPanel {
     private final JPanel gridCardPanel;
     private final JPanel imagenesGrid;
     private final JPanel rendersGrid;
+    private final AdvanceEditPanel advanceEditPanel;
     private static final String CARD_GRID_IMG = "img";
     private static final String CARD_GRID_RENDER = "render";
+    private static final String CARD_GRID_ADVANCE_EDIT = "advance_edit";
 
     // --- Visor (panel derecho) ---
     private final PreviewPanel3DFX preview3DFX;
@@ -197,6 +199,9 @@ public class RenderPanel extends JPanel {
         gridCardPanel = new JPanel(new CardLayout());
         gridCardPanel.add(imagenesScroll, CARD_GRID_IMG);
         gridCardPanel.add(rendersScroll, CARD_GRID_RENDER);
+
+        advanceEditPanel = new AdvanceEditPanel();
+        gridCardPanel.add(advanceEditPanel, CARD_GRID_ADVANCE_EDIT);
 
         // ---------- PANEL DERECHO: visor dual + controles ----------
         JPanel rightPanel = new JPanel(new BorderLayout(4, 4));
@@ -805,11 +810,32 @@ public class RenderPanel extends JPanel {
     }
 
     public void syncGridToCandidateTab() {
+        if (advanceEditPanel.isActive()) {
+            showGridCard(CARD_GRID_ADVANCE_EDIT);
+            return;
+        }
         if (isCandidateTabSinRenderizar()) {
             showGridCard(CARD_GRID_RENDER);
         } else {
             showGridCard(CARD_GRID_IMG);
         }
+    }
+
+    public void setAdvanceEditActive(boolean active) {
+        advanceEditPanel.setActive(active);
+        if (active) {
+            showGridCard(CARD_GRID_ADVANCE_EDIT);
+        } else {
+            syncGridToCandidateTab();
+        }
+    }
+
+    public boolean isAdvanceEditActive() {
+        return advanceEditPanel.isActive();
+    }
+
+    public AdvanceEditPanel getAdvanceEditPanel() {
+        return advanceEditPanel;
     }
 
     public PreviewPanel3DFX getPreview3DFX() { return preview3DFX; }

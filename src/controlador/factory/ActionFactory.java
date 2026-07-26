@@ -740,6 +740,7 @@ public class ActionFactory {
         registerAction(AppActionCommands.CMD_PREVIEW_RENDER_3DGRID, createPreviewRender3DGridAction());
         registerAction(AppActionCommands.CMD_PREVIEW_RENDER_2DGRID, createPreviewRender2DGridAction());
         registerAction(AppActionCommands.CMD_PREVIEW_RENDER_COLLAGE, createPreviewRenderCollageAction());
+        registerAction(AppActionCommands.CMD_PREVIEW_RENDER_ADVANCE_EDIT, createPreviewRenderAdvanceEditAction());
         registerAction(AppActionCommands.CMD_PREVIEW_RENDER_GALLERY, createPreviewRenderGalleryAction());
 
         registerAction(AppActionCommands.CMD_PREVIEW_RENDER_BRING_TO_FRONT, createBringToFrontAction());
@@ -1229,6 +1230,16 @@ public class ActionFactory {
             }
         };
     } // --- Fin del metodo createPreviewRenderCollageAction ---
+
+
+    private Action createPreviewRenderAdvanceEditAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) renderController.toggleAdvanceEditMode();
+            }
+        };
+    } // --- Fin del metodo createPreviewRenderAdvanceEditAction ---
 
 
     private Action createPreviewRenderGalleryAction() {

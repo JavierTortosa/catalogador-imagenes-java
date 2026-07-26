@@ -660,6 +660,7 @@ public class AppInitializer {
                 RenderController rc = this.viewBuilder.getRenderController();
                 this.actionFactory.setRenderController(rc);
                 this.generalController.setRenderController(rc);
+                rc.setIconUtils(this.iconUtils);
                 this.clientController.setActionFactory(this.actionFactory);
                 this.actionFactory.initializeLateActions();
 

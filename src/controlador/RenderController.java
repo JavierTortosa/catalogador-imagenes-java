@@ -57,6 +57,7 @@ import modelo.renderer.ImageLayer;
 import modelo.renderer.StlEntry;
 import modelo.renderer.Triangle;
 import servicios.ConfigKeys;
+import vista.util.IconUtils;
 import servicios.ConfigurationManager;
 import servicios.renderer.AwtModelRenderer;
 import servicios.renderer.RenderTempFileManager;
@@ -74,6 +75,7 @@ public class RenderController {
 
     private final RenderPanel panel;
     private final ConfigurationManager config;
+    private IconUtils iconUtils;
     private final Component parentFrame;
     private final DefaultListModel<StlEntry> contentModel;
     private final Map<Path, SourceInfo> pngSourceMap = new HashMap<>();
@@ -111,10 +113,16 @@ public class RenderController {
         this.imagesDir = tempFileManager.getImagesDir();
         wireControls();
         wireBackgroundControls();
+        initAdvanceEditIconSize();
     }
 
     public void setRegistry(ComponentRegistry registry) {
         this.registry = registry;
+    }
+
+    public void setIconUtils(IconUtils iconUtils) {
+        this.iconUtils = iconUtils;
+        panel.getAdvanceEditPanel().setIconUtils(iconUtils);
     }
 
     private void wireControls() {
@@ -305,6 +313,12 @@ public class RenderController {
                 panel.getPreview3DFX().setBackgroundImageScale(scale);
             }
         });
+    }
+
+    private void initAdvanceEditIconSize() {
+        int w = config.getInt(ConfigKeys.ICONOS_ANCHO, 24);
+        int h = config.getInt(ConfigKeys.ICONOS_ALTO, 24);
+        panel.getAdvanceEditPanel().setIconSize(w, h);
     }
 
     private void syncBackgroundCard() {
@@ -1644,6 +1658,13 @@ public class RenderController {
         }
         logger.info("[RenderController] Modo collage: {}", nuevo);
     } // --- Fin del metodo toggleCollageMode ---
+
+
+    public void toggleAdvanceEditMode() {
+        boolean nuevo = !panel.isAdvanceEditActive();
+        panel.setAdvanceEditActive(nuevo);
+        logger.info("[RenderController] Modo editor avanzado: {}", nuevo);
+    } // --- Fin del metodo toggleAdvanceEditMode ---
 
 
     // ========== Stubs gestión de capas ==========

@@ -1178,8 +1178,16 @@ public class UIDefinitionService {
                         "70101-3d_grid.png", "Grid Archivos Sin Imagen", "previewrenderview", ButtonType.TOGGLE)
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_2DGRID,
                         "70102-2d_grid.png", "Grid Archivos Con Imagen", "previewrenderview", ButtonType.TOGGLE)
+
+        		, new SeparatorDefinition()
+        		
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ADVANCE_EDIT,
+        				"70105-edition-pro.png", "Edicion Avanzada", "previewrenderview", ButtonType.TOGGLE)
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_COLLAGE,
                         "70103-multimage.png", "Panel Edicion Multi-Imagen", "previewrenderview", ButtonType.TOGGLE)
+        		
+        		, new SeparatorDefinition()
+        		
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_GALLERY,
                         "70104-gallery-view.png", "Ver galeria del archivo comprimido", "previewrenderview", ButtonType.TOGGLE)
         		
@@ -1244,7 +1252,7 @@ public class UIDefinitionService {
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_HORIZONTAL,
                         "70505-distribute-center-horizontal.png", "Distribuir Centros Horizontales", "layerDistribute")
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_RIGHT_BORDER,
-                        "70506-distribute-right--border.png", "Distribuir Bordes Derechos", "layerDistribute")
+                        "70506-distribute-right-border.png", "Distribuir Bordes Derechos", "layerDistribute")
         		
 		);
         
