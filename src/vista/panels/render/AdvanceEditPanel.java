@@ -449,7 +449,39 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
         layerCardPanel = new LayerCardPanel();
         layerCardPanel.setBackground(bgTools);
-        capasTabs.addTab("Capas", layerCardPanel);
+
+        JPanel capasTabPanel = new JPanel(new BorderLayout());
+        capasTabPanel.setBackground(bgTools);
+        capasTabPanel.add(layerCardPanel, BorderLayout.CENTER);
+
+        JPanel opacityPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
+        opacityPanel.setBackground(bgTools);
+        JLabel opLbl = new JLabel("Opacidad:");
+        opLbl.setForeground(fgStatus);
+        opLbl.setFont(opLbl.getFont().deriveFont(10f));
+        opacityPanel.add(opLbl);
+        javax.swing.JSlider opSlider = new javax.swing.JSlider(0, 100, 100);
+        opSlider.setBackground(bgTools);
+        opSlider.setPreferredSize(new Dimension(80, 20));
+        JLabel opVal = new JLabel("100%");
+        opVal.setForeground(fgStatus);
+        opVal.setFont(opVal.getFont().deriveFont(10f));
+        opSlider.addChangeListener(e -> {
+            int v = opSlider.getValue();
+            opVal.setText(v + "%");
+            if (editorLayerModel != null) {
+                var active = editorLayerModel.getActiveLayer();
+                if (active != null) {
+                    active.setOpacity(v / 100f);
+                    canvasPanel.repaint();
+                }
+            }
+        });
+        opacityPanel.add(opSlider);
+        opacityPanel.add(opVal);
+        capasTabPanel.add(opacityPanel, BorderLayout.SOUTH);
+
+        capasTabs.addTab("Capas", capasTabPanel);
 
         // Pestaña "Orden": botones de orden
         JPanel ordenPanel = new JPanel(new BorderLayout());
@@ -460,7 +492,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             orderGrid.setBackground(bgTools);
             for (ToolbarComponentDefinition def : uiDefinitionService.getComponentesLayerOrderPreviewRender()) {
                 if (def instanceof ToolbarButtonDefinition btnDef) {
-                    orderGrid.add(wrapInCell(createButtonFromDef(btnDef)));
+                    orderGrid.add(wrapInCell(createLayerActionButton(btnDef)));
                 }
             }
             ordenPanel.add(orderGrid, BorderLayout.NORTH);
@@ -479,6 +511,9 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                     String cmd = btnDef.comandoCanonico();
                     if (AppActionCommands.CMD_PREVIEW_RENDER_ADD_LAYER.equals(cmd)) {
                         layerToolbar.add(createAddLayerButton(btnDef));
+                    } else if (AppActionCommands.CMD_PREVIEW_RENDER_DUPLICATE_LAYER.equals(cmd)
+                            || AppActionCommands.CMD_PREVIEW_RENDER_DELETE_LAYER.equals(cmd)) {
+                        layerToolbar.add(createLayerActionButton(btnDef));
                     } else {
                         layerToolbar.add(createButtonFromDef(btnDef));
                     }
@@ -630,6 +665,66 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
         return btn;
     } // --- Fin del metodo createAddLayerButton ---
+
+
+    private JButton createLayerActionButton(ToolbarButtonDefinition def) {
+        Action action = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (editorLayerModel == null || editorLayerModel.size() == 0) return;
+                String cmd = def.comandoCanonico();
+                int idx = editorLayerModel.getActiveIndex();
+                if (idx < 0) return;
+
+                switch (cmd) {
+                    case AppActionCommands.CMD_PREVIEW_RENDER_DELETE_LAYER:
+                        editorLayerModel.removeLayer(idx);
+                        break;
+                    case AppActionCommands.CMD_PREVIEW_RENDER_DUPLICATE_LAYER:
+                        editorLayerModel.duplicateLayer(idx);
+                        break;
+                    case AppActionCommands.CMD_PREVIEW_RENDER_BRING_TO_FRONT:
+                        editorLayerModel.moveLayer(idx, editorLayerModel.size() - 1);
+                        break;
+                    case AppActionCommands.CMD_PREVIEW_RENDER_BRING_FORWARD:
+                        if (idx < editorLayerModel.size() - 1) {
+                            editorLayerModel.moveLayer(idx, idx + 1);
+                        }
+                        break;
+                    case AppActionCommands.CMD_PREVIEW_RENDER_SEND_BACKWARD:
+                        if (idx > 0) {
+                            editorLayerModel.moveLayer(idx, idx - 1);
+                        }
+                        break;
+                    case AppActionCommands.CMD_PREVIEW_RENDER_SEND_TO_BACK:
+                        editorLayerModel.moveLayer(idx, 0);
+                        break;
+                }
+                if (layerCardPanel != null) {
+                    layerCardPanel.rebuild();
+                }
+                canvasPanel.repaint();
+            }
+        };
+        action.putValue(Action.ACTION_COMMAND_KEY, def.comandoCanonico());
+        action.putValue(Action.SHORT_DESCRIPTION, def.textoTooltip());
+        if (iconUtils != null) {
+            javax.swing.ImageIcon icon = iconUtils.getScaledIcon(def.claveIcono(), iconWidth, iconHeight);
+            if (icon != null) {
+                action.putValue(Action.SMALL_ICON, icon);
+            }
+        }
+
+        JButton btn = new JButton(action);
+        btn.setFocusPainted(false);
+        btn.setPreferredSize(new Dimension(iconWidth, iconHeight));
+        btn.setMinimumSize(new Dimension(iconWidth, iconHeight));
+        btn.setMaximumSize(new Dimension(iconWidth, iconHeight));
+        btn.setBackground(bgTools);
+        btn.setBorder(BorderFactory.createEmptyBorder());
+
+        return btn;
+    } // --- Fin del metodo createLayerActionButton ---
 
 
     private JToggleButton createTextToggle(ToolbarButtonDefinition btnDef) {

@@ -1736,10 +1736,12 @@ public class UIDefinitionService {
         
                 new SeparatorDefinition(),
                 
-                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ADD_LAYER,
-                        "70304-nueva-capa.png", "Añade Capa Nueva", "previewRender"),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DELETE_LAYER,
-                        "70303-delete-layer.png","Borra Capa Actual", "previewRender"));
+            new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ADD_LAYER,
+                    "70304-nueva-capa.png", "Añade Capa Nueva", "previewRender"),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DUPLICATE_LAYER,
+                    "70305-duplicate-layer.png", "Duplicar Capa", "previewRender"),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DELETE_LAYER,
+                    "70303-delete-layer.png","Borra Capa Actual", "previewRender"));
         
     } // --- Fin del metodo getComponentesLayerLoadPreviewRender ---
 

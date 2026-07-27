@@ -89,6 +89,7 @@ public class RenderController {
 
     private final RenderTempFileManager tempFileManager;
     private final RenderSceneController sceneController;
+    private controlador.tools.CanvasController canvasController;
 
     private Path lastScanFolder;
     private Path outputDir;
@@ -1684,6 +1685,19 @@ public class RenderController {
             }
             if (aep.getCanvas().getLayerModel() == null) {
                 aep.setLayerModel(new LayerModel());
+            }
+            if (canvasController == null) {
+                var cm = aep.getCanvas().getCanvasModel();
+                var lm = aep.getCanvas().getLayerModel();
+                var sm = aep.getCanvas().getSelectionModel();
+                var gizmo = new modelo.gizmo.TransformGizmo();
+                var ctx = new controlador.tools.ToolContext(
+                        cm, lm, sm, gizmo, aep.getCanvas(), aep.getComponentBar());
+                canvasController = new controlador.tools.CanvasController(
+                        aep.getCanvas(), aep.getComponentBar(), cm, lm, sm, gizmo);
+                canvasController.registerTool(new controlador.tools.TransformTool());
+                canvasController.registerTool(new controlador.tools.MarqueeSelectionTool());
+                canvasController.registerTool(new controlador.tools.LayerSelectionTool());
             }
         }
         panel.setAdvanceEditActive(nuevo);

@@ -29,9 +29,11 @@ public class LayerCard extends JPanel {
 
     private static final ImageIcon ICON_EYE_OPEN;
     private static final ImageIcon ICON_EYE_CLOSED;
+    private static final ImageIcon ICON_LOCK;
+    private static final ImageIcon ICON_UNLOCK;
 
     static {
-        ImageIcon open = null, closed = null;
+        ImageIcon open = null, closed = null, lock = null, unlock = null;
         try {
             java.net.URL urlOpen = LayerCard.class.getResource("/iconos/white/eye.png");
             java.net.URL urlClosed = LayerCard.class.getResource("/iconos/white/eye-closed.png");
@@ -43,11 +45,24 @@ public class LayerCard extends JPanel {
                 closed = new ImageIcon(new javax.swing.ImageIcon(urlClosed).getImage()
                         .getScaledInstance(16, 16, java.awt.Image.SCALE_SMOOTH));
             }
+            // Lock icons - use eye icons as fallback if no lock icon exists
+            java.net.URL urlLock = LayerCard.class.getResource("/iconos/white/lock.png");
+            java.net.URL urlUnlock = LayerCard.class.getResource("/iconos/white/lock-open.png");
+            if (urlLock != null) {
+                lock = new ImageIcon(new javax.swing.ImageIcon(urlLock).getImage()
+                        .getScaledInstance(14, 14, java.awt.Image.SCALE_SMOOTH));
+            }
+            if (urlUnlock != null) {
+                unlock = new ImageIcon(new javax.swing.ImageIcon(urlUnlock).getImage()
+                        .getScaledInstance(14, 14, java.awt.Image.SCALE_SMOOTH));
+            }
         } catch (Exception e) {
             // fallback: keep null
         }
         ICON_EYE_OPEN = open;
         ICON_EYE_CLOSED = closed;
+        ICON_LOCK = lock;
+        ICON_UNLOCK = unlock;
     }
 
     private final ImageLayer layer;
@@ -56,6 +71,7 @@ public class LayerCard extends JPanel {
     private final JLabel thumbLabel;
     private final JTextField nameField;
     private final JToggleButton eyeButton;
+    private final JToggleButton lockButton;
 
     public LayerCard(ImageLayer layer, LayerModel layerModel, int index) {
         this.layer = layer;
@@ -91,10 +107,22 @@ public class LayerCard extends JPanel {
         eyeButton.setBorder(null);
         eyeButton.setOpaque(false);
         eyeButton.setFocusPainted(false);
-        eyeButton.setIcon(ICON_EYE_CLOSED);
-        eyeButton.setSelectedIcon(ICON_EYE_OPEN);
+        if (ICON_EYE_CLOSED != null) eyeButton.setIcon(ICON_EYE_CLOSED);
+        if (ICON_EYE_OPEN != null) eyeButton.setSelectedIcon(ICON_EYE_OPEN);
         eyeButton.addActionListener(e -> layer.setVisible(eyeButton.isSelected()));
         add(eyeButton);
+
+        // Lock toggle
+        lockButton = new JToggleButton();
+        lockButton.setSelected(layer.isLocked());
+        lockButton.setPreferredSize(new Dimension(18, 18));
+        lockButton.setBorder(null);
+        lockButton.setOpaque(false);
+        lockButton.setFocusPainted(false);
+        if (ICON_UNLOCK != null) lockButton.setIcon(ICON_UNLOCK);
+        if (ICON_LOCK != null) lockButton.setSelectedIcon(ICON_LOCK);
+        lockButton.addActionListener(e -> layer.setLocked(lockButton.isSelected()));
+        add(lockButton);
 
         // Click to select
         addMouseListener(new java.awt.event.MouseAdapter() {
