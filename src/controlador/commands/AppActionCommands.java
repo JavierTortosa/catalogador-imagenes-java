@@ -262,6 +262,19 @@ public interface AppActionCommands {
     public static final String CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_FIXED  = "cmd.preview.render.auto_distribute.fixed";
     public static final String CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_LAYER  = "cmd.preview.render.auto_distribute.layer";
 
+    // --- Editor Avanzado: herramientas principales ---
+    public static final String CMD_ADVANCED_EDITOR_EDICION             = "cmd.advanced.editor.edicion";
+    public static final String CMD_ADVANCED_EDITOR_TRANSFORMAR         = "cmd.advanced.editor.transformar";
+    public static final String CMD_ADVANCED_EDITOR_SELECCION_MARCO    = "cmd.advanced.editor.seleccion.marco";
+    public static final String CMD_ADVANCED_EDITOR_SELECCION_CAPA     = "cmd.advanced.editor.seleccion.capa";
+    public static final String CMD_ADVANCED_EDITOR_VARITA             = "cmd.advanced.editor.varita";
+    public static final String CMD_ADVANCED_EDITOR_RECORTAR           = "cmd.advanced.editor.recortar";
+    public static final String CMD_ADVANCED_EDITOR_CUENTAGOTAS        = "cmd.advanced.editor.cuentagotas";
+    public static final String CMD_ADVANCED_EDITOR_BOTE_PINTURA       = "cmd.advanced.editor.bote_pintura";
+    public static final String CMD_ADVANCED_EDITOR_DEGRADADO          = "cmd.advanced.editor.degradado";
+    public static final String CMD_ADVANCED_EDITOR_TEXTO              = "cmd.advanced.editor.texto";
+    public static final String CMD_ADVANCED_EDITOR_FORMAS             = "cmd.advanced.editor.formas";
+
     // --- D-Pad ---
     public static final String CMD_PREVIEW_RENDER_DPAD_TOP_LEFT      = "cmd.preview.render.dpad.top_left";
     public static final String CMD_PREVIEW_RENDER_DPAD_TOP_CENTER    = "cmd.preview.render.dpad.top_center";

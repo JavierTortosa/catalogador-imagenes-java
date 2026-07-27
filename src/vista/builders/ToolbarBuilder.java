@@ -155,9 +155,11 @@ public class ToolbarBuilder {
                     if (componenteBoton != null) {
                         toolbar.add(componenteBoton);
                         if (group != null && componenteBoton instanceof JToggleButton) {
-                            // CMD_CLIENTE_EDITAR es un toggle independiente, no exclusivo
+                            // Ton toggles independientes, no exclusivos
                             if (!AppActionCommands.CMD_CLIENTE_EDITAR.equals(botonDef.comandoCanonico())
-                                    && !AppActionCommands.CMD_PREVIEW_RENDER_GALLERY.equals(botonDef.comandoCanonico())) {
+                                    && !AppActionCommands.CMD_PREVIEW_RENDER_GALLERY.equals(botonDef.comandoCanonico())
+                                    && !AppActionCommands.CMD_PREVIEW_RENDER_ADVANCE_EDIT.equals(botonDef.comandoCanonico())
+                                    && !AppActionCommands.CMD_PREVIEW_RENDER_COLLAGE.equals(botonDef.comandoCanonico())) {
                                 group.add((JToggleButton) componenteBoton);
                                 logger.debug("      -> Botón Toggle '" + botonDef.comandoCanonico()
                                         + "' añadido al ButtonGroup.");

@@ -3,9 +3,11 @@ package vista.panels.render;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -23,6 +25,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -640,10 +643,59 @@ public class RenderPanel extends JPanel {
         showGridCard(CARD_GRID_RENDER);
 
         // ---------- ENSAMBLAR PANEL PRINCIPAL ----------
-        add(leftSplit, BorderLayout.WEST);
+        add(wrapCollapsible("", leftSplit, true, true), BorderLayout.WEST);
         add(gridCardPanel, BorderLayout.CENTER);
-        add(rightPanel, BorderLayout.EAST);
+        add(wrapCollapsible("", rightPanel, true, false), BorderLayout.EAST);
     }
+
+    private JPanel wrapCollapsible(String title, JComponent content, boolean expanded, boolean leftSide) {
+        Color bgHeader = new Color(48, 48, 53);
+        Color fgTitle = new Color(180, 180, 190);
+        Color borderColor = new Color(60, 60, 65);
+
+        String expandedArrow = leftSide ? "\u25C0" : "\u25B6";
+        String collapsedArrow = leftSide ? "\u25B6" : "\u25C0";
+
+        JPanel section = new JPanel(new BorderLayout());
+        section.setBackground(bgHeader);
+
+        JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
+        header.setBackground(bgHeader);
+        header.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, borderColor));
+        header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        JLabel arrowLbl = new JLabel(expanded ? expandedArrow : collapsedArrow);
+        arrowLbl.setFont(new Font("SansSerif", Font.PLAIN, 9));
+        arrowLbl.setForeground(fgTitle);
+
+        header.add(arrowLbl);
+
+        if (title != null && !title.isEmpty()) {
+            JLabel titleLbl = new JLabel(title);
+            titleLbl.setFont(titleLbl.getFont().deriveFont(Font.BOLD, 11f));
+            titleLbl.setForeground(fgTitle);
+            header.add(titleLbl);
+        }
+
+        section.add(header, BorderLayout.NORTH);
+        section.add(content, BorderLayout.CENTER);
+
+        header.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                boolean visible = !content.isVisible();
+                content.setVisible(visible);
+                arrowLbl.setText(visible ? expandedArrow : collapsedArrow);
+                section.revalidate();
+                Container p = section.getParent();
+                if (p != null) {
+                    p.revalidate();
+                }
+            } // ---FIN de metodo mouseClicked---
+        });
+
+        return section;
+    } // --- Fin del método wrapCollapsible ---
 
     private JPanel buildSliderRow(JLabel lbl, JSlider slider, JTextField field) {
         JPanel row = new JPanel(new BorderLayout(4, 0));

@@ -9,6 +9,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
@@ -20,6 +21,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -33,7 +35,7 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
-import controlador.commands.AppActionCommands;
+import controlador.actions.editoravanzado.EditorToolAction;
 import vista.config.SeparatorDefinition;
 import vista.config.ToolbarButtonDefinition;
 import vista.config.ToolbarComponentDefinition;
@@ -46,13 +48,13 @@ import vista.util.IconUtils;
 
 public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
-    private final JPanel canvasPanel;
+    private static final long serialVersionUID = 1L;
+	private final JPanel canvasPanel;
     private final JPanel advanceEditToolsPanel;
     private final JPanel toolbarContainer;
     private final JPanel mainContent;
     private final JSplitPane advanceEditSplit;
-    private final JPanel statusBar;
-    private final JLabel statusLabel;
+    private final EditorComponentBar componentBar;
     private final JLabel toolsTitle;
     private boolean advanceEditToolsVisible;
     private boolean advanceEditActive;
@@ -60,6 +62,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     private UIDefinitionService uiDefinitionService;
     private int iconWidth = 24;
     private int iconHeight = 24;
+    private boolean syncingTools;
 
     // Colores temáticos (inicializados con defaults oscuros)
     private Color bgMain = new Color(40, 40, 45);
@@ -75,13 +78,20 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         setLayout(new BorderLayout());
         setBackground(bgMain);
 
-        statusBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
-        statusBar.setBackground(bgStatus);
-        statusBar.setPreferredSize(new Dimension(0, 26));
-        statusLabel = new JLabel("Editor avanzado");
-        statusLabel.setForeground(fgStatus);
-        statusBar.add(statusLabel);
-        add(statusBar, BorderLayout.NORTH);
+        componentBar = new EditorComponentBar();
+        componentBar.getToolCombo().addActionListener(e -> {
+            if (syncingTools) return;
+            syncingTools = true;
+            try {
+                EditorComponentBar.ToolItem item = (EditorComponentBar.ToolItem) componentBar.getToolCombo().getSelectedItem();
+                if (item != null) {
+                    selectToolButton(item.commandKey());
+                }
+            } finally {
+                syncingTools = false;
+            }
+        });
+        add(componentBar, BorderLayout.NORTH);
 
         mainContent = new JPanel(new BorderLayout());
         mainContent.setBackground(bgMain);
@@ -149,8 +159,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             fgSectionTitle = tema.colorTextoSecundario();
 
             setBackground(bgMain);
-            statusBar.setBackground(bgStatus);
-            statusLabel.setForeground(fgStatus);
+            componentBar.updateTheme(bgStatus, fgStatus, borderColor);
             toolbarContainer.setBackground(bgToolbar);
             mainContent.setBackground(bgMain);
             advanceEditSplit.setBackground(bgMain);
@@ -223,9 +232,9 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     } // --- Fin del metodo getToolbarContainer ---
 
 
-    public JPanel getStatusBar() {
-        return statusBar;
-    } // --- Fin del metodo getStatusBar ---
+    public EditorComponentBar getComponentBar() {
+        return componentBar;
+    } // --- Fin del metodo getComponentBar ---
 
 
     public void addToolbarGroup(String groupTitle, javax.swing.JButton... buttons) {
@@ -262,10 +271,37 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         return null;
     } // --- Fin del metodo getSplit ---
 
+
+    public JPanel getToolControlsPanel() {
+        return componentBar.getToolControlsPanel();
+    } // --- Fin del metodo getToolControlsPanel ---
+
+
+    public void setActiveTool(String commandKey) {
+        componentBar.selectToolByCommand(commandKey);
+    } // --- Fin del metodo setActiveTool ---
+
+
+    private void selectToolButton(String commandKey) {
+        for (java.awt.Component c : toolbarContainer.getComponents()) {
+            if (c instanceof JPanel) {
+                for (java.awt.Component child : ((JPanel) c).getComponents()) {
+                    if (child instanceof JToggleButton) {
+                        Action a = ((JToggleButton) child).getAction();
+                        if (a != null && commandKey.equals(a.getValue(Action.ACTION_COMMAND_KEY))) {
+                            ((JToggleButton) child).setSelected(true);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+    } // --- Fin del metodo selectToolButton ---
+
+
     // -----------------------------------------------------------------------
     // Construcción del contenido del panel de herramientas (lado derecho)
     // -----------------------------------------------------------------------
-
     private void buildDefaultTools() {
         JPanel tc = getToolsContent();
         tc.setLayout(new BorderLayout());
@@ -303,8 +339,86 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         textTabs.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
         textTabs.setPreferredSize(new Dimension(160, 140));
         textTabs.setMinimumSize(new Dimension(160, 80));
-        textTabs.addTab("Alineamiento", new JPanel());
-        textTabs.addTab("Fuentes", new JPanel());
+
+        // TAB ALINEAMIENTO
+        JPanel alineacionPanel = new JPanel();
+        alineacionPanel.setLayout(new BoxLayout(alineacionPanel, BoxLayout.Y_AXIS));
+        alineacionPanel.setBackground(bgTools);
+
+        JPanel alignRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 2));
+        alignRow.setBackground(bgTools);
+        JPanel flowRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 2));
+        flowRow.setBackground(bgTools);
+        JPanel orientRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 2));
+        orientRow.setBackground(bgTools);
+
+        if (uiDefinitionService != null && iconUtils != null) {
+            List<ToolbarComponentDefinition> textoDefs = uiDefinitionService.getToolbarDefinition("editoravanzadotexto").componentes();
+            for (ToolbarComponentDefinition comp : textoDefs) {
+                if (comp instanceof ToolbarButtonDefinition btnDef) {
+                    String icon = btnDef.claveIcono();
+                    if (icon.startsWith("80906") || icon.startsWith("80907")
+                            || icon.startsWith("80908") || icon.startsWith("80909")) {
+                        alignRow.add(createTextToggle(btnDef));
+                    } else if (icon.startsWith("80910") || icon.startsWith("80911")) {
+                        flowRow.add(createTextToggle(btnDef));
+                    } else if (icon.startsWith("80912") || icon.startsWith("80913")) {
+                        orientRow.add(createTextToggle(btnDef));
+                    }
+                }
+            }
+        }
+        alineacionPanel.add(alignRow);
+        alineacionPanel.add(flowRow);
+        alineacionPanel.add(orientRow);
+        textTabs.addTab("Alineamiento", alineacionPanel);
+
+        // TAB FUENTES
+        JPanel fuentesPanel = new JPanel();
+        fuentesPanel.setLayout(new BoxLayout(fuentesPanel, BoxLayout.Y_AXIS));
+        fuentesPanel.setBackground(bgTools);
+
+        JPanel fontRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 2));
+        fontRow.setBackground(bgTools);
+        JPanel styleRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 2));
+        styleRow.setBackground(bgTools);
+        JPanel sizeRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 2));
+        sizeRow.setBackground(bgTools);
+
+        if (uiDefinitionService != null && iconUtils != null) {
+            List<ToolbarComponentDefinition> textoDefs = uiDefinitionService.getToolbarDefinition("editoravanzadotexto").componentes();
+            for (ToolbarComponentDefinition comp : textoDefs) {
+                if (comp instanceof ToolbarButtonDefinition btnDef) {
+                    String icon = btnDef.claveIcono();
+                    if ("80900-search-font.png".equals(icon)) {
+                        if (iconUtils != null) {
+                            fontRow.add(new JLabel(iconUtils.getScaledIcon(icon, 16, 16)));
+                        }
+                        String[] fonts = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+                        JComboBox<String> fontCombo = new JComboBox<>(fonts);
+                        fontCombo.setPreferredSize(new Dimension(130, 22));
+                        fontRow.add(fontCombo);
+                    } else if ("80905-font-size.png".equals(icon)) {
+                        if (iconUtils != null) {
+                            sizeRow.add(new JLabel(iconUtils.getScaledIcon(icon, 16, 16)));
+                        }
+                        Integer[] sizes = {8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72};
+                        JComboBox<Integer> sizeCombo = new JComboBox<>(sizes);
+                        sizeCombo.setSelectedItem(12);
+                        sizeCombo.setPreferredSize(new Dimension(55, 22));
+                        sizeRow.add(sizeCombo);
+                    } else if (icon.startsWith("80901") || icon.startsWith("80902")
+                            || icon.startsWith("80903") || icon.startsWith("80904")) {
+                        styleRow.add(createTextToggle(btnDef));
+                    }
+                }
+            }
+        }
+        fuentesPanel.add(fontRow);
+        fuentesPanel.add(styleRow);
+        fuentesPanel.add(sizeRow);
+        textTabs.addTab("Fuentes", fuentesPanel);
+
         container.add(createSection("Texto", textTabs, false));
 
         // --- Capas (tabs: capas + orden) ---
@@ -479,6 +593,33 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     } // --- Fin del metodo createButtonFromDef ---
 
 
+    private JToggleButton createTextToggle(ToolbarButtonDefinition btnDef) {
+        Action action = new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Stub — sin implementacion todavia
+            }
+        };
+        action.putValue(Action.ACTION_COMMAND_KEY, btnDef.comandoCanonico());
+        action.putValue(Action.SHORT_DESCRIPTION, btnDef.textoTooltip());
+        if (iconUtils != null) {
+            var icon = iconUtils.getScaledIcon(btnDef.claveIcono(), iconWidth, iconHeight);
+            if (icon != null) {
+                action.putValue(Action.SMALL_ICON, icon);
+            }
+        }
+        JToggleButton btn = new JToggleButton(action);
+        btn.setFocusPainted(false);
+        btn.setPreferredSize(new Dimension(24, 24));
+        btn.setMinimumSize(new Dimension(24, 24));
+        btn.setMaximumSize(new Dimension(24, 24));
+        btn.setBackground(bgTools);
+        btn.setBorder(BorderFactory.createEmptyBorder());
+        return btn;
+    } // --- Fin del metodo createTextToggle ---
+
+
     private JPanel wrapInCell(JComponent comp) {
         JPanel cell = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         cell.setBackground(bgTools);
@@ -489,12 +630,14 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
     public void setIconUtils(IconUtils iconUtils) {
         this.iconUtils = iconUtils;
+        componentBar.setIconUtils(iconUtils);
         rebuildIfReady();
     } // --- Fin del metodo setIconUtils ---
 
 
     public void setUiDefinitionService(UIDefinitionService service) {
         this.uiDefinitionService = service;
+        componentBar.setUiDefinitionService(service);
         rebuildIfReady();
     } // --- Fin del metodo setUiDefinitionService ---
 
@@ -542,14 +685,19 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                     toolbarContainer.add(bottomPanel);
                 }
             } else if (comp instanceof ToolbarButtonDefinition btnDef) {
-                Action action = new AbstractAction() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        // Stub — sin implementacion todavia
-                    }
-                };
-                action.putValue(Action.ACTION_COMMAND_KEY, btnDef.comandoCanonico());
-                action.putValue(Action.SHORT_DESCRIPTION, btnDef.textoTooltip());
+                String cmdKey = btnDef.comandoCanonico();
+                Action action = EditorToolAction.createForCommand(cmdKey);
+                if (action == null) {
+                    action = new AbstractAction() {
+                        private static final long serialVersionUID = 1L;
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            // Zoom / pantalla completa — no cambian herramienta
+                        }
+                    };
+                    action.putValue(Action.ACTION_COMMAND_KEY, cmdKey);
+                    action.putValue(Action.SHORT_DESCRIPTION, btnDef.textoTooltip());
+                }
                 if (iconUtils != null) {
                     javax.swing.ImageIcon icon = iconUtils.getScaledIcon(btnDef.claveIcono(), 20, 20);
                     if (icon != null) {
@@ -558,6 +706,21 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                 }
 
                 JToggleButton btn = new JToggleButton(action);
+                btn.addItemListener(e -> {
+                    if (e.getStateChange() == ItemEvent.SELECTED) {
+                        if (syncingTools) return;
+                        syncingTools = true;
+                        try {
+                            Action a = ((javax.swing.AbstractButton) e.getSource()).getAction();
+                            Object cmd = a.getValue(Action.ACTION_COMMAND_KEY);
+                            if (cmd instanceof String) {
+                                setActiveTool((String) cmd);
+                            }
+                        } finally {
+                            syncingTools = false;
+                        }
+                    }
+                });
                 btn.setAlignmentX(JComponent.CENTER_ALIGNMENT);
                 btn.setPreferredSize(new Dimension(28, 28));
                 btn.setMaximumSize(new Dimension(28, 28));
@@ -578,6 +741,13 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
         toolbarContainer.revalidate();
         toolbarContainer.repaint();
+
+        // Sincronizar el desplegable con el boton seleccionado
+        var combo = componentBar.getToolCombo();
+        var sel = combo.getSelectedItem();
+        if (sel instanceof EditorComponentBar.ToolItem ti) {
+            selectToolButton(ti.commandKey());
+        }
     } // --- Fin del metodo buildLeftToolbar ---
 
 

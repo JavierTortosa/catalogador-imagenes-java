@@ -1194,43 +1194,43 @@ public class UIDefinitionService {
 		);
         
         List<ToolbarComponentDefinition> toolbarEditorAvanzado = List.of(
-        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_EDICION,*/
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_EDICION,
                         "80000-edicion.png", "Edicion", "tbeditoravanzado", ButtonType.TOGGLE)
         		  
         		, new SeparatorDefinition()
         		
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_TRANSFORMAR,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_TRANSFORMAR,
                         "80001-transform.png", "Transformar", "tbeditoravanzado", ButtonType.TOGGLE)
         		
         		, new SeparatorDefinition()
         		
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SELECCIÓN_MARCO,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_SELECCION_MARCO,
         				"80002-seleccion-marco.png", "Selección por marco", "tbeditoravanzado", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SELECCIÓN_CAPA,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_SELECCION_CAPA,
                         "80003-seleccion-layer.png", "Selección por capa", "tbeditoravanzado", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_VARITA,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_VARITA,
                         "80004-varita.png", "Varita mágica", "tbeditoravanzado", ButtonType.TOGGLE)
         		
         		, new SeparatorDefinition()
         		
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_RECORTAR,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_RECORTAR,
                         "80005.-recortar.png", "Recortar", "tbeditoravanzado", ButtonType.TOGGLE)
         		
         		, new SeparatorDefinition()
         		
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_CUENTAGOTAS,*/
-                        "80006-cuentagotas.png", "Capturar el color situado bajo el cursor", "tbeditoravanzado", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_BOTE_PINTURA,*/
-                        "80007-bote-pintura.png", "Rellenar zonas con un color sólido", "tbeditoravanzado", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_DEGRADADO,*/
-                        "80008-degradado.png", "Rellenar mediante un degradado", "tbeditoravanzado", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_CUENTAGOTAS,
+                        "80006-cuentagotas.png", "Capturar color bajo el cursor", "tbeditoravanzado", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_BOTE_PINTURA,
+                        "80007-bote-pintura.png", "Rellenar con un color sólido", "tbeditoravanzado", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_DEGRADADO,
+                        "80008-degradado.png", "Rellena con un degradado", "tbeditoravanzado", ButtonType.TOGGLE)
         		
         		, new SeparatorDefinition()
         		
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_TEXTO,*/
-                        "80009-text.png", "Crear una nueva capa de texto", "tbeditoravanzado", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_FORMAS,*/
-                        "80010-formas.png", "Crear formas geométricas básicas", "tbeditoravanzado", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_TEXTO,
+                        "80009-text.png", "Crear capa de texto", "tbeditoravanzado", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_FORMAS,
+                        "80010-formas.png", "Crear formas básicas", "tbeditoravanzado", ButtonType.TOGGLE)
         		
         		, new SeparatorDefinition()
         		
@@ -1250,10 +1250,13 @@ public class UIDefinitionService {
         );
         
         List<ToolbarComponentDefinition> componentbarEditorAvanzadoLayerSelection = List.of(
-        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_LAYER,*/
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_PAGE,*/
+                        "80120-target-page.png", "Tamaño del Lienzo", "editoravanzadolayerselection", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_LAYER,*/
                         "80104-transform-layer.png", "Transformar una capa", "editoravanzadolayerselection", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SELECTION,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_MARCO,*/
                         "80105-transform.png", "Transformar un marco de selección", "editoravanzadolayerselection", ButtonType.TOGGLE)
+        		
         );
         
         
@@ -1266,11 +1269,100 @@ public class UIDefinitionService {
         
         
         List<ToolbarComponentDefinition> componentbarEditorAvanzadoCrop = List.of(
-        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SELECTION,*/
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_CROP_SELECTION,*/
                         "80502-recortar-eliminar.png", "Recorta eliminando seleccion", "editoravanzadocrop", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SELECTION,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_CROP_LAYER,*/
                         "80503-recortar-nueva-capa.png", "Recorta Creando una Nueva Capa", "editoravanzadocrop", ButtonType.TOGGLE)
         );
+        
+        List<ToolbarComponentDefinition> componentbarEditorAvanzadoTexto = List.of(
+        		
+        		//este boton solo es un icono que acompaña al jcombobox con la lista de fuentes
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_FONT,*/
+        				"80900-search-font.png", "", "editoravanzadotexto", ButtonType.TOGGLE)
+        		  
+        		//aqui va el jcombobox con la lista de fuentes  
+        		  
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_BOLD,*/
+                        "80901-bold-text.png", "Negrita", "editoravanzadotexto", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ITALIC,*/
+                        "80902-italic-text.png", "Cursiva", "editoravanzadotexto", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_UNDERLINE,*/
+                        "80903-underline-text.png", "Subrayado", "editoravanzadotexto", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_TACHADO,*/
+                        "80904-tachado.png", "Tachado", "editoravanzadotexto", ButtonType.TOGGLE)
+        		
+        		
+        		// este boton en realidad solo es el icono que acompaña al jcombobox con la lista de tamaños de fuente
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_FONT_SIZE,*/
+                        "80905-font-size.png", "", "editoravanzadotexto", ButtonType.TOGGLE)
+        		
+        		// aqui va un JComboBox con los tamaños de la fuente 
+        		
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ALIGN_LEFT,*/
+                        "80906-align-left.png", "Alinear a la Izquierda", "editoravanzadotexto", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ALIGN_CENTER,*/
+                        "80907-align-center.png", "Alinear al Centro", "editoravanzadotexto", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ALIGN_RIGHT,*/
+                        "80908-align-right.png", "Alinear a la Derecha", "editoravanzadotexto", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_JUSTIFIED,*/
+                        "80909-justified.png", "Justificado", "editoravanzadotexto", ButtonType.TOGGLE)
+        		
+        		// estos 2 botones son el mismo con 2 iconos
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_TEXT_FLOW_ROWS,*/
+                        "80910-text-flow-rows.png", "Texto en Linea", "editoravanzadotexto", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_TEXT_FLOW_COLUMNS,*/
+                        "80911-text-flow-columns.png", "Texto en Columna", "editoravanzadotexto", ButtonType.TOGGLE)
+        		
+        		// estos 2 botones son el mismo con 2 iconos        		
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_HORIZONTAL,*/
+                        "80912-horizontal-text.png", "Texto Horizontal", "editoravanzadotexto", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_VERTICAL,*/
+                        "80913-vertical-text.png", "Texto Vertical", "editoravanzadotexto", ButtonType.TOGGLE)
+        );		
+        
+        
+        List<ToolbarComponentDefinition> componentbarEditorAvanzadoConfirmacion = List.of(
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ACEPTAR,*/
+                        "82001-aceptar.png", "Acepta el Proceso", "editoravanzadoconfirmacion", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_CANCELAR,*/
+                        "82002-cancelar.png", "Cancela el Proceso", "editoravanzadoconfirmacion", ButtonType.TOGGLE)
+        );
+        
+        
+        List<ToolbarComponentDefinition> componentbarEditorAvanzadoFormas = List.of(
+        		
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SHAPE_RECT,*/
+                        "81000-shape-rect.png", "Rectangulo", "editoravanzadoformas", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SHAPE_LINE,*/
+                        "81002-shape-line.png", "Linea", "editoravanzadoformas", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SHAPE_ELLIPSE,*/
+                        "81001-shape-ellipse.png", "Elipse", "editoravanzadoformas", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SHAPE_TRIANGLE,*/
+                        "81003-shape-triangle.png", "Triangulo", "editoravanzadoformas", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SHAPE_POLYGON,*/
+                        "81004-shape-polygon.png", "Poligono", "editoravanzadoformas", ButtonType.TOGGLE)
+        		
+        		// estos 3 botones no tienen icono porque son especiales
+        			// label "Relleno" + cuadrado con el color del relleno que al pulsarlo abre el selector de color 
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_FILL_COLOR,*/
+                        "", "Relleno", "editoravanzadoformas", ButtonType.TOGGLE)
+        			// label "Borde" + cuadrado con el color del relleno que al pulsarlo abre el selector de color
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_STROKE_COLOR,*/
+                        "", "Borde", "editoravanzadoformas", ButtonType.TOGGLE)
+        			// label "Grosor" + spin para los pixeles de grosor
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_STROKE_WIDTH,*/
+                        "", "Grosor de Borde", "editoravanzadoformas", ButtonType.TOGGLE)
+        );
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
         List<ToolbarComponentDefinition> componentesLayerOrderPreviewRender = getComponentesLayerOrderPreviewRender();
         List<ToolbarComponentDefinition> componentesLayerLoadPreviewRender = getComponentesLayerLoadPreviewRender();
@@ -1475,6 +1567,42 @@ public class UIDefinitionService {
                 EnumSet.of(RENDER),
                 toolbarEditorAvanzado, tbarFree);
 
+        // ==================== SUB-TOOLBARS EDITOR AVANZADO (Parte B) ====================
+        final ToolbarDefinition tbEditorAvanzadoTransform = new ToolbarDefinition(
+                "editoravanzadotransform", "Transformar", 1091,
+                EnumSet.of(RENDER),
+                componentbarEditorAvanzadoTransform, tbarFree);
+
+        final ToolbarDefinition tbEditorAvanzadoLayerSelection = new ToolbarDefinition(
+                "editoravanzadolayerselection", "Seleccion de Capa", 1092,
+                EnumSet.of(RENDER),
+                componentbarEditorAvanzadoLayerSelection, tbarFree);
+
+        final ToolbarDefinition tbEditorAvanzadoZoomType = new ToolbarDefinition(
+                "editoravanzadozoomtype", "Tipo de Zoom", 1093,
+                EnumSet.of(RENDER),
+                componentbarEditorAvanzadoZoomType, tbarFree);
+
+        final ToolbarDefinition tbEditorAvanzadoCrop = new ToolbarDefinition(
+                "editoravanzadocrop", "Recortar", 1094,
+                EnumSet.of(RENDER),
+                componentbarEditorAvanzadoCrop, tbarFree);
+
+        final ToolbarDefinition tbEditorAvanzadoTexto = new ToolbarDefinition(
+                "editoravanzadotexto", "Texto", 1095,
+                EnumSet.of(RENDER),
+                componentbarEditorAvanzadoTexto, tbarFree);
+
+        final ToolbarDefinition tbEditorAvanzadoFormas = new ToolbarDefinition(
+                "editoravanzadoformas", "Formas", 1096,
+                EnumSet.of(RENDER),
+                componentbarEditorAvanzadoFormas, tbarFree);
+
+        final ToolbarDefinition tbEditorAvanzadoConfirmacion = new ToolbarDefinition(
+                "editoravanzadoconfirmacion", "Confirmacion", 1097,
+                EnumSet.of(RENDER),
+                componentbarEditorAvanzadoConfirmacion, tbarFree);
+
         return List.of(
                 // LEFT
                 tbNavegacion,
@@ -1520,8 +1648,15 @@ public class UIDefinitionService {
                 tbBarraGridProyecto,
                 tbModo,
                 tbModoBottom,
-                tbEditorAvanzado);
- 
+                tbEditorAvanzado,
+                tbEditorAvanzadoTransform,
+                tbEditorAvanzadoLayerSelection,
+                tbEditorAvanzadoZoomType,
+                tbEditorAvanzadoCrop,
+                tbEditorAvanzadoTexto,
+                tbEditorAvanzadoFormas,
+                tbEditorAvanzadoConfirmacion);
+
      }// --- FIN DEL METODO generateModularToolbarStructure ---
 
     // -----------------------------------------------------------------------
