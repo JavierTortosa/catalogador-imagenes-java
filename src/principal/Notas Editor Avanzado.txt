@@ -228,17 +228,17 @@ H
 
 Altura.
 
-□ Mover
+[groupbutton]
+□ Mover [toggle]
+□ Rotar [toggle]
+□ Escalar [toggle]
+[endgroupbutton]
 
-□ Rotar
-
-□ Escalar
-
-□ Mantener proporción / Transformacion Libre
+□ Mantener proporción / Transformacion Libre (checkbox)
 
 Al escalar mantiene la relación ancho/alto o nos permite cambiar las proporciones a voluntad.
 
-□ Ajustar a cuadrícula (opcional)
+□ Ajustar a cuadrícula (opcional) (dpad nuevo)
 
 Permite alinear los objetos fácilmente.
 
@@ -506,17 +506,29 @@ Versión sencilla.
 No se implementarán opciones avanzadas de tipografía.
 
 
-Opciones
+Opciones (toolbar: componentbarEditorAvanzadoTexto)
 
-Fuente
+Fuente [JComboBox]
 
-Tamaño
+Tamaño [JComboBox]
 
-Negrita
+Negrita [Toggle]
 
-Cursiva
+Cursiva [Toggle]
 
-Color
+Subrayado [Toggle]
+
+Tachado [Toggle]
+
+Color [cuadrado de muestra y boton selector de color]
+
+Alineado [groupbutton 4 botones toggle de alineado]
+
+Flow [1 boton con 2 iconos]
+
+Orientacion [1 boton con 2 iconos]
+
+
 
 
 =========================================================
@@ -818,37 +830,251 @@ Si la respuesta es no, probablemente no forme parte de
 la filosofía del proyecto.
 
 
+
 ************************************************************************************************************
 ************************************************************************************************************
 ************************************************************************************************************
 
 
 
+Estado actual del panel superior (EditorComponentBar)
+
+✅ Ya implementado (Parte A — Común)
+------------------------------------
+
+Componente									Estado
+Desplegable herramienta (icono + nombre)	JComboBox<ToolItem> con renderer custom ✅
+X, Y, W, H									4 JSpinner (56px, deshabilitados, alineados derecha) ✅
+Separador vertical							JSeparator ✅
+Contenedor Parte B							toolControlsPanel (FlowLayout, vacío) ✅
 
 
-LAS HERRAMIENTAS SERAN:
------------------------
+❌ Falta por implementar (Parte B — Específica)
+-----------------------------------------------
 
-edicion-> mover capas, rotar, escalar 
-seleccion por marco -> se forma un cuadrado y actuamos sobre ese contenido 
-seleccion por capa -> se forma un cuadrado pero solo selecciona sobre la capa actual
-seleccion por varita -> ayuda a seleccionar objetos
-recortar -> recorta lo que esta marcado 
-captura de muestra -> nos permite capturar el color en el que esta el cursor
-bote de pintura -> pone un fondo solido a esa capa
-degradado -> pone un degradado a esa capa
-texto -> añadimos una capa con un texto
-formas -> nos permite añadir formas
-zoom -> nos permite acercar o alejar todo el editor
-pantalla completa -> hace que toda la pantalla se vea el panel del editor ocultando todo lo demas
+Qué falta							Detalle
+CardLayout en toolControlsPanel		Cambiar FlowLayout → CardLayout; registrar paneles por commandKey
+Mapeo tool → panel					Map<String, JPanel> toolOptionsMap en EditorComponentBar
+showOptionsFor(String commandKey)	cardLayout.show(toolControlsPanel, commandKey)
+Panel por herramienta				13 paneles (uno por herramienta real + edición) con sus controles específicos
+Hook al cambiar tool				ComboBox.addActionListener → showOptionsFor(selected.commandKey())
 
-herramienta edicion (standard): 
-que hace este boton:
-mover capas, rotar, escalar
 
-contenido de la statusbar:
-accion actual: muestra el icono de con que herramienta estamos trabajando (muestra el icono)
-seleccion automatica: checkbox para que seleccionando con el mouse se auto selecciona esa capa o no
-controles de transformacion: checkbox para mostrar los 8 puntos para poder estirar una capa
-transformacion libre: checkbox para que se estire desde ese punto o mantenga las proporciones
-botones de acceso rapido de alineacion y distribucion
+Paneles Parte B que hay que crear (según doc de diseño)
+-------------------------------------------------------
+
+Herramienta				Controles (resumen)																									Complejidad
+Transformar				Spinners X/Y/W/H vinculados, toggles M/R/E, KeepAspect, SnapGrid, dpad 9 botones									Alta
+Selección marco/capa	Slider Desvanecer																									Baja
+Varita					Spinner Tolerancia, Checkbox Contiguo																				Baja
+Recortar				2 Radio (Eliminar/Nueva capa), Checkbox Mantener original															Baja
+Cuentagotas				3 Radio (1×1/3×3/5×5)																								Baja
+Bote					Color picker + swatch, Spinner Tolerancia, Checkbox Contiguo														Media
+Degradado				Mini preview, Combo Tipo (5), Slider Opacidad																		Media
+Texto					Combo Fuente, Combo Tamaño, 4 toggles B/I/U/S, Color picker, 4 toggles Alineado, Flow toggle, Orientación toggle	Muy alta
+Formas					Combo Tipo (5), 2 Color pickers, Spinner Grosor																		Media
+Zoom					2 Radio (Cursor/Centro)	Baja
+Pantalla completa		(vacío)																												—
+Edición (neutro)	(	vacío)																												—
+
+
+Conclusión
+----------
+
+Conviene terminarlo ahora antes de meter lógica de herramientas, porque:
+
+El CardLayout y el hook de cambio de tool son infraestructura que usarán todas las herramientas
+Cada herramienta solo tiene que implementar getOptionsPanel() y registrarse
+Sin esto, no hay dónde poner los controles específicos al activar una tool
+
+
+
+************************************************************************************************************
+************************************************************************************************************
+************************************************************************************************************
+
+
+
+PLAN COMPLETO Y EXHAUSTIVO — EDITOR AVANZADO
+============================================
+
+0. FUNDACIÓN: Canvas + Modelo de datos (base para todo)
+
+Componente	Responsabilidad	Clase/Paquete
+LayerModel / ImageLayer	Lista ordenada de capas: bounds, visible, locked, opacity, name, type (image/text/shape), datos (BufferedImage / TextData / ShapeData)	modelo.editor.LayerModel, modelo.editor.ImageLayer
+LayerListModel	ListModel<ImageLayer> para JList del panel capas; drag-reorder, add/remove/duplicate	modelo.editor.LayerListModel
+CanvasModel	Estado global: lienzo size, background color, grid, selección activa, herramienta actual	modelo.editor.CanvasModel
+SelectionModel	Rectángulo (x,y,w,h), feather, contains(x,y), intersects(rect)	modelo.editor.SelectionModel
+CanvasPanel (vista)	JPanel double-buffered: paintComponent renderiza capas + selection overlay + gizmo; repaintDirty(Rectangle)	vista.panels.render.CanvasPanel
+CanvasController	Puente vista↔modelo: recibe eventos ratón/teclado, delega a Tool activa, gestiona dirty rects	controlador.tools.CanvasController
+Entregable: canvas visible, capas se renderizan, selección rectangular dibujable, gizmo aparece al seleccionar.
+
+
+1. ARQUITECTURA TOOL BASE (antes de cada herramienta concreta)
+
+Clase	Métodos abstractos	Notas
+abstract class Tool	mousePressed(e), mouseDragged(e), mouseReleased(e), mouseMoved(e), keyPressed(e), paintOverlay(g2), getOptionsPanel(), onActivate(), onDeactivate()	onActivate/onDeactivate para init/cleanup
+ToolContext (record)	CanvasModel model, CanvasPanel view, EditorComponentBar bar, LayerModel layers, SelectionModel selection, TransformGizmo gizmo	Inyectado en cada Tool
+
+
+2. TRANSFORM GIZMO (independiente, reutilizable)
+
+Clase	Métodos clave
+TransformGizmo	draw(g2, bounds, mode), hitTest(x,y)→Handle, startDrag(handle, bounds, constraints), drag(dx,dy)→newBounds, endDrag(), getCursor(handle)
+Handle (enum)	NONE, MOVE, NW, N, NE, E, SE, S, SW, ROTATE
+Constraints (record)	keepAspect, snapGrid, minSize
+Targets: LayerTarget (capa), SelectionTarget (marco), PageTarget (lienzo completo).
+
+
+3. HERRAMIENTA TRANSFORMAR (Fase 1 real)
+
+Componente	Detalle
+TransformTool	ToolContext ctx; mode = PAGE/LAYER/SELECTION (toggle group en component bar)
+getOptionsPanel()	Panel con: X/Y/W/H spinners (vinculados a target), checkboxes Mover/Rotar/Escalar, KeepAspect, SnapGrid; ChangeListener → gizmo.applyTransform
+mousePressed	gizmo.hitTest → si HANDLE≠NONE inicia drag sobre target actual
+mouseDragged	gizmo.drag → actualiza target bounds, view.repaintDirty
+paintOverlay	Si hay target seleccionado → gizmo.draw(g2, target.bounds, mode)
+onActivate	Selecciona primera capa visible como target por defecto; muestra gizmo
+
+
+4. SELECCIÓN (Marco + Capa)
+
+Herramienta	Comportamiento
+MarqueeSelectionTool	Drag → rect preview; release → SelectionModel creado; feather slider en component bar
+LayerSelectionTool	Igual pero contains limitado a bounds de capa activa
+Ambas: onActivate → ctx.selection.clear(); getOptionsPanel() → slider Desvanecer (0–50px).
+
+
+5. VARITA MÁGICA
+
+Detalle	Implementación
+Flood fill	BFS/queue desde click; tolerancia (0–255) + contiguo; genera SelectionModel
+Component bar	Spinner Tolerancia, checkbox Contiguo
+Optimización	WritableRaster + int[] píxeles; early exit si tolerancia=0
+
+
+6. BOTE DE PINTURA
+
+Detalle	Implementación
+Fill	Igual que varita pero pinta en capa activa (o crea capa nueva)
+Component bar	Color picker (muestra + selector), spinner Tolerancia, checkbox Contiguo
+
+
+7. CUENTAGOTAS
+
+Detalle	Implementación
+Sample	getRGB(x,y) con kernel 1×1 / 3×3 / 5×5 (promedio)
+Resultado	Actualiza color foreground global; muestra swatch en component bar
+Component bar	Radio group Tamaño muestra (1x1/3x3/5x5)
+
+
+8. RECORTAR
+
+Detalle	Implementación
+Requiere	SelectionModel activa
+Opciones	Radio: Eliminar / Nueva capa; checkbox Mantener original
+Acción	BufferedImage sub = img.getSubimage(...); si Nueva capa → crea ImageLayer con sub; si Eliminar → graphics.clearRect en capa
+
+
+9. TEXTO
+
+Detalle	Implementación
+TextLayer	String text, Font font, Color color, Alignment, bounds
+In-place edit	Click en canvas → JTextArea overlay sobre TextLayer.bounds; Enter/Escape confirma/cancela
+Component bar	JComboBox fuentes, JComboBox tamaños, toggles B/I/U/S, color picker, alineado (4 toggles), flow, orientación
+paintOverlay	Cursor texto + rect preview mientras se arrastra para crear
+
+
+10. FORMAS
+
+Detalle	Implementación
+ShapeLayer	Shape shape, Paint fill, Paint stroke, float strokeWidth
+Tipos	Rectángulo, Elipse, Línea, Triángulo, Polígono (n lados)
+Creación	Drag → preview paintOverlay; release → fija ShapeLayer
+Component bar	Combo Tipo, color relleno, color borde, spinner Grosor
+
+
+11. DEGRADADO
+
+Detalle	Implementación
+Tipos	Lineal, Radial, Angular, Reflejado, Diamante
+Creación	Drag define vector (lineal) / centro+radio (radial)
+Component bar	Combo Tipo, slider Opacidad, botón invertir
+Render	GradientPaint / RadialGradientPaint / MultipleGradientPaint
+
+
+12. ZOOM / PANTALLA COMPLETA
+
+Herramienta	Comportamiento
+ZoomTool	Rueda ratón: modo cursor (default) / centro (toggle en bar); AffineTransform en CanvasPanel
+FullscreenAction	Window.setExtendedState(MAXIMIZED_BOTH) + oculta toolBar, layerPanel, menuBar; Escape restaura
+
+
+13. LIENZO (Canvas Management)
+
+Acción	Implementación
+Resize	CanvasModel.setSize(w,h) → recrea back-buffer, escala capas opcionalmente
+Background	Color picker + checkbox Transparente (alpha=0)
+Fit to content	Calcula union bounds de todas las capas visibles → setSize
+
+
+14. PANEL DE CAPAS (lado derecho)
+
+Feature	Implementación
+LayerListPanel	JList<ImageLayer> con LayerListModel; renderer: miniatura + nombre + iconos visibilidad/lock
+Drag-reorder	TransferHandler + ListDropTarget → LayerModel.move(from,to)
+Botones	+ Nueva, ⎘ Duplicar, 🗑 Eliminar, 👁 Visibilidad, 🔒 Lock, Opacity slider
+Contexto	Click derecho → menú con mismas acciones
+
+
+15. EXPORTACIÓN PNG
+
+Detalle	Implementación
+ExportService	BufferedImage out = new BufferedImage(canvasW, canvasH, TYPE_INT_ARGB); renderAllLayers(out.getGraphics()); ImageIO.write(out, "PNG", file)
+Opciones	Exportar selección / capa activa / todo el lienzo
+
+
+16. INTEGRACIÓN Y PULIDO
+
+Tarea	Archivos
+Atajos teclado	V=Transformar, M=Marco, L=Capa, W=Varita, G=Bote, I=Cuentagotas, C=Recortar, T=Texto, U=Formas, D=Degradado, Z=Zoom, F=Fullscreen
+Persistencia preferencias	Preferences.userNodeForPackage → guarda último color, fuente, tolerancia, modo zoom, etc.
+Tema	ThemeChangeListener ya implementado → propagar a CanvasPanel, Tool overlays, component bar
+Tests manuales	Checklist por herramienta: crear, editar, transformar, combinar, exportar
+
+
+ORDEN DE EJECUCIÓN SUGERIDO
+===========================
+
+Semana	Entregable
+1		0. Canvas + LayerModel + CanvasPanel + SelectionModel (ver canvas, capas, selección)
+2		TransformGizmo + TransformTool (mover/escalar/rotar capas y selección)
+3		Marquee + Layer Selection (crear selecciones, feather, transformar selección)
+4		Varita + Bote + Cuentagotas + Recortar (herramientas de píxel)
+5		Texto + Formas (capas vectoriales editables)
+6		Degradado + Zoom + Fullscreen + Canvas resize
+7		Panel capas (drag-reorder, visibilidad, lock, opacidad)
+8		Export PNG + atajos + persistencia + pulido
+
+
+ARCHIVOS NUEVOS POR PAQUETE
+===========================
+
+modelo.editor
+  LayerModel, ImageLayer, LayerListModel, CanvasModel, SelectionModel, TextData, ShapeData
+
+modelo.gizmo
+  TransformGizmo, Handle, Constraints, Target (interface), LayerTarget, SelectionTarget, PageTarget
+
+controlador.tools
+  Tool, ToolContext, TransformTool, MarqueeSelectionTool, LayerSelectionTool,
+  MagicWandTool, PaintBucketTool, ColorPickerTool, CropTool,
+  TextTool, ShapeTool, GradientTool, ZoomTool
+
+vista.panels.render
+  CanvasPanel, LayerListPanel, EditorComponentBar (ya existe), ToolOptionsPanel (base)
+
+servicios
+  ExportService, PreferencesService
+
+
