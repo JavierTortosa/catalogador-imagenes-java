@@ -25,6 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import modelo.editor.CanvasModel;
+import modelo.editor.LayerModel;
+
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -1674,6 +1677,15 @@ public class RenderController {
 
     public void toggleAdvanceEditMode() {
         boolean nuevo = !panel.isAdvanceEditActive();
+        if (nuevo) {
+            var aep = panel.getAdvanceEditPanel();
+            if (aep.getCanvas().getCanvasModel() == null) {
+                aep.setCanvasModel(new CanvasModel(1920, 1080));
+            }
+            if (aep.getCanvas().getLayerModel() == null) {
+                aep.setLayerModel(new LayerModel());
+            }
+        }
         panel.setAdvanceEditActive(nuevo);
         logger.info("[RenderController] Modo editor avanzado: {}", nuevo);
     } // --- Fin del metodo toggleAdvanceEditMode ---

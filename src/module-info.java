@@ -59,6 +59,8 @@ module VisorImagenes {
     // Paquetes de Modelo de Datos
     opens modelo to com.formdev.flatlaf, ch.qos.logback.core;
     opens modelo.proyecto to com.formdev.flatlaf, ch.qos.logback.core, com.google.gson;
+    opens modelo.editor to com.formdev.flatlaf, ch.qos.logback.core;
+    opens modelo.gizmo to com.formdev.flatlaf, ch.qos.logback.core;
     
     // Paquetes de Configuración de la Vista (muy probable que FlatLaf los necesite)
     opens vista.config to com.formdev.flatlaf;
@@ -66,6 +68,7 @@ module VisorImagenes {
     // Por seguridad, también abrimos los paquetes principales.
     // Es una buena práctica para evitar problemas de reflexión inesperados.
     opens controlador to com.formdev.flatlaf, ch.qos.logback.core;
+    opens controlador.tools to com.formdev.flatlaf, ch.qos.logback.core;
     opens servicios to com.formdev.flatlaf, ch.qos.logback.core;
     opens vista to com.formdev.flatlaf, ch.qos.logback.core;
     

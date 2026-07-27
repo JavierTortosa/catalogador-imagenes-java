@@ -1018,13 +1018,23 @@ Background	Color picker + checkbox Transparente (alpha=0)
 Fit to content	Calcula union bounds de todas las capas visibles → setSize
 
 
-14. PANEL DE CAPAS (lado derecho)
+14. PANEL DE CAPAS (lado derecho) — TARJETAS
 
-Feature	Implementación
-LayerListPanel	JList<ImageLayer> con LayerListModel; renderer: miniatura + nombre + iconos visibilidad/lock
-Drag-reorder	TransferHandler + ListDropTarget → LayerModel.move(from,to)
-Botones	+ Nueva, ⎘ Duplicar, 🗑 Eliminar, 👁 Visibilidad, 🔒 Lock, Opacity slider
-Contexto	Click derecho → menú con mismas acciones
+En lugar de JList/JTable, se usan tarjetas visuales apiladas verticalmente
+en un JPanel dentro de JScrollPane. Cada tarjeta representa una capa.
+
+Componente	Descripción
+LayerCardPanel	JPanel con BoxLayout.Y_AXIS dentro de un JScrollPane. Se reconstruye desde LayerModel.getLayers()
+LayerCard	JPanel individual con: JLabel miniatura (48x48 escalado), JTextField nombre (editable, sin borde, fondo transparente), JToggleButton ojo (visible/oculto), fondo coloreado si seleccionada
+
+Comportamiento:
+- Click en tarjeta → layerModel.setActiveLayer(idx) + repintar selección en el listado
+- Reconstrucción completa al añadir/eliminar/reordenar capas (layerModel dispara evento)
+- El ojo toggle modifica ImageLayer.visible + repaint canvas
+- El JTextField modifica ImageLayer.name
+
+Botones inferiores (JToolBar o JPanel horizontal):
+  [+ Nueva] [⎘ Duplicar] [🗑 Eliminar] [Opacidad slider]
 
 
 15. EXPORTACIÓN PNG
@@ -1072,7 +1082,7 @@ controlador.tools
   TextTool, ShapeTool, GradientTool, ZoomTool
 
 vista.panels.render
-  CanvasPanel, LayerListPanel, EditorComponentBar (ya existe), ToolOptionsPanel (base)
+  CanvasPanel, LayerCardPanel, LayerCard, EditorComponentBar (ya existe), ToolOptionsPanel (base)
 
 servicios
   ExportService, PreferencesService

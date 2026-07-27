@@ -8,6 +8,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
@@ -29,13 +31,15 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTable;
 import javax.swing.JToggleButton;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.table.DefaultTableModel;
 
 import controlador.actions.editoravanzado.EditorToolAction;
+import controlador.commands.AppActionCommands;
+import modelo.editor.CanvasModel;
+import modelo.editor.ImageLayer;
+import modelo.editor.LayerModel;
 import vista.config.SeparatorDefinition;
 import vista.config.ToolbarButtonDefinition;
 import vista.config.ToolbarComponentDefinition;
@@ -49,7 +53,7 @@ import vista.util.IconUtils;
 public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
     private static final long serialVersionUID = 1L;
-	private final JPanel canvasPanel;
+	private final CanvasPanel canvasPanel;
     private final JPanel advanceEditToolsPanel;
     private final JPanel toolbarContainer;
     private final JPanel mainContent;
@@ -58,6 +62,8 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     private final JLabel toolsTitle;
     private boolean advanceEditToolsVisible;
     private boolean advanceEditActive;
+    private LayerCardPanel layerCardPanel;
+    private modelo.editor.LayerModel editorLayerModel;
     private IconUtils iconUtils;
     private UIDefinitionService uiDefinitionService;
     private int iconWidth = 24;
@@ -135,7 +141,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             advanceEditToolsVisible = loc < maxLoc - 10;
         });
 
-        canvasPanel = new JPanel(new BorderLayout());
+        canvasPanel = new CanvasPanel();
         canvasPanel.setBackground(bgMain);
         advanceEditSplit.setLeftComponent(canvasPanel);
         advanceEditSplit.setRightComponent(advanceEditToolsPanel);
@@ -212,9 +218,21 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     } // --- Fin del metodo isActive ---
 
 
-    public JPanel getCanvas() {
+    public CanvasPanel getCanvas() {
         return canvasPanel;
     } // --- Fin del metodo getCanvas ---
+
+    public void setLayerModel(modelo.editor.LayerModel layerModel) {
+        this.editorLayerModel = layerModel;
+        canvasPanel.setLayerModel(layerModel);
+        if (layerCardPanel != null) {
+            layerCardPanel.setLayerModel(layerModel);
+        }
+    } // --- Fin del metodo setLayerModel ---
+
+    public void setCanvasModel(CanvasModel canvasModel) {
+        canvasPanel.setCanvasModel(canvasModel);
+    } // --- Fin del metodo setCanvasModel ---
 
 
     public JPanel getToolsPanel() {
@@ -429,30 +447,9 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         capasTabs.setPreferredSize(new Dimension(160, 150));
         capasTabs.setMinimumSize(new Dimension(160, 100));
 
-        DefaultTableModel layerModel = new DefaultTableModel(new String[]{"Visible", "Nombre"}, 0) {
-            @Override
-            public Class<?> getColumnClass(int col) {
-                return col == 0 ? Boolean.class : String.class;
-            }
-            @Override
-            public boolean isCellEditable(int row, int col) {
-                return true;
-            }
-        };
-        JTable layerTable = new JTable(layerModel);
-        layerTable.setTableHeader(null);
-        layerTable.setShowGrid(false);
-        layerTable.setRowHeight(22);
-        layerTable.setBackground(bgTools);
-        layerTable.setForeground(fgSectionTitle);
-        layerTable.setSelectionBackground(new Color(65, 65, 75));
-        layerTable.setSelectionForeground(fgSectionTitle);
-        layerTable.getColumnModel().getColumn(0).setMaxWidth(28);
-        layerTable.getColumnModel().getColumn(0).setMinWidth(28);
-        JScrollPane capasScroll = new JScrollPane(layerTable);
-        capasScroll.setBorder(null);
-        capasScroll.getViewport().setBackground(bgTools);
-        capasTabs.addTab("Capas", capasScroll);
+        layerCardPanel = new LayerCardPanel();
+        layerCardPanel.setBackground(bgTools);
+        capasTabs.addTab("Capas", layerCardPanel);
 
         // Pestaña "Orden": botones de orden
         JPanel ordenPanel = new JPanel(new BorderLayout());
@@ -479,7 +476,12 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             layerToolbar.setBackground(bgTools);
             for (ToolbarComponentDefinition def : uiDefinitionService.getComponentesLayerLoadPreviewRender()) {
                 if (def instanceof ToolbarButtonDefinition btnDef) {
-                    layerToolbar.add(createButtonFromDef(btnDef));
+                    String cmd = btnDef.comandoCanonico();
+                    if (AppActionCommands.CMD_PREVIEW_RENDER_ADD_LAYER.equals(cmd)) {
+                        layerToolbar.add(createAddLayerButton(btnDef));
+                    } else {
+                        layerToolbar.add(createButtonFromDef(btnDef));
+                    }
                 }
             }
             capasContent.add(layerToolbar, BorderLayout.SOUTH);
@@ -591,6 +593,43 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
         return btn;
     } // --- Fin del metodo createButtonFromDef ---
+
+
+    private JButton createAddLayerButton(ToolbarButtonDefinition def) {
+        Action action = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (editorLayerModel == null) return;
+                int w = canvasPanel.getCanvasModel() != null ? canvasPanel.getCanvasModel().getWidth() : 1920;
+                int h = canvasPanel.getCanvasModel() != null ? canvasPanel.getCanvasModel().getHeight() : 1080;
+                BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+                String name = "Capa " + (editorLayerModel.size() + 1);
+                ImageLayer layer = new ImageLayer(name, img, new Rectangle(0, 0, w, h));
+                editorLayerModel.addLayer(layer);
+                if (layerCardPanel != null) {
+                    layerCardPanel.rebuild();
+                }
+            }
+        };
+        action.putValue(Action.ACTION_COMMAND_KEY, def.comandoCanonico());
+        action.putValue(Action.SHORT_DESCRIPTION, def.textoTooltip());
+        if (iconUtils != null) {
+            javax.swing.ImageIcon icon = iconUtils.getScaledIcon(def.claveIcono(), iconWidth, iconHeight);
+            if (icon != null) {
+                action.putValue(Action.SMALL_ICON, icon);
+            }
+        }
+
+        JButton btn = new JButton(action);
+        btn.setFocusPainted(false);
+        btn.setPreferredSize(new Dimension(iconWidth, iconHeight));
+        btn.setMinimumSize(new Dimension(iconWidth, iconHeight));
+        btn.setMaximumSize(new Dimension(iconWidth, iconHeight));
+        btn.setBackground(bgTools);
+        btn.setBorder(BorderFactory.createEmptyBorder());
+
+        return btn;
+    } // --- Fin del metodo createAddLayerButton ---
 
 
     private JToggleButton createTextToggle(ToolbarButtonDefinition btnDef) {

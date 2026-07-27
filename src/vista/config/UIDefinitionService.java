@@ -1731,8 +1731,16 @@ public class UIDefinitionService {
                         "70301-clean-and-add-image.png", "Borra Preview y Muestra Imagen", "previewRender"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ADD_IMAGE,
                         "70302-add-image-to-group.png", "Añade Capa Con Una Nueva Imagen", "previewRender"),
+                
+                
+        
+                new SeparatorDefinition(),
+                
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ADD_LAYER,
+                        "70304-nueva-capa.png", "Añade Capa Nueva", "previewRender"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DELETE_LAYER,
-                        "70303-delete-layer.png", "Borra Capa Actual", "previewRender"));
+                        "70303-delete-layer.png","Borra Capa Actual", "previewRender"));
+        
     } // --- Fin del metodo getComponentesLayerLoadPreviewRender ---
 
     public ToolbarDefinition getToolbarDefinition(String clave) {

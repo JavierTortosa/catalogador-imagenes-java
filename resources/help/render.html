@@ -215,7 +215,7 @@
     <p>Los tres primeros botones son <strong>excluyentes</strong> (solo uno puede estar activo a la vez). El botón Galería ZIP es independiente y puede combinarse con cualquiera de ellos.</p>
 
     <h2>Barra de Orden de Capas (<em>layerorderpreview</em>)</h2>
-    <p>Barra vertical en el lateral EAST, visible únicamente en modo <strong>Collage</strong>. Permite reordenar las capas de imágenes apiladas:</p>
+    <p>Barra vertical en el lateral EAST, visible en modo <strong>Collage</strong> y <strong>Editor Avanzado</strong>. Permite reordenar las capas de imágenes apiladas:</p>
     <table class="controls-table">
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_70201-bring-to-front.png"></td>
@@ -236,7 +236,7 @@
     </table>
 
     <h2>Barra de Carga de Capas (<em>layerloadpreview</em>)</h2>
-    <p>Barra vertical en el lateral EAST, visible únicamente en modo <strong>Collage</strong>. Gestiona la adición y eliminación de capas:</p>
+    <p>Barra vertical en el lateral EAST, visible únicamente en modo <strong>Collage</strong> y <strong>Editor Avanzado</strong>. Gestiona la adición y eliminación de capas:</p>
     <table class="controls-table">
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_70301-clean-and-add-image.png"></td>
@@ -245,6 +245,10 @@
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_70302-add-image-to-group.png"></td>
             <td><strong>Añadir capa:</strong> Extrae la imagen seleccionada del comprimido actual y la añade como una nueva capa sobre las existentes, sin borrar las anteriores.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70304-nueva-capa.png"></td>
+            <td><strong>Añade capa nueva:</strong> Crea una capa vacía (transparente) del tamaño del lienzo en el editor avanzado.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_70303-delete-layer.png"></td>
@@ -258,14 +262,15 @@
     </p>
     <h3>Pestaña "Capas"</h3>
     <p>
-        Al activar el modo collage aparece una nueva pestaña <strong>"Capas"</strong> en el panel derecho (junto a las pestañas "Imagen" y "Fondo"). Contiene una lista (<code>JList</code>) con todas las capas apiladas. Cada capa tiene:
+        Al activar el modo collage o el editor avanzado aparece la pestaña <strong>"Capas"</strong> en el panel derecho. Muestra las capas como tarjetas visuales apiladas verticalmente (<code>LayerCardPanel</code>). Cada tarjeta incluye:
     </p>
     <ul>
-        <li><strong>Nombre:</strong> Identificador de la imagen de origen.</li>
-        <li><strong>Zoom y Pan por capa:</strong> Cada capa mantiene su propio nivel de zoom y desplazamiento (offset X/Y), permitiendo ajustar la posición y tamaño de cada imagen de forma independiente.</li>
-        <li><strong>Orden apilado:</strong> La primera capa en la lista se pinta al fondo; la última, al frente.</li>
+        <li><strong>Miniatura:</strong> Vista previa en 48×48 del contenido de la capa.</li>
+        <li><strong>Nombre editable:</strong> Campo de texto para renombrar la capa.</li>
+        <li><strong>Ojo de visibilidad:</strong> Toggle que muestra/oculta la capa en el lienzo.</li>
+        <li><strong>Selección:</strong> Al hacer clic en una tarjeta se selecciona esa capa como activa en el editor.</li>
     </ul>
-    <p>La imagen compuesta se renderiza en el visor 2D pintando las capas en orden (de fondo a frente), aplicando el zoom/pan individual de cada una.</p>
+    <p>La imagen compuesta se renderiza en el visor 2D pintando las capas en orden (de fondo a frente).</p>
 
     <h2>Barra de Información Superior</h2>
     <p>Al seleccionar un candidato se muestran: nombre, ruta, tamaño, fecha, formato e índice respecto al total.</p>
