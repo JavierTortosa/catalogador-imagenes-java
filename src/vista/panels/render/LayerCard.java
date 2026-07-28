@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 
 import javax.swing.BorderFactory;
@@ -15,7 +14,7 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
 
-import modelo.editor.ImageLayer;
+import modelo.editor.Layer;
 import modelo.editor.LayerModel;
 
 public class LayerCard extends JPanel {
@@ -65,7 +64,7 @@ public class LayerCard extends JPanel {
         ICON_UNLOCK = unlock;
     }
 
-    private final ImageLayer layer;
+    private final Layer layer;
     private final LayerModel layerModel;
     private final int index;
     private final JLabel thumbLabel;
@@ -73,7 +72,7 @@ public class LayerCard extends JPanel {
     private final JToggleButton eyeButton;
     private final JToggleButton lockButton;
 
-    public LayerCard(ImageLayer layer, LayerModel layerModel, int index) {
+    public LayerCard(Layer layer, LayerModel layerModel, int index) {
         this.layer = layer;
         this.layerModel = layerModel;
         this.index = index;
@@ -140,17 +139,10 @@ public class LayerCard extends JPanel {
 
 
     public void updateThumbnail() {
-        BufferedImage img = layer.getImage();
-        if (img != null) {
-            int w = Math.min(img.getWidth(), 48);
-            int h = Math.min(img.getHeight(), 48);
-            BufferedImage scaled = new BufferedImage(48, 48, BufferedImage.TYPE_INT_ARGB);
-            Graphics g = scaled.getGraphics();
-            int x = (48 - w) / 2;
-            int y = (48 - h) / 2;
-            g.drawImage(img, x, y, w, h, null);
-            g.dispose();
-            thumbLabel.setIcon(new ImageIcon(scaled));
+        BufferedImage thumb = layer.renderThumbnail(48);
+        if (thumb != null) {
+            thumbLabel.setIcon(new ImageIcon(thumb));
+            thumbLabel.setText(null);
         } else {
             thumbLabel.setIcon(null);
             thumbLabel.setText("?");
@@ -167,7 +159,7 @@ public class LayerCard extends JPanel {
     } // --- Fin del metodo updateSelection ---
 
 
-    public ImageLayer getLayer() {
+    public Layer getLayer() {
         return layer;
     } // --- Fin del metodo getLayer ---
 

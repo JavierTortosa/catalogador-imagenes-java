@@ -162,6 +162,8 @@ public final class ConfigKeys {
     // --- SECCIÓN: CONFIG ---
     public static final String COMPORTAMIENTO_ZOOM_MODO_INICIAL 				= "config.display.zoom.initial_mode";
     public static final String COMPORTAMIENTO_PANTALLA_COMPLETA 				= "config.ventana.pantalla_completa";
+    public static final String CANVAS_DEFAULT_WIDTH 							= "config.editor.canvas.default_width";
+    public static final String CANVAS_DEFAULT_HEIGHT 							= "config.editor.canvas.default_height";
     public static final String COMPORTAMIENTO_ZOOM_MANUAL_INICIAL 				= "config.zoom.manual_inicial_activo";
     public static final String COMPORTAMIENTO_ZOOM_ULTIMO_MODO 					= "config.zoom.ultimo_modo_seleccionado";
     public static final String COMPORTAMIENTO_ZOOM_PORCENTAJE_PERSONALIZADO 	= "config.zoom.personalizado.porcentaje";

@@ -1,11 +1,14 @@
 package modelo.editor;
 
+import java.awt.AlphaComposite;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.util.Objects;
 import java.util.UUID;
 
-public class ImageLayer {
+public class ImageLayer implements Layer {
 
     public enum LayerType {
         IMAGE, TEXT, SHAPE
@@ -91,6 +94,36 @@ public class ImageLayer {
         this.type = type;
     } // --- Fin del metodo setType ---
 
+    @Override
+    public void paint(Graphics2D g2) {
+        if (!visible || image == null || bounds == null) return;
+
+        if (opacity < 1.0f) {
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
+        }
+        g2.drawImage(image, bounds.x, bounds.y, bounds.width, bounds.height, null);
+        if (opacity < 1.0f) {
+            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+        }
+    } // --- Fin del metodo paint ---
+
+
+    @Override
+    public BufferedImage renderThumbnail(int size) {
+        if (image == null) return null;
+        int w = Math.min(image.getWidth(), size);
+        int h = Math.min(image.getHeight(), size);
+        BufferedImage thumb = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+        Graphics g = thumb.getGraphics();
+        int x = (size - w) / 2;
+        int y = (size - h) / 2;
+        g.drawImage(image, x, y, w, h, null);
+        g.dispose();
+        return thumb;
+    } // --- Fin del metodo renderThumbnail ---
+
+
+    @Override
     public ImageLayer copy() {
         ImageLayer clone = new ImageLayer(this.name, this.image, this.bounds);
         clone.visible = this.visible;

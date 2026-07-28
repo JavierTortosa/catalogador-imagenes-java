@@ -51,6 +51,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import controlador.commands.AppActionCommands;
 import controlador.managers.RenderSceneController;
 import controlador.utils.ComponentRegistry;
 import controlador.worker.Zip2PngWorker;
@@ -1698,6 +1699,16 @@ public class RenderController {
                 canvasController.registerTool(new controlador.tools.TransformTool());
                 canvasController.registerTool(new controlador.tools.MarqueeSelectionTool());
                 canvasController.registerTool(new controlador.tools.LayerSelectionTool());
+                canvasController.registerTool(new controlador.tools.MagicWandTool());
+                canvasController.registerTool(new controlador.tools.PaintBucketTool());
+                canvasController.registerTool(new controlador.tools.ColorPickerTool());
+                canvasController.registerTool(new controlador.tools.CropTool());
+                canvasController.registerTool(new controlador.tools.TextTool());
+                canvasController.registerTool(new controlador.tools.ShapeTool());
+                canvasController.registerTool(new controlador.tools.GradientTool());
+                aep.setCanvasController(canvasController);
+                aep.getCanvas().setCanvasController(canvasController);
+                canvasController.setActiveTool(AppActionCommands.CMD_ADVANCED_EDITOR_EDICION);
             }
         }
         panel.setAdvanceEditActive(nuevo);

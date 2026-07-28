@@ -85,6 +85,8 @@ public class RenderPanel extends JPanel {
     private int lastPanX;
     private int lastPanY;
     private final JPanel viewerCardPanel;
+    private JSplitPane leftSplit;
+    private boolean fullscreen;
     private final JPanel rightPanel;
     private static final String CARD_VISTA_3D = "Vista3D";
     private static final String CARD_VISTA_2D = "Vista2D";
@@ -183,7 +185,7 @@ public class RenderPanel extends JPanel {
         bottomCardPanel.add(contentScroll, CARD_CONTENT_STL);
         bottomCardPanel.add(contentImageScroll, CARD_CONTENT_IMG);
 
-        JSplitPane leftSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, candidateTabs, bottomCardPanel);
+        leftSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, candidateTabs, bottomCardPanel);
         leftSplit.setResizeWeight(0.5);
         leftSplit.setDividerLocation(0.5);
         leftSplit.setBorder(null);
@@ -659,7 +661,8 @@ public class RenderPanel extends JPanel {
         JPanel section = new JPanel(new BorderLayout());
         section.setBackground(bgHeader);
 
-        JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
+        int align = leftSide ? FlowLayout.RIGHT : FlowLayout.LEFT;
+        JPanel header = new JPanel(new FlowLayout(align, 4, 2));
         header.setBackground(bgHeader);
         header.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, borderColor));
         header.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -668,13 +671,24 @@ public class RenderPanel extends JPanel {
         arrowLbl.setFont(new Font("SansSerif", Font.PLAIN, 9));
         arrowLbl.setForeground(fgTitle);
 
-        header.add(arrowLbl);
-
-        if (title != null && !title.isEmpty()) {
-            JLabel titleLbl = new JLabel(title);
-            titleLbl.setFont(titleLbl.getFont().deriveFont(Font.BOLD, 11f));
-            titleLbl.setForeground(fgTitle);
-            header.add(titleLbl);
+        if (leftSide) {
+            // Panel izquierdo: título a la izquierda, flecha a la derecha
+            if (title != null && !title.isEmpty()) {
+                JLabel titleLbl = new JLabel(title);
+                titleLbl.setFont(titleLbl.getFont().deriveFont(Font.BOLD, 11f));
+                titleLbl.setForeground(fgTitle);
+                header.add(titleLbl);
+            }
+            header.add(arrowLbl);
+        } else {
+            // Panel derecho: flecha a la izquierda, título a la derecha
+            header.add(arrowLbl);
+            if (title != null && !title.isEmpty()) {
+                JLabel titleLbl = new JLabel(title);
+                titleLbl.setFont(titleLbl.getFont().deriveFont(Font.BOLD, 11f));
+                titleLbl.setForeground(fgTitle);
+                header.add(titleLbl);
+            }
         }
 
         section.add(header, BorderLayout.NORTH);
@@ -890,6 +904,20 @@ public class RenderPanel extends JPanel {
     public AdvanceEditPanel getAdvanceEditPanel() {
         return advanceEditPanel;
     }
+
+    public boolean isFullscreen() {
+        return fullscreen;
+    }
+
+    public void toggleEditorFullscreen() {
+        fullscreen = !fullscreen;
+        Container leftWrapper = leftSplit != null ? leftSplit.getParent() : null;
+        Container rightWrapper = rightPanel != null ? rightPanel.getParent() : null;
+        if (leftWrapper instanceof JComponent) leftWrapper.setVisible(!fullscreen);
+        if (rightWrapper instanceof JComponent) rightWrapper.setVisible(!fullscreen);
+        revalidate();
+        repaint();
+    } // --- Fin del metodo toggleEditorFullscreen ---
 
     public PreviewPanel3DFX getPreview3DFX() { return preview3DFX; }
     public JPanel getImageDisplayPanel() { return imageDisplayPanel; }

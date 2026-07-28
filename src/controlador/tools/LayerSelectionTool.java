@@ -34,9 +34,7 @@ public class LayerSelectionTool extends Tool {
 
     private ImageLayer getActiveLayer() {
         if (ctx.layerModel() == null) return null;
-        int idx = ctx.layerModel().getActiveIndex();
-        if (idx < 0) return null;
-        return ctx.layerModel().getLayers().get(idx);
+        return ctx.layerModel().getActiveLayer() instanceof ImageLayer il ? il : null;
     } // --- Fin del metodo getActiveLayer ---
 
     @Override

@@ -17,6 +17,7 @@ import java.awt.event.MouseEvent;
 import java.util.List;
 
 import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -35,8 +36,11 @@ import javax.swing.JToggleButton;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 
+import controlador.actions.editoravanzado.AutoDistributeActions;
 import controlador.actions.editoravanzado.EditorToolAction;
 import controlador.commands.AppActionCommands;
+import controlador.tools.CanvasController;
+import controlador.tools.Tool;
 import modelo.editor.CanvasModel;
 import modelo.editor.ImageLayer;
 import modelo.editor.LayerModel;
@@ -62,6 +66,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     private final JLabel toolsTitle;
     private boolean advanceEditToolsVisible;
     private boolean advanceEditActive;
+    private boolean homeActive;
     private LayerCardPanel layerCardPanel;
     private modelo.editor.LayerModel editorLayerModel;
     private IconUtils iconUtils;
@@ -69,6 +74,8 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     private int iconWidth = 24;
     private int iconHeight = 24;
     private boolean syncingTools;
+    private javax.swing.JToggleButton homeButton;
+    private CanvasController canvasController;
 
     // Colores temáticos (inicializados con defaults oscuros)
     private Color bgMain = new Color(40, 40, 45);
@@ -91,13 +98,19 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             try {
                 EditorComponentBar.ToolItem item = (EditorComponentBar.ToolItem) componentBar.getToolCombo().getSelectedItem();
                 if (item != null) {
-                    selectToolButton(item.commandKey());
+                    setActiveTool(item.commandKey());
                 }
             } finally {
                 syncingTools = false;
             }
         });
-        add(componentBar, BorderLayout.NORTH);
+
+        // Fila superior: casa + componentBar
+        JPanel topRow = new JPanel(new BorderLayout());
+        topRow.setBackground(bgToolbar);
+        topRow.add(createHomePanel(), BorderLayout.WEST);
+        topRow.add(componentBar, BorderLayout.CENTER);
+        add(topRow, BorderLayout.NORTH);
 
         mainContent = new JPanel(new BorderLayout());
         mainContent.setBackground(bgMain);
@@ -150,6 +163,71 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         mainContent.add(advanceEditSplit, BorderLayout.CENTER);
         add(mainContent, BorderLayout.CENTER);
     } // --- Fin del constructor AdvanceEditPanel ---
+
+
+    private JPanel createHomePanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(bgToolbar);
+        panel.setPreferredSize(new Dimension(36, 48));
+        panel.setMinimumSize(new Dimension(36, 48));
+        panel.setMaximumSize(new Dimension(36, 48));
+
+        homeButton = new javax.swing.JToggleButton();
+        homeButton.setPreferredSize(new Dimension(36, 48));
+        homeButton.setMinimumSize(new Dimension(36, 48));
+        homeButton.setMaximumSize(new Dimension(36, 48));
+        homeButton.setBackground(bgToolbar);
+        homeButton.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, borderColor));
+        homeButton.setFocusPainted(false);
+        homeButton.setToolTipText("Men\u00FA principal");
+        if (iconUtils != null) {
+            var icon = iconUtils.getScaledIcon("90000-home.png", 28, 28);
+            if (icon != null) homeButton.setIcon(icon);
+        }
+        homeButton.addActionListener(e -> toggleHomeMode());
+        panel.add(homeButton, BorderLayout.CENTER);
+
+        return panel;
+    } // --- Fin del metodo createHomePanel ---
+
+
+    private void toggleHomeMode() {
+        homeActive = homeButton.isSelected();
+        componentBar.setHomeMode(homeActive);
+        if (homeActive) {
+            // Deseleccionar todas las herramientas
+            for (java.awt.Component c : toolbarContainer.getComponents()) {
+                if (c instanceof JPanel) {
+                    for (java.awt.Component child : ((JPanel) c).getComponents()) {
+                        if (child instanceof javax.swing.JToggleButton tb) {
+                            tb.setSelected(false);
+                        }
+                    }
+                }
+            }
+        } else {
+            // Restaurar la herramienta activa
+            String activeCmd = getActiveToolCommand();
+            if (activeCmd == null) {
+                componentBar.selectToolByCommand(AppActionCommands.CMD_ADVANCED_EDITOR_EDICION);
+            }
+        }
+    } // --- Fin del metodo toggleHomeMode ---
+
+
+    private String getActiveToolCommand() {
+        for (java.awt.Component c : toolbarContainer.getComponents()) {
+            if (c instanceof JPanel) {
+                for (java.awt.Component child : ((JPanel) c).getComponents()) {
+                    if (child instanceof javax.swing.JToggleButton tb && tb.isSelected()) {
+                        Object cmd = tb.getAction().getValue(Action.ACTION_COMMAND_KEY);
+                        if (cmd instanceof String) return (String) cmd;
+                    }
+                }
+            }
+        }
+        return null;
+    } // --- Fin del metodo getActiveToolCommand ---
 
 
     @Override
@@ -228,6 +306,15 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         if (layerCardPanel != null) {
             layerCardPanel.setLayerModel(layerModel);
         }
+        // Refresco automático ante cualquier cambio en el modelo de capas
+        layerModel.setChangeListener(() -> {
+            if (layerCardPanel != null) {
+                layerCardPanel.rebuild();
+            }
+            if (canvasPanel != null) {
+                canvasPanel.repaint();
+            }
+        });
     } // --- Fin del metodo setLayerModel ---
 
     public void setCanvasModel(CanvasModel canvasModel) {
@@ -296,8 +383,22 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
 
     public void setActiveTool(String commandKey) {
+        if (homeActive) {
+            homeActive = false;
+            homeButton.setSelected(false);
+            componentBar.setHomeMode(false);
+        }
         componentBar.selectToolByCommand(commandKey);
+        if (canvasController != null) {
+            canvasController.setActiveTool(commandKey);
+        }
     } // --- Fin del metodo setActiveTool ---
+
+
+    public void setCanvasController(CanvasController cc) {
+        this.canvasController = cc;
+        componentBar.setCanvasController(cc);
+    } // --- Fin del metodo setCanvasController ---
 
 
     private void selectToolButton(String commandKey) {
@@ -603,13 +704,38 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
 
     private JButton createButtonFromDef(ToolbarButtonDefinition def) {
-        Action action = new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Stub — sin implementacion todavia
-            }
-        };
-        action.putValue(Action.ACTION_COMMAND_KEY, def.comandoCanonico());
+        String cmd = def.comandoCanonico();
+        Action action;
+        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_FIXED.equals(cmd)) {
+            action = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    AutoDistributeActions.distribucionFija(canvasPanel, editorLayerModel, canvasPanel.getCanvasModel());
+                }
+            };
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_LAYER.equals(cmd)) {
+            action = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    AutoDistributeActions.distribucionPorCapa(canvasPanel, editorLayerModel, canvasPanel.getCanvasModel());
+                }
+            };
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_CANVAS.equals(cmd)) {
+            action = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    AutoDistributeActions.escalarParaAjustar(canvasPanel, editorLayerModel, canvasPanel.getCanvasModel());
+                }
+            };
+        } else {
+            action = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // Stub — sin implementacion todavia
+                }
+            };
+        }
+        action.putValue(Action.ACTION_COMMAND_KEY, cmd);
         action.putValue(Action.SHORT_DESCRIPTION, def.textoTooltip());
         if (iconUtils != null) {
             javax.swing.ImageIcon icon = iconUtils.getScaledIcon(def.claveIcono(), iconWidth, iconHeight);
@@ -765,6 +891,10 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     public void setIconUtils(IconUtils iconUtils) {
         this.iconUtils = iconUtils;
         componentBar.setIconUtils(iconUtils);
+        if (homeButton != null && iconUtils != null) {
+            var icon = iconUtils.getScaledIcon("90000-home.png", 28, 28);
+            if (icon != null) homeButton.setIcon(icon);
+        }
         rebuildIfReady();
     } // --- Fin del metodo setIconUtils ---
 
@@ -822,13 +952,21 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                 String cmdKey = btnDef.comandoCanonico();
                 Action action = EditorToolAction.createForCommand(cmdKey);
                 if (action == null) {
-                    action = new AbstractAction() {
-                        private static final long serialVersionUID = 1L;
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            // Zoom / pantalla completa — no cambian herramienta
-                        }
-                    };
+                    if (AppActionCommands.CMD_ADVANCED_EDITOR_PANTALLA_COMPLETA.equals(cmdKey)) {
+                        action = new AbstractAction() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                toggleFullscreen();
+                            }
+                        };
+                    } else {
+                        action = new AbstractAction() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                // Zoom — no cambian herramienta
+                            }
+                        };
+                    }
                     action.putValue(Action.ACTION_COMMAND_KEY, cmdKey);
                     action.putValue(Action.SHORT_DESCRIPTION, btnDef.textoTooltip());
                 }
@@ -839,22 +977,29 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                     }
                 }
 
-                JToggleButton btn = new JToggleButton(action);
-                btn.addItemListener(e -> {
-                    if (e.getStateChange() == ItemEvent.SELECTED) {
-                        if (syncingTools) return;
-                        syncingTools = true;
-                        try {
-                            Action a = ((javax.swing.AbstractButton) e.getSource()).getAction();
-                            Object cmd = a.getValue(Action.ACTION_COMMAND_KEY);
-                            if (cmd instanceof String) {
-                                setActiveTool((String) cmd);
+                boolean isFullscreen = AppActionCommands.CMD_ADVANCED_EDITOR_PANTALLA_COMPLETA.equals(cmdKey);
+                AbstractButton btn;
+                if (isFullscreen) {
+                    btn = new JButton(action);
+                } else {
+                    JToggleButton tb = new JToggleButton(action);
+                    tb.addItemListener(e -> {
+                        if (e.getStateChange() == ItemEvent.SELECTED) {
+                            if (syncingTools) return;
+                            syncingTools = true;
+                            try {
+                                Action a = ((javax.swing.AbstractButton) e.getSource()).getAction();
+                                Object cmd = a.getValue(Action.ACTION_COMMAND_KEY);
+                                if (cmd instanceof String) {
+                                    setActiveTool((String) cmd);
+                                }
+                            } finally {
+                                syncingTools = false;
                             }
-                        } finally {
-                            syncingTools = false;
                         }
-                    }
-                });
+                    });
+                    btn = tb;
+                }
                 btn.setAlignmentX(JComponent.CENTER_ALIGNMENT);
                 btn.setPreferredSize(new Dimension(28, 28));
                 btn.setMaximumSize(new Dimension(28, 28));
@@ -904,5 +1049,13 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         tc.revalidate();
         tc.repaint();
     } // --- Fin del metodo rebuildTools ---
+
+
+    private void toggleFullscreen() {
+        RenderPanel rp = (RenderPanel) javax.swing.SwingUtilities.getAncestorOfClass(RenderPanel.class, this);
+        if (rp != null) {
+            rp.toggleEditorFullscreen();
+        }
+    } // --- Fin del metodo toggleFullscreen ---
 
 } // --- Fin de la clase AdvanceEditPanel ---

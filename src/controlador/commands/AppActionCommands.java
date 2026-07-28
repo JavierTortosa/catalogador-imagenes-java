@@ -263,6 +263,7 @@ public interface AppActionCommands {
     // --- Auto-distribuir ---
     public static final String CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_FIXED  = "cmd.preview.render.auto_distribute.fixed";
     public static final String CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_LAYER  = "cmd.preview.render.auto_distribute.layer";
+    public static final String CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_CANVAS = "cmd.preview.render.auto_distribute.canvas";
 
     // --- Editor Avanzado: herramientas principales ---
     public static final String CMD_ADVANCED_EDITOR_EDICION             = "cmd.advanced.editor.edicion";
@@ -276,6 +277,18 @@ public interface AppActionCommands {
     public static final String CMD_ADVANCED_EDITOR_DEGRADADO          = "cmd.advanced.editor.degradado";
     public static final String CMD_ADVANCED_EDITOR_TEXTO              = "cmd.advanced.editor.texto";
     public static final String CMD_ADVANCED_EDITOR_FORMAS             = "cmd.advanced.editor.formas";
+    public static final String CMD_ADVANCED_EDITOR_PANTALLA_COMPLETA = "cmd.advanced.editor.pantalla_completa";
+    public static final String CMD_ADVANCED_EDITOR_PAGE              = "cmd.advanced.editor.page";
+
+    // --- Editor Avanzado: sub-herramientas de texto ---
+    public static final String CMD_EDITOR_TEXTO_NEGRITA              = "cmd.editor.texto.negrita";
+    public static final String CMD_EDITOR_TEXTO_CURSIVA              = "cmd.editor.texto.cursiva";
+    public static final String CMD_EDITOR_TEXTO_SUBRAYADO            = "cmd.editor.texto.subrayado";
+    public static final String CMD_EDITOR_TEXTO_TACHADO              = "cmd.editor.texto.tachado";
+    public static final String CMD_EDITOR_TEXTO_ALIGN_LEFT           = "cmd.editor.texto.align.left";
+    public static final String CMD_EDITOR_TEXTO_ALIGN_CENTER         = "cmd.editor.texto.align.center";
+    public static final String CMD_EDITOR_TEXTO_ALIGN_RIGHT          = "cmd.editor.texto.align.right";
+    public static final String CMD_EDITOR_TEXTO_VERTICAL             = "cmd.editor.texto.vertical";
 
     // --- D-Pad ---
     public static final String CMD_PREVIEW_RENDER_DPAD_TOP_LEFT      = "cmd.preview.render.dpad.top_left";
@@ -418,5 +431,17 @@ public interface AppActionCommands {
     public static final String CMD_BACKGROUND_COLOR_SLOT_4 	= "cmd.background.color.slot_4";
     public static final String CMD_BACKGROUND_CHECKERED     = "cmd.background.checkered";
     public static final String CMD_BACKGROUND_CUSTOM_COLOR  = "cmd.background.custom_color";
+    
+    // --- Home Mode (Editor Avanzado) ---
+    public static final String CMD_HOME_CASA               = "cmd.home.casa";
+    public static final String CMD_HOME_LIENZO             = "cmd.home.lienzo";
+    public static final String CMD_HOME_CONTROL_IMAGEN     = "cmd.home.control_imagen";
+    public static final String CMD_HOME_LIENZO_NUEVO       = "cmd.home.lienzo.nuevo";
+    public static final String CMD_HOME_LIENZO_MEDIDAS     = "cmd.home.lienzo.medidas";
+    public static final String CMD_HOME_ACEPTAR            = "cmd.home.aceptar";
+    public static final String CMD_HOME_CANCELAR           = "cmd.home.cancelar";
+    public static final String CMD_HOME_IMPORTAR           = "cmd.home.importar";
+    public static final String CMD_HOME_EXPORTAR           = "cmd.home.exportar";
+    public static final String CMD_HOME_EXPORTAR_PREVIEW   = "cmd.home.exportar_preview";
     
 } // --- FIN DE LA CLASE AppActionCommand ---

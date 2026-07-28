@@ -250,7 +250,7 @@ public class UIDefinitionService {
                         MenuItemType.SEPARATOR, null, null), // Separador visual
                 new MenuItemDefinition(AppActionCommands.CMD_MODO_DATOS,
                         MenuItemType.RADIO_BUTTON_ITEM, "Modo Datos", null),
-                new MenuItemDefinition(AppActionCommands.CMD_MODO_CLIENTE /*CMD_FUNCIONALIDAD_PENDIENTE*/,
+                new MenuItemDefinition(AppActionCommands.CMD_MODO_CLIENTE,
                         MenuItemType.RADIO_BUTTON_ITEM, "Modo Cliente", null),
                 new MenuItemDefinition(AppActionCommands.CMD_VISTA_CAROUSEL,
                         MenuItemType.RADIO_BUTTON_ITEM, "Modo Carrusel", null),
@@ -1113,24 +1113,24 @@ public class UIDefinitionService {
 
         // Toolbar de Statusbar
         List<ToolbarComponentDefinition> componentesBarraEstado = List.of(
-                new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, 
-                		"3001-zoom_48x48.png", "Activar/Desactivar Zoom Manual", "barra_estado", ButtonType.TOGGLE),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, 
-                		"7001-subcarpetas_48x48.png", "Incluir/Excluir Subcarpetas", "barra_estado", ButtonType.TOGGLE),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES,
-                        "7002-mantener_proporciones_48x48.png", "Mantener Proporciones", "barra_estado", ButtonType.TOGGLE), 
-                new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP,
-                        "7004-siempre_encima_48x48.png", "Mantener Siempre Encima", "barra_estado", ButtonType.TOGGLE),
+                  new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, 
+                		"3001-zoom_48x48.png", "Activar/Desactivar Zoom Manual", "barra_estado", ButtonType.TOGGLE)
+                , new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, 
+                		"7001-subcarpetas_48x48.png", "Incluir/Excluir Subcarpetas", "barra_estado", ButtonType.TOGGLE)
+                , new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES,
+                        "7002-mantener_proporciones_48x48.png", "Mantener Proporciones", "barra_estado", ButtonType.TOGGLE) 
+                , new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP,
+                        "7004-siempre_encima_48x48.png", "Mantener Siempre Encima", "barra_estado", ButtonType.TOGGLE)
                 
-                new SeparatorDefinition(),
+                , new SeparatorDefinition()
                 
-                new LabelDefinition("label.control.zoomPorcentaje", "Z: 100%"),
+                , new LabelDefinition("label.control.zoomPorcentaje", "Z: 100%")
                 
                 // new ToolbarButtonDefinition("cmd.control.modoZoom", "imagen.png", "Cambiar
                 // Modo de Zoom", "barra_estado") // Usamos un comando simple, no de
                 // AppActionCommands
                 
-                new ToolbarButtonDefinition("cmd.control.modoZoom", 
+                , new ToolbarButtonDefinition("cmd.control.modoZoom", 
                 		"3005-escalar_para_ajustar_48x48.png", "Cambiar Modo de Zoom", "barra_estado", ButtonType.STATUS_BAR_BUTTON)
 
         );
@@ -1236,7 +1236,7 @@ public class UIDefinitionService {
         		
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ZOOM,*/
                         "80011-zoom.png", "Acercar y alejar", "tbeditoravanzado", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_PANTALLA_COMPLETA,*/
+         		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_PANTALLA_COMPLETA,
                         "80012-pantalla_completa_48x48.png", "Expandir el editor ocultando el resto de la interfaz", "tbeditoravanzado", ButtonType.TOGGLE)
         );
         
@@ -1250,13 +1250,12 @@ public class UIDefinitionService {
         );
         
         List<ToolbarComponentDefinition> componentbarEditorAvanzadoLayerSelection = List.of(
-        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_PAGE,*/
+         		  new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_PAGE,
                         "80120-target-page.png", "Tamaño del Lienzo", "editoravanzadolayerselection", ButtonType.TOGGLE)
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_LAYER,*/
                         "80104-transform-layer.png", "Transformar una capa", "editoravanzadolayerselection", ButtonType.TOGGLE)
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_MARCO,*/
                         "80105-transform.png", "Transformar un marco de selección", "editoravanzadolayerselection", ButtonType.TOGGLE)
-        		
         );
         
         
@@ -1278,54 +1277,54 @@ public class UIDefinitionService {
         List<ToolbarComponentDefinition> componentbarEditorAvanzadoTexto = List.of(
         		
         		//este boton solo es un icono que acompaña al jcombobox con la lista de fuentes
-        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_FONT,*/
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
         				"80900-search-font.png", "", "editoravanzadotexto", ButtonType.TOGGLE)
         		  
         		//aqui va el jcombobox con la lista de fuentes  
         		  
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_BOLD,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_TEXTO_NEGRITA,
                         "80901-bold-text.png", "Negrita", "editoravanzadotexto", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ITALIC,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_TEXTO_CURSIVA,
                         "80902-italic-text.png", "Cursiva", "editoravanzadotexto", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_UNDERLINE,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_TEXTO_SUBRAYADO,
                         "80903-underline-text.png", "Subrayado", "editoravanzadotexto", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_TACHADO,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_TEXTO_TACHADO,
                         "80904-tachado.png", "Tachado", "editoravanzadotexto", ButtonType.TOGGLE)
         		
         		
         		// este boton en realidad solo es el icono que acompaña al jcombobox con la lista de tamaños de fuente
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_FONT_SIZE,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
                         "80905-font-size.png", "", "editoravanzadotexto", ButtonType.TOGGLE)
         		
         		// aqui va un JComboBox con los tamaños de la fuente 
         		
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ALIGN_LEFT,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_LEFT,
                         "80906-align-left.png", "Alinear a la Izquierda", "editoravanzadotexto", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ALIGN_CENTER,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_CENTER,
                         "80907-align-center.png", "Alinear al Centro", "editoravanzadotexto", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ALIGN_RIGHT,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_RIGHT,
                         "80908-align-right.png", "Alinear a la Derecha", "editoravanzadotexto", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_JUSTIFIED,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
                         "80909-justified.png", "Justificado", "editoravanzadotexto", ButtonType.TOGGLE)
         		
         		// estos 2 botones son el mismo con 2 iconos
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_TEXT_FLOW_ROWS,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
                         "80910-text-flow-rows.png", "Texto en Linea", "editoravanzadotexto", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_TEXT_FLOW_COLUMNS,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
                         "80911-text-flow-columns.png", "Texto en Columna", "editoravanzadotexto", ButtonType.TOGGLE)
         		
         		// estos 2 botones son el mismo con 2 iconos        		
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_HORIZONTAL,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
                         "80912-horizontal-text.png", "Texto Horizontal", "editoravanzadotexto", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_VERTICAL,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_TEXTO_VERTICAL,
                         "80913-vertical-text.png", "Texto Vertical", "editoravanzadotexto", ButtonType.TOGGLE)
         );		
         
         
         List<ToolbarComponentDefinition> componentbarEditorAvanzadoConfirmacion = List.of(
-        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ACEPTAR,*/
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_ACEPTAR,
                         "82001-aceptar.png", "Acepta el Proceso", "editoravanzadoconfirmacion", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_CANCELAR,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_CANCELAR,
                         "82002-cancelar.png", "Cancela el Proceso", "editoravanzadoconfirmacion", ButtonType.TOGGLE)
         );
         
@@ -1356,8 +1355,37 @@ public class UIDefinitionService {
         );
         
         
+        List<ToolbarComponentDefinition> componentbarEditorAvanzadoHome = List.of(
+        		new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_CASA,
+                        "90000-home.png", "Principal", "editoravanzadohome", ButtonType.TOGGLE)
+		);
         
         
+        List<ToolbarComponentDefinition> componentbarEditorAvanzadoHomeTools = List.of(
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_LIENZO,
+                        "90101-lienzo.png", "Lienzo", "editoravanzadohometools", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_CONTROL_IMAGEN,
+                        "21016-Ar-Environment.png", "Imagen", "editoravanzadohometools", ButtonType.TOGGLE)
+		);
+        	
+        
+        List<ToolbarComponentDefinition> componentbarEditorAvanzadoHomeCanvas = List.of(        		
+        		
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_LIENZO_NUEVO,
+                        "90102-nuevo-lienzo.png", "Nuevo Lienzo", "editoravanzadohomecanvas")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_LIENZO_MEDIDAS,
+                        "80120-target-page.png", "Cambio de Medidas del Lienzo", "editoravanzadohomecanvas")
+		);
+        		
+        		
+        List<ToolbarComponentDefinition> componentbarEditorAvanzadoHomeImage = List.of(        		
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_IMPORTAR,
+                        "90101-importar-imagen.png", "Importar", "editoravanzadohomeimage")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_EXPORTAR,
+                        "90102-exportar-imagen.png", "Exportar", "editoravanzadohomeimage")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_EXPORTAR_PREVIEW,
+                        "90103-export-to-preview.png", "Enviar a Preview", "editoravanzadohomeimage")
+		);
         
         
         
@@ -1603,6 +1631,26 @@ public class UIDefinitionService {
                 EnumSet.of(RENDER),
                 componentbarEditorAvanzadoConfirmacion, tbarFree);
 
+        final ToolbarDefinition tbHome = new ToolbarDefinition(
+                "editoravanzadohome", "Home", 1098,
+                EnumSet.of(RENDER),
+                componentbarEditorAvanzadoHome, tbarFree);
+
+        final ToolbarDefinition tbHomeTools = new ToolbarDefinition(
+                "editoravanzadohometools", "Home Tools", 1099,
+                EnumSet.of(RENDER),
+                componentbarEditorAvanzadoHomeTools, tbarFree);
+
+        final ToolbarDefinition tbHomeCanvas = new ToolbarDefinition(
+                "editoravanzadohomecanvas", "Home Canvas", 1100,
+                EnumSet.of(RENDER),
+                componentbarEditorAvanzadoHomeCanvas, tbarFree);
+
+        final ToolbarDefinition tbHomeImage = new ToolbarDefinition(
+                "editoravanzadohomeimage", "Home Image", 1101,
+                EnumSet.of(RENDER),
+                componentbarEditorAvanzadoHomeImage, tbarFree);
+
         return List.of(
                 // LEFT
                 tbNavegacion,
@@ -1655,7 +1703,11 @@ public class UIDefinitionService {
                 tbEditorAvanzadoCrop,
                 tbEditorAvanzadoTexto,
                 tbEditorAvanzadoFormas,
-                tbEditorAvanzadoConfirmacion);
+                tbEditorAvanzadoConfirmacion,
+                tbHome,
+                tbHomeTools,
+                tbHomeCanvas,
+                tbHomeImage);
 
      }// --- FIN DEL METODO generateModularToolbarStructure ---
 
@@ -1710,7 +1762,11 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_FIXED,
                         "70701-auto-distribute-fixed.png", "Distribucion Fija por Posicion", "layerautodistribute"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_LAYER,
-                        "70701-auto-distribute-layer.png", "Distribucion por Tamaño de la Capa", "layerautodistribute"));
+                        "70702-auto-distribute-layer.png", "Distribucion por Tamaño de la Capa", "layerautodistribute"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_CANVAS,
+                        "70703-reducir-ajustar.png", "Escalado de las Capas para Ajustar", "layerautodistribute")
+	);
+
     } // --- Fin del metodo getComponentesLayerAutoDistribute ---
 
     public List<ToolbarComponentDefinition> getComponentesLayerOrderPreviewRender() {

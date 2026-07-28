@@ -1,6 +1,5 @@
 package vista.panels.render;
 
-import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -9,8 +8,10 @@ import java.awt.RenderingHints;
 
 import javax.swing.JPanel;
 
+import controlador.tools.CanvasController;
+import controlador.tools.Tool;
 import modelo.editor.CanvasModel;
-import modelo.editor.ImageLayer;
+import modelo.editor.Layer;
 import modelo.editor.LayerModel;
 import modelo.editor.SelectionModel;
 
@@ -21,6 +22,7 @@ public class CanvasPanel extends JPanel {
     private LayerModel layerModel;
     private CanvasModel canvasModel;
     private SelectionModel selectionModel;
+    private CanvasController canvasController;
 
     // Checkerboard colors for transparency
     private static final Color CHECK_LIGHT = new Color(0xCC, 0xCC, 0xCC);
@@ -34,6 +36,20 @@ public class CanvasPanel extends JPanel {
     public CanvasPanel() {
         setOpaque(true);
         setBackground(new Color(0x33, 0x33, 0x33));
+        addMouseWheelListener(e -> {
+            double oldZoom = zoom;
+            double factor = e.getWheelRotation() < 0 ? 1.15 : 0.87;
+            double newZoom = Math.max(0.1, Math.min(10.0, zoom * factor));
+
+            // Zoom to cursor
+            double mpx = e.getX();
+            double mpy = e.getY();
+            offsetX = mpx - (mpx - offsetX) * (newZoom / zoom);
+            offsetY = mpy - (mpy - offsetY) * (newZoom / zoom);
+
+            zoom = newZoom;
+            repaint();
+        });
     } // --- Fin del constructor CanvasPanel ---
 
     public void setLayerModel(LayerModel layerModel) {
@@ -62,6 +78,11 @@ public class CanvasPanel extends JPanel {
     public SelectionModel getSelectionModel() {
         return selectionModel;
     } // --- Fin del metodo getSelectionModel ---
+
+
+    public void setCanvasController(CanvasController cc) {
+        this.canvasController = cc;
+    } // --- Fin del metodo setCanvasController ---
 
     public void setZoom(double zoom) {
         this.zoom = Math.max(0.1, zoom);
@@ -126,24 +147,9 @@ public class CanvasPanel extends JPanel {
 
         // Draw layers bottom-to-top
         if (layerModel != null) {
-            for (ImageLayer layer : layerModel.getLayers()) {
-                if (!layer.isVisible() || layer.getImage() == null) continue;
-
-                Rectangle bounds = layer.getBounds();
-                if (bounds == null) continue;
-
-                float opacity = layer.getOpacity();
-                if (opacity < 0.01f) continue;
-
-                if (opacity < 1.0f) {
-                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
-                }
-
-                g2.drawImage(layer.getImage(), bounds.x, bounds.y, bounds.width, bounds.height, null);
-
-                if (opacity < 1.0f) {
-                    g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-                }
+            for (Layer layer : layerModel.getLayers()) {
+                if (!layer.isVisible() || layer.getOpacity() < 0.01f) continue;
+                layer.paint(g2);
             }
         }
 
@@ -154,6 +160,14 @@ public class CanvasPanel extends JPanel {
             g2.fill(sel);
             g2.setColor(new Color(0, 120, 215));
             g2.draw(sel);
+        }
+
+        // Draw tool overlay (gizmo, selection preview, etc.)
+        if (canvasController != null) {
+            Tool tool = canvasController.getActiveTool();
+            if (tool != null) {
+                tool.paintOverlay(g2);
+            }
         }
 
         g2.dispose();
