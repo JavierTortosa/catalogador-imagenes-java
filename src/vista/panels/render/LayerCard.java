@@ -21,11 +21,6 @@ public class LayerCard extends JPanel {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Color BG_NORMAL = new Color(50, 50, 55);
-    private static final Color BG_SELECTED = new Color(65, 90, 120);
-    private static final Color FG_TEXT = Color.WHITE;
-    private static final Color BORDER = new Color(60, 60, 65);
-
     private static final ImageIcon ICON_EYE_OPEN;
     private static final ImageIcon ICON_EYE_CLOSED;
     private static final ImageIcon ICON_LOCK;
@@ -72,15 +67,26 @@ public class LayerCard extends JPanel {
     private final JToggleButton eyeButton;
     private final JToggleButton lockButton;
 
-    public LayerCard(Layer layer, LayerModel layerModel, int index) {
+    // Colores temáticos (se reciben por constructor)
+    private Color bgNormal;
+    private Color bgSelected;
+    private Color fgText;
+    private Color border;
+
+    public LayerCard(Layer layer, LayerModel layerModel, int index,
+                     Color bgNormal, Color border, Color fgText, Color bgSelected) {
         this.layer = layer;
         this.layerModel = layerModel;
         this.index = index;
+        this.bgNormal = bgNormal;
+        this.border = border;
+        this.fgText = fgText;
+        this.bgSelected = bgSelected;
 
         setLayout(new FlowLayout(FlowLayout.LEFT, 4, 4));
         setPreferredSize(new Dimension(190, 56));
         setMaximumSize(new Dimension(Short.MAX_VALUE, 56));
-        setBorder(BorderFactory.createLineBorder(BORDER));
+        setBorder(BorderFactory.createLineBorder(border));
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         // Thumbnail
@@ -94,8 +100,8 @@ public class LayerCard extends JPanel {
         nameField = new JTextField(layer.getName());
         nameField.setBorder(null);
         nameField.setOpaque(false);
-        nameField.setForeground(FG_TEXT);
-        nameField.setCaretColor(FG_TEXT);
+        nameField.setForeground(fgText);
+        nameField.setCaretColor(fgText);
         nameField.addActionListener(e -> layer.setName(nameField.getText()));
         add(nameField);
 
@@ -146,7 +152,7 @@ public class LayerCard extends JPanel {
         } else {
             thumbLabel.setIcon(null);
             thumbLabel.setText("?");
-            thumbLabel.setForeground(FG_TEXT);
+            thumbLabel.setForeground(fgText);
         }
     } // --- Fin del metodo updateThumbnail ---
 
@@ -154,7 +160,7 @@ public class LayerCard extends JPanel {
     public void updateSelection() {
         boolean selected = layerModel != null
                 && layerModel.getActiveIndex() == index;
-        setBackground(selected ? BG_SELECTED : BG_NORMAL);
+        setBackground(selected ? bgSelected : bgNormal);
         repaint();
     } // --- Fin del metodo updateSelection ---
 

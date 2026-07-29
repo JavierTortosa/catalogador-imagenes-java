@@ -21,11 +21,13 @@ import modelo.VisorModel;
 import servicios.ConfigurationManager;
 import servicios.image.ThumbnailService;
 import vista.renderers.GridCellRenderer;
+import vista.theme.Tema;
+import vista.theme.ThemeChangeListener;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 import vista.util.ThumbnailPreviewer;
 
-public class GridDisplayPanel extends JPanel {
+public class GridDisplayPanel extends JPanel implements ThemeChangeListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(GridDisplayPanel.class); 
 	
@@ -35,6 +37,7 @@ public class GridDisplayPanel extends JPanel {
     private GridCellRenderer renderer;
     private JScrollPane scrollPane;
     private ThumbnailService gridThumbnailService;
+    private ThemeManager themeManager;
     
     /**
      * Constructor para el MODO VISUALIZADOR.
@@ -105,6 +108,9 @@ public class GridDisplayPanel extends JPanel {
         this.scrollPane.getVerticalScrollBar().setUnitIncrement(20);
         
         add(scrollPane, BorderLayout.CENTER);
+
+        this.themeManager = themeManager;
+        themeManager.addThemeChangeListener(this);
     } // --- FIN de Constructor GridDisplayPanel ---
 
     public void setProjectManager(IProjectManager pm) {
@@ -161,7 +167,13 @@ public class GridDisplayPanel extends JPanel {
     } // --- FIN de metodo setToolbars---
     
     
-    
+    @Override
+    public void onThemeChanged(Tema nuevoTema) {
+        if (gridList != null) {
+            gridList.setBackground(nuevoTema.colorFondoSecundario());
+            gridList.repaint();
+        }
+    } // --- Fin del metodo onThemeChanged ---
     
     
 } // --- FIN de clase GridDisplayPanel ---

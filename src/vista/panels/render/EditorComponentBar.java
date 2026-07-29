@@ -12,6 +12,7 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -36,6 +37,7 @@ import javax.swing.JToggleButton;
 import javax.swing.ListCellRenderer;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 
 import controlador.commands.AppActionCommands;
 import controlador.tools.CanvasController;
@@ -133,9 +135,14 @@ public class EditorComponentBar extends JPanel {
     } // --- Fin del record ToolItem ---
 
 
+    private static Color clr(String key, int r, int g, int b) {
+        Color c = UIManager.getColor(key);
+        return c != null ? c : new Color(r, g, b);
+    }
+
     public EditorComponentBar() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setBackground(new Color(55, 55, 60));
+        setBackground(clr("Visor.statusBarBackground", 55, 55, 60));
 
         toolOptionsMap = new HashMap<>();
 
@@ -513,7 +520,7 @@ public class EditorComponentBar extends JPanel {
         };
         preview.setPreferredSize(new Dimension(28, 20));
         preview.setBackground(bg);
-        preview.setBorder(BorderFactory.createLineBorder(new Color(80, 80, 80)));
+        preview.setBorder(BorderFactory.createLineBorder(swatchBorderColor()));
 
         // Forzar repintado del preview al cambiar colores o tipo
         colorStart.addActionListener(e -> preview.repaint());
@@ -604,14 +611,13 @@ public class EditorComponentBar extends JPanel {
             }
         }
 
-        // Color picker
+        // Color picker (el listener integra JColorChooser + setTextColor
+        // para evitar el orden inverso de AbstractButton.fireActionPerformed)
         p.add(createSubSeparator(bg));
-        textColorBtn = createColorSwatch(Color.BLACK, "Color del texto", bg);
-        textColorBtn.addActionListener(e -> {
-            Color c = textColorBtn.getBackground();
+        textColorBtn = createColorSwatch(Color.BLACK, "Color del texto", bg, nuevo -> {
             if (canvasController != null
                     && canvasController.getActiveTool() instanceof TextTool tt) {
-                tt.setTextColor(c);
+                tt.setTextColor(nuevo);
             }
         });
         p.add(textColorBtn);
@@ -860,17 +866,48 @@ public class EditorComponentBar extends JPanel {
     } // --- Fin del metodo newEmptyPanel ---
 
 
+    private static Color swatchBorderColor() {
+        Color c = UIManager.getColor("Component.borderColor");
+        return c != null ? c : new Color(120, 120, 120);
+    }
+
+
     private JButton createColorSwatch(Color initial, String tooltip, Color bg) {
         JButton btn = new JButton();
         btn.setPreferredSize(new Dimension(20, 20));
         btn.setBackground(initial);
         btn.setOpaque(true);
-        btn.setBorder(BorderFactory.createLineBorder(new Color(120, 120, 120)));
+        btn.setBorder(BorderFactory.createLineBorder(swatchBorderColor()));
         btn.setToolTipText(tooltip);
         btn.addActionListener(e -> {
             Color nuevo = JColorChooser.showDialog(btn, tooltip, btn.getBackground());
             if (nuevo != null) {
                 btn.setBackground(nuevo);
+            }
+        });
+        return btn;
+    } // --- Fin del metodo createColorSwatch ---
+
+
+    /**
+     * Crea un boton de color que ademas ejecuta un callback con el color elegido,
+     * evitando el orden inverso de AbstractButton.fireActionPerformed.
+     */
+    private JButton createColorSwatch(Color initial, String tooltip, Color bg,
+                                       Consumer<Color> onColorSelected) {
+        JButton btn = new JButton();
+        btn.setPreferredSize(new Dimension(20, 20));
+        btn.setBackground(initial);
+        btn.setOpaque(true);
+        btn.setBorder(BorderFactory.createLineBorder(swatchBorderColor()));
+        btn.setToolTipText(tooltip);
+        btn.addActionListener(e -> {
+            Color nuevo = JColorChooser.showDialog(btn, tooltip, btn.getBackground());
+            if (nuevo != null) {
+                btn.setBackground(nuevo);
+                if (onColorSelected != null) {
+                    onColorSelected.accept(nuevo);
+                }
             }
         });
         return btn;
@@ -1139,9 +1176,9 @@ public class EditorComponentBar extends JPanel {
         // Color de fondo
         homeColorSwatch = new JButton();
         homeColorSwatch.setPreferredSize(new Dimension(20, 20));
-        homeColorSwatch.setBackground(new Color(200, 200, 200));
+        homeColorSwatch.setBackground(clr("Panel.background", 200, 200, 200));
         homeColorSwatch.setOpaque(true);
-        homeColorSwatch.setBorder(BorderFactory.createLineBorder(new Color(120, 120, 120)));
+        homeColorSwatch.setBorder(BorderFactory.createLineBorder(clr("Component.borderColor", 120, 120, 120)));
         homeColorSwatch.setToolTipText("Color de fondo");
         homeColorSwatch.addActionListener(e -> {
             Color nuevo = JColorChooser.showDialog(homeColorSwatch, "Color de fondo", homeColorSwatch.getBackground());

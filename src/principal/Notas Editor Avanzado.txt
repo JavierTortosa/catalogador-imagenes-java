@@ -1088,3 +1088,59 @@ servicios
   ExportService, PreferencesService
 
 
+************************************************************************************************************
+************************************************************************************************************
+************************************************************************************************************
+
+Herramienta Edicion
+-------------------
+
+1 click en una capa marca la capa
+2 click en una capa edita esa capa
+1 clic fuera de capa, desmarca la capa/ acepta modificacion
+
+
+
+Componentes:
+------------
+
+spin x,y : posicion de la capa seleccionada
+spin w,h : tamaño de la capa seleccionada
+los spins nos permiten introducir la posicion y dimensiones de la capa a mano en px
+deben estar en la segunda fila
+
+checbox seleccion automatica: 
+selecciona la capa por una pulsacion en la capa o actua solo sobre la capa que tenemos seleccionada en el panel de capas
+debe estar en la parte B de la primera fila
+
+checkbox mostrar tiradores:
+muestra permanentemente u oculta hasta que transformas los tiradores de la capa seleccionada
+debe estar en la parte B de la primera fila
+
+checkbox escalar:
+este checkbox nos permite que la capa seleccionada se escale o deforme al usar los tiradores
+
+icono combobox acceso rapido a alinear:
+muestra un icono de la herramienta de alineado seleccionada
+al pulsar en el icono se muestra el panel de alinear que tenemos a la derecha como acceso rapido
+
+icono combobox distribucion:
+muestra un icono de la herramienta de distribucion seleccionada
+al pulsar en el icono se muestra el panel de distribucion que tenemos a la derecha como acceso rapido
+
+
+Herramienta texto
+-----------------
+
+si pulsamos y arrastramos en la zona de edicion con la herramienta texto marcada:
+ se crea una capa donde introducimos el texto. 
+ esa capa tiene las dimensiones que hemos establecido con el arrastre. 
+ puede tener varias lineas de texto. 
+ los botones de alinear alinean el texto en base al ancho de la capa
+
+si pulsamos 1 sola vez:
+ introducimos el texto y las dimensiones de la capa seran las que ocupen el texto. 
+ los botones de alinear lo haran en funcion de lo escrito 
+ en caso de tener varias lineas de texto, usanremos la primera linea como referencia de alineado
+ 
+ 

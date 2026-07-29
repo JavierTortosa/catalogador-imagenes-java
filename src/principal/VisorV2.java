@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.67.60";
+        version = "V2.67.70";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -42,6 +42,8 @@ public class VisorV2 {
 
     }
 
+    // EDITOR AVANZADO
+    // FIXME el boton de fullscreen no se queda marcado
     
     
     // GENERAL

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Editor Avanzado</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <h1><img src="ICON_PLACEHOLDER_8005-render mode.png" class="header-icon">Editor Avanzado</h1>
+
+    <p>
+        El <strong>Editor Avanzado</strong> es un editor de imágenes completo con soporte de capas,
+        herramientas de selección, pintura, texto y transformación. Se activa desde el botón
+        <strong>Editor Avanzado</strong> en la barra de herramientas de previsualización
+        (Modo Render), sustituyendo al modo Collage.
+    </p>
+
+    <h2>Modo Home (Pantalla Inicial)</h2>
+    <p>
+        Al abrir el editor por primera vez se muestra el <strong>Modo Home</strong>, con dos
+        pestañas excluyentes en la barra superior:
+    </p>
+    <table class="help-table">
+        <tr><th>Pestaña</th><th>Descripción</th></tr>
+        <tr>
+            <td><strong>Lienzo</strong></td>
+            <td>Crea un nuevo lienzo en blanco. Permite configurar ancho, alto, color de fondo
+                y modo transparente antes de generarlo. Una vez creado, se activa el editor
+                con un lienzo vacío.</td>
+        </tr>
+        <tr>
+            <td><strong>Imagen</strong></td>
+            <td>Carga la imagen actualmente seleccionada en el visor principal como capa
+                base del editor. Mantiene las dimensiones originales.</td>
+        </tr>
+    </table>
+    <p>Si ninguna pestaña está seleccionada, se muestra un panel vacío (<em>home_empty</em>).</p>
+
+    <h2>Barra de Herramientas Izquierda</h2>
+    <p>
+        Columna vertical con <strong>JToggleButton</strong> agrupados (solo uno activo a la vez).
+        Cada herramienta cambia el comportamiento del ratón sobre el lienzo y muestra su propio
+        panel de opciones en la barra inferior:
+    </p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80000-edicion.png"></td>
+            <td><strong>Edición:</strong> Herramienta por defecto. Navegación básica del lienzo.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80001-transform.png"></td>
+            <td><strong>Transformar:</strong> Muestra el gizmo de transformación sobre la capa activa
+                (manejadores en esquinas y puntos medios). Permite mover, escalar y rotar la capa.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80002-seleccion-marco.png"></td>
+            <td><strong>Selección por marco:</strong> Define una selección rectangular arrastrando
+                sobre el lienzo. La selección se muestra con un desvanecido (feather) configurable.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80003-seleccion-layer.png"></td>
+            <td><strong>Selección por capa:</strong> Crea una selección rectangular que se ajusta
+                automáticamente a los bordes de la capa activa.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80004-varita.png"></td>
+            <td><strong>Varita mágica:</strong> Selecciona áreas de color similar con un clic.
+                La tolerancia (0-255) se ajusta desde el panel de opciones.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80005.-recortar.png"></td>
+            <td><strong>Recortar:</strong> Arrastra para definir el área a conservar. Al soltar,
+                una nueva capa se crea con el recorte. Opcionalmente mantiene la capa original.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80006-cuentagotas.png"></td>
+            <td><strong>Cuentagotas:</strong> Captura el color bajo el cursor y lo almacena como
+                color frontal (foreground). El color capturado se muestra en el panel de opciones.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80007-bote-pintura.png"></td>
+            <td><strong>Bote de pintura:</strong> Rellena el área de color similar con el color
+                frontal, con tolerancia configurable.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80008-degradado.png"></td>
+            <td><strong>Degradado:</strong> Arrastra para definir la dirección de un degradado
+                lineal entre dos colores (inicio y fin). Se crea una nueva capa con el degradado.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80009-text.png"></td>
+            <td><strong>Texto:</strong> Crea y edita capas de texto (<code>TextLayer</code>).
+                Arrastra para definir el rectángulo, o haz clic para auto-ajuste. Escribe directamente
+                sobre el canvas. Ver sección <a href="#texto">Herramienta Texto</a>.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80010-formas.png"></td>
+            <td><strong>Formas:</strong> Crea formas básicas (rectángulo, elipse, triángulo,
+                línea, flecha) como nuevas capas de imagen. Configura relleno, borde y grosor
+                desde el panel de opciones.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80012-pantalla_completa_48x48.png"></td>
+            <td><strong>Pantalla completa:</strong> Expande el editor ocupando toda la ventana,
+                ocultando el resto de la interfaz. Pulsa <em>Esc</em> o el mismo botón para salir.</td>
+        </tr>
+    </table>
+
+    <h2>Barra de Opciones Superior (EditorComponentBar)</h2>
+    <p>
+        La barra superior del editor se divide en dos filas:
+    </p>
+    <ul>
+        <li><strong>Parte A (Fila 1):</strong> Combobox para seleccionar la herramienta activa,
+            más spinners para coordenadas (X, Y), ancho (W) y alto (H) de la selección o capa.
+            A la derecha, botones de orden de capas y redimensionado del lienzo.</li>
+        <li><strong>Parte B (Fila 2):</strong> Panel contextual que cambia según la herramienta
+            activa, mostrando opciones específicas (tolerancia, desvanecido, fuentes, colores, etc.).</li>
+    </ul>
+
+    <h3>Parte B — Paneles por Herramienta</h3>
+    <table class="help-table">
+        <tr><th>Herramienta</th><th>Opciones</th></tr>
+        <tr><td>Edición</td><td>Sin opciones (panel vacío).</td></tr>
+        <tr><td>Transformar</td><td>Botones de sub-herramienta (mover, escalar, rotar) + checkbox "Mantener proporción".</td></tr>
+        <tr><td>Selección (marco/capa)</td><td>Deslizador de desvanecido (feather, 0-50 px) con indicador numérico.</td></tr>
+        <tr><td>Varita mágica</td><td>Tolerancia (0-255) y checkbox "Contiguo" (solo áreas conectadas).</td></tr>
+        <tr><td>Recortar</td><td>Botones "Recortar eliminando selección" y "Recortar a nueva capa" + checkbox "Mantener original".</td></tr>
+        <tr><td>Cuentagotas</td><td>Muestra el color capturado como muestra de color.</td></tr>
+        <tr><td>Bote de pintura</td><td>Tolerancia + color frontal.</td></tr>
+        <tr><td>Degradado</td><td>Selector de color inicio, selector de color fin, tipo de degradado y opacidad.</td></tr>
+        <tr><td><strong>Texto</strong></td><td><em>Ver <a href="#texto">sección específica</a>.</em></td></tr>
+        <tr><td>Formas</td><td>Relleno (color), borde (color) y grosor de borde.</td></tr>
+    </table>
+
+    <h2 id="texto">Herramienta Texto</h2>
+    <p>
+        La herramienta de texto crea <strong>capas de texto editables</strong>
+        (<code>TextLayer</code>), que almacenan el contenido textual, la fuente, el color y los
+        estilos como propiedades, en lugar de rasterizar el texto a una imagen.
+    </p>
+
+    <h3>Creación y Edición</h3>
+    <ul>
+        <li><strong>Arrastrar</strong> sobre el lienzo vacío → define el rectángulo de texto y
+            aparece un <code>JTextField</code> superpuesto para escribir directamente sobre el canvas.
+            La capa conserva las dimensiones del arrastre y permite múltiples líneas.</li>
+        <li><strong>Single click</strong> sobre el lienzo vacío → modo auto-ajuste. Las dimensiones
+            de la capa se calculan automáticamente según el contenido del texto.</li>
+        <li><strong>Enter</strong> → confirma el texto y crea la <code>TextLayer</code> con el
+            nombre = primeros 30 caracteres del contenido.</li>
+        <li><strong>Doble clic</strong> sobre una <code>TextLayer</code> existente → re-edita el
+            texto inline, con el contenido previo cargado y seleccionado.</li>
+        <li><strong>Focus lost</strong> → también confirma automáticamente.</li>
+    </ul>
+
+    <h3>Alineación en Modo Auto-Ajuste</h3>
+    <p>
+        En el modo auto-ajuste (single click), los botones de alineado usan el ancho de la
+        <strong>primera línea</strong> como referencia:
+    </p>
+    <ul>
+        <li><strong>Izquierda:</strong> el texto crece hacia la derecha desde el punto de clic.</li>
+        <li><strong>Centro:</strong> la primera línea se centra en el punto de clic; las líneas
+            siguientes se alinean respecto a ese centro.</li>
+        <li><strong>Derecha:</strong> la primera línea termina en el punto de clic; las líneas
+            siguientes se alinean a ese borde derecho.</li>
+    </ul>
+
+    <h3>Panel de Opciones de Texto (Parte B)</h3>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80900-search-font.png"></td>
+            <td><strong>Fuente:</strong> JComboBox con todas las fuentes del sistema.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80901-bold-text.png"></td>
+            <td><strong>Negrita:</strong> Alterna el estilo bold de la fuente.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80902-italic-text.png"></td>
+            <td><strong>Cursiva:</strong> Alterna el estilo italic de la fuente.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80905-font-size.png"></td>
+            <td><strong>Tamaño:</strong> JComboBox con tamaños predefinidos (8–72).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80906-align-left.png"></td>
+            <td><strong>Alinear izquierda:</strong> Alinea el texto al borde izquierdo del rectángulo
+                (o al punto de clic en auto-ajuste).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80907-align-center.png"></td>
+            <td><strong>Alinear centro:</strong> Centra el texto horizontalmente (respecto al
+                rectángulo o a la primera línea en auto-ajuste).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80908-align-right.png"></td>
+            <td><strong>Alinear derecha:</strong> Alinea el texto al borde derecho del rectángulo
+                (o al punto de clic en auto-ajuste).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80913-vertical-text.png"></td>
+            <td><strong>Vertical:</strong> Dibuja el texto en orientación vertical (caracteres apilados).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_color-swatch.png"></td>
+            <td><strong>Color:</strong> Selector de color para el texto. Al cambiarlo, se aplica
+                en tiempo real a la capa activa.</td>
+        </tr>
+    </table>
+    <p>
+        Los cambios en el panel se aplican <strong>en tiempo real</strong> tanto a la capa activa
+        como al campo de edición inline (fuente, tamaño y color se actualizan al instante).
+    </p>
+
+    <h3>Gizmo en TextTool</h3>
+    <p>
+        Cuando una <code>TextLayer</code> está seleccionada, la herramienta de texto muestra
+        el <strong>TransformGizmo</strong> alrededor de sus bounds (igual que la herramienta
+        Transformar). Esto permite:
+    </p>
+    <ul>
+        <li><strong>Mover</strong> la capa arrastrando el cuerpo.</li>
+        <li><strong>Redimensionar</strong> arrastrando los tiradores de esquina o punto medio.</li>
+        <li>El cursor cambia automáticamente según el tirador (<code>NW_RESIZE</code>,
+            <code>E_RESIZE</code>, <code>MOVE</code>, etc.).</li>
+    </ul>
+    <p>El gizmo se oculta durante la edición inline (doble clic) y reaparece al confirmar.</p>
+
+    <h3>Sincronización Bidireccional</h3>
+    <ul>
+        <li>Al hacer clic en una <code>TextLayer</code>, el panel de opciones se actualiza
+            con sus propiedades (fuente, tamaño, color, alineación, vertical).</li>
+        <li>Al cambiar una propiedad en el panel, se aplica inmediatamente a la capa seleccionada.</li>
+        <li>La capa creada se añade automáticamente al modelo y aparece en el panel de capas
+            gracias al sistema de notificación (<code>LayerModel.setChangeListener()</code>).</li>
+    </ul>
+
+    <h2>Gizmo de Transformación</h2>
+    <p>
+        El <strong>TransformGizmo</strong> es un conjunto de tiradores visuales que se dibujan
+        alrededor del rectángulo de una capa. Está disponible en la herramienta Transformar
+        (para cualquier capa) y en la herramienta Texto (para capas de texto).
+    </p>
+    <p>Sus componentes son:</p>
+    <ul>
+        <li><strong>Marco:</strong> Línea delgada azul alrededor de los bounds de la capa.</li>
+        <li><strong>8 tiradores:</strong> Cuadrados en las esquinas (NW, NE, SW, SE) y puntos
+            medios (N, S, E, W). Arrástralos para redimensionar.</li>
+        <li><strong>Asa de rotación:</strong> Círculo sobre el borde superior (no implementada
+            actualmente).</li>
+        <li><strong>Cursor contextual:</strong> Cambia según el tirador activo.</li>
+    </ul>
+    <p>El gizmo respeta las restricciones de tamaño mínimo (4 px) y proporción si está activo.</p>
+
+    <h2>Panel de Capas</h2>
+    <p>
+        La pestaña <strong>"Capas"</strong> en el panel derecho muestra todas las capas como
+        tarjetas visuales apiladas verticalmente (<code>LayerCardPanel</code>). Cada tarjeta incluye:
+    </p>
+    <ul>
+        <li><strong>Miniatura:</strong> 48×48 generada por <code>layer.renderThumbnail(48)</code>.
+            En <code>TextLayer</code> muestra el texto truncado con la fuente escalada.</li>
+        <li><strong>Nombre editable:</strong> Campo de texto para renombrar la capa. En
+            <code>TextLayer</code> se asigna automáticamente con el contenido del texto.</li>
+        <li><strong>Ojo de visibilidad:</strong> Toggle que muestra/oculta la capa en el lienzo.</li>
+        <li><strong>Candado de bloqueo:</strong> Toggle que impide modificar la capa (iconos
+            <code>lock.png</code> / <code>lock-open.png</code>).</li>
+        <li><strong>Selección:</strong> Al hacer clic en una tarjeta se selecciona esa capa como
+            activa. El fondo cambia a azul (<code>BG_SELECTED</code>) para indicarlo.</li>
+    </ul>
+
+    <h3>Refresco Automático</h3>
+    <p>
+        El modelo de capas (<code>LayerModel</code>) incorpora un sistema de notificación
+        (<code>Runnable changeListener</code>) que se dispara en cada mutación (añadir, eliminar,
+        duplicar, mover, cambiar selección). El panel de capas y el canvas se refrescan
+        automáticamente sin necesidad de intervención manual.
+    </p>
+
+    <h3>Gestión de Capas</h3>
+    <p>Desde la barra vertical EAST (visible en el editor avanzado):</p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70304-nueva-capa.png"></td>
+            <td><strong>Añade capa nueva:</strong> Crea una capa vacía (transparente) del tamaño del lienzo.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70303-delete-layer.png"></td>
+            <td><strong>Borrar capa:</strong> Elimina la capa actualmente seleccionada.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70201-bring-to-front.png"></td>
+            <td><strong>Traer al frente:</strong> Mueve la capa seleccionada a la posición más alta.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70202-bring-forward.png"></td>
+            <td><strong>Subir un nivel:</strong> Desplaza la capa una posición hacia arriba.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70203-send-backward.png"></td>
+            <td><strong>Bajar un nivel:</strong> Desplaza la capa una posición hacia abajo.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70204-send-to-back.png"></td>
+            <td><strong>Enviar al fondo:</strong> Mueve la capa a la posición más baja.</td>
+        </tr>
+    </table>
+    <p>El slider de opacidad situado bajo las tarjetas modifica la opacidad de la capa activa
+        (funciona con cualquier tipo de capa, incluyendo <code>TextLayer</code>).</p>
+
+</body>
+</html>

@@ -384,6 +384,7 @@ public class ViewBuilder {
 
         // Panel para el WorkMode RENDER
         vista.panels.render.RenderPanel renderWorkModePanel = new vista.panels.render.RenderPanel();
+        renderWorkModePanel.setThemeManager(this.themeManager);
         renderWorkModePanel.setName("VISTA_RENDER");
         workModesContainer.add(renderWorkModePanel, "VISTA_RENDER");
         registry.register("panel.workmode.render", renderWorkModePanel);

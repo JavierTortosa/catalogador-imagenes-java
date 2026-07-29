@@ -77,15 +77,20 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     private javax.swing.JToggleButton homeButton;
     private CanvasController canvasController;
 
-    // Colores temáticos (inicializados con defaults oscuros)
-    private Color bgMain = new Color(40, 40, 45);
-    private Color bgTools = new Color(50, 50, 55);
-    private Color bgToolbar = new Color(45, 45, 50);
-    private Color bgHeader = new Color(48, 48, 53);
-    private Color bgStatus = new Color(55, 55, 60);
-    private Color fgStatus = Color.WHITE;
-    private Color borderColor = new Color(60, 60, 65);
-    private Color fgSectionTitle = new Color(180, 180, 190);
+    // Colores temáticos (inicializados desde UIManager con fallbacks oscuros)
+    private Color bgMain = clr("TabbedPane.contentAreaColor", 40, 40, 45);
+    private Color bgTools = clr("Panel.background", 50, 50, 55);
+    private Color bgToolbar = clr("Panel.background", 45, 45, 50);
+    private Color bgHeader = clr("TabbedPane.contentAreaColor", 48, 48, 53);
+    private Color bgStatus = clr("Visor.statusBarBackground", 55, 55, 60);
+    private Color fgStatus = clr("Visor.statusBarForeground", 255, 255, 255);
+    private Color borderColor = clr("Component.borderColor", 60, 60, 65);
+    private Color fgSectionTitle = clr("Label.disabledForeground", 180, 180, 190);
+
+    private static Color clr(String key, int r, int g, int b) {
+        Color c = javax.swing.UIManager.getColor(key);
+        return c != null ? c : new Color(r, g, b);
+    }
 
     public AdvanceEditPanel() {
         setLayout(new BorderLayout());
@@ -230,46 +235,55 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     } // --- Fin del metodo getActiveToolCommand ---
 
 
-    @Override
-    public void onThemeChanged(Tema tema) {
-        SwingUtilities.invokeLater(() -> {
-            bgMain = tema.colorFondoSecundario();
-            bgTools = tema.colorFondoPrincipal();
-            bgToolbar = tema.colorFondoPrincipal();
-            bgHeader = tema.colorFondoPrincipal();
-            bgStatus = tema.colorBarraEstadoFondo();
-            fgStatus = tema.colorBarraEstadoTexto();
-            borderColor = tema.colorBorde();
-            fgSectionTitle = tema.colorTextoSecundario();
+    private void applyTheme(Tema tema) {
+        bgMain = tema.colorFondoSecundario();
+        bgTools = tema.colorFondoPrincipal();
+        bgToolbar = tema.colorFondoPrincipal();
+        bgHeader = tema.colorFondoPrincipal();
+        bgStatus = tema.colorBarraEstadoFondo();
+        fgStatus = tema.colorBarraEstadoTexto();
+        borderColor = tema.colorBorde();
+        fgSectionTitle = tema.colorTextoSecundario();
 
-            setBackground(bgMain);
-            componentBar.updateTheme(bgStatus, fgStatus, borderColor);
-            toolbarContainer.setBackground(bgToolbar);
-            mainContent.setBackground(bgMain);
-            advanceEditSplit.setBackground(bgMain);
-            advanceEditSplit.setDividerSize(6);
-            advanceEditToolsPanel.setBackground(bgTools);
+        setBackground(bgMain);
+        componentBar.updateTheme(bgStatus, fgStatus, borderColor);
+        toolbarContainer.setBackground(bgToolbar);
+        mainContent.setBackground(bgMain);
+        advanceEditSplit.setBackground(bgMain);
+        advanceEditSplit.setDividerSize(6);
+        advanceEditToolsPanel.setBackground(bgTools);
 
-            for (java.awt.Component c : advanceEditToolsPanel.getComponents()) {
-                if (c instanceof JPanel h && ((BorderLayout) advanceEditToolsPanel.getLayout()).getLayoutComponent(BorderLayout.NORTH) == h) {
-                    h.setBackground(bgStatus);
-                    for (java.awt.Component child : ((JPanel) h).getComponents()) {
-                        if (child instanceof JLabel) child.setForeground(fgStatus);
-                    }
+        for (java.awt.Component c : advanceEditToolsPanel.getComponents()) {
+            if (c instanceof JPanel h && ((BorderLayout) advanceEditToolsPanel.getLayout()).getLayoutComponent(BorderLayout.NORTH) == h) {
+                h.setBackground(bgStatus);
+                for (java.awt.Component child : ((JPanel) h).getComponents()) {
+                    if (child instanceof JLabel) child.setForeground(fgStatus);
                 }
             }
+        }
 
-            canvasPanel.setBackground(bgMain);
-            toolsTitle.setForeground(fgStatus);
+        canvasPanel.setBackground(bgMain);
+        toolsTitle.setForeground(fgStatus);
 
-            rebuildTools();
-        });
+        if (layerCardPanel != null) {
+            layerCardPanel.updateTheme(bgTools, borderColor, fgStatus,
+                    tema.colorSeleccionFondo());
+        }
+
+        rebuildTools();
+    } // --- Fin del metodo applyTheme ---
+
+
+    @Override
+    public void onThemeChanged(Tema tema) {
+        SwingUtilities.invokeLater(() -> applyTheme(tema));
     } // --- Fin del metodo onThemeChanged ---
 
 
     public void setThemeManager(ThemeManager themeManager) {
         if (themeManager != null) {
             themeManager.addThemeChangeListener(this);
+            applyTheme(themeManager.getTemaActual());
         }
     } // --- Fin del metodo setThemeManager ---
 
@@ -549,7 +563,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         capasTabs.setMinimumSize(new Dimension(160, 100));
 
         layerCardPanel = new LayerCardPanel();
-        layerCardPanel.setBackground(bgTools);
+        layerCardPanel.updateTheme(bgTools, borderColor, fgSectionTitle, new Color(65, 90, 120));
 
         JPanel capasTabPanel = new JPanel(new BorderLayout());
         capasTabPanel.setBackground(bgTools);

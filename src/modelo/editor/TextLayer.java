@@ -30,6 +30,7 @@ public class TextLayer implements Layer {
     private Rectangle bounds;
     private boolean visible;
     private boolean locked;
+    private boolean autoSize;
     private float opacity;
 
 
@@ -45,13 +46,15 @@ public class TextLayer implements Layer {
         this.bounds = Objects.requireNonNull(bounds);
         this.visible = true;
         this.locked = false;
+        this.autoSize = false;
         this.opacity = 1.0f;
     } // --- Fin del constructor TextLayer ---
 
 
     private TextLayer(String id, String name, String text, Font font, Color color,
                       int alignment, boolean vertical, float lineSpacing,
-                      Rectangle bounds, float opacity, boolean visible, boolean locked) {
+                      Rectangle bounds, float opacity, boolean visible,
+                      boolean locked, boolean autoSize) {
         this.id = id;
         this.name = name;
         this.text = text;
@@ -64,6 +67,7 @@ public class TextLayer implements Layer {
         this.opacity = opacity;
         this.visible = visible;
         this.locked = locked;
+        this.autoSize = autoSize;
     } // --- Fin del constructor privado TextLayer ---
 
 
@@ -87,6 +91,9 @@ public class TextLayer implements Layer {
 
     public float getLineSpacing() { return lineSpacing; }
     public void setLineSpacing(float lineSpacing) { this.lineSpacing = lineSpacing; }
+
+    public boolean isAutoSize() { return autoSize; }
+    public void setAutoSize(boolean autoSize) { this.autoSize = autoSize; }
 
 
     // ==================== Layer ====================
@@ -162,10 +169,15 @@ public class TextLayer implements Layer {
         int totalH = lines.length * lineH + (lines.length - 1) * spacingPx;
         int startY = bounds.y + (bounds.height - totalH) / 2 + fm.getAscent();
 
+        // En modo autoSize el alineado usa el ancho de la primera línea como referencia
+        int alignWidth = autoSize && lines.length > 0
+                ? fm.stringWidth(lines[0])
+                : bounds.width;
+
         for (int i = 0; i < lines.length; i++) {
             int lineX = switch (alignment) {
-                case ALIGN_CENTER -> bounds.x + (bounds.width - fm.stringWidth(lines[i])) / 2;
-                case ALIGN_RIGHT  -> bounds.x + bounds.width - fm.stringWidth(lines[i]);
+                case ALIGN_CENTER -> bounds.x + (alignWidth - fm.stringWidth(lines[i])) / 2;
+                case ALIGN_RIGHT  -> bounds.x + alignWidth - fm.stringWidth(lines[i]);
                 default -> bounds.x; // LEFT
             };
             g.drawString(lines[i], lineX, startY + i * (lineH + spacingPx));
@@ -220,7 +232,7 @@ public class TextLayer implements Layer {
                 text, font, color,
                 alignment, vertical, lineSpacing,
                 new Rectangle(bounds),
-                opacity, visible, locked);
+                opacity, visible, locked, autoSize);
     } // --- Fin del metodo copy ---
 
 } // --- Fin de la clase TextLayer ---

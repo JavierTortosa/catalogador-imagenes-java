@@ -592,6 +592,8 @@ public class ConfigurationManager
 	    defaults.put("interfaz.boton.orden_lista.orden_carpeta_raiz.visible", "true");
 	    defaults.put("interfaz.boton.orden_lista.orden_carpeta_siguiente.visible", "true");
 	    defaults.put("interfaz.boton.orden_lista.orden_ciclo.visible", "true");
+	    defaults.put("interfaz.boton.previewRender.preview_render_add_layer.visible", "true");
+	    defaults.put("interfaz.boton.previewRender.preview_render_duplicate_layer.visible", "true");
 	    // --- 5. VISIBILIDAD DINÁMICA DE TOOLBARS Y BOTONES ---
 	    UIDefinitionService uiDefs = new UIDefinitionService();
 	    

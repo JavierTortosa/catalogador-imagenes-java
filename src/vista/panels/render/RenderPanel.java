@@ -37,13 +37,18 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 
 import modelo.renderer.ImageEntry;
 import modelo.renderer.ImageLayer;
 import modelo.renderer.StlEntry;
 import servicios.renderer.Zip2PngScanner.RenderCandidate;
+import vista.theme.Tema;
+import vista.theme.ThemeChangeListener;
+import vista.theme.ThemeManager;
 
-public class RenderPanel extends JPanel {
+public class RenderPanel extends JPanel implements ThemeChangeListener {
 
     // --- Listas de candidatos (panel izquierdo) ---
     private final DefaultListModel<RenderCandidate> listModelSinImagen;
@@ -131,6 +136,108 @@ public class RenderPanel extends JPanel {
     private JScrollPane layersScroll;
     private final JPanel cardPanel;
 
+    private ThemeManager themeManager;
+
+    private static Color themeColor(String key, int r, int g, int b) {
+        Color c = UIManager.getColor(key);
+        return c != null ? c : new Color(r, g, b);
+    }
+
+    private static Color themeColorLabel() {
+        return themeColor("Label.foreground", 255, 255, 255);
+    }
+
+    private static Color themeColorDisabled() {
+        return themeColor("Label.disabledForeground", 180, 180, 190);
+    }
+
+    /**
+     * Asigna el ThemeManager y se registra como listener de cambios de tema.
+     * Aplica el tema actual a todos los subcomponentes.
+     */
+    public void setThemeManager(ThemeManager tm) {
+        this.themeManager = tm;
+        if (tm != null) {
+            tm.addThemeChangeListener(this);
+            applyTheme(tm.getTemaActual());
+        }
+    } // --- Fin del metodo setThemeManager ---
+
+
+    @Override
+    public void onThemeChanged(Tema tema) {
+        applyTheme(tema);
+    } // --- Fin del metodo onThemeChanged ---
+
+
+    private void applyTheme(Tema tema) {
+        SwingUtilities.invokeLater(() -> {
+            setBackground(tema.colorFondoPrincipal());
+            candidateTabs.setBackground(tema.colorFondoPrincipal());
+            candidateTabs.setForeground(tema.colorTextoPrimario());
+            imagenesGrid.setBackground(tema.colorFondoSecundario());
+            rendersGrid.setBackground(tema.colorFondoSecundario());
+            rightPanel.setBackground(tema.colorFondoSecundario());
+            viewerCardPanel.setBackground(tema.colorFondoSecundario());
+            tabbedPane.setBackground(tema.colorFondoPrincipal());
+            tabbedPane.setForeground(tema.colorTextoPrimario());
+            imageDisplayPanel.setBackground(tema.colorFondoSecundario());
+
+            // Pestaña Imagen
+            for (java.awt.Component c : ((JPanel)tabbedPane.getComponentAt(0)).getComponents()) {
+                if (c instanceof JPanel p) {
+                    p.setBackground(tema.colorFondoSecundario());
+                    for (java.awt.Component child : p.getComponents()) {
+                        if (child instanceof JLabel) child.setForeground(tema.colorTextoPrimario());
+                        if (child instanceof JCheckBox cb) {
+                            cb.setBackground(tema.colorFondoSecundario());
+                            cb.setForeground(tema.colorTextoPrimario());
+                        }
+                    }
+                }
+            }
+
+            // Pestaña Fondo
+            java.awt.Component fondoComp = tabbedPane.getComponentAt(1);
+            if (fondoComp instanceof JPanel fondo) {
+                fondo.setBackground(tema.colorFondoSecundario());
+                actualizarColoresFondo(fondo, tema);
+            }
+
+            // Pestaña Capas
+            layersList.setBackground(tema.colorFondoSecundario());
+            layersList.setForeground(tema.colorTextoPrimario());
+
+            revalidate();
+            repaint();
+        });
+    } // --- Fin del metodo applyTheme ---
+
+
+    private void actualizarColoresFondo(JPanel panel, Tema tema) {
+        for (java.awt.Component c : panel.getComponents()) {
+            if (c instanceof JPanel p) {
+                p.setBackground(tema.colorFondoSecundario());
+                actualizarColoresFondo(p, tema);
+            }
+            if (c instanceof JRadioButton rb) {
+                rb.setBackground(tema.colorFondoSecundario());
+                rb.setForeground(tema.colorTextoPrimario());
+            }
+            if (c instanceof JCheckBox cb) {
+                cb.setBackground(tema.colorFondoSecundario());
+                cb.setForeground(tema.colorTextoPrimario());
+            }
+            if (c instanceof JLabel l) {
+                l.setForeground(tema.colorTextoSecundario());
+            }
+            if (c instanceof JSlider s) {
+                s.setBackground(tema.colorFondoPrincipal());
+            }
+        }
+    } // --- Fin del metodo actualizarColoresFondo ---
+
+
     // --- Filmstrip (galería de imágenes del ZIP) ---
     private final JPanel filmstripPanel;
     private final JList<ImageLayer> filmstripList;
@@ -145,7 +252,7 @@ public class RenderPanel extends JPanel {
     public RenderPanel() {
         setLayout(new BorderLayout(8, 8));
         setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-        setBackground(new Color(35, 35, 40));
+        setBackground(themeColor("Panel.background", 35, 35, 40));
 
         // ---------- PANEL IZQUIERDO: listas de candidatos ----------
         listModelSinImagen = new DefaultListModel<>();
@@ -161,8 +268,8 @@ public class RenderPanel extends JPanel {
         JScrollPane listScrollCon = new JScrollPane(candidateListConImagen);
 
         candidateTabs = new JTabbedPane();
-        candidateTabs.setBackground(new Color(40, 40, 45));
-        candidateTabs.setForeground(Color.WHITE);
+        candidateTabs.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        candidateTabs.setForeground(themeColorLabel());
         candidateTabs.addTab("Sin renderizar", listScrollSin);
         candidateTabs.addTab("Con imagen", listScrollCon);
 
@@ -193,12 +300,12 @@ public class RenderPanel extends JPanel {
 
         // ---------- PANEL CENTRAL: grid contextual a la pestaña de candidatos ----------
         imagenesGrid = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
-        imagenesGrid.setBackground(new Color(40, 40, 45));
+        imagenesGrid.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         JScrollPane imagenesScroll = new JScrollPane(imagenesGrid);
         imagenesScroll.setBorder(BorderFactory.createTitledBorder("Imágenes extraídas"));
 
         rendersGrid = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
-        rendersGrid.setBackground(new Color(40, 40, 45));
+        rendersGrid.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         JScrollPane rendersScroll = new JScrollPane(rendersGrid);
         rendersScroll.setBorder(BorderFactory.createTitledBorder("Renders 3D generados"));
 
@@ -211,12 +318,12 @@ public class RenderPanel extends JPanel {
 
         // ---------- PANEL DERECHO: visor dual + controles ----------
         rightPanel = new JPanel(new BorderLayout(4, 4));
-        rightPanel.setBackground(new Color(30, 30, 35));
+        rightPanel.setBackground(themeColor("TabbedPane.contentAreaColor", 30, 30, 35));
         rightPanel.setPreferredSize(new Dimension(340, 0));
 
         // CardLayout para conmutar vista 3D / 2D
         viewerCardPanel = new JPanel(new CardLayout());
-        viewerCardPanel.setBackground(new Color(30, 30, 35));
+        viewerCardPanel.setBackground(themeColor("TabbedPane.contentAreaColor", 30, 30, 35));
 
         preview3DFX = new PreviewPanel3DFX();
         preview3DFX.setBorder(BorderFactory.createTitledBorder("Preview 3D"));
@@ -252,9 +359,9 @@ public class RenderPanel extends JPanel {
                 }
 
                 if (currentImage2D == null) {
-                    g2.setColor(new Color(30, 30, 35));
+                    g2.setColor(imageDisplayPanel.getBackground());
                     g2.fillRect(0, 0, w, h);
-                    g2.setColor(Color.GRAY);
+                    g2.setColor(themeColorDisabled());
                     String msg = "Sin imagen";
                     java.awt.FontMetrics fm = g2.getFontMetrics();
                     int x = (w - fm.stringWidth(msg)) / 2;
@@ -275,7 +382,7 @@ public class RenderPanel extends JPanel {
                 g2.dispose();
             }
         };
-        imageDisplayPanel.setBackground(new Color(30, 30, 35));
+        imageDisplayPanel.setBackground(themeColor("TabbedPane.contentAreaColor", 30, 30, 35));
         imageDisplayPanel.setFocusable(true);
         // Zoom con rueda del ratón
         imageDisplayPanel.addMouseWheelListener(e -> {
@@ -403,40 +510,40 @@ public class RenderPanel extends JPanel {
 
         // --- Pestañas de configuración (Imagen + Fondo) ---
         this.tabbedPane = new JTabbedPane();
-        tabbedPane.setBackground(new Color(40, 40, 45));
-        tabbedPane.setForeground(Color.WHITE);
+        tabbedPane.setBackground(themeColor("Panel.background", 40, 40, 45));
+        tabbedPane.setForeground(themeColorLabel());
 
         // --- Tab "Imagen" ---
         JPanel imagenTab = new JPanel(new GridLayout(0, 1, 2, 2));
-        imagenTab.setBackground(new Color(40, 40, 45));
+        imagenTab.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
 
         brightnessLabel = new JLabel("Brillo");
-        brightnessLabel.setForeground(Color.WHITE);
+        brightnessLabel.setForeground(themeColorLabel());
         brightnessLabel.setPreferredSize(new Dimension(70, 20));
         brightnessSlider = new JSlider(-100, 100, 0);
         brightnessField = new JTextField("0", 5);
         imagenTab.add(buildSliderRow(brightnessLabel, brightnessSlider, brightnessField));
 
         contrastLabel = new JLabel("Contraste");
-        contrastLabel.setForeground(Color.WHITE);
+        contrastLabel.setForeground(themeColorLabel());
         contrastLabel.setPreferredSize(new Dimension(70, 20));
         contrastSlider = new JSlider(-100, 100, 0);
         contrastField = new JTextField("0", 5);
         imagenTab.add(buildSliderRow(contrastLabel, contrastSlider, contrastField));
 
         chkAntiAlias = new JCheckBox("Antialiasing");
-        chkAntiAlias.setBackground(new Color(40, 40, 45));
-        chkAntiAlias.setForeground(Color.WHITE);
+        chkAntiAlias.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        chkAntiAlias.setForeground(themeColorLabel());
         chkCrosshair = new JCheckBox("Cruceta (ejes)");
-        chkCrosshair.setBackground(new Color(40, 40, 45));
-        chkCrosshair.setForeground(Color.WHITE);
+        chkCrosshair.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        chkCrosshair.setForeground(themeColorLabel());
         chkCrosshair.setSelected(true);
         JPanel checkPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
-        checkPanel.setBackground(new Color(40, 40, 45));
+        checkPanel.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         checkPanel.add(chkAntiAlias);
         checkPanel.add(chkCrosshair);
         JPanel imagenBottom = new JPanel(new BorderLayout());
-        imagenBottom.setBackground(new Color(40, 40, 45));
+        imagenBottom.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         imagenBottom.add(checkPanel, BorderLayout.NORTH);
         imagenTab.add(imagenBottom);
 
@@ -444,15 +551,15 @@ public class RenderPanel extends JPanel {
 
         // --- Tab "Fondo" ---
         JPanel fondoTab = new JPanel(new BorderLayout(4, 4));
-        fondoTab.setBackground(new Color(40, 40, 45));
+        fondoTab.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
 
         rbSolid = new JRadioButton("S\u00F3lido");
         rbGradient = new JRadioButton("Degradado");
         rbImage = new JRadioButton("Cargar fondo");
         rbTransparent = new JRadioButton("Fondo transparente");
         for (JRadioButton rb : new JRadioButton[]{rbSolid, rbGradient, rbImage, rbTransparent}) {
-            rb.setBackground(new Color(40, 40, 45));
-            rb.setForeground(Color.WHITE);
+            rb.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+            rb.setForeground(themeColorLabel());
         }
         bgGroup = new ButtonGroup();
         bgGroup.add(rbSolid);
@@ -462,24 +569,24 @@ public class RenderPanel extends JPanel {
         rbSolid.setSelected(true);
 
         JPanel radioPanel = new JPanel(new GridLayout(2, 2, 4, 2));
-        radioPanel.setBackground(new Color(40, 40, 45));
+        radioPanel.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         radioPanel.add(rbSolid);
         radioPanel.add(rbGradient);
         radioPanel.add(rbImage);
         radioPanel.add(rbTransparent);
 
         JPanel radioContainer = new JPanel(new BorderLayout());
-        radioContainer.setBackground(new Color(40, 40, 45));
+        radioContainer.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         radioContainer.add(radioPanel, BorderLayout.NORTH);
         radioContainer.add(new javax.swing.JSeparator(), BorderLayout.SOUTH);
         fondoTab.add(radioContainer, BorderLayout.NORTH);
 
         cardPanel = new JPanel(new CardLayout());
-        cardPanel.setBackground(new Color(40, 40, 45));
+        cardPanel.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
 
         // Card: Sólido
         JPanel solidCard = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
-        solidCard.setBackground(new Color(40, 40, 45));
+        solidCard.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         solidColorPreview = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -500,13 +607,13 @@ public class RenderPanel extends JPanel {
 
         // Card: Degradado
         JPanel gradientCard = new JPanel(new BorderLayout(4, 4));
-        gradientCard.setBackground(new Color(40, 40, 45));
+        gradientCard.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
 
         JPanel gradientTop = new JPanel(new GridLayout(1, 2, 8, 0));
-        gradientTop.setBackground(new Color(40, 40, 45));
+        gradientTop.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
 
         JPanel startPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 4));
-        startPanel.setBackground(new Color(40, 40, 45));
+        startPanel.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         gradientStartPreview = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -525,7 +632,7 @@ public class RenderPanel extends JPanel {
         startPanel.add(btnGradientStart);
 
         JPanel endPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 4));
-        endPanel.setBackground(new Color(40, 40, 45));
+        endPanel.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         gradientEndPreview = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -567,9 +674,9 @@ public class RenderPanel extends JPanel {
 
         // Card: Cargar fondo
         JPanel imageCard = new JPanel(new BorderLayout(4, 4));
-        imageCard.setBackground(new Color(40, 40, 45));
+        imageCard.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         JPanel imageTop = new JPanel(new BorderLayout(4, 4));
-        imageTop.setBackground(new Color(40, 40, 45));
+        imageTop.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         bgImageField = new JTextField();
         bgImageField.setEditable(false);
         btnBrowseImage = new JButton("...");
@@ -577,11 +684,11 @@ public class RenderPanel extends JPanel {
         imageTop.add(bgImageField, BorderLayout.CENTER);
         imageTop.add(btnBrowseImage, BorderLayout.EAST);
         JPanel imageScaleRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
-        imageScaleRow.setBackground(new Color(40, 40, 45));
+        imageScaleRow.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         bgImageScaleSlider = new JSlider(10, 100, 50);
-        bgImageScaleSlider.setBackground(new Color(50, 50, 55));
+        bgImageScaleSlider.setBackground(themeColor("Panel.background", 50, 50, 55));
         bgImageScaleLabel = new JLabel("0.5x");
-        bgImageScaleLabel.setForeground(Color.WHITE);
+        bgImageScaleLabel.setForeground(themeColorLabel());
         bgImageScaleLabel.setPreferredSize(new Dimension(35, 20));
         imageScaleRow.add(new JLabel("Escala:"));
         imageScaleRow.add(bgImageScaleSlider);
@@ -592,19 +699,19 @@ public class RenderPanel extends JPanel {
 
         // Card: Transparente
         JPanel transparentCard = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4));
-        transparentCard.setBackground(new Color(40, 40, 45));
+        transparentCard.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         JLabel lblTransparent = new JLabel("Sin fondo (PNG con canal alfa)");
-        lblTransparent.setForeground(Color.LIGHT_GRAY);
+        lblTransparent.setForeground(themeColorDisabled());
         transparentCard.add(lblTransparent);
         cardPanel.add(transparentCard, CARD_TRANSPARENT);
 
         fondoTab.add(cardPanel, BorderLayout.CENTER);
 
         chkCheckerboard = new JCheckBox("Fondo a cuadros (preview)");
-        chkCheckerboard.setBackground(new Color(40, 40, 45));
-        chkCheckerboard.setForeground(Color.WHITE);
+        chkCheckerboard.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        chkCheckerboard.setForeground(themeColorLabel());
         JPanel cbPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
-        cbPanel.setBackground(new Color(40, 40, 45));
+        cbPanel.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         cbPanel.add(chkCheckerboard);
         fondoTab.add(cbPanel, BorderLayout.SOUTH);
 
@@ -614,8 +721,8 @@ public class RenderPanel extends JPanel {
         layersListModel = new DefaultListModel<>();
         layersList = new JList<>(layersListModel);
         layersList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        layersList.setBackground(new Color(40, 40, 45));
-        layersList.setForeground(Color.WHITE);
+        layersList.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        layersList.setForeground(themeColorLabel());
         layersList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 selectedLayerIndex = layersList.getSelectedIndex();
@@ -645,15 +752,16 @@ public class RenderPanel extends JPanel {
         showGridCard(CARD_GRID_RENDER);
 
         // ---------- ENSAMBLAR PANEL PRINCIPAL ----------
-        add(wrapCollapsible("", leftSplit, true, true), BorderLayout.WEST);
+        Color wrapBg = themeColor("TabbedPane.contentAreaColor", 48, 48, 53);
+        Color wrapFg = themeColorDisabled();
+        Color wrapBorder = themeColor("Component.borderColor", 60, 60, 65);
+        add(wrapCollapsible("", leftSplit, true, true, wrapBg, wrapFg, wrapBorder), BorderLayout.WEST);
         add(gridCardPanel, BorderLayout.CENTER);
-        add(wrapCollapsible("", rightPanel, true, false), BorderLayout.EAST);
+        add(wrapCollapsible("", rightPanel, true, false, wrapBg, wrapFg, wrapBorder), BorderLayout.EAST);
     }
 
-    private JPanel wrapCollapsible(String title, JComponent content, boolean expanded, boolean leftSide) {
-        Color bgHeader = new Color(48, 48, 53);
-        Color fgTitle = new Color(180, 180, 190);
-        Color borderColor = new Color(60, 60, 65);
+    private JPanel wrapCollapsible(String title, JComponent content, boolean expanded, boolean leftSide,
+                                   Color bgHeader, Color fgTitle, Color borderColor) {
 
         String expandedArrow = leftSide ? "\u25C0" : "\u25B6";
         String collapsedArrow = leftSide ? "\u25B6" : "\u25C0";
@@ -713,9 +821,9 @@ public class RenderPanel extends JPanel {
 
     private JPanel buildSliderRow(JLabel lbl, JSlider slider, JTextField field) {
         JPanel row = new JPanel(new BorderLayout(4, 0));
-        row.setBackground(new Color(40, 40, 45));
+        row.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         row.add(lbl, BorderLayout.WEST);
-        slider.setBackground(new Color(50, 50, 55));
+        slider.setBackground(themeColor("Panel.background", 50, 50, 55));
         row.add(slider, BorderLayout.CENTER);
         field.setHorizontalAlignment(JTextField.CENTER);
         field.setPreferredSize(new Dimension(40, 22));

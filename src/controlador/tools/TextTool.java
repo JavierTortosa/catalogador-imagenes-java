@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -12,6 +13,7 @@ import java.awt.Stroke;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 
 import javax.swing.BorderFactory;
 import javax.swing.JTextField;
@@ -54,6 +56,10 @@ public class TextTool extends Tool {
     private boolean gizmoDragActive;
     private Point gizmoDragStart;
 
+    // --- auto-size (single click) ---
+    private boolean autoSize;
+    private Point autoSizeClickPoint;
+
     // --- propiedades del texto actual ---
     private String fontFamily = "SansSerif";
     private int fontSize = 24;
@@ -79,6 +85,8 @@ public class TextTool extends Tool {
         dragging = false;
         gizmoDragActive = false;
         gizmoDragStart = null;
+        autoSize = false;
+        autoSizeClickPoint = null;
 
         // Recuperar la TextLayer activa del modelo, si la hay
         Layer active = ctx.layerModel().getActiveLayer();
@@ -200,6 +208,12 @@ public class TextTool extends Tool {
 
     @Override
     public void mousePressed(MouseEvent e) {
+        // Si hay edición inline activa, confirmarla antes de procesar el clic
+        if (inlineField != null) {
+            commitInlineText();
+            return; // el clic fue para salir de la edición, no para otra acción
+        }
+
         Point p = e.getPoint();
 
         // 1 — Gizmo sobre la capa seleccionada (arrastrar tirador)
@@ -232,11 +246,9 @@ public class TextTool extends Tool {
             return;
         }
 
-        // 3 — Clic en vac\u00EDo → iniciar drag para nuevo texto
+        // 3 — Clic en vacío: guardar punto de inicio (sin drag hasta que arrastre)
         clearSelection();
         dragStart = p;
-        dragRect = new Rectangle(dragStart.x, dragStart.y, 0, 0);
-        dragging = true;
     } // --- Fin del metodo mousePressed ---
 
 
@@ -257,7 +269,11 @@ public class TextTool extends Tool {
         }
 
         // Drag para crear nuevo texto
-        if (!dragging || dragStart == null) return;
+        if (dragStart == null) return;
+        if (!dragging) {
+            dragging = true;
+            dragRect = new Rectangle(dragStart.x, dragStart.y, 0, 0);
+        }
         int x = Math.min(dragStart.x, e.getX());
         int y = Math.min(dragStart.y, e.getY());
         int w = Math.abs(e.getX() - dragStart.x);
@@ -278,11 +294,23 @@ public class TextTool extends Tool {
             return;
         }
 
-        // Fin de drag para nuevo texto
-        if (!dragging || dragRect == null) return;
+        // Creación de nuevo texto
+        if (dragStart == null) return;
+
+        if (!dragging) {
+            // Single click → auto-size (las dimensiones se calculan del texto)
+            autoSize = true;
+            autoSizeClickPoint = new Point(dragStart);
+            Rectangle fieldRect = new Rectangle(dragStart.x, dragStart.y, 200, 30);
+            showInlineFieldAt(fieldRect, null);
+            dragStart = null;
+            return;
+        }
+
+        // Drag → dimensiones explícitas
         dragging = false;
 
-        if (dragStart != null && dragStart.distance(e.getPoint()) < 5) {
+        if (dragStart.distance(e.getPoint()) < 5) {
             dragStart = null;
             dragRect = null;
             return;
@@ -360,6 +388,8 @@ public class TextTool extends Tool {
         editingLayer = null;
         creationRect = null;
         selectedLayer = null;
+        autoSize = false;
+        autoSizeClickPoint = null;
     } // --- Fin del metodo clearSelection ---
 
 
@@ -477,6 +507,20 @@ public class TextTool extends Tool {
             editingLayer.setAlignment(alignment);
             editingLayer.setVertical(vertical);
             selectedLayer = editingLayer;
+        } else if (autoSize && autoSizeClickPoint != null) {
+            // Auto-size (single click): dimensiones se ajustan al texto
+            String name = text.length() > 30 ? text.substring(0, 30) + "..." : text;
+            TextLayer layer = new TextLayer(name, text, buildFont(), textColor,
+                    new Rectangle(autoSizeClickPoint.x, autoSizeClickPoint.y, 1, 1));
+            layer.setAlignment(alignment);
+            layer.setVertical(vertical);
+            layer.setAutoSize(true);
+            recalcAutoBounds(layer);
+            ctx.layerModel().addLayer(layer);
+            ctx.layerModel().setActiveLayer(layer);
+            selectedLayer = layer;
+            autoSize = false;
+            autoSizeClickPoint = null;
         } else if (creationRect != null) {
             String name = text.length() > 30 ? text.substring(0, 30) + "..." : text;
             TextLayer layer = new TextLayer(name, text, buildFont(), textColor,
@@ -493,6 +537,46 @@ public class TextTool extends Tool {
         editingLayer = null;
         ctx.canvasPanel().repaint();
     } // --- Fin del metodo commitInlineText ---
+
+
+    /**
+     * Recalcula los bounds de la capa para que se ajusten al texto,
+     * usando el punto de clic como referencia seg\u00FAn el alineado.
+     */
+    private void recalcAutoBounds(TextLayer layer) {
+        if (autoSizeClickPoint == null) return;
+        String txt = layer.getText();
+        if (txt == null || txt.isBlank()) return;
+
+        BufferedImage tmp = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = tmp.createGraphics();
+        try {
+            g.setFont(layer.getFont());
+            FontMetrics fm = g.getFontMetrics();
+            String[] lines = txt.split("\n", -1);
+            int[] lw = new int[lines.length];
+            for (int i = 0; i < lines.length; i++) {
+                lw[i] = fm.stringWidth(lines[i]);
+            }
+            int firstLineWidth = lw.length > 0 ? lw[0] : 0;
+            int maxWidth = 0;
+            for (int w : lw) maxWidth = Math.max(maxWidth, w);
+            int lineH = fm.getHeight();
+            int spacingPx = Math.round(lineH * (layer.getLineSpacing() - 1.0f));
+            int totalH = lines.length * lineH + (lines.length - 1) * spacingPx;
+            int pad = 4;
+
+            int x = switch (layer.getAlignment()) {
+                case TextLayer.ALIGN_CENTER -> autoSizeClickPoint.x - firstLineWidth / 2 - pad;
+                case TextLayer.ALIGN_RIGHT  -> autoSizeClickPoint.x - firstLineWidth - pad * 2;
+                default -> autoSizeClickPoint.x; // LEFT
+            };
+            int y = autoSizeClickPoint.y - totalH / 2;
+            layer.setBounds(new Rectangle(x, y, maxWidth + pad * 2, totalH));
+        } finally {
+            g.dispose();
+        }
+    } // --- Fin del metodo recalcAutoBounds ---
 
 
     private void removeInlineField() {
