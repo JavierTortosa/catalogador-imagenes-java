@@ -15,6 +15,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 import java.awt.image.BufferedImage;
 
 import javax.swing.AbstractButton;
@@ -26,9 +28,13 @@ import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.event.CaretListener;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.Element;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 
 import controlador.commands.AppActionCommands;
 import modelo.editor.Layer;
@@ -72,6 +78,9 @@ public class TextTool extends Tool {
 
     // true cuando TextTool se activa desde EditTool (doble clic)
     private boolean returnToEditOnEmptyClick;
+
+    // evita bucle al sincronizar barra desde selección del JTextPane
+    private boolean syncingFromSelection;
 
     // --- propiedades del texto actual ---
     private String fontFamily = "SansSerif";
@@ -505,21 +514,28 @@ public class TextTool extends Tool {
             Font zoomedFont = buildFont().deriveFont(buildFont().getSize2D() * (float) zoom);
             pane.setFont(zoomedFont);
 
-            SimpleAttributeSet fontAttrs = new SimpleAttributeSet();
-            StyleConstants.setFontFamily(fontAttrs, zoomedFont.getFamily());
-            StyleConstants.setFontSize(fontAttrs, zoomedFont.getSize());
-            StyleConstants.setBold(fontAttrs, zoomedFont.isBold());
-            StyleConstants.setItalic(fontAttrs, zoomedFont.isItalic());
-            StyleConstants.setForeground(fontAttrs, textColor);
-
-            if (existingText != null) {
+            if (editingLayer != null && editingLayer.getRuns() != null && !editingLayer.getRuns().isEmpty()) {
+                restoreRuns(pane, editingLayer);
+            } else if (existingText != null) {
+                SimpleAttributeSet plainAttrs = new SimpleAttributeSet();
+                StyleConstants.setFontFamily(plainAttrs, zoomedFont.getFamily());
+                StyleConstants.setFontSize(plainAttrs, zoomedFont.getSize());
+                StyleConstants.setBold(plainAttrs, zoomedFont.isBold());
+                StyleConstants.setItalic(plainAttrs, zoomedFont.isItalic());
+                StyleConstants.setForeground(plainAttrs, textColor);
                 pane.setText(existingText);
                 pane.getStyledDocument().setCharacterAttributes(
-                        0, pane.getDocument().getLength(), fontAttrs, true);
+                        0, pane.getDocument().getLength(), plainAttrs, true);
                 pane.selectAll();
             }
 
-            pane.setCharacterAttributes(fontAttrs, true);
+            SimpleAttributeSet inputAttrs = new SimpleAttributeSet();
+            StyleConstants.setFontFamily(inputAttrs, zoomedFont.getFamily());
+            StyleConstants.setFontSize(inputAttrs, zoomedFont.getSize());
+            StyleConstants.setBold(inputAttrs, zoomedFont.isBold());
+            StyleConstants.setItalic(inputAttrs, zoomedFont.isItalic());
+            StyleConstants.setForeground(inputAttrs, textColor);
+            pane.setCharacterAttributes(inputAttrs, true);
 
             SimpleAttributeSet alignAttrs = new SimpleAttributeSet();
             StyleConstants.setAlignment(alignAttrs, toStyleAlignment(alignment));
@@ -534,6 +550,9 @@ public class TextTool extends Tool {
             });
 
             pane.addFocusListener(buildInlineFocusListener());
+            CaretListener cl = e -> syncBarFromSelection(pane);
+            pane.addCaretListener(cl);
+            SwingUtilities.invokeLater(() -> syncBarFromSelection(pane));
             inlineField = pane;
         } else {
             JTextField field = new JTextField();
@@ -593,6 +612,129 @@ public class TextTool extends Tool {
     } // --- Fin del metodo editExistingLayer ---
 
 
+    private List<TextLayer.TextRun> extractRuns(JTextPane pane) {
+        StyledDocument doc = pane.getStyledDocument();
+        int len = doc.getLength();
+        List<TextLayer.TextRun> result = new ArrayList<>();
+        int pos = 0;
+        try {
+            while (pos < len) {
+                javax.swing.text.Element el = doc.getCharacterElement(pos);
+                AttributeSet attrs = el.getAttributes();
+                int end = Math.min(el.getEndOffset(), len);
+                String txt = doc.getText(pos, end - pos);
+                if (txt.isEmpty()) { pos = end; continue; }
+                String fam = StyleConstants.getFontFamily(attrs);
+                int sz = StyleConstants.getFontSize(attrs);
+                if (fam == null) fam = fontFamily;
+                if (sz < 1) sz = fontSize;
+                boolean bld = StyleConstants.isBold(attrs);
+                boolean ita = StyleConstants.isItalic(attrs);
+                int style = (bld ? Font.BOLD : 0) | (ita ? Font.ITALIC : 0);
+                Font f = new Font(fam, style, Math.max(sz, 1));
+                Color c = StyleConstants.getForeground(attrs);
+                if (c == null) c = textColor;
+                boolean ul = StyleConstants.isUnderline(attrs);
+                boolean st = StyleConstants.isStrikeThrough(attrs);
+                result.add(new TextLayer.TextRun(f, c, ul, st, txt));
+                pos = end;
+            }
+        } catch (Exception ex) {
+            result.clear();
+        }
+        return result;
+    } // --- Fin del metodo extractRuns ---
+
+
+    private void restoreRuns(JTextPane pane, TextLayer layer) {
+        List<TextLayer.TextRun> runs = layer.getRuns();
+        if (runs == null || runs.isEmpty()) return;
+        StyledDocument doc = pane.getStyledDocument();
+        try {
+            doc.remove(0, doc.getLength());
+            for (TextLayer.TextRun run : runs) {
+                SimpleAttributeSet attrs = new SimpleAttributeSet();
+                StyleConstants.setFontFamily(attrs, run.font().getFamily());
+                StyleConstants.setFontSize(attrs, run.font().getSize());
+                StyleConstants.setBold(attrs, run.font().isBold());
+                StyleConstants.setItalic(attrs, run.font().isItalic());
+                StyleConstants.setForeground(attrs, run.color());
+                StyleConstants.setUnderline(attrs, run.underline());
+                StyleConstants.setStrikeThrough(attrs, run.strikethrough());
+                doc.insertString(doc.getLength(), run.text(), attrs);
+            }
+        } catch (Exception ex) {
+            pane.setText(layer.getText());
+        }
+    } // --- Fin del metodo restoreRuns ---
+
+
+    private void syncBarFromSelection(JTextPane pane) {
+        var bar = ctx.componentBar();
+        if (bar == null) return;
+        StyledDocument doc = pane.getStyledDocument();
+        int len = doc.getLength();
+        if (len == 0) return;
+
+        int selStart = pane.getSelectionStart();
+        int selEnd = pane.getSelectionEnd();
+        int startPos = Math.min(selStart, len - 1);
+        int endPos = Math.min(selEnd, len);
+
+        AttributeSet attrs = doc.getCharacterElement(startPos).getAttributes();
+
+        boolean uniform = selStart == selEnd;
+        if (!uniform && selStart < selEnd) {
+            String fam0 = StyleConstants.getFontFamily(attrs);
+            int sz0 = StyleConstants.getFontSize(attrs);
+            boolean bld0 = StyleConstants.isBold(attrs);
+            boolean ita0 = StyleConstants.isItalic(attrs);
+            boolean ul0 = StyleConstants.isUnderline(attrs);
+            boolean st0 = StyleConstants.isStrikeThrough(attrs);
+            int pos = selStart;
+            while (pos < endPos) {
+                Element el = doc.getCharacterElement(pos);
+                int elEnd = Math.min(el.getEndOffset(), endPos);
+                AttributeSet a = el.getAttributes();
+                if (!java.util.Objects.equals(StyleConstants.getFontFamily(a), fam0)
+                        || StyleConstants.getFontSize(a) != sz0
+                        || StyleConstants.isBold(a) != bld0
+                        || StyleConstants.isItalic(a) != ita0
+                        || StyleConstants.isUnderline(a) != ul0
+                        || StyleConstants.isStrikeThrough(a) != st0) {
+                    uniform = false;
+                    break;
+                }
+                pos = elEnd;
+            }
+        }
+
+        syncingFromSelection = true;
+        try {
+            if (uniform) {
+                bar.setTextFontFamily(StyleConstants.getFontFamily(attrs));
+                bar.setTextFontSize(StyleConstants.getFontSize(attrs));
+                bar.setTextBold(StyleConstants.isBold(attrs));
+                bar.setTextItalic(StyleConstants.isItalic(attrs));
+                bar.setTextUnderline(StyleConstants.isUnderline(attrs));
+                bar.setTextStrikethrough(StyleConstants.isStrikeThrough(attrs));
+            }
+            AttributeSet pAttrs = doc.getParagraphElement(startPos).getAttributes();
+            Integer pAlign = (Integer) pAttrs.getAttribute(javax.swing.text.StyleConstants.Alignment);
+            if (pAlign != null) {
+                int mapped = switch (pAlign) {
+                    case javax.swing.text.StyleConstants.ALIGN_CENTER -> TextLayer.ALIGN_CENTER;
+                    case javax.swing.text.StyleConstants.ALIGN_RIGHT -> TextLayer.ALIGN_RIGHT;
+                    default -> TextLayer.ALIGN_LEFT;
+                };
+                bar.setTextAlignment(mapped);
+            }
+        } finally {
+            syncingFromSelection = false;
+        }
+    } // --- Fin del metodo syncBarFromSelection ---
+
+
     private void syncSettingsFromLayer(TextLayer layer) {
         fontFamily    = layer.getFont().getFamily();
         fontSize      = layer.getFont().getSize();
@@ -632,8 +774,13 @@ public class TextTool extends Tool {
 
         if (editingLayer != null) {
             editingLayer.setText(text);
-            editingLayer.setFont(buildFont());
-            editingLayer.setColor(textColor);
+            if (inlineField instanceof JTextPane pane) {
+                editingLayer.setRuns(extractRuns(pane));
+            } else {
+                editingLayer.setRuns(null);
+                editingLayer.setFont(buildFont());
+                editingLayer.setColor(textColor);
+            }
             editingLayer.setAlignment(alignment);
             editingLayer.setVertical(vertical);
             editingLayer.setUnderline(underline);
@@ -661,6 +808,9 @@ public class TextTool extends Tool {
             String name = text.length() > 30 ? text.substring(0, 30) + "..." : text;
             TextLayer layer = new TextLayer(name, text, buildFont(), textColor,
                     new Rectangle(creationRect));
+            if (inlineField instanceof JTextPane pane) {
+                layer.setRuns(extractRuns(pane));
+            }
             layer.setAlignment(alignment);
             layer.setVertical(vertical);
             layer.setUnderline(underline);
@@ -802,14 +952,33 @@ public class TextTool extends Tool {
 
 
     public void syncInlineStyle() {
-        if (inlineField == null) return;
+        if (inlineField == null || syncingFromSelection) return;
         double zoom = ctx.canvasPanel().getZoom();
         Font font = buildFont().deriveFont(buildFont().getSize2D() * (float) zoom);
         inlineField.setFont(font);
         if (inlineField instanceof JTextPane pane) {
-            SimpleAttributeSet attrs = new SimpleAttributeSet();
-            StyleConstants.setAlignment(attrs, toStyleAlignment(alignment));
-            pane.setParagraphAttributes(attrs, true);
+            SimpleAttributeSet charAttrs = new SimpleAttributeSet();
+            StyleConstants.setFontFamily(charAttrs, font.getFamily());
+            StyleConstants.setFontSize(charAttrs, font.getSize());
+            StyleConstants.setBold(charAttrs, font.isBold());
+            StyleConstants.setItalic(charAttrs, font.isItalic());
+            StyleConstants.setForeground(charAttrs, textColor);
+            StyleConstants.setUnderline(charAttrs, underline);
+            StyleConstants.setStrikeThrough(charAttrs, strikethrough);
+
+            int selStart = pane.getSelectionStart();
+            int selEnd = pane.getSelectionEnd();
+            if (selStart != selEnd) {
+                pane.getStyledDocument().setCharacterAttributes(selStart, selEnd - selStart, charAttrs, true);
+            } else {
+                pane.setCharacterAttributes(charAttrs, true);
+            }
+
+            SimpleAttributeSet alignAttrs = new SimpleAttributeSet();
+            StyleConstants.setAlignment(alignAttrs, toStyleAlignment(alignment));
+            pane.setParagraphAttributes(alignAttrs, true);
+        } else if (inlineField instanceof JTextField field) {
+            field.setHorizontalAlignment(alignment);
         }
     } // --- Fin del metodo syncInlineStyle ---
 

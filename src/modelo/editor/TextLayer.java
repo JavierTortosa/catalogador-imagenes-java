@@ -21,6 +21,8 @@ public class TextLayer implements Layer {
     public static final int ALIGN_CENTER = SwingConstants.CENTER;
     public static final int ALIGN_RIGHT  = SwingConstants.RIGHT;
 
+    public static record TextRun(Font font, Color color, boolean underline, boolean strikethrough, String text) {}
+
     private final String id;
     private String name;
     private String text;
@@ -37,6 +39,9 @@ public class TextLayer implements Layer {
     private boolean strikethrough;
     private boolean flowColumns;
     private float opacity;
+
+    /** Runs con formato por carácter (rich text desde JTextPane) */
+    private List<TextRun> runs;
 
     public transient boolean editingInline;
 
@@ -65,7 +70,7 @@ public class TextLayer implements Layer {
                       int alignment, boolean vertical, boolean underline,
                       boolean strikethrough, boolean flowColumns, float lineSpacing,
                       Rectangle bounds, float opacity, boolean visible,
-                      boolean locked, boolean autoSize) {
+                      boolean locked, boolean autoSize, List<TextRun> runs) {
         this.id = id;
         this.name = name;
         this.text = text;
@@ -82,6 +87,7 @@ public class TextLayer implements Layer {
         this.visible = visible;
         this.locked = locked;
         this.autoSize = autoSize;
+        this.runs = runs;
     } // --- Fin del constructor privado TextLayer ---
 
 
@@ -117,6 +123,9 @@ public class TextLayer implements Layer {
 
     public boolean isAutoSize() { return autoSize; }
     public void setAutoSize(boolean autoSize) { this.autoSize = autoSize; }
+
+    public List<TextRun> getRuns() { return runs; }
+    public void setRuns(List<TextRun> runs) { this.runs = runs; }
 
 
     // ==================== Layer ====================
@@ -187,6 +196,78 @@ public class TextLayer implements Layer {
 
 
     private void paintHorizontal(Graphics2D g, FontMetrics fm) {
+        if (runs != null && !runs.isEmpty()) {
+            paintRuns(g);
+            return;
+        }
+        paintPlainText(g, fm);
+    } // --- Fin del metodo paintHorizontal ---
+
+
+    private void paintRuns(Graphics2D g) {
+        record RS(Font font, Color color, boolean underline, boolean strikethrough, String text) {}
+
+        // Divide runs en líneas según \n
+        List<List<RS>> lines = new ArrayList<>();
+        List<RS> cur = new ArrayList<>();
+        for (TextRun r : runs) {
+            String txt = r.text();
+            int start = 0;
+            while (true) {
+                int nl = txt.indexOf('\n', start);
+                if (nl < 0) break;
+                if (nl > start) cur.add(new RS(r.font(), r.color(), r.underline(), r.strikethrough(), txt.substring(start, nl)));
+                if (!cur.isEmpty()) { lines.add(cur); cur = new ArrayList<>(); }
+                start = nl + 1;
+            }
+            if (start < txt.length()) cur.add(new RS(r.font(), r.color(), r.underline(), r.strikethrough(), txt.substring(start)));
+        }
+        if (!cur.isEmpty()) lines.add(cur);
+        if (lines.isEmpty()) return;
+
+        // Métricas por línea
+        int n = lines.size();
+        int[] lineH = new int[n];
+        int[] lineW = new int[n];
+        int[] asc = new int[n];
+        int totalH = 0;
+        for (int i = 0; i < n; i++) {
+            for (RS s : lines.get(i)) {
+                FontMetrics lfm = g.getFontMetrics(s.font());
+                lineH[i] = Math.max(lineH[i], lfm.getHeight());
+                lineW[i] += lfm.stringWidth(s.text());
+                asc[i] = Math.max(asc[i], lfm.getAscent());
+            }
+            totalH += lineH[i];
+            if (i > 0) totalH += Math.round(lineH[i] * (lineSpacing - 1.0f));
+        }
+
+        int cursorY = autoSize ? bounds.y + (bounds.height - totalH) / 2 : bounds.y;
+
+        for (int i = 0; i < n; i++) {
+            int baseline = cursorY + asc[i];
+            int x = switch (alignment) {
+                case ALIGN_CENTER -> bounds.x + (bounds.width - lineW[i]) / 2;
+                case ALIGN_RIGHT  -> bounds.x + bounds.width - lineW[i];
+                default -> bounds.x;
+            };
+            for (RS s : lines.get(i)) {
+                g.setFont(s.font());
+                g.setColor(s.color());
+                FontMetrics lfm = g.getFontMetrics();
+                int sw = lfm.stringWidth(s.text());
+                g.drawString(s.text(), x, baseline);
+                if (s.underline()) g.drawLine(x, baseline + 2, x + sw, baseline + 2);
+                if (s.strikethrough()) g.drawLine(x, baseline - asc[i] / 3, x + sw, baseline - asc[i] / 3);
+                x += sw;
+            }
+            cursorY += lineH[i];
+            if (i < n - 1) cursorY += Math.round(lineH[i + 1] * (lineSpacing - 1.0f));
+        }
+    } // --- Fin del metodo paintRuns ---
+
+
+    private void paintPlainText(Graphics2D g, FontMetrics fm) {
         List<String> wrapped = autoSize ? simpleLines() : wrappedLines(fm);
         int lineH = fm.getHeight();
         int spacingPx = Math.round(lineH * (lineSpacing - 1.0f));
@@ -217,7 +298,7 @@ public class TextLayer implements Layer {
                 g.drawLine(lineX, sY, lineX + lw, sY);
             }
         }
-    } // --- Fin del metodo paintHorizontal ---
+    } // --- Fin del metodo paintPlainText ---
 
 
     private List<String> simpleLines() {
@@ -283,9 +364,15 @@ public class TextLayer implements Layer {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
+            Font thumbFont = font;
+            Color thumbColor = color;
+            if (runs != null && !runs.isEmpty()) {
+                thumbFont = runs.get(0).font();
+                thumbColor = runs.get(0).color();
+            }
             float scale = size / 80f;
-            g.setFont(font.deriveFont(font.getSize2D() * scale));
-            g.setColor(color);
+            g.setFont(thumbFont.deriveFont(thumbFont.getSize2D() * scale));
+            g.setColor(thumbColor);
 
             FontMetrics fm = g.getFontMetrics();
             String label = text != null && !text.isEmpty()
@@ -309,7 +396,8 @@ public class TextLayer implements Layer {
                 text, font, color,
                 alignment, vertical, underline, strikethrough, flowColumns, lineSpacing,
                 new Rectangle(bounds),
-                opacity, visible, locked, autoSize);
+                opacity, visible, locked, autoSize,
+                runs != null ? new ArrayList<>(runs) : null);
     } // --- Fin del metodo copy ---
 
 } // --- Fin de la clase TextLayer ---
