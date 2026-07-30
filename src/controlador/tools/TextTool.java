@@ -2,6 +2,7 @@ package controlador.tools;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Font;
@@ -16,13 +17,18 @@ import java.awt.event.FocusEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
+import javax.swing.JComboBox;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 
 import controlador.commands.AppActionCommands;
 import modelo.editor.Layer;
@@ -488,42 +494,47 @@ public class TextTool extends Tool {
         int ph = Math.max((int) Math.round(canvasRect.height * zoom), 24);
 
         if (paragraph) {
-            JTextArea area = new JTextArea();
-            area.setLineWrap(true);
-            area.setWrapStyleWord(true);
-            area.setBounds(px, py, Math.max(pw, 50), Math.max(ph, 60));
-            area.setFont(buildFont().deriveFont(buildFont().getSize2D() * (float) zoom));
-            area.setForeground(textColor);
-            area.setCaretColor(textColor);
-            area.setBackground(new Color(255, 255, 255, 200));
-            area.setBorder(BorderFactory.createLineBorder(new Color(0, 120, 215)));
-            area.setOpaque(false);
+            JTextPane pane = new JTextPane();
+            pane.setBounds(px, py, Math.max(pw, 50), Math.max(ph, 60));
+            pane.setForeground(textColor);
+            pane.setCaretColor(textColor);
+            pane.setBackground(new Color(255, 255, 255, 200));
+            pane.setBorder(BorderFactory.createLineBorder(new Color(0, 120, 215)));
+            pane.setOpaque(false);
+
+            Font zoomedFont = buildFont().deriveFont(buildFont().getSize2D() * (float) zoom);
+            pane.setFont(zoomedFont);
+
+            SimpleAttributeSet fontAttrs = new SimpleAttributeSet();
+            StyleConstants.setFontFamily(fontAttrs, zoomedFont.getFamily());
+            StyleConstants.setFontSize(fontAttrs, zoomedFont.getSize());
+            StyleConstants.setBold(fontAttrs, zoomedFont.isBold());
+            StyleConstants.setItalic(fontAttrs, zoomedFont.isItalic());
+            StyleConstants.setForeground(fontAttrs, textColor);
 
             if (existingText != null) {
-                area.setText(existingText);
-                area.selectAll();
+                pane.setText(existingText);
+                pane.getStyledDocument().setCharacterAttributes(
+                        0, pane.getDocument().getLength(), fontAttrs, true);
+                pane.selectAll();
             }
 
-            area.getInputMap().put(KeyStroke.getKeyStroke("control ENTER"), "commitInline");
-            area.getActionMap().put("commitInline", new javax.swing.AbstractAction() {
+            pane.setCharacterAttributes(fontAttrs, true);
+
+            SimpleAttributeSet alignAttrs = new SimpleAttributeSet();
+            StyleConstants.setAlignment(alignAttrs, toStyleAlignment(alignment));
+            pane.setParagraphAttributes(alignAttrs, true);
+
+            pane.getInputMap().put(KeyStroke.getKeyStroke("control ENTER"), "commitInline");
+            pane.getActionMap().put("commitInline", new javax.swing.AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     commitInlineText();
                 }
             });
 
-            area.addFocusListener(new FocusAdapter() {
-                @Override
-                public void focusLost(FocusEvent e) {
-                    SwingUtilities.invokeLater(() -> {
-                        if (inlineField != null && !inlineField.hasFocus()) {
-                            commitInlineText();
-                        }
-                    });
-                }
-            });
-
-            inlineField = area;
+            pane.addFocusListener(buildInlineFocusListener());
+            inlineField = pane;
         } else {
             JTextField field = new JTextField();
             field.setBounds(px, py, Math.max(pw, 50), ph);
@@ -533,6 +544,7 @@ public class TextTool extends Tool {
             field.setBackground(new Color(255, 255, 255, 200));
             field.setBorder(BorderFactory.createLineBorder(new Color(0, 120, 215)));
             field.setOpaque(false);
+            field.setHorizontalAlignment(alignment);
 
             if (existingText != null) {
                 field.setText(existingText);
@@ -541,17 +553,7 @@ public class TextTool extends Tool {
 
             field.addActionListener(e -> commitInlineText());
 
-            field.addFocusListener(new FocusAdapter() {
-                @Override
-                public void focusLost(FocusEvent e) {
-                    SwingUtilities.invokeLater(() -> {
-                        if (inlineField != null && !inlineField.hasFocus()) {
-                            commitInlineText();
-                        }
-                    });
-                }
-            });
-
+            field.addFocusListener(buildInlineFocusListener());
             inlineField = field;
         }
 
@@ -721,6 +723,22 @@ public class TextTool extends Tool {
     } // --- Fin del metodo recalcAutoBounds ---
 
 
+    private FocusAdapter buildInlineFocusListener() {
+        return new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                Component opp = e.getOppositeComponent();
+                if (opp != null && (opp instanceof AbstractButton || opp instanceof JComboBox)) return;
+                SwingUtilities.invokeLater(() -> {
+                    if (inlineField != null && !inlineField.hasFocus()) {
+                        commitInlineText();
+                    }
+                });
+            }
+        };
+    } // --- Fin del metodo buildInlineFocusListener ---
+
+
     private void removeInlineField() {
         if (editingLayer != null) {
             editingLayer.editingInline = false;
@@ -734,6 +752,16 @@ public class TextTool extends Tool {
             inlineField = null;
         }
     } // --- Fin del metodo removeInlineField ---
+
+
+    private static int toStyleAlignment(int swingAlign) {
+        return switch (swingAlign) {
+            case SwingConstants.LEFT   -> StyleConstants.ALIGN_LEFT;
+            case SwingConstants.CENTER -> StyleConstants.ALIGN_CENTER;
+            case SwingConstants.RIGHT  -> StyleConstants.ALIGN_RIGHT;
+            default                    -> StyleConstants.ALIGN_LEFT;
+        };
+    } // --- Fin del metodo toStyleAlignment ---
 
 
     private void updateInlineFieldFont() {
@@ -771,6 +799,19 @@ public class TextTool extends Tool {
         Boolean fc = bar.isTextFlowColumns();
         if (fc != null) flowColumns = fc;
     } // --- Fin del metodo syncFromComponentBar ---
+
+
+    public void syncInlineStyle() {
+        if (inlineField == null) return;
+        double zoom = ctx.canvasPanel().getZoom();
+        Font font = buildFont().deriveFont(buildFont().getSize2D() * (float) zoom);
+        inlineField.setFont(font);
+        if (inlineField instanceof JTextPane pane) {
+            SimpleAttributeSet attrs = new SimpleAttributeSet();
+            StyleConstants.setAlignment(attrs, toStyleAlignment(alignment));
+            pane.setParagraphAttributes(attrs, true);
+        }
+    } // --- Fin del metodo syncInlineStyle ---
 
 
     public void syncToComponentBar() {

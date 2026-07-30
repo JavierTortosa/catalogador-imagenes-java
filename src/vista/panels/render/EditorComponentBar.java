@@ -816,6 +816,7 @@ public class EditorComponentBar extends JPanel {
         // 1. Sincronizar TextTool si es la herramienta activa
         if (canvasController.getActiveTool() instanceof TextTool tt) {
             tt.syncFromComponentBar();
+            tt.syncInlineStyle();
         }
 
         // 2. Aplicar la propiedad directamente sobre la capa de texto activa si existe
