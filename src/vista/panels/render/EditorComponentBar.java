@@ -7,10 +7,15 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -26,9 +31,11 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JRadioButton;
 import javax.swing.JSeparator;
 import javax.swing.JSlider;
@@ -42,6 +49,9 @@ import javax.swing.UIManager;
 import controlador.commands.AppActionCommands;
 import controlador.tools.CanvasController;
 import controlador.tools.TextTool;
+import modelo.editor.CanvasModel;
+import modelo.editor.Layer;
+import modelo.editor.LayerModel;
 import vista.config.SeparatorDefinition;
 import vista.config.ToolbarButtonDefinition;
 import vista.config.ToolbarComponentDefinition;
@@ -79,6 +89,14 @@ public class EditorComponentBar extends JPanel {
     private boolean homeCanvasSubMode; // true=medidas, false=nuevo
     private final JPanel leftPart;
 
+    // EditTool checkboxes
+    private final JCheckBox chkAutoSelect = new JCheckBox("Selec.auto");
+    private final JCheckBox chkShowGizmo = new JCheckBox("Tiradores");
+    private final JCheckBox chkKeepAspect = new JCheckBox("Proporci\u00F3n");
+    private final JCheckBox chkAutoZoom = new JCheckBox("Zoom auto");
+
+    // Icon combos (sustituyen a los D-Pad)
+
     // Widgets compartidos del home lienzo (para leer valores desde handleHomeAction)
     private JSpinner homeWSpinner;
     private JSpinner homeHSpinner;
@@ -111,7 +129,7 @@ public class EditorComponentBar extends JPanel {
     private JToggleButton textVerticalBtn;
 
     {
-        toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_EDICION, this::newEmptyPanel);
+        toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_EDICION,           this::buildEditPanel);
         toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_TRANSFORMAR, this::buildTransformPanel);
         toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_SELECCION_MARCO, this::buildFeatherPanel);
         toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_SELECCION_CAPA, this::buildFeatherPanel);
@@ -171,30 +189,13 @@ public class EditorComponentBar extends JPanel {
         leftPart.add(Box.createHorizontalStrut(4));
 
         labelX = createDimLabel("X:");
-        leftPart.add(labelX);
         spinnerX = createDimsSpinner();
-        leftPart.add(spinnerX);
-
-        leftPart.add(Box.createHorizontalStrut(2));
-
         labelY = createDimLabel("Y:");
-        leftPart.add(labelY);
         spinnerY = createDimsSpinner();
-        leftPart.add(spinnerY);
-
-        leftPart.add(Box.createHorizontalStrut(2));
-
         labelW = createDimLabel("W:");
-        leftPart.add(labelW);
         spinnerW = createDimsSpinner();
-        leftPart.add(spinnerW);
-
-        leftPart.add(Box.createHorizontalStrut(2));
-
         labelH = createDimLabel("H:");
-        leftPart.add(labelH);
         spinnerH = createDimsSpinner();
-        leftPart.add(spinnerH);
 
         // Guardar componentes del modo herramienta
         leftPartToolComponents = new java.util.ArrayList<>();
@@ -255,6 +256,15 @@ public class EditorComponentBar extends JPanel {
         this.canvasController = cc;
     } // --- Fin del metodo setCanvasController ---
 
+    public JSpinner getSpinnerX() { return spinnerX; }
+    public JSpinner getSpinnerY() { return spinnerY; }
+    public JSpinner getSpinnerW() { return spinnerW; }
+    public JSpinner getSpinnerH() { return spinnerH; }
+    public boolean isAutoSelect()  { return chkAutoSelect.isSelected(); }
+    public boolean isShowGizmo()   { return chkShowGizmo.isSelected(); }
+    public boolean isKeepAspect()  { return chkKeepAspect.isSelected(); }
+    public boolean isAutoZoom()    { return chkAutoZoom.isSelected(); }
+
 
     public void reloadTools() {
         comboModel.removeAllElements();
@@ -301,23 +311,211 @@ public class EditorComponentBar extends JPanel {
         row1Right.removeAll();
         if (uiDefinitionService == null) return;
         Color bg = getBackground();
-        ButtonGroup group = new ButtonGroup();
-        ToolbarDefinition def = uiDefinitionService.getToolbarDefinition("editoravanzadolayerselection");
-        if (def != null) {
-            for (ToolbarComponentDefinition comp : def.componentes()) {
-                if (comp instanceof ToolbarButtonDefinition btnDef) {
-                    String cmd = btnDef.comandoCanonico();
-                    if (AppActionCommands.CMD_ADVANCED_EDITOR_PAGE.equals(cmd)) {
-                        row1Right.add(createCanvasResizeButton(btnDef, bg));
-                    } else {
-                        row1Right.add(createSubToolButton(btnDef, bg, group));
-                    }
-                }
-            }
+        // Separador
+        row1Right.add(new JSeparator(SwingConstants.VERTICAL));
+        // Checkboxes
+        for (JCheckBox chk : new JCheckBox[]{chkAutoSelect, chkShowGizmo, chkKeepAspect, chkAutoZoom}) {
+            chk.setBackground(bg);
+            chk.setForeground(fgStatus);
+            chk.setFont(chk.getFont().deriveFont(10f));
+            chk.setFocusPainted(false);
+            chk.setOpaque(false);
+            row1Right.add(chk);
         }
+        // Separador
+        row1Right.add(new JSeparator(SwingConstants.VERTICAL));
+        // Combo selector Alinear
+        JButton btnAlign = createIconComboButton(bg, true);
+        if (btnAlign != null) row1Right.add(btnAlign);
+        // Combo selector Distribuir
+        JButton btnDistrib = createIconComboButton(bg, false);
+        if (btnDistrib != null) row1Right.add(btnDistrib);
         row1Right.revalidate();
         row1Right.repaint();
     } // --- Fin del metodo buildRow1RightSide ---
+
+
+    private JButton createIconComboButton(Color bg, boolean isAlign) {
+        if (iconUtils == null) return null;
+        String[][] options = isAlign
+            ? new String[][]{
+                {AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_SUPERIOR,   "70403-align-borde-superior.png"},
+                {AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_CENTRO_VERTICAL,  "70402-align-centro-vertical.png"},
+                {AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_INFERIOR,   "70401-align-borde-inferior.png"},
+                {AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_IZQUIERDO,  "70404-align-borde-izquierdo.png"},
+                {AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_CENTRO_HORIZONTAL,"70405-align-centro-horizontal.png"},
+                {AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_DERECHO,    "70406-align-borde-derecho.png"}}
+            : new String[][]{
+                {AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_TOP_BORDER,      "70503-distribute-top-border.png"},
+                {AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_VERTICAL, "70502-distribute-center-vertical.png"},
+                {AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_BOTTOM_BORDER,   "70501-distribute-bottom-border.png"},
+                {AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_LEFT_BORDER,     "70504-distribute-left-border.png"},
+                {AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_HORIZONTAL,"70505-distribute-center-horizontal.png"},
+                {AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_RIGHT_BORDER,    "70506-distribute-right-border.png"}};
+        Consumer<String> executor = isAlign ? this::executeAlignFromCommand : this::executeDistributeFromCommand;
+        JButton btn = new JButton();
+        btn.setBackground(bg);
+        btn.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
+        btn.setFocusPainted(false);
+        btn.setFont(btn.getFont().deriveFont(9f));
+        btn.setText("\u25BC");
+        btn.setHorizontalTextPosition(SwingConstants.RIGHT);
+        // Icono inicial
+        ImageIcon initIcon = iconUtils.getScaledIcon(options[0][1], 14, 14);
+        if (initIcon != null) btn.setIcon(initIcon);
+        btn.addActionListener(e -> {
+            JPopupMenu popup = new JPopupMenu();
+            popup.setLayout(new GridLayout(2, 3, 1, 1));
+            popup.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+            for (String[] opt : options) {
+                String cmd = opt[0];
+                String iconKey = opt[1];
+                JLabel item = new JLabel();
+                item.setHorizontalAlignment(SwingConstants.CENTER);
+                item.setPreferredSize(new Dimension(28, 28));
+                item.setOpaque(true);
+                item.setBackground(bg);
+                ImageIcon itemIcon = iconUtils.getScaledIcon(iconKey, 20, 20);
+                if (itemIcon != null) item.setIcon(itemIcon);
+                item.addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override
+                    public void mouseClicked(java.awt.event.MouseEvent ev) {
+                        executor.accept(cmd);
+                        ImageIcon newIcon = iconUtils.getScaledIcon(iconKey, 14, 14);
+                        if (newIcon != null) btn.setIcon(newIcon);
+                        popup.setVisible(false);
+                    }
+                    @Override
+                    public void mouseEntered(java.awt.event.MouseEvent ev) {
+                        item.setBackground(item.getBackground().darker());
+                    }
+                    @Override
+                    public void mouseExited(java.awt.event.MouseEvent ev) {
+                        item.setBackground(bg);
+                    }
+                });
+                popup.add(item);
+            }
+            popup.show(btn, 0, btn.getHeight());
+        });
+        return btn;
+    } // --- Fin del metodo createIconComboButton ---
+
+
+    private void executeAlign(int hPos, int vPos) {
+        AdvanceEditPanel aep = findAdvanceEditPanel();
+        if (aep == null) return;
+        CanvasPanel canvas = aep.getCanvas();
+        if (canvas == null) return;
+        CanvasModel cm = canvas.getCanvasModel();
+        if (cm == null) return;
+        LayerModel lm = canvas.getLayerModel();
+        if (lm == null) return;
+        int cw = cm.getWidth();
+        int ch = cm.getHeight();
+        Layer layer = lm.getActiveLayer();
+        if (layer == null) return;
+        Rectangle b = layer.getBounds();
+        int nx = b.x;
+        int ny = b.y;
+        if (hPos == 0) nx = 0;
+        else if (hPos == 1) nx = (cw - b.width) / 2;
+        else if (hPos == 2) nx = cw - b.width;
+        if (vPos == 0) ny = 0;
+        else if (vPos == 1) ny = (ch - b.height) / 2;
+        else if (vPos == 2) ny = ch - b.height;
+        layer.setBounds(new Rectangle(nx, ny, b.width, b.height));
+        canvas.repaint();
+    } // --- Fin del metodo executeAlign ---
+
+
+    private void executeDistribute(int hPos, int vPos) {
+        AdvanceEditPanel aep = findAdvanceEditPanel();
+        if (aep == null) return;
+        CanvasPanel canvas = aep.getCanvas();
+        if (canvas == null) return;
+        CanvasModel cm = canvas.getCanvasModel();
+        if (cm == null) return;
+        LayerModel lm = canvas.getLayerModel();
+        if (lm == null) return;
+        List<Layer> layers = new ArrayList<>();
+        for (Layer l : lm.getLayers()) {
+            if (l.isVisible() && !l.isLocked()) layers.add(l);
+        }
+        if (layers.size() < 2) return;
+        int cw = cm.getWidth();
+        int ch = cm.getHeight();
+        if (hPos == 1 || vPos == 1) {
+            // Center along the specified axis
+            int refX = hPos == 1 ? cw / 2 : 0;
+            int refY = vPos == 1 ? ch / 2 : 0;
+            for (Layer layer : layers) {
+                Rectangle b = layer.getBounds();
+                int nx = b.x;
+                int ny = b.y;
+                if (hPos == 1) nx = refX - b.width / 2;
+                if (vPos == 1) ny = refY - b.height / 2;
+                layer.setBounds(new Rectangle(nx, ny, b.width, b.height));
+            }
+        } else {
+            // Distribute evenly across canvas width/height
+            distributeEvenly(layers, cw, ch, hPos == 0, vPos == 0);
+        }
+        canvas.repaint();
+    } // --- Fin del metodo executeDistribute ---
+
+
+    private void distributeEvenly(List<Layer> layers, int cw, int ch, boolean hDist, boolean vDist) {
+        int n = layers.size();
+        if (n < 2) return;
+        if (hDist) {
+            layers.sort((a, b) -> Integer.compare(a.getBounds().x, b.getBounds().x));
+            int totalW = layers.stream().mapToInt(l -> l.getBounds().width).sum();
+            int gap = (cw - totalW) / (n - 1);
+            int cx = 0;
+            for (Layer layer : layers) {
+                Rectangle b = layer.getBounds();
+                layer.setBounds(new Rectangle(cx, b.y, b.width, b.height));
+                cx += b.width + gap;
+            }
+        }
+        if (vDist) {
+            layers.sort((a, b) -> Integer.compare(a.getBounds().y, b.getBounds().y));
+            int totalH = layers.stream().mapToInt(l -> l.getBounds().height).sum();
+            int gap = (ch - totalH) / (n - 1);
+            int cy = 0;
+            for (Layer layer : layers) {
+                Rectangle b = layer.getBounds();
+                layer.setBounds(new Rectangle(b.x, cy, b.width, b.height));
+                cy += b.height + gap;
+            }
+        }
+    } // --- Fin del metodo distributeEvenly ---
+
+
+    private void executeAlignFromCommand(String cmd) {
+        int hPos = 1, vPos = 1; // default center
+        if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_SUPERIOR.equals(cmd))       { vPos = 0; hPos = 1; }
+        else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_CENTRO_VERTICAL.equals(cmd)) { vPos = 1; hPos = 1; }
+        else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_INFERIOR.equals(cmd))  { vPos = 2; hPos = 1; }
+        else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_IZQUIERDO.equals(cmd)) { hPos = 0; vPos = 1; }
+        else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_CENTRO_HORIZONTAL.equals(cmd)){ hPos = 1; vPos = 1; }
+        else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_DERECHO.equals(cmd))   { hPos = 2; vPos = 1; }
+        executeAlign(hPos, vPos);
+    } // --- Fin del metodo executeAlignFromCommand ---
+
+
+    private void executeDistributeFromCommand(String cmd) {
+        int hPos = 1, vPos = 1;
+        if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_TOP_BORDER.equals(cmd))        { vPos = 0; hPos = 1; }
+        else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_VERTICAL.equals(cmd)) { vPos = 1; hPos = 1; }
+        else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_BOTTOM_BORDER.equals(cmd))   { vPos = 2; hPos = 1; }
+        else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_LEFT_BORDER.equals(cmd))     { hPos = 0; vPos = 1; }
+        else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_HORIZONTAL.equals(cmd)){ hPos = 1; vPos = 1; }
+        else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_RIGHT_BORDER.equals(cmd))    { hPos = 2; vPos = 1; }
+        executeDistribute(hPos, vPos);
+    } // --- Fin del metodo executeDistributeFromCommand ---
+
 
 
     public void buildAllToolPanels() {
@@ -371,6 +569,43 @@ public class EditorComponentBar extends JPanel {
 
         return p;
     } // --- Fin del metodo buildTransformPanel ---
+
+
+    private JPanel buildEditPanel(Color bg) {
+        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
+        p.setBackground(bg);
+        JLabel capaLabel = new JLabel("Capa:");
+        capaLabel.setForeground(fgStatus);
+        p.add(capaLabel);
+        String name = "\u2014";
+        AdvanceEditPanel aep = findAdvanceEditPanel();
+        if (aep != null && aep.getCanvas() != null && aep.getCanvas().getLayerModel() != null) {
+            Layer active = aep.getCanvas().getLayerModel().getActiveLayer();
+            if (active != null) name = active.getName();
+        }
+        JLabel nameLabel = new JLabel(name);
+        nameLabel.setForeground(fgStatus);
+        nameLabel.setPreferredSize(new Dimension(70, 20));
+        p.add(nameLabel);
+        p.add(Box.createHorizontalStrut(4));
+        JLabel lbX = new JLabel("X:");
+        lbX.setForeground(fgStatus);
+        p.add(lbX);
+        p.add(spinnerX);
+        JLabel lbY = new JLabel("Y:");
+        lbY.setForeground(fgStatus);
+        p.add(lbY);
+        p.add(spinnerY);
+        JLabel lbW = new JLabel("W:");
+        lbW.setForeground(fgStatus);
+        p.add(lbW);
+        p.add(spinnerW);
+        JLabel lbH = new JLabel("H:");
+        lbH.setForeground(fgStatus);
+        p.add(lbH);
+        p.add(spinnerH);
+        return p;
+    } // --- Fin del metodo buildEditPanel ---
 
 
     private JPanel buildFeatherPanel(Color bg) {
@@ -794,6 +1029,31 @@ public class EditorComponentBar extends JPanel {
     } // --- Fin del metodo setTextVertical ---
 
 
+    public void updateDimensionSpinners(int x, int y, int w, int h) {
+        spinnerX.setValue(x);
+        spinnerY.setValue(y);
+        spinnerW.setValue(w);
+        spinnerH.setValue(h);
+    } // --- Fin del metodo updateDimensionSpinners ---
+
+
+    public void setEditToolSpinnerListener(Consumer<int[]> listener) {
+        javax.swing.event.ChangeListener sync = e -> {
+            int x = (Integer) spinnerX.getValue();
+            int y = (Integer) spinnerY.getValue();
+            int w = (Integer) spinnerW.getValue();
+            int h = (Integer) spinnerH.getValue();
+            listener.accept(new int[]{x, y, w, h});
+        };
+        for (JSpinner s : new JSpinner[]{spinnerX, spinnerY, spinnerW, spinnerH}) {
+            for (javax.swing.event.ChangeListener cl : s.getChangeListeners()) {
+                s.removeChangeListener(cl);
+            }
+            s.addChangeListener(sync);
+        }
+    } // --- Fin del metodo setEditToolSpinnerListener ---
+
+
     private JPanel buildShapesPanel(Color bg) {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
         p.setBackground(bg);
@@ -1039,12 +1299,6 @@ public class EditorComponentBar extends JPanel {
         wrap.add(sep);
         return wrap;
     } // --- Fin del metodo createSubSeparator ---
-
-
-    public JSpinner getSpinnerX() { return spinnerX; }
-    public JSpinner getSpinnerY() { return spinnerY; }
-    public JSpinner getSpinnerW() { return spinnerW; }
-    public JSpinner getSpinnerH() { return spinnerH; }
 
 
     private JLabel createDimLabel(String text) {

@@ -1098,7 +1098,7 @@ Herramienta Edicion
 1 click en una capa marca la capa
 2 click en una capa edita esa capa
 1 clic fuera de capa, desmarca la capa/ acepta modificacion
-
+uso de herramientas rapido y simplificado
 
 
 Componentes:
@@ -1110,7 +1110,11 @@ los spins nos permiten introducir la posicion y dimensiones de la capa a mano en
 deben estar en la segunda fila
 
 checbox seleccion automatica: 
-selecciona la capa por una pulsacion en la capa o actua solo sobre la capa que tenemos seleccionada en el panel de capas
+si no esta activado, actua solo sobre la capa que tenemos seleccionada en el panel de capas
+si esta activado selecciona la capa por una pulsacion en la capa
+su funcion es ser un sistema de uso rapido
+  si pulsamos sobre una capa fuera de los tiradores podremos mover esa capa
+  
 debe estar en la parte B de la primera fila
 
 checkbox mostrar tiradores:
@@ -1119,6 +1123,11 @@ debe estar en la parte B de la primera fila
 
 checkbox escalar:
 este checkbox nos permite que la capa seleccionada se escale o deforme al usar los tiradores
+
+checkbox zoom automatico:
+este checkbox esta ligado al boton de zoom. 
+si tenemos el zoom automatico activado la rueda del mouse actua de zoom alejar y acercar 
+se activa el boton de zoom de herramientas
 
 icono combobox acceso rapido a alinear:
 muestra un icono de la herramienta de alineado seleccionada
