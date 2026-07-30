@@ -23,7 +23,6 @@ import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
@@ -46,7 +45,7 @@ import vista.panels.render.CanvasPanel;
 /**
  * Herramienta de texto con edici\u00F3n inline sobre el canvas.
  * <p>
- * Arrastrar crea un rect\u00E1ngulo donde aparece un JTextField para escribir.
+ * Arrastrar crea un rect\u00E1ngulo donde aparece un JTextPane para escribir.
  * Doble clic sobre una TextLayer existente permite re-editar el texto.
  * Las propiedades (fuente, tama\u00F1o, color, estilo) se leen del panel de
  * opciones y se aplican tanto al crear como al modificar.
@@ -483,14 +482,11 @@ public class TextTool extends Tool {
     } // --- Fin del metodo findTextLayerAt ---
 
 
-    // ==================== Editor inline (JTextField sobre el canvas) ====================
+    // ==================== Editor inline (JTextPane sobre el canvas) ====================
 
 
     private void showInlineFieldAt(Rectangle canvasRect, String existingText) {
         removeInlineField();
-
-        boolean paragraph = editingLayer != null ? !editingLayer.isAutoSize()
-                : creationRect != null || !autoSize;
 
         CanvasPanel panel = ctx.canvasPanel();
         double zoom = panel.getZoom();
@@ -502,79 +498,59 @@ public class TextTool extends Tool {
         int pw = (int) Math.round(canvasRect.width * zoom);
         int ph = Math.max((int) Math.round(canvasRect.height * zoom), 24);
 
-        if (paragraph) {
-            JTextPane pane = new JTextPane();
-            pane.setBounds(px, py, Math.max(pw, 50), Math.max(ph, 60));
-            pane.setForeground(textColor);
-            pane.setCaretColor(textColor);
-            pane.setBackground(new Color(255, 255, 255, 200));
-            pane.setBorder(BorderFactory.createLineBorder(new Color(0, 120, 215)));
-            pane.setOpaque(false);
+        JTextPane pane = new JTextPane();
+        pane.setBounds(px, py, Math.max(pw, 50), Math.max(ph, 60));
+        pane.setForeground(textColor);
+        pane.setCaretColor(textColor);
+        pane.setBackground(new Color(255, 255, 255, 200));
+        pane.setBorder(BorderFactory.createLineBorder(new Color(0, 120, 215)));
+        pane.setOpaque(false);
 
-            Font zoomedFont = buildFont().deriveFont(buildFont().getSize2D() * (float) zoom);
-            pane.setFont(zoomedFont);
+        Font zoomedFont = buildFont().deriveFont(buildFont().getSize2D() * (float) zoom);
+        pane.setFont(zoomedFont);
 
-            if (editingLayer != null && editingLayer.getRuns() != null && !editingLayer.getRuns().isEmpty()) {
-                restoreRuns(pane, editingLayer);
-            } else if (existingText != null) {
-                SimpleAttributeSet plainAttrs = new SimpleAttributeSet();
-                StyleConstants.setFontFamily(plainAttrs, zoomedFont.getFamily());
-                StyleConstants.setFontSize(plainAttrs, zoomedFont.getSize());
-                StyleConstants.setBold(plainAttrs, zoomedFont.isBold());
-                StyleConstants.setItalic(plainAttrs, zoomedFont.isItalic());
-                StyleConstants.setForeground(plainAttrs, textColor);
-                pane.setText(existingText);
-                pane.getStyledDocument().setCharacterAttributes(
-                        0, pane.getDocument().getLength(), plainAttrs, true);
-                pane.selectAll();
-            }
-
-            SimpleAttributeSet inputAttrs = new SimpleAttributeSet();
-            StyleConstants.setFontFamily(inputAttrs, zoomedFont.getFamily());
-            StyleConstants.setFontSize(inputAttrs, zoomedFont.getSize());
-            StyleConstants.setBold(inputAttrs, zoomedFont.isBold());
-            StyleConstants.setItalic(inputAttrs, zoomedFont.isItalic());
-            StyleConstants.setForeground(inputAttrs, textColor);
-            pane.setCharacterAttributes(inputAttrs, true);
-
-            SimpleAttributeSet alignAttrs = new SimpleAttributeSet();
-            StyleConstants.setAlignment(alignAttrs, toStyleAlignment(alignment));
-            pane.setParagraphAttributes(alignAttrs, true);
-
-            pane.getInputMap().put(KeyStroke.getKeyStroke("control ENTER"), "commitInline");
-            pane.getActionMap().put("commitInline", new javax.swing.AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    commitInlineText();
-                }
-            });
-
-            pane.addFocusListener(buildInlineFocusListener());
-            CaretListener cl = e -> syncBarFromSelection(pane);
-            pane.addCaretListener(cl);
-            SwingUtilities.invokeLater(() -> syncBarFromSelection(pane));
-            inlineField = pane;
-        } else {
-            JTextField field = new JTextField();
-            field.setBounds(px, py, Math.max(pw, 50), ph);
-            field.setFont(buildFont().deriveFont(buildFont().getSize2D() * (float) zoom));
-            field.setForeground(textColor);
-            field.setCaretColor(textColor);
-            field.setBackground(new Color(255, 255, 255, 200));
-            field.setBorder(BorderFactory.createLineBorder(new Color(0, 120, 215)));
-            field.setOpaque(false);
-            field.setHorizontalAlignment(alignment);
-
-            if (existingText != null) {
-                field.setText(existingText);
-                field.selectAll();
-            }
-
-            field.addActionListener(e -> commitInlineText());
-
-            field.addFocusListener(buildInlineFocusListener());
-            inlineField = field;
+        if (editingLayer != null && editingLayer.getRuns() != null && !editingLayer.getRuns().isEmpty()) {
+            restoreRuns(pane, editingLayer);
+        } else if (existingText != null) {
+            SimpleAttributeSet plainAttrs = new SimpleAttributeSet();
+            StyleConstants.setFontFamily(plainAttrs, zoomedFont.getFamily());
+            StyleConstants.setFontSize(plainAttrs, zoomedFont.getSize());
+            StyleConstants.setBold(plainAttrs, zoomedFont.isBold());
+            StyleConstants.setItalic(plainAttrs, zoomedFont.isItalic());
+            StyleConstants.setForeground(plainAttrs, textColor);
+            pane.setText(existingText);
+            pane.getStyledDocument().setCharacterAttributes(
+                    0, pane.getDocument().getLength(), plainAttrs, true);
+            pane.selectAll();
         }
+
+        SimpleAttributeSet inputAttrs = new SimpleAttributeSet();
+        StyleConstants.setFontFamily(inputAttrs, zoomedFont.getFamily());
+        StyleConstants.setFontSize(inputAttrs, zoomedFont.getSize());
+        StyleConstants.setBold(inputAttrs, zoomedFont.isBold());
+        StyleConstants.setItalic(inputAttrs, zoomedFont.isItalic());
+        StyleConstants.setForeground(inputAttrs, textColor);
+        StyleConstants.setUnderline(inputAttrs, underline);
+        StyleConstants.setStrikeThrough(inputAttrs, strikethrough);
+        pane.setCharacterAttributes(inputAttrs, true);
+
+        SimpleAttributeSet alignAttrs = new SimpleAttributeSet();
+        StyleConstants.setAlignment(alignAttrs, toStyleAlignment(alignment));
+        pane.setParagraphAttributes(alignAttrs, true);
+
+        pane.getInputMap().put(KeyStroke.getKeyStroke("control ENTER"), "commitInline");
+        pane.getActionMap().put("commitInline", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                commitInlineText();
+            }
+        });
+
+        pane.addFocusListener(buildInlineFocusListener());
+        CaretListener cl = e -> syncBarFromSelection(pane);
+        pane.addCaretListener(cl);
+        SwingUtilities.invokeLater(() -> syncBarFromSelection(pane));
+        inlineField = pane;
 
         if (editingLayer != null) {
             editingLayer.editingInline = true;
@@ -776,10 +752,6 @@ public class TextTool extends Tool {
             editingLayer.setText(text);
             if (inlineField instanceof JTextPane pane) {
                 editingLayer.setRuns(extractRuns(pane));
-            } else {
-                editingLayer.setRuns(null);
-                editingLayer.setFont(buildFont());
-                editingLayer.setColor(textColor);
             }
             editingLayer.setAlignment(alignment);
             editingLayer.setVertical(vertical);
@@ -792,6 +764,9 @@ public class TextTool extends Tool {
             String name = text.length() > 30 ? text.substring(0, 30) + "..." : text;
             TextLayer layer = new TextLayer(name, text, buildFont(), textColor,
                     new Rectangle(autoSizeClickPoint.x, autoSizeClickPoint.y, 1, 1));
+            if (inlineField instanceof JTextPane pane) {
+                layer.setRuns(extractRuns(pane));
+            }
             layer.setAlignment(alignment);
             layer.setVertical(vertical);
             layer.setUnderline(underline);
@@ -977,8 +952,6 @@ public class TextTool extends Tool {
             SimpleAttributeSet alignAttrs = new SimpleAttributeSet();
             StyleConstants.setAlignment(alignAttrs, toStyleAlignment(alignment));
             pane.setParagraphAttributes(alignAttrs, true);
-        } else if (inlineField instanceof JTextField field) {
-            field.setHorizontalAlignment(alignment);
         }
     } // --- Fin del metodo syncInlineStyle ---
 
