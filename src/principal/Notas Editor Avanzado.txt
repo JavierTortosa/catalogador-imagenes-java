@@ -1152,4 +1152,114 @@ si pulsamos 1 sola vez:
  los botones de alinear lo haran en funcion de lo escrito 
  en caso de tener varias lineas de texto, usanremos la primera linea como referencia de alineado
  
- 
+ -----------------------------------------------------------------------------------------
+ -----------------------------------------------------------------------------------------
+ Plan de Implementación: Controles y Funcionalidades de la Herramienta Texto (Modo Render)
+ -----------------------------------------------------------------------------------------
+ -----------------------------------------------------------------------------------------
+Este plan define la integración de todos los botones y controles de la barra superior de texto (editoravanzadotexto), asegurando que las modificaciones de fuente, tamaño, estilos (negrita, cursiva, subrayado, tachado), alineación, flujo, orientación y color se apliquen en tiempo real sobre la capa de texto activa, tanto desde la Herramienta de Edición (EditTool) como desde la Herramienta Texto (TextTool).
+
+Novedad: ComboBox de Fuentes Estilo Photoshop (FontListCellRenderer)
+Para replicar la experiencia visual de Photoshop:
+
+El JComboBox de fuentes utilizará un ListCellRenderer<String> personalizado.
+Cada elemento del desplegable mostrará:
+El nombre de la fuente en la tipografía estándar del sistema.
+Un texto de ejemplo / muestra visual (ej: "Muestra Abc") renderizado dinámicamente con la propia fuente de esa fila (new Font(fontName, Font.PLAIN, 14)).
+Componentes Visuales de la Barra de Texto
+Icono de Fuente (80900-search-font.png):
+Etiqueta visual informativa (JLabel con icono) que antecede al JComboBox de fuentes con vista previa.
+Icono de Tamaño de Fuente (80905-font-size.png):
+Etiqueta visual informativa (JLabel con icono) que antecede al JComboBox del tamaño de fuente.
+Aplicación Inmediata de Cambios (Estilo Photoshop)
+IMPORTANT
+
+Desacoplamiento de la Herramienta Activa: Al modificar cualquier propiedad en la barra de texto (color, fuente, tamaño, negrita, cursiva, subrayado, tachado, alineación, flujo u orientación), el cambio se aplica de inmediato sobre la TextLayer activa del modelo (obtenida mediante LayerModel.getActiveLayer()), sin importar si la herramienta activa en ese momento es EditTool o TextTool.
+
+Cambios Propuestos
+Renderizadores y Vista (vista.renderers / vista.panels.render)
+[NEW] 
+FontListCellRenderer.java
+Implementación de ListCellRenderer<String> que dibuja el nombre de la fuente y una muestra textual formateada en la tipografía seleccionada.
+[MODIFY] 
+EditorComponentBar.java
+Asignar textFontCombo.setRenderer(new FontListCellRenderer()).
+Construcción del Panel de Texto (buildTextPanel):
+80900-search-font.png -> JLabel informativo + JComboBox<String> (con FontListCellRenderer).
+80901-bold-text.png (CMD_EDITOR_TEXTO_NEGRITA) -> JToggleButton Negrita.
+80902-italic-text.png (CMD_EDITOR_TEXTO_CURSIVA) -> JToggleButton Cursiva.
+80903-underline-text.png (CMD_EDITOR_TEXTO_SUBRAYADO) -> JToggleButton Subrayado.
+80904-tachado.png (CMD_EDITOR_TEXTO_TACHADO) -> JToggleButton Tachado.
+80905-font-size.png -> JLabel informativo + JComboBox<Integer> (Tamaños: 8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72).
+Grupo exclusivo de Alineación:
+80906-align-left.png (CMD_EDITOR_TEXTO_ALIGN_LEFT): Izquierda.
+80907-align-center.png (CMD_EDITOR_TEXTO_ALIGN_CENTER): Centro.
+80908-align-right.png (CMD_EDITOR_TEXTO_ALIGN_RIGHT): Derecha.
+80909-justified.png: Justificado.
+Grupo Flujo de Texto:
+80910-text-flow-rows.png (Texto en Línea / Filas).
+80911-text-flow-columns.png (Texto en Columna).
+Grupo Orientación de Texto:
+80912-horizontal-text.png (Texto Horizontal).
+80913-vertical-text.png (CMD_EDITOR_TEXTO_VERTICAL / Texto Vertical).
+Selector de Color de Texto (textColorBtn con JColorChooser).
+Aplicación Directa al Modelo (applyPropertyToActiveTextLayer):
+Aplica las propiedades a LayerModel.getActiveLayer() cuando sea TextLayer, refrescando el lienzo.
+Sincronización Bidireccional (syncToComponentBar):
+Actualiza la barra superior al cambiar de capa activa.
+Modelo y Controlador (modelo.editor y controlador.tools)
+[MODIFY] 
+TextLayer.java
+Campos underline, strikethrough, flowColumns.
+Trazado explícito de subrayado y tachado en paintHorizontal y paintVertical.
+[MODIFY] 
+TextTool.java
+Adaptar setters y sincronización con TextLayer.
+Plan de Verificación
+Pruebas Manuales
+Desplegable de Fuentes con Muestra Visual:
+
+Abrir el JComboBox de fuentes -> verificar que cada opción muestra el nombre de la tipografía seguido de una muestra (ej: "Muestra Abc") escrita con esa propia fuente.
+Aplicación Directa de Propiedades:
+
+Seleccionar una capa de texto en EditTool -> cambiar fuente, tamaño, negrita, cursiva, subrayado, tachado, alineación o color -> comprobar actualización inmediata en el lienzo.
+Verificación de Renderizado de Estilos:
+
+Probar subrayado, tachado, orientación vertical/horizontal y flujo filas/columnas en el lienzo.
+
+Resumen de Cambios: Herramienta Texto y Controles del Editor Avanzado
+Se ha completado la integración y habilitación de todos los botones y controles de la barra de texto (editoravanzadotexto), garantizando una experiencia visual idéntica a Photoshop con vista previa de fuentes en tiempo real y aplicación inmediata de estilos.
+
+Cambios Realizados
+------------------
+1. ComboBox de Fuentes Estilo Photoshop (vista.renderers.FontListCellRenderer)
+FontListCellRenderer.java
+Implementación de un ListCellRenderer<String> personalizado.
+Muestra el nombre de la tipografía en la fuente del sistema y a la derecha una muestra textual ("Muestra Abc") renderizada en vivo con esa misma fuente (new Font(fontName, Font.PLAIN, 14)).
+2. Modelo de Capas (modelo.editor.TextLayer)
+TextLayer.java
+Se añadieron los atributos underline (subrayado), strikethrough (tachado) y flowColumns (flujo de filas o columnas).
+Trazado explícito de la línea de subrayado e historial de tachado en paintHorizontal y paintVertical.
+Actualización del método copy() para preservar todos los atributos de estilo al duplicar capas.
+3. Controlador de Texto (controlador.tools.TextTool)
+TextTool.java
+Se conectaron los métodos para cambiar subrayado, tachado, flujo y orientación.
+Sincronización bidireccional completa entre el modelo TextLayer y la barra de componentes (EditorComponentBar).
+4. Barra de Componentes (vista.panels.render.EditorComponentBar)
+EditorComponentBar.java
+Aplicación Inmediata (applyTextProperty): Al interactuar con cualquier control de texto (color, fuente, tamaño, negrita, cursiva, subrayado, tachado, alineación, flujo u orientación), el cambio se aplica de inmediato sobre la capa de texto activa (TextLayer), tanto desde EditTool como desde TextTool, y redibuja el lienzo.
+Componentes Visuales: Los iconos 80900-search-font.png y 80905-font-size.png se renderizan como etiquetas con icono informativas antecediendo a sus respectivos JComboBox.
+Conexión de Botones:
+Negrita (80901-bold-text.png), Cursiva (80902-italic-text.png), Subrayado (80903-underline-text.png), Tachado (80904-tachado.png).
+Alineación Izquierda (80906), Centro (80907), Derecha (80908), Justificado (80909).
+Flujo Texto en Línea (80910) vs Texto en Columna (80911).
+Orientación Horizontal (80912) vs Vertical (80913).
+Botón de Selector de Color (textColorBtn vía JColorChooser).
+Verificación Recomendada para el Usuario
+Desplegable de Fuentes con Vista Previa:
+Desplegar el JComboBox de fuentes -> verificar que cada opción incluye el nombre de la tipografía y un texto de ejemplo ("Muestra Abc") con esa misma fuente.
+Modificación de Propiedades desde Herramienta de Edición (EditTool):
+Seleccionar una capa de texto usando la Herramienta de Edición.
+Cambiar el color, fuente, tamaño o aplicar Negrita/Cursiva/Subrayado/Tachado -> verificar que la capa seleccionada cambia en el lienzo de forma inmediata.
+Flujo y Orientación:
+Probar los botones de alineación, orientación (Horizontal/Vertical) y flujo (Línea/Columna).

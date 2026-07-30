@@ -10,15 +10,19 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
+import java.awt.event.ActionEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
 import javax.swing.BorderFactory;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.text.JTextComponent;
 
 import controlador.commands.AppActionCommands;
 import modelo.editor.Layer;
@@ -47,7 +51,7 @@ public class TextTool extends Tool {
     private boolean dragging;
 
     // --- edici\u00F3n inline ---
-    private JTextField inlineField;
+    private JTextComponent inlineField;
     private TextLayer editingLayer;   // non-null durante edici\u00F3n inline
     private Rectangle creationRect;   // rect\u00E1ngulo en coords canvas para la nueva capa
 
@@ -244,7 +248,12 @@ public class TextTool extends Tool {
         // Si hay edición inline activa, confirmarla antes de procesar el clic
         if (inlineField != null) {
             commitInlineText();
-            return; // el clic fue para salir de la edición, no para otra acción
+            if (returnToEditOnEmptyClick) {
+                returnToEditOnEmptyClick = false;
+                switchToEditTool();
+                return;
+            }
+            // Fall through: el mismo clic continúa (seleccionar otra capa o crear nuevo texto)
         }
 
         Point p = e.getPoint();
@@ -465,6 +474,9 @@ public class TextTool extends Tool {
     private void showInlineFieldAt(Rectangle canvasRect, String existingText) {
         removeInlineField();
 
+        boolean paragraph = editingLayer != null ? !editingLayer.isAutoSize()
+                : creationRect != null || !autoSize;
+
         CanvasPanel panel = ctx.canvasPanel();
         double zoom = panel.getZoom();
         double ox = panel.getOffsetX();
@@ -475,31 +487,77 @@ public class TextTool extends Tool {
         int pw = (int) Math.round(canvasRect.width * zoom);
         int ph = Math.max((int) Math.round(canvasRect.height * zoom), 24);
 
-        inlineField = new JTextField();
-        inlineField.setBounds(px, py, Math.max(pw, 50), ph);
-        inlineField.setFont(buildFont().deriveFont(buildFont().getSize2D() * (float) zoom));
-        inlineField.setForeground(textColor);
-        inlineField.setCaretColor(textColor);
-        inlineField.setBackground(new Color(255, 255, 255, 200));
-        inlineField.setBorder(BorderFactory.createLineBorder(new Color(0, 120, 215)));
-        inlineField.setOpaque(false);
+        if (paragraph) {
+            JTextArea area = new JTextArea();
+            area.setLineWrap(true);
+            area.setWrapStyleWord(true);
+            area.setBounds(px, py, Math.max(pw, 50), Math.max(ph, 60));
+            area.setFont(buildFont().deriveFont(buildFont().getSize2D() * (float) zoom));
+            area.setForeground(textColor);
+            area.setCaretColor(textColor);
+            area.setBackground(new Color(255, 255, 255, 200));
+            area.setBorder(BorderFactory.createLineBorder(new Color(0, 120, 215)));
+            area.setOpaque(false);
 
-        if (existingText != null) {
-            inlineField.setText(existingText);
-            inlineField.selectAll();
+            if (existingText != null) {
+                area.setText(existingText);
+                area.selectAll();
+            }
+
+            area.getInputMap().put(KeyStroke.getKeyStroke("control ENTER"), "commitInline");
+            area.getActionMap().put("commitInline", new javax.swing.AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    commitInlineText();
+                }
+            });
+
+            area.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusLost(FocusEvent e) {
+                    SwingUtilities.invokeLater(() -> {
+                        if (inlineField != null && !inlineField.hasFocus()) {
+                            commitInlineText();
+                        }
+                    });
+                }
+            });
+
+            inlineField = area;
+        } else {
+            JTextField field = new JTextField();
+            field.setBounds(px, py, Math.max(pw, 50), ph);
+            field.setFont(buildFont().deriveFont(buildFont().getSize2D() * (float) zoom));
+            field.setForeground(textColor);
+            field.setCaretColor(textColor);
+            field.setBackground(new Color(255, 255, 255, 200));
+            field.setBorder(BorderFactory.createLineBorder(new Color(0, 120, 215)));
+            field.setOpaque(false);
+
+            if (existingText != null) {
+                field.setText(existingText);
+                field.selectAll();
+            }
+
+            field.addActionListener(e -> commitInlineText());
+
+            field.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusLost(FocusEvent e) {
+                    SwingUtilities.invokeLater(() -> {
+                        if (inlineField != null && !inlineField.hasFocus()) {
+                            commitInlineText();
+                        }
+                    });
+                }
+            });
+
+            inlineField = field;
         }
 
-        inlineField.addActionListener(e -> commitInlineText());
-        inlineField.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusLost(FocusEvent e) {
-                SwingUtilities.invokeLater(() -> {
-                    if (inlineField != null && !inlineField.hasFocus()) {
-                        commitInlineText();
-                    }
-                });
-            }
-        });
+        if (editingLayer != null) {
+            editingLayer.editingInline = true;
+        }
 
         panel.setLayout(null);
         panel.add(inlineField);
@@ -544,10 +602,23 @@ public class TextTool extends Tool {
         underline     = layer.isUnderline();
         strikethrough = layer.isStrikethrough();
         flowColumns   = layer.isFlowColumns();
+        autoSize      = layer.isAutoSize();
     } // --- Fin del metodo syncSettingsFromLayer ---
 
 
-    private void commitInlineText() {
+    public void cancelInlineEdit() {
+        if (inlineField == null) return;
+        removeInlineField();
+        editingLayer = null;
+        creationRect = null;
+        autoSize = false;
+        autoSizeClickPoint = null;
+        dragStart = null;
+        ctx.canvasPanel().repaint();
+    } // --- Fin del metodo cancelInlineEdit ---
+
+
+    public void commitInlineText() {
         if (inlineField == null) return;
         String text = inlineField.getText();
         if (text == null || text.isBlank()) {
@@ -651,6 +722,9 @@ public class TextTool extends Tool {
 
 
     private void removeInlineField() {
+        if (editingLayer != null) {
+            editingLayer.editingInline = false;
+        }
         if (inlineField != null) {
             Container parent = inlineField.getParent();
             if (parent != null) {

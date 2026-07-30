@@ -8,6 +8,8 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -35,6 +37,8 @@ public class TextLayer implements Layer {
     private boolean strikethrough;
     private boolean flowColumns;
     private float opacity;
+
+    public transient boolean editingInline;
 
 
     public TextLayer(String name, String text, Font font, Color color, Rectangle bounds) {
@@ -155,6 +159,7 @@ public class TextLayer implements Layer {
     @Override
     public void paint(Graphics2D g2) {
         if (!visible || text == null || text.isBlank() || bounds == null) return;
+        if (editingInline) return;
 
         Graphics2D g = (Graphics2D) g2.create();
         try {
@@ -182,37 +187,71 @@ public class TextLayer implements Layer {
 
 
     private void paintHorizontal(Graphics2D g, FontMetrics fm) {
-        String[] lines = text.split("\n", -1);
+        List<String> wrapped = autoSize ? simpleLines() : wrappedLines(fm);
         int lineH = fm.getHeight();
         int spacingPx = Math.round(lineH * (lineSpacing - 1.0f));
-        int totalH = lines.length * lineH + (lines.length - 1) * spacingPx;
-        int startY = bounds.y + (bounds.height - totalH) / 2 + fm.getAscent();
-
-        // En modo autoSize el alineado usa el ancho de la primera línea como referencia
-        int alignWidth = autoSize && lines.length > 0
-                ? fm.stringWidth(lines[0])
+        int totalH = wrapped.size() * lineH + (wrapped.size() - 1) * spacingPx;
+        int startY = autoSize
+                ? bounds.y + (bounds.height - totalH) / 2 + fm.getAscent()
+                : bounds.y + fm.getAscent();
+        int maxW = autoSize && !wrapped.isEmpty()
+                ? fm.stringWidth(wrapped.get(0))
                 : bounds.width;
 
-        for (int i = 0; i < lines.length; i++) {
+        for (int i = 0; i < wrapped.size(); i++) {
+            String line = wrapped.get(i);
+            int lw = fm.stringWidth(line);
             int lineX = switch (alignment) {
-                case ALIGN_CENTER -> bounds.x + (alignWidth - fm.stringWidth(lines[i])) / 2;
-                case ALIGN_RIGHT  -> bounds.x + alignWidth - fm.stringWidth(lines[i]);
-                default -> bounds.x; // LEFT
+                case ALIGN_CENTER -> bounds.x + (maxW - lw) / 2;
+                case ALIGN_RIGHT  -> bounds.x + maxW - lw;
+                default -> bounds.x;
             };
             int lineY = startY + i * (lineH + spacingPx);
-            g.drawString(lines[i], lineX, lineY);
+            g.drawString(line, lineX, lineY);
 
-            int strWidth = fm.stringWidth(lines[i]);
             if (underline) {
-                int uY = lineY + 2;
-                g.drawLine(lineX, uY, lineX + strWidth, uY);
+                g.drawLine(lineX, lineY + 2, lineX + lw, lineY + 2);
             }
             if (strikethrough) {
                 int sY = lineY - fm.getAscent() / 3;
-                g.drawLine(lineX, sY, lineX + strWidth, sY);
+                g.drawLine(lineX, sY, lineX + lw, sY);
             }
         }
     } // --- Fin del metodo paintHorizontal ---
+
+
+    private List<String> simpleLines() {
+        String[] parts = text.split("\n", -1);
+        List<String> result = new ArrayList<>(parts.length);
+        for (String p : parts) result.add(p);
+        return result;
+    } // --- Fin del metodo simpleLines ---
+
+
+    private List<String> wrappedLines(FontMetrics fm) {
+        String[] hard = text.split("\n", -1);
+        List<String> result = new ArrayList<>();
+        int maxW = bounds != null ? bounds.width : Integer.MAX_VALUE;
+        for (String line : hard) {
+            if (fm.stringWidth(line) <= maxW) {
+                result.add(line);
+                continue;
+            }
+            String[] words = line.split(" ");
+            StringBuilder cur = new StringBuilder();
+            for (String w : words) {
+                String test = cur.isEmpty() ? w : cur + " " + w;
+                if (fm.stringWidth(test) <= maxW) {
+                    cur = new StringBuilder(test);
+                } else {
+                    if (!cur.isEmpty()) result.add(cur.toString());
+                    cur = new StringBuilder(w);
+                }
+            }
+            if (!cur.isEmpty()) result.add(cur.toString());
+        }
+        return result;
+    } // --- Fin del metodo wrappedLines ---
 
 
     private void paintVertical(Graphics2D g, FontMetrics fm) {

@@ -40,6 +40,7 @@ import controlador.actions.editoravanzado.AutoDistributeActions;
 import controlador.actions.editoravanzado.EditorToolAction;
 import controlador.commands.AppActionCommands;
 import controlador.tools.CanvasController;
+import controlador.tools.TextTool;
 import controlador.tools.Tool;
 import modelo.editor.CanvasModel;
 import modelo.editor.ImageLayer;
@@ -412,6 +413,15 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     public void setCanvasController(CanvasController cc) {
         this.canvasController = cc;
         componentBar.setCanvasController(cc);
+        layerCardPanel.setOnDoubleClick(textLayer -> {
+            if (canvasController != null) {
+                TextTool tt = (TextTool) canvasController.getTool(AppActionCommands.CMD_ADVANCED_EDITOR_TEXTO);
+                if (tt != null) {
+                    canvasController.setActiveTool(AppActionCommands.CMD_ADVANCED_EDITOR_TEXTO);
+                    tt.editExistingLayer(textLayer);
+                }
+            }
+        });
     } // --- Fin del metodo setCanvasController ---
 
 

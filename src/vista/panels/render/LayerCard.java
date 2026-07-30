@@ -14,8 +14,11 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
 
+import java.util.function.Consumer;
+
 import modelo.editor.Layer;
 import modelo.editor.LayerModel;
+import modelo.editor.TextLayer;
 
 public class LayerCard extends JPanel {
 
@@ -67,6 +70,8 @@ public class LayerCard extends JPanel {
     private final JToggleButton eyeButton;
     private final JToggleButton lockButton;
 
+    private Consumer<TextLayer> onDoubleClick;
+
     // Colores temáticos (se reciben por constructor)
     private Color bgNormal;
     private Color bgSelected;
@@ -74,7 +79,8 @@ public class LayerCard extends JPanel {
     private Color border;
 
     public LayerCard(Layer layer, LayerModel layerModel, int index,
-                     Color bgNormal, Color border, Color fgText, Color bgSelected) {
+                     Color bgNormal, Color border, Color fgText, Color bgSelected,
+                     Consumer<TextLayer> onDoubleClick) {
         this.layer = layer;
         this.layerModel = layerModel;
         this.index = index;
@@ -82,6 +88,7 @@ public class LayerCard extends JPanel {
         this.border = border;
         this.fgText = fgText;
         this.bgSelected = bgSelected;
+        this.onDoubleClick = onDoubleClick;
 
         setLayout(new FlowLayout(FlowLayout.LEFT, 4, 4));
         setPreferredSize(new Dimension(190, 56));
@@ -129,13 +136,15 @@ public class LayerCard extends JPanel {
         lockButton.addActionListener(e -> layer.setLocked(lockButton.isSelected()));
         add(lockButton);
 
-        // Click to select
+        // Click to select; double-click to edit text
         addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
                 if (layerModel != null) {
                     layerModel.setActiveLayer(index);
-                    // parent panel will repaint via model change
+                }
+                if (e.getClickCount() == 2 && layer instanceof TextLayer && onDoubleClick != null) {
+                    onDoubleClick.accept((TextLayer) layer);
                 }
             }
         });

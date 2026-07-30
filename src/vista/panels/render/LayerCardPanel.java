@@ -10,7 +10,10 @@ import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 
+import java.util.function.Consumer;
+
 import modelo.editor.LayerModel;
+import modelo.editor.TextLayer;
 
 public class LayerCardPanel extends JScrollPane {
 
@@ -28,6 +31,13 @@ public class LayerCardPanel extends JScrollPane {
 
     private final JPanel container;
     private LayerModel layerModel;
+
+    private Consumer<TextLayer> onDoubleClick;
+
+    public void setOnDoubleClick(Consumer<TextLayer> listener) {
+        this.onDoubleClick = listener;
+        rebuild();
+    } // --- Fin del metodo setOnDoubleClick ---
 
     public LayerCardPanel() {
         container = new JPanel();
@@ -74,7 +84,8 @@ public class LayerCardPanel extends JScrollPane {
             for (int i = 0; i < layerModel.size(); i++) {
                 LayerCard card = new LayerCard(
                         layerModel.getLayer(i), layerModel, i,
-                        bgColor, borderColor, fgColor, selectedBg);
+                        bgColor, borderColor, fgColor, selectedBg,
+                        onDoubleClick);
                 container.add(card);
             }
         }

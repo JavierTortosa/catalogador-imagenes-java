@@ -52,6 +52,7 @@ import controlador.tools.TextTool;
 import modelo.editor.CanvasModel;
 import modelo.editor.Layer;
 import modelo.editor.LayerModel;
+import modelo.editor.TextLayer;
 import vista.config.SeparatorDefinition;
 import vista.config.ToolbarButtonDefinition;
 import vista.config.ToolbarComponentDefinition;
@@ -114,6 +115,8 @@ public class EditorComponentBar extends JPanel {
     private JLabel editLayerNameLabel;
 
     private final Map<String, PanelBuilder> toolPanelBuilders = new HashMap<>();
+
+    private String currentToolCommandKey;
 
     // Referencia al CanvasController (para conectar controles de texto)
     private CanvasController canvasController;
@@ -556,9 +559,21 @@ public class EditorComponentBar extends JPanel {
 
     public void showOptionsFor(String commandKey) {
         if (toolOptionsMap.containsKey(commandKey)) {
+            currentToolCommandKey = commandKey;
             cardLayout.show(toolControlsPanel, commandKey);
         }
     } // --- Fin del metodo showOptionsFor ---
+
+
+    public void showEditToolPanel(Layer layer) {
+        String editKey = AppActionCommands.CMD_ADVANCED_EDITOR_EDICION;
+        String textKey = AppActionCommands.CMD_ADVANCED_EDITOR_TEXTO;
+        if (layer instanceof TextLayer && toolOptionsMap.containsKey(textKey)) {
+            cardLayout.show(toolControlsPanel, textKey);
+        } else if (toolOptionsMap.containsKey(editKey)) {
+            cardLayout.show(toolControlsPanel, editKey);
+        }
+    } // --- Fin del metodo showEditToolPanel ---
 
 
     private JPanel buildPanelForTool(String commandKey, Color bg) {
@@ -896,6 +911,40 @@ public class EditorComponentBar extends JPanel {
         });
         p.add(textColorBtn);
 
+        // Botones ✓ (aceptar) y ✗ (cancelar) para edición inline
+        p.add(createSubSeparator(bg));
+        JButton btnAccept = new JButton();
+        btnAccept.setToolTipText("Aceptar edición");
+        btnAccept.setFocusPainted(false);
+        btnAccept.setPreferredSize(new Dimension(24, 24));
+        btnAccept.setBackground(bg);
+        if (iconUtils != null) {
+            var icon = iconUtils.getScaledIcon("82001-aceptar.png", 18, 18);
+            if (icon != null) btnAccept.setIcon(icon);
+        }
+        btnAccept.addActionListener(e -> {
+            if (canvasController != null && canvasController.getActiveTool() instanceof TextTool tt) {
+                tt.commitInlineText();
+            }
+        });
+        p.add(btnAccept);
+
+        JButton btnCancel = new JButton();
+        btnCancel.setToolTipText("Cancelar edición");
+        btnCancel.setFocusPainted(false);
+        btnCancel.setPreferredSize(new Dimension(24, 24));
+        btnCancel.setBackground(bg);
+        if (iconUtils != null) {
+            var icon = iconUtils.getScaledIcon("82002-cancelar.png", 18, 18);
+            if (icon != null) btnCancel.setIcon(icon);
+        }
+        btnCancel.addActionListener(e -> {
+            if (canvasController != null && canvasController.getActiveTool() instanceof TextTool tt) {
+                tt.cancelInlineEdit();
+            }
+        });
+        p.add(btnCancel);
+
         return p;
     } // --- Fin del metodo buildTextPanel ---
 
@@ -1118,6 +1167,7 @@ public class EditorComponentBar extends JPanel {
         } else {
             updateDimensionSpinners(0, 0, 0, 0);
         }
+        showEditToolPanel(layer);
     } // --- Fin del metodo updateEditLayerFields ---
 
 
