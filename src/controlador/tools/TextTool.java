@@ -60,6 +60,9 @@ public class TextTool extends Tool {
     private boolean autoSize;
     private Point autoSizeClickPoint;
 
+    // true cuando TextTool se activa desde EditTool (doble clic)
+    private boolean returnToEditOnEmptyClick;
+
     // --- propiedades del texto actual ---
     private String fontFamily = "SansSerif";
     private int fontSize = 24;
@@ -80,6 +83,7 @@ public class TextTool extends Tool {
 
     @Override
     public void onActivate() {
+        returnToEditOnEmptyClick = false;
         dragStart = null;
         dragRect = null;
         dragging = false;
@@ -96,6 +100,7 @@ public class TextTool extends Tool {
 
     @Override
     public void onDeactivate() {
+        returnToEditOnEmptyClick = false;
         clearSelection();
     } // --- Fin del metodo onDeactivate ---
 
@@ -181,26 +186,54 @@ public class TextTool extends Tool {
     } // --- Fin del metodo setAlignment ---
 
 
-    public void setVertical(boolean v) {
-        this.vertical = v;
+    private boolean underline;
+    private boolean strikethrough;
+    private boolean flowColumns;
+
+
+    public void setUnderline(boolean u) {
+        this.underline = u;
         TextLayer target = editingLayer != null ? editingLayer : selectedLayer;
         if (target != null) {
-            target.setVertical(v);
+            target.setUnderline(u);
             ctx.canvasPanel().repaint();
         }
-    } // --- Fin del metodo setVertical ---
+    } // --- Fin del metodo setUnderline ---
 
 
-    // ==================== Lectura para sincronizaci\u00F3n ====================
+    public void setStrikethrough(boolean s) {
+        this.strikethrough = s;
+        TextLayer target = editingLayer != null ? editingLayer : selectedLayer;
+        if (target != null) {
+            target.setStrikethrough(s);
+            ctx.canvasPanel().repaint();
+        }
+    } // --- Fin del metodo setStrikethrough ---
 
 
-    public String getFontFamily()  { return fontFamily; }
-    public int getFontSize()       { return fontSize; }
-    public boolean isBold()        { return bold; }
-    public boolean isItalic()      { return italic; }
-    public Color getTextColor()    { return textColor; }
-    public int getAlignment()      { return alignment; }
-    public boolean isVertical()    { return vertical; }
+    public void setFlowColumns(boolean fc) {
+        this.flowColumns = fc;
+        TextLayer target = editingLayer != null ? editingLayer : selectedLayer;
+        if (target != null) {
+            target.setFlowColumns(fc);
+            ctx.canvasPanel().repaint();
+        }
+    } // --- Fin del metodo setFlowColumns ---
+
+
+    // ==================== Lectura para sincronización ====================
+
+
+    public String getFontFamily()    { return fontFamily; }
+    public int getFontSize()         { return fontSize; }
+    public boolean isBold()          { return bold; }
+    public boolean isItalic()        { return italic; }
+    public Color getTextColor()      { return textColor; }
+    public int getAlignment()        { return alignment; }
+    public boolean isVertical()      { return vertical; }
+    public boolean isUnderline()     { return underline; }
+    public boolean isStrikethrough() { return strikethrough; }
+    public boolean isFlowColumns()   { return flowColumns; }
 
 
     // ==================== Eventos de rat\u00F3n ====================
@@ -246,7 +279,13 @@ public class TextTool extends Tool {
             return;
         }
 
-        // 3 — Clic en vacío: guardar punto de inicio (sin drag hasta que arrastre)
+        // 3 — Clic en vacío: volver a EditTool si vine desde allí, o crear nuevo texto
+        if (returnToEditOnEmptyClick) {
+            returnToEditOnEmptyClick = false;
+            clearSelection();
+            switchToEditTool();
+            return;
+        }
         clearSelection();
         dragStart = p;
     } // --- Fin del metodo mousePressed ---
@@ -479,14 +518,32 @@ public class TextTool extends Tool {
     } // --- Fin del metodo beginInlineEdit ---
 
 
+    /**
+     * Activa la edici\u00F3n inline sobre una capa de texto existente.
+     * Llamado desde EditTool al hacer doble clic.
+     */
+    public void editExistingLayer(TextLayer layer) {
+        removeInlineField();
+        editingLayer = layer;
+        selectedLayer = layer;
+        returnToEditOnEmptyClick = true;
+        syncSettingsFromLayer(layer);
+        syncToComponentBar();
+        showInlineFieldAt(layer.getBounds(), layer.getText());
+    } // --- Fin del metodo editExistingLayer ---
+
+
     private void syncSettingsFromLayer(TextLayer layer) {
-        fontFamily = layer.getFont().getFamily();
-        fontSize   = layer.getFont().getSize();
-        bold       = layer.getFont().isBold();
-        italic     = layer.getFont().isItalic();
-        textColor  = layer.getColor();
-        alignment  = layer.getAlignment();
-        vertical   = layer.isVertical();
+        fontFamily    = layer.getFont().getFamily();
+        fontSize      = layer.getFont().getSize();
+        bold          = layer.getFont().isBold();
+        italic        = layer.getFont().isItalic();
+        textColor     = layer.getColor();
+        alignment     = layer.getAlignment();
+        vertical      = layer.isVertical();
+        underline     = layer.isUnderline();
+        strikethrough = layer.isStrikethrough();
+        flowColumns   = layer.isFlowColumns();
     } // --- Fin del metodo syncSettingsFromLayer ---
 
 
@@ -506,6 +563,9 @@ public class TextTool extends Tool {
             editingLayer.setColor(textColor);
             editingLayer.setAlignment(alignment);
             editingLayer.setVertical(vertical);
+            editingLayer.setUnderline(underline);
+            editingLayer.setStrikethrough(strikethrough);
+            editingLayer.setFlowColumns(flowColumns);
             selectedLayer = editingLayer;
         } else if (autoSize && autoSizeClickPoint != null) {
             // Auto-size (single click): dimensiones se ajustan al texto
@@ -514,6 +574,9 @@ public class TextTool extends Tool {
                     new Rectangle(autoSizeClickPoint.x, autoSizeClickPoint.y, 1, 1));
             layer.setAlignment(alignment);
             layer.setVertical(vertical);
+            layer.setUnderline(underline);
+            layer.setStrikethrough(strikethrough);
+            layer.setFlowColumns(flowColumns);
             layer.setAutoSize(true);
             recalcAutoBounds(layer);
             ctx.layerModel().addLayer(layer);
@@ -527,6 +590,9 @@ public class TextTool extends Tool {
                     new Rectangle(creationRect));
             layer.setAlignment(alignment);
             layer.setVertical(vertical);
+            layer.setUnderline(underline);
+            layer.setStrikethrough(strikethrough);
+            layer.setFlowColumns(flowColumns);
             ctx.layerModel().addLayer(layer);
             ctx.layerModel().setActiveLayer(layer);
             selectedLayer = layer;
@@ -536,12 +602,17 @@ public class TextTool extends Tool {
         removeInlineField();
         editingLayer = null;
         ctx.canvasPanel().repaint();
+
+        if (returnToEditOnEmptyClick) {
+            returnToEditOnEmptyClick = false;
+            switchToEditTool();
+        }
     } // --- Fin del metodo commitInlineText ---
 
 
     /**
      * Recalcula los bounds de la capa para que se ajusten al texto,
-     * usando el punto de clic como referencia seg\u00FAn el alineado.
+     * usando el punto de clic como referencia según el alineado.
      */
     private void recalcAutoBounds(TextLayer layer) {
         if (autoSizeClickPoint == null) return;
@@ -619,6 +690,12 @@ public class TextTool extends Tool {
         if (a >= 0) alignment = a;
         Boolean v = bar.isTextVertical();
         if (v != null) vertical = v;
+        Boolean u = bar.isTextUnderline();
+        if (u != null) underline = u;
+        Boolean s = bar.isTextStrikethrough();
+        if (s != null) strikethrough = s;
+        Boolean fc = bar.isTextFlowColumns();
+        if (fc != null) flowColumns = fc;
     } // --- Fin del metodo syncFromComponentBar ---
 
 
@@ -632,6 +709,20 @@ public class TextTool extends Tool {
         bar.setTextColor(textColor);
         bar.setTextAlignment(alignment);
         bar.setTextVertical(vertical);
+        bar.setTextUnderline(underline);
+        bar.setTextStrikethrough(strikethrough);
+        bar.setTextFlowColumns(flowColumns);
     } // --- Fin del metodo syncToComponentBar ---
+
+
+    /**
+     * Cambia a la herramienta de edici\u00F3n universal (EditTool).
+     * Llamado al hacer clic fuera de toda capa o tras confirmar texto inline.
+     */
+    private void switchToEditTool() {
+        var cc = ctx.componentBar();
+        if (cc == null) return;
+        cc.getCanvasController().setActiveTool(AppActionCommands.CMD_ADVANCED_EDITOR_EDICION);
+    } // --- Fin del metodo switchToEditTool ---
 
 } // --- Fin de la clase TextTool ---

@@ -1706,6 +1706,7 @@ public class RenderController {
                 canvasController.registerTool(new controlador.tools.TextTool());
                 canvasController.registerTool(new controlador.tools.ShapeTool());
                 canvasController.registerTool(new controlador.tools.GradientTool());
+                canvasController.registerTool(new controlador.tools.EditTool());
                 aep.setCanvasController(canvasController);
                 aep.getCanvas().setCanvasController(canvasController);
                 canvasController.setActiveTool(AppActionCommands.CMD_ADVANCED_EDITOR_EDICION);

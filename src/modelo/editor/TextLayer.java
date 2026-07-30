@@ -31,6 +31,9 @@ public class TextLayer implements Layer {
     private boolean visible;
     private boolean locked;
     private boolean autoSize;
+    private boolean underline;
+    private boolean strikethrough;
+    private boolean flowColumns;
     private float opacity;
 
 
@@ -42,6 +45,9 @@ public class TextLayer implements Layer {
         this.color = color;
         this.alignment = ALIGN_LEFT;
         this.vertical = false;
+        this.underline = false;
+        this.strikethrough = false;
+        this.flowColumns = false;
         this.lineSpacing = 1.2f;
         this.bounds = Objects.requireNonNull(bounds);
         this.visible = true;
@@ -52,7 +58,8 @@ public class TextLayer implements Layer {
 
 
     private TextLayer(String id, String name, String text, Font font, Color color,
-                      int alignment, boolean vertical, float lineSpacing,
+                      int alignment, boolean vertical, boolean underline,
+                      boolean strikethrough, boolean flowColumns, float lineSpacing,
                       Rectangle bounds, float opacity, boolean visible,
                       boolean locked, boolean autoSize) {
         this.id = id;
@@ -62,6 +69,9 @@ public class TextLayer implements Layer {
         this.color = color;
         this.alignment = alignment;
         this.vertical = vertical;
+        this.underline = underline;
+        this.strikethrough = strikethrough;
+        this.flowColumns = flowColumns;
         this.lineSpacing = lineSpacing;
         this.bounds = bounds;
         this.opacity = opacity;
@@ -88,6 +98,15 @@ public class TextLayer implements Layer {
 
     public boolean isVertical() { return vertical; }
     public void setVertical(boolean vertical) { this.vertical = vertical; }
+
+    public boolean isUnderline() { return underline; }
+    public void setUnderline(boolean underline) { this.underline = underline; }
+
+    public boolean isStrikethrough() { return strikethrough; }
+    public void setStrikethrough(boolean strikethrough) { this.strikethrough = strikethrough; }
+
+    public boolean isFlowColumns() { return flowColumns; }
+    public void setFlowColumns(boolean flowColumns) { this.flowColumns = flowColumns; }
 
     public float getLineSpacing() { return lineSpacing; }
     public void setLineSpacing(float lineSpacing) { this.lineSpacing = lineSpacing; }
@@ -180,7 +199,18 @@ public class TextLayer implements Layer {
                 case ALIGN_RIGHT  -> bounds.x + alignWidth - fm.stringWidth(lines[i]);
                 default -> bounds.x; // LEFT
             };
-            g.drawString(lines[i], lineX, startY + i * (lineH + spacingPx));
+            int lineY = startY + i * (lineH + spacingPx);
+            g.drawString(lines[i], lineX, lineY);
+
+            int strWidth = fm.stringWidth(lines[i]);
+            if (underline) {
+                int uY = lineY + 2;
+                g.drawLine(lineX, uY, lineX + strWidth, uY);
+            }
+            if (strikethrough) {
+                int sY = lineY - fm.getAscent() / 3;
+                g.drawLine(lineX, sY, lineX + strWidth, sY);
+            }
         }
     } // --- Fin del metodo paintHorizontal ---
 
@@ -193,7 +223,15 @@ public class TextLayer implements Layer {
         for (int i = 0; i < chars.length; i++) {
             int cy = bounds.y + i * charH;
             if (cy + charH > bounds.y + bounds.height) break;
-            g.drawString(String.valueOf(chars[i]), startX, cy + fm.getAscent());
+            int drawY = cy + fm.getAscent();
+            g.drawString(String.valueOf(chars[i]), startX, drawY);
+
+            if (underline) {
+                g.drawLine(startX - 2, cy, startX - 2, cy + charH);
+            }
+            if (strikethrough) {
+                g.drawLine(startX + fm.charWidth(chars[i]) / 2, cy, startX + fm.charWidth(chars[i]) / 2, cy + charH);
+            }
         }
     } // --- Fin del metodo paintVertical ---
 
@@ -230,7 +268,7 @@ public class TextLayer implements Layer {
                 UUID.randomUUID().toString(),
                 name + " (copia)",
                 text, font, color,
-                alignment, vertical, lineSpacing,
+                alignment, vertical, underline, strikethrough, flowColumns, lineSpacing,
                 new Rectangle(bounds),
                 opacity, visible, locked, autoSize);
     } // --- Fin del metodo copy ---

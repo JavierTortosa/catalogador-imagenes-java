@@ -7,8 +7,6 @@ import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.util.List;
 
-import javax.swing.SwingUtilities;
-
 import controlador.commands.AppActionCommands;
 import modelo.editor.Layer;
 import modelo.editor.LayerModel;
@@ -80,14 +78,6 @@ public class EditTool extends Tool {
     } // --- Fin del metodo findLayerAt ---
 
 
-    private void syncSpinnersFromLayer(Layer layer) {
-        if (layer == null) return;
-        Rectangle b = layer.getBounds();
-        if (b == null) return;
-        bar().updateDimensionSpinners(b.x, b.y, b.width, b.height);
-    } // --- Fin del metodo syncSpinnersFromLayer ---
-
-
     private void syncLayerFromSpinners() {
         Layer layer = model().getActiveLayer();
         if (layer == null) return;
@@ -119,10 +109,10 @@ public class EditTool extends Tool {
         Layer active = model().getActiveLayer();
         if (active != null) {
             enableSpinners(true);
-            syncSpinnersFromLayer(active);
+            bar().updateEditLayerFields(active);
         } else {
             enableSpinners(false);
-            bar().updateDimensionSpinners(0, 0, 0, 0);
+            bar().updateEditLayerFields(null);
         }
         bar().setEditToolSpinnerListener(vals -> {
             if (vals.length == 4) {
@@ -149,36 +139,56 @@ public class EditTool extends Tool {
         dragging = false;
         activeHandle = null;
 
-        // 1. Comprobar tiradores del gizmo
+        // 1. Comprobar tiradores del gizmo (solo escalado, MOVE lo maneja el paso 4)
         if (isShowGizmo() && active != null && active.getBounds() != null) {
             activeHandle = ctx.gizmo().hitTest(p, active.getBounds());
-            if (activeHandle != TransformGizmo.Handle.NONE && activeHandle != TransformGizmo.Handle.ROTATE) {
+            if (activeHandle != TransformGizmo.Handle.NONE
+                    && activeHandle != TransformGizmo.Handle.MOVE
+                    && activeHandle != TransformGizmo.Handle.ROTATE) {
                 gizmoDragging = true;
+                dragStart = p;
                 gizmoConstraints = new TransformGizmo.Constraints(isKeepAspect(), 0, 10);
                 ctx.gizmo().startDrag(activeHandle, active.getBounds(), gizmoConstraints);
                 return;
             }
         }
 
-        // 2. Auto-select: buscar capa bajo el cursor
+        // 2. Doble clic: editar contenido in-situ (ej. Texto)
+        if (e.getClickCount() == 2) {
+            Layer hit2 = isAutoSelect() ? findLayerAt(p) : active;
+            if (hit2 != null && hit2.getBounds() != null && hit2.getBounds().contains(p)) {
+                if (hit2 instanceof modelo.editor.TextLayer tl) {
+                    model().setActiveLayer(hit2);
+                    CanvasController cc = bar().getCanvasController();
+                    cc.setActiveTool(AppActionCommands.CMD_ADVANCED_EDITOR_TEXTO);
+                    TextTool textTool = (TextTool) cc.getTool(AppActionCommands.CMD_ADVANCED_EDITOR_TEXTO);
+                    if (textTool != null) {
+                        textTool.editExistingLayer(tl);
+                    }
+                    return;
+                }
+            }
+        }
+
+        // 3. Auto-select: buscar capa bajo el cursor si isAutoSelect() está activado
         Layer hit = isAutoSelect() ? findLayerAt(p) : null;
-        if (hit != null) {
+        if (isAutoSelect() && hit != null) {
             model().setActiveLayer(hit);
             active = hit;
-            syncSpinnersFromLayer(active);
+            bar().updateEditLayerFields(active);
             ctx.canvasPanel().repaint();
         }
 
-        // 3. Si hay capa activa, iniciar arrastre para mover
+        // 4. Iniciar arrastre para mover o deseleccionar si se pulsa en área vacía
         active = model().getActiveLayer();
         if (active != null && active.getBounds() != null && active.getBounds().contains(p)) {
             dragging = true;
             dragStart = p;
             dragStartBounds = new Rectangle(active.getBounds());
-        } else if (hit == null) {
-            // clic fuera de toda capa -> deseleccionar
+        } else if (isAutoSelect() && hit == null) {
+            // Clic fuera de toda capa con auto-selección -> deseleccionar
             model().setActiveLayer(-1);
-            bar().updateDimensionSpinners(0, 0, 0, 0);
+            bar().updateEditLayerFields(null);
             ctx.canvasPanel().repaint();
         }
     } // --- Fin del metodo mousePressed ---
@@ -195,7 +205,7 @@ public class EditTool extends Tool {
             Rectangle newBounds = ctx.gizmo().drag(dx, dy);
             if (newBounds != null) {
                 active.setBounds(newBounds);
-                syncSpinnersFromLayer(active);
+                bar().updateEditLayerFields(active);
                 ctx.canvasPanel().repaint();
             }
             return;
@@ -207,7 +217,7 @@ public class EditTool extends Tool {
             Rectangle b = dragStartBounds;
             if (b != null) {
                 active.setBounds(new Rectangle(b.x + dx, b.y + dy, b.width, b.height));
-                syncSpinnersFromLayer(active);
+                bar().updateEditLayerFields(active);
                 ctx.canvasPanel().repaint();
             }
         }
@@ -246,10 +256,18 @@ public class EditTool extends Tool {
     @Override
     public Cursor getCursor() {
         Layer active = model().getActiveLayer();
-        if (active == null) return Cursor.getDefaultCursor();
+        if (active == null || active.getBounds() == null) return Cursor.getDefaultCursor();
         Point mp = ctx.canvasPanel().getMousePosition();
-        if (mp != null && active.getBounds() != null && active.getBounds().contains(mp)) {
-            return Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
+        if (mp != null) {
+            if (isShowGizmo()) {
+                TransformGizmo.Handle h = ctx.gizmo().hitTest(mp, active.getBounds());
+                if (h != TransformGizmo.Handle.NONE && h != TransformGizmo.Handle.ROTATE) {
+                    return ctx.gizmo().getCursor(h);
+                }
+            }
+            if (active.getBounds().contains(mp)) {
+                return Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
+            }
         }
         return Cursor.getDefaultCursor();
     } // --- Fin del metodo getCursor ---

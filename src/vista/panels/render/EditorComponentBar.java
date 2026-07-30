@@ -7,8 +7,8 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -27,11 +27,11 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
-import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -110,6 +110,9 @@ public class EditorComponentBar extends JPanel {
         JPanel build(Color bg);
     }
 
+    // Referencia para actualizar el label de capa en el panel de edición
+    private JLabel editLayerNameLabel;
+
     private final Map<String, PanelBuilder> toolPanelBuilders = new HashMap<>();
 
     // Referencia al CanvasController (para conectar controles de texto)
@@ -126,6 +129,10 @@ public class EditorComponentBar extends JPanel {
     private JToggleButton textAlignLeftBtn;
     private JToggleButton textAlignCenterBtn;
     private JToggleButton textAlignRightBtn;
+    private JToggleButton textJustifiedBtn;
+    private JToggleButton textFlowRowsBtn;
+    private JToggleButton textFlowColumnsBtn;
+    private JToggleButton textHorizontalBtn;
     private JToggleButton textVerticalBtn;
 
     {
@@ -256,6 +263,10 @@ public class EditorComponentBar extends JPanel {
         this.canvasController = cc;
     } // --- Fin del metodo setCanvasController ---
 
+    public CanvasController getCanvasController() {
+        return canvasController;
+    } // --- Fin del metodo getCanvasController ---
+
     public JSpinner getSpinnerX() { return spinnerX; }
     public JSpinner getSpinnerY() { return spinnerY; }
     public JSpinner getSpinnerW() { return spinnerW; }
@@ -314,6 +325,8 @@ public class EditorComponentBar extends JPanel {
         // Separador
         row1Right.add(new JSeparator(SwingConstants.VERTICAL));
         // Checkboxes
+        chkAutoSelect.setSelected(true);
+        chkKeepAspect.setSelected(true);
         for (JCheckBox chk : new JCheckBox[]{chkAutoSelect, chkShowGizmo, chkKeepAspect, chkAutoZoom}) {
             chk.setBackground(bg);
             chk.setForeground(fgStatus);
@@ -322,6 +335,10 @@ public class EditorComponentBar extends JPanel {
             chk.setOpaque(false);
             row1Right.add(chk);
         }
+        chkShowGizmo.addItemListener(e -> {
+            AdvanceEditPanel aep2 = findAdvanceEditPanel();
+            if (aep2 != null && aep2.getCanvas() != null) aep2.getCanvas().repaint();
+        });
         // Separador
         row1Right.add(new JSeparator(SwingConstants.VERTICAL));
         // Combo selector Alinear
@@ -577,16 +594,10 @@ public class EditorComponentBar extends JPanel {
         JLabel capaLabel = new JLabel("Capa:");
         capaLabel.setForeground(fgStatus);
         p.add(capaLabel);
-        String name = "\u2014";
-        AdvanceEditPanel aep = findAdvanceEditPanel();
-        if (aep != null && aep.getCanvas() != null && aep.getCanvas().getLayerModel() != null) {
-            Layer active = aep.getCanvas().getLayerModel().getActiveLayer();
-            if (active != null) name = active.getName();
-        }
-        JLabel nameLabel = new JLabel(name);
-        nameLabel.setForeground(fgStatus);
-        nameLabel.setPreferredSize(new Dimension(70, 20));
-        p.add(nameLabel);
+        editLayerNameLabel = new JLabel("\u2014");
+        editLayerNameLabel.setForeground(fgStatus);
+        editLayerNameLabel.setPreferredSize(new Dimension(70, 20));
+        p.add(editLayerNameLabel);
         p.add(Box.createHorizontalStrut(4));
         JLabel lbX = new JLabel("X:");
         lbX.setForeground(fgStatus);
@@ -784,10 +795,31 @@ public class EditorComponentBar extends JPanel {
     } // --- Fin del metodo buildGradientPanel ---
 
 
+    private void applyTextProperty(Consumer<modelo.editor.TextLayer> action) {
+        if (canvasController == null) return;
+
+        // 1. Sincronizar TextTool si es la herramienta activa
+        if (canvasController.getActiveTool() instanceof TextTool tt) {
+            tt.syncFromComponentBar();
+        }
+
+        // 2. Aplicar la propiedad directamente sobre la capa de texto activa si existe
+        var layerModel = canvasController.getContext().layerModel();
+        if (layerModel != null && layerModel.getActiveLayer() instanceof modelo.editor.TextLayer tl) {
+            action.accept(tl);
+            canvasController.getContext().canvasPanel().repaint();
+        }
+    } // --- Fin del metodo applyTextProperty ---
+
+
     private JPanel buildTextPanel(Color bg) {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
         p.setBackground(bg);
-        ButtonGroup group = new ButtonGroup();
+
+        ButtonGroup alignGroup = new ButtonGroup();
+        ButtonGroup flowGroup = new ButtonGroup();
+        ButtonGroup orientationGroup = new ButtonGroup();
+
         ToolbarDefinition def = getSubDef("editoravanzadotexto");
         if (def != null) {
             for (ToolbarComponentDefinition comp : def.componentes()) {
@@ -795,7 +827,7 @@ public class EditorComponentBar extends JPanel {
                     String cmd = btnDef.comandoCanonico();
                     String iconKey = btnDef.claveIcono();
 
-                    // Icono + combo de fuentes
+                    // 1. Icono informativo + combo de fuentes (con FontListCellRenderer)
                     if ("80900-search-font.png".equals(iconKey)) {
                         JLabel iconLb = createIconLabel(btnDef, bg);
                         p.add(iconLb);
@@ -803,16 +835,19 @@ public class EditorComponentBar extends JPanel {
                                 .getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
                         textFontCombo = new JComboBox<>(fonts);
                         textFontCombo.setPreferredSize(new Dimension(140, 22));
+                        textFontCombo.setRenderer(new vista.renderers.FontListCellRenderer());
                         textFontCombo.addActionListener(e -> {
-                            if (canvasController != null
-                                    && canvasController.getActiveTool() instanceof TextTool tt) {
-                                String sel = (String) textFontCombo.getSelectedItem();
-                                if (sel != null) tt.setFontFamily(sel);
+                            String sel = (String) textFontCombo.getSelectedItem();
+                            if (sel != null) {
+                                applyTextProperty(tl -> {
+                                    Font curr = tl.getFont();
+                                    tl.setFont(new Font(sel, curr.getStyle(), curr.getSize()));
+                                });
                             }
                         });
                         p.add(textFontCombo);
 
-                    // Icono + combo de tamaños
+                    // 2. Icono informativo + combo de tamaños
                     } else if ("80905-font-size.png".equals(iconKey)) {
                         JLabel iconLb = createIconLabel(btnDef, bg);
                         p.add(iconLb);
@@ -821,23 +856,31 @@ public class EditorComponentBar extends JPanel {
                         textSizeCombo.setSelectedItem(24);
                         textSizeCombo.setPreferredSize(new Dimension(55, 22));
                         textSizeCombo.addActionListener(e -> {
-                            if (canvasController != null
-                                    && canvasController.getActiveTool() instanceof TextTool tt) {
-                                Integer sel = (Integer) textSizeCombo.getSelectedItem();
-                                if (sel != null) tt.setFontSize(sel);
+                            Integer sel = (Integer) textSizeCombo.getSelectedItem();
+                            if (sel != null) {
+                                applyTextProperty(tl -> {
+                                    Font curr = tl.getFont();
+                                    tl.setFont(curr.deriveFont((float) sel));
+                                });
                             }
                         });
                         p.add(textSizeCombo);
 
-                    // Botones con command key real
-                    } else if (!AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE.equals(cmd)) {
-                        String tooltip = btnDef.textoTooltip();
-                        JToggleButton tb = createTextToggleButton(cmd, iconKey, tooltip, bg, group);
-                        p.add(tb);
-
+                    // 3. Botones de texto (estilos, alineación, flujo, orientación)
                     } else {
-                        // Pendiente — botón stub (justified, flow, horizontal)
-                        p.add(createSubToolButton(btnDef, bg, new ButtonGroup()));
+                        String tooltip = btnDef.textoTooltip();
+                        ButtonGroup targetGroup = null;
+                        if ("80906-align-left.png".equals(iconKey) || "80907-align-center.png".equals(iconKey)
+                                || "80908-align-right.png".equals(iconKey) || "80909-justified.png".equals(iconKey)) {
+                            targetGroup = alignGroup;
+                        } else if ("80910-text-flow-rows.png".equals(iconKey) || "80911-text-flow-columns.png".equals(iconKey)) {
+                            targetGroup = flowGroup;
+                        } else if ("80912-horizontal-text.png".equals(iconKey) || "80913-vertical-text.png".equals(iconKey)) {
+                            targetGroup = orientationGroup;
+                        }
+
+                        JToggleButton tb = createTextToggleButton(cmd, iconKey, tooltip, bg, targetGroup);
+                        p.add(tb);
                     }
 
                 } else if (comp instanceof SeparatorDefinition) {
@@ -846,14 +889,10 @@ public class EditorComponentBar extends JPanel {
             }
         }
 
-        // Color picker (el listener integra JColorChooser + setTextColor
-        // para evitar el orden inverso de AbstractButton.fireActionPerformed)
+        // Color picker de texto
         p.add(createSubSeparator(bg));
         textColorBtn = createColorSwatch(Color.BLACK, "Color del texto", bg, nuevo -> {
-            if (canvasController != null
-                    && canvasController.getActiveTool() instanceof TextTool tt) {
-                tt.setTextColor(nuevo);
-            }
+            applyTextProperty(tl -> tl.setColor(nuevo));
         });
         p.add(textColorBtn);
 
@@ -876,72 +915,55 @@ public class EditorComponentBar extends JPanel {
             var icon = iconUtils.getScaledIcon(iconKey, 18, 18);
             if (icon != null) btn.setIcon(icon);
         }
-        group.add(btn);
+        if (group != null) {
+            group.add(btn);
+        }
 
-        // Guardar referencia según command key
-        switch (cmd) {
-            case AppActionCommands.CMD_EDITOR_TEXTO_NEGRITA -> {
-                textBoldBtn = btn;
-                btn.addActionListener(e -> {
-                    if (canvasController != null
-                            && canvasController.getActiveTool() instanceof TextTool tt) {
-                        tt.setBold(btn.isSelected());
-                    }
-                });
-            }
-            case AppActionCommands.CMD_EDITOR_TEXTO_CURSIVA -> {
-                textItalicBtn = btn;
-                btn.addActionListener(e -> {
-                    if (canvasController != null
-                            && canvasController.getActiveTool() instanceof TextTool tt) {
-                        tt.setItalic(btn.isSelected());
-                    }
-                });
-            }
-            case AppActionCommands.CMD_EDITOR_TEXTO_SUBRAYADO -> {
-                textUnderlineBtn = btn;
-                // Subrayado no implementado en TextLayer — acción stub
-            }
-            case AppActionCommands.CMD_EDITOR_TEXTO_TACHADO -> {
-                textStrikethroughBtn = btn;
-                // Tachado no implementado — acción stub
-            }
-            case AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_LEFT -> {
-                textAlignLeftBtn = btn;
-                btn.addActionListener(e -> {
-                    if (canvasController != null
-                            && canvasController.getActiveTool() instanceof TextTool tt) {
-                        tt.setAlignment(javax.swing.SwingConstants.LEFT);
-                    }
-                });
-            }
-            case AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_CENTER -> {
-                textAlignCenterBtn = btn;
-                btn.addActionListener(e -> {
-                    if (canvasController != null
-                            && canvasController.getActiveTool() instanceof TextTool tt) {
-                        tt.setAlignment(javax.swing.SwingConstants.CENTER);
-                    }
-                });
-            }
-            case AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_RIGHT -> {
-                textAlignRightBtn = btn;
-                btn.addActionListener(e -> {
-                    if (canvasController != null
-                            && canvasController.getActiveTool() instanceof TextTool tt) {
-                        tt.setAlignment(javax.swing.SwingConstants.RIGHT);
-                    }
-                });
-            }
-            case AppActionCommands.CMD_EDITOR_TEXTO_VERTICAL -> {
-                textVerticalBtn = btn;
-                btn.addActionListener(e -> {
-                    if (canvasController != null
-                            && canvasController.getActiveTool() instanceof TextTool tt) {
-                        tt.setVertical(btn.isSelected());
-                    }
-                });
-            }
+        // Mapear listeners según la clave del icono o comando
+        if ("80901-bold-text.png".equals(iconKey) || AppActionCommands.CMD_EDITOR_TEXTO_NEGRITA.equals(cmd)) {
+            textBoldBtn = btn;
+            btn.addActionListener(e -> applyTextProperty(tl -> {
+                Font curr = tl.getFont();
+                int style = btn.isSelected() ? (curr.getStyle() | Font.BOLD) : (curr.getStyle() & ~Font.BOLD);
+                tl.setFont(curr.deriveFont(style));
+            }));
+        } else if ("80902-italic-text.png".equals(iconKey) || AppActionCommands.CMD_EDITOR_TEXTO_CURSIVA.equals(cmd)) {
+            textItalicBtn = btn;
+            btn.addActionListener(e -> applyTextProperty(tl -> {
+                Font curr = tl.getFont();
+                int style = btn.isSelected() ? (curr.getStyle() | Font.ITALIC) : (curr.getStyle() & ~Font.ITALIC);
+                tl.setFont(curr.deriveFont(style));
+            }));
+        } else if ("80903-underline-text.png".equals(iconKey) || AppActionCommands.CMD_EDITOR_TEXTO_SUBRAYADO.equals(cmd)) {
+            textUnderlineBtn = btn;
+            btn.addActionListener(e -> applyTextProperty(tl -> tl.setUnderline(btn.isSelected())));
+        } else if ("80904-tachado.png".equals(iconKey) || AppActionCommands.CMD_EDITOR_TEXTO_TACHADO.equals(cmd)) {
+            textStrikethroughBtn = btn;
+            btn.addActionListener(e -> applyTextProperty(tl -> tl.setStrikethrough(btn.isSelected())));
+        } else if ("80906-align-left.png".equals(iconKey) || AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_LEFT.equals(cmd)) {
+            textAlignLeftBtn = btn;
+            btn.addActionListener(e -> applyTextProperty(tl -> tl.setAlignment(SwingConstants.LEFT)));
+        } else if ("80907-align-center.png".equals(iconKey) || AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_CENTER.equals(cmd)) {
+            textAlignCenterBtn = btn;
+            btn.addActionListener(e -> applyTextProperty(tl -> tl.setAlignment(SwingConstants.CENTER)));
+        } else if ("80908-align-right.png".equals(iconKey) || AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_RIGHT.equals(cmd)) {
+            textAlignRightBtn = btn;
+            btn.addActionListener(e -> applyTextProperty(tl -> tl.setAlignment(SwingConstants.RIGHT)));
+        } else if ("80909-justified.png".equals(iconKey)) {
+            textJustifiedBtn = btn;
+            btn.addActionListener(e -> applyTextProperty(tl -> tl.setAlignment(SwingConstants.LEFT)));
+        } else if ("80910-text-flow-rows.png".equals(iconKey)) {
+            textFlowRowsBtn = btn;
+            btn.addActionListener(e -> applyTextProperty(tl -> tl.setFlowColumns(false)));
+        } else if ("80911-text-flow-columns.png".equals(iconKey)) {
+            textFlowColumnsBtn = btn;
+            btn.addActionListener(e -> applyTextProperty(tl -> tl.setFlowColumns(true)));
+        } else if ("80912-horizontal-text.png".equals(iconKey)) {
+            textHorizontalBtn = btn;
+            btn.addActionListener(e -> applyTextProperty(tl -> tl.setVertical(false)));
+        } else if ("80913-vertical-text.png".equals(iconKey) || AppActionCommands.CMD_EDITOR_TEXTO_VERTICAL.equals(cmd)) {
+            textVerticalBtn = btn;
+            btn.addActionListener(e -> applyTextProperty(tl -> tl.setVertical(true)));
         }
 
         return btn;
@@ -1025,8 +1047,40 @@ public class EditorComponentBar extends JPanel {
 
 
     public void setTextVertical(boolean v) {
-        if (textVerticalBtn != null) textVerticalBtn.setSelected(v);
+        if (textHorizontalBtn != null) textHorizontalBtn.setSelected(!v);
+        if (textVerticalBtn != null)   textVerticalBtn.setSelected(v);
     } // --- Fin del metodo setTextVertical ---
+
+
+    public Boolean isTextUnderline() {
+        return textUnderlineBtn != null ? textUnderlineBtn.isSelected() : null;
+    } // --- Fin del metodo isTextUnderline ---
+
+
+    public void setTextUnderline(boolean u) {
+        if (textUnderlineBtn != null) textUnderlineBtn.setSelected(u);
+    } // --- Fin del metodo setTextUnderline ---
+
+
+    public Boolean isTextStrikethrough() {
+        return textStrikethroughBtn != null ? textStrikethroughBtn.isSelected() : null;
+    } // --- Fin del metodo isTextStrikethrough ---
+
+
+    public void setTextStrikethrough(boolean s) {
+        if (textStrikethroughBtn != null) textStrikethroughBtn.setSelected(s);
+    } // --- Fin del metodo setTextStrikethrough ---
+
+
+    public Boolean isTextFlowColumns() {
+        return textFlowColumnsBtn != null ? textFlowColumnsBtn.isSelected() : null;
+    } // --- Fin del metodo isTextFlowColumns ---
+
+
+    public void setTextFlowColumns(boolean fc) {
+        if (textFlowRowsBtn != null)    textFlowRowsBtn.setSelected(!fc);
+        if (textFlowColumnsBtn != null) textFlowColumnsBtn.setSelected(fc);
+    } // --- Fin del metodo setTextFlowColumns ---
 
 
     public void updateDimensionSpinners(int x, int y, int w, int h) {
@@ -1052,6 +1106,19 @@ public class EditorComponentBar extends JPanel {
             s.addChangeListener(sync);
         }
     } // --- Fin del metodo setEditToolSpinnerListener ---
+
+
+    public void updateEditLayerFields(Layer layer) {
+        if (editLayerNameLabel != null) {
+            editLayerNameLabel.setText(layer != null ? layer.getName() : "\u2014");
+        }
+        if (layer != null && layer.getBounds() != null) {
+            Rectangle b = layer.getBounds();
+            updateDimensionSpinners(b.x, b.y, b.width, b.height);
+        } else {
+            updateDimensionSpinners(0, 0, 0, 0);
+        }
+    } // --- Fin del metodo updateEditLayerFields ---
 
 
     private JPanel buildShapesPanel(Color bg) {

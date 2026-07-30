@@ -81,6 +81,14 @@ public class CanvasController {
 
 
     /**
+     * @return la herramienta registrada con ese commandKey, o null
+     */
+    public Tool getTool(String commandKey) {
+        return toolMap.get(commandKey);
+    } // --- Fin del metodo getTool ---
+
+
+    /**
      * @return el sharedContext (se reconstruye si cambian los modelos)
      */
     public ToolContext getContext() {
