@@ -121,6 +121,11 @@ public class EditorComponentBar extends JPanel {
     // Referencia al CanvasController (para conectar controles de texto)
     private CanvasController canvasController;
 
+    // Se dispara cuando cambia cualquier propiedad de texto (para sincronizar panel derecho)
+    private Runnable onTextChange;
+
+    public void setOnTextChange(Runnable r) { this.onTextChange = r; }
+
     // --- Retención de componentes del panel de texto ---
     private JComboBox<String> textFontCombo;
     private JComboBox<Integer> textSizeCombo;
@@ -810,7 +815,7 @@ public class EditorComponentBar extends JPanel {
     } // --- Fin del metodo buildGradientPanel ---
 
 
-    private void applyTextProperty(Consumer<modelo.editor.TextLayer> action) {
+    public void applyTextProperty(Consumer<modelo.editor.TextLayer> action) {
         if (canvasController == null) return;
 
         // 1. Sincronizar TextTool si es la herramienta activa
@@ -825,6 +830,9 @@ public class EditorComponentBar extends JPanel {
             action.accept(tl);
             canvasController.getContext().canvasPanel().repaint();
         }
+
+        // 3. Notificar al panel derecho para que se sincronice
+        if (onTextChange != null) onTextChange.run();
     } // --- Fin del metodo applyTextProperty ---
 
 
@@ -1030,6 +1038,7 @@ public class EditorComponentBar extends JPanel {
 
     public void setTextFontFamily(String ff) {
         if (textFontCombo != null) textFontCombo.setSelectedItem(ff);
+        if (onTextChange != null) onTextChange.run();
     } // --- Fin del metodo setTextFontFamily ---
 
 
@@ -1043,6 +1052,7 @@ public class EditorComponentBar extends JPanel {
 
     public void setTextFontSize(int sz) {
         if (textSizeCombo != null) textSizeCombo.setSelectedItem(sz);
+        if (onTextChange != null) onTextChange.run();
     } // --- Fin del metodo setTextFontSize ---
 
 
@@ -1053,6 +1063,7 @@ public class EditorComponentBar extends JPanel {
 
     public void setTextBold(boolean b) {
         if (textBoldBtn != null) textBoldBtn.setSelected(b);
+        if (onTextChange != null) onTextChange.run();
     } // --- Fin del metodo setTextBold ---
 
 
@@ -1063,6 +1074,7 @@ public class EditorComponentBar extends JPanel {
 
     public void setTextItalic(boolean i) {
         if (textItalicBtn != null) textItalicBtn.setSelected(i);
+        if (onTextChange != null) onTextChange.run();
     } // --- Fin del metodo setTextItalic ---
 
 
@@ -1073,6 +1085,7 @@ public class EditorComponentBar extends JPanel {
 
     public void setTextColor(Color c) {
         if (textColorBtn != null) textColorBtn.setBackground(c);
+        if (onTextChange != null) onTextChange.run();
     } // --- Fin del metodo setTextColor ---
 
 
@@ -1088,6 +1101,7 @@ public class EditorComponentBar extends JPanel {
         if (textAlignLeftBtn != null)   textAlignLeftBtn.setSelected(align == javax.swing.SwingConstants.LEFT);
         if (textAlignCenterBtn != null) textAlignCenterBtn.setSelected(align == javax.swing.SwingConstants.CENTER);
         if (textAlignRightBtn != null)  textAlignRightBtn.setSelected(align == javax.swing.SwingConstants.RIGHT);
+        if (onTextChange != null) onTextChange.run();
     } // --- Fin del metodo setTextAlignment ---
 
 
@@ -1099,6 +1113,7 @@ public class EditorComponentBar extends JPanel {
     public void setTextVertical(boolean v) {
         if (textHorizontalBtn != null) textHorizontalBtn.setSelected(!v);
         if (textVerticalBtn != null)   textVerticalBtn.setSelected(v);
+        if (onTextChange != null) onTextChange.run();
     } // --- Fin del metodo setTextVertical ---
 
 
@@ -1109,6 +1124,7 @@ public class EditorComponentBar extends JPanel {
 
     public void setTextUnderline(boolean u) {
         if (textUnderlineBtn != null) textUnderlineBtn.setSelected(u);
+        if (onTextChange != null) onTextChange.run();
     } // --- Fin del metodo setTextUnderline ---
 
 
@@ -1119,6 +1135,7 @@ public class EditorComponentBar extends JPanel {
 
     public void setTextStrikethrough(boolean s) {
         if (textStrikethroughBtn != null) textStrikethroughBtn.setSelected(s);
+        if (onTextChange != null) onTextChange.run();
     } // --- Fin del metodo setTextStrikethrough ---
 
 
@@ -1130,6 +1147,7 @@ public class EditorComponentBar extends JPanel {
     public void setTextFlowColumns(boolean fc) {
         if (textFlowRowsBtn != null)    textFlowRowsBtn.setSelected(!fc);
         if (textFlowColumnsBtn != null) textFlowColumnsBtn.setSelected(fc);
+        if (onTextChange != null) onTextChange.run();
     } // --- Fin del metodo setTextFlowColumns ---
 
 

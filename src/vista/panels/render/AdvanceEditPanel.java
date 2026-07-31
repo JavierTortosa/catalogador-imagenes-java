@@ -15,6 +15,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -34,6 +35,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JToggleButton;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import controlador.actions.editoravanzado.AutoDistributeActions;
@@ -45,6 +47,7 @@ import controlador.tools.Tool;
 import modelo.editor.CanvasModel;
 import modelo.editor.ImageLayer;
 import modelo.editor.LayerModel;
+import modelo.editor.TextLayer;
 import vista.config.SeparatorDefinition;
 import vista.config.ToolbarButtonDefinition;
 import vista.config.ToolbarComponentDefinition;
@@ -77,6 +80,21 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     private boolean syncingTools;
     private javax.swing.JToggleButton homeButton;
     private CanvasController canvasController;
+
+    // --- Retención de controles de texto del panel derecho ---
+    private JComboBox<String> rightFontCombo;
+    private JComboBox<Integer> rightSizeCombo;
+    private JToggleButton rightBoldBtn;
+    private JToggleButton rightItalicBtn;
+    private JToggleButton rightUnderlineBtn;
+    private JToggleButton rightStrikethroughBtn;
+    private JToggleButton rightAlignLeftBtn;
+    private JToggleButton rightAlignCenterBtn;
+    private JToggleButton rightAlignRightBtn;
+    private JToggleButton rightFlowRowsBtn;
+    private JToggleButton rightFlowColumnsBtn;
+    private JToggleButton rightHorizontalBtn;
+    private JToggleButton rightVerticalBtn;
 
     // Colores temáticos (inicializados desde UIManager con fallbacks oscuros)
     private Color bgMain = clr("TabbedPane.contentAreaColor", 40, 40, 45);
@@ -413,6 +431,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     public void setCanvasController(CanvasController cc) {
         this.canvasController = cc;
         componentBar.setCanvasController(cc);
+        componentBar.setOnTextChange(this::syncToolsFromBar);
         layerCardPanel.setOnDoubleClick(textLayer -> {
             if (canvasController != null) {
                 TextTool tt = (TextTool) canvasController.getTool(AppActionCommands.CMD_ADVANCED_EDITOR_TEXTO);
@@ -495,18 +514,47 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         JPanel orientRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 2));
         orientRow.setBackground(bgTools);
 
+        ButtonGroup alignGroup = new ButtonGroup();
+        ButtonGroup flowGroup = new ButtonGroup();
+        ButtonGroup orientGroup = new ButtonGroup();
+
         if (uiDefinitionService != null && iconUtils != null) {
             List<ToolbarComponentDefinition> textoDefs = uiDefinitionService.getToolbarDefinition("editoravanzadotexto").componentes();
             for (ToolbarComponentDefinition comp : textoDefs) {
                 if (comp instanceof ToolbarButtonDefinition btnDef) {
                     String icon = btnDef.claveIcono();
-                    if (icon.startsWith("80906") || icon.startsWith("80907")
-                            || icon.startsWith("80908") || icon.startsWith("80909")) {
-                        alignRow.add(createTextToggle(btnDef));
-                    } else if (icon.startsWith("80910") || icon.startsWith("80911")) {
-                        flowRow.add(createTextToggle(btnDef));
-                    } else if (icon.startsWith("80912") || icon.startsWith("80913")) {
-                        orientRow.add(createTextToggle(btnDef));
+                    if ("80906-align-left.png".equals(icon)) {
+                        rightAlignLeftBtn = createRightTextButton(btnDef, alignGroup,
+                                b -> rightSetAlignment(SwingConstants.LEFT));
+                        alignRow.add(rightAlignLeftBtn);
+                    } else if ("80907-align-center.png".equals(icon)) {
+                        rightAlignCenterBtn = createRightTextButton(btnDef, alignGroup,
+                                b -> rightSetAlignment(SwingConstants.CENTER));
+                        alignRow.add(rightAlignCenterBtn);
+                    } else if ("80908-align-right.png".equals(icon)) {
+                        rightAlignRightBtn = createRightTextButton(btnDef, alignGroup,
+                                b -> rightSetAlignment(SwingConstants.RIGHT));
+                        alignRow.add(rightAlignRightBtn);
+                    } else if ("80909-justified.png".equals(icon)) {
+                        JToggleButton b = createRightTextButton(btnDef, alignGroup,
+                                x -> rightSetAlignment(SwingConstants.LEFT));
+                        alignRow.add(b);
+                    } else if ("80910-text-flow-rows.png".equals(icon)) {
+                        rightFlowRowsBtn = createRightTextButton(btnDef, flowGroup,
+                                b -> rightSetFlowColumns(false));
+                        flowRow.add(rightFlowRowsBtn);
+                    } else if ("80911-text-flow-columns.png".equals(icon)) {
+                        rightFlowColumnsBtn = createRightTextButton(btnDef, flowGroup,
+                                b -> rightSetFlowColumns(true));
+                        flowRow.add(rightFlowColumnsBtn);
+                    } else if ("80912-horizontal-text.png".equals(icon)) {
+                        rightHorizontalBtn = createRightTextButton(btnDef, orientGroup,
+                                b -> rightSetVertical(false));
+                        orientRow.add(rightHorizontalBtn);
+                    } else if ("80913-vertical-text.png".equals(icon)) {
+                        rightVerticalBtn = createRightTextButton(btnDef, orientGroup,
+                                b -> rightSetVertical(true));
+                        orientRow.add(rightVerticalBtn);
                     }
                 }
             }
@@ -528,6 +576,8 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         JPanel sizeRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 2));
         sizeRow.setBackground(bgTools);
 
+        ButtonGroup styleGroup = new ButtonGroup();
+
         if (uiDefinitionService != null && iconUtils != null) {
             List<ToolbarComponentDefinition> textoDefs = uiDefinitionService.getToolbarDefinition("editoravanzadotexto").componentes();
             for (ToolbarComponentDefinition comp : textoDefs) {
@@ -538,21 +588,44 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                             fontRow.add(new JLabel(iconUtils.getScaledIcon(icon, 16, 16)));
                         }
                         String[] fonts = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-                        JComboBox<String> fontCombo = new JComboBox<>(fonts);
-                        fontCombo.setPreferredSize(new Dimension(130, 22));
-                        fontRow.add(fontCombo);
+                        rightFontCombo = new JComboBox<>(fonts);
+                        rightFontCombo.setPreferredSize(new Dimension(130, 22));
+                        fontRow.add(rightFontCombo);
+                        rightFontCombo.addActionListener(e -> {
+                            if (syncingTools) return;
+                            String sel = (String) rightFontCombo.getSelectedItem();
+                            if (sel != null) rightSetFontFamily(sel);
+                        });
                     } else if ("80905-font-size.png".equals(icon)) {
                         if (iconUtils != null) {
                             sizeRow.add(new JLabel(iconUtils.getScaledIcon(icon, 16, 16)));
                         }
                         Integer[] sizes = {8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72};
-                        JComboBox<Integer> sizeCombo = new JComboBox<>(sizes);
-                        sizeCombo.setSelectedItem(12);
-                        sizeCombo.setPreferredSize(new Dimension(55, 22));
-                        sizeRow.add(sizeCombo);
-                    } else if (icon.startsWith("80901") || icon.startsWith("80902")
-                            || icon.startsWith("80903") || icon.startsWith("80904")) {
-                        styleRow.add(createTextToggle(btnDef));
+                        rightSizeCombo = new JComboBox<>(sizes);
+                        rightSizeCombo.setSelectedItem(12);
+                        rightSizeCombo.setPreferredSize(new Dimension(55, 22));
+                        sizeRow.add(rightSizeCombo);
+                        rightSizeCombo.addActionListener(e -> {
+                            if (syncingTools) return;
+                            Integer sel = (Integer) rightSizeCombo.getSelectedItem();
+                            if (sel != null) rightSetFontSize(sel);
+                        });
+                    } else if ("80901-bold-text.png".equals(icon)) {
+                        rightBoldBtn = createRightTextButton(btnDef, styleGroup,
+                                b -> rightSetBold(b.isSelected()));
+                        styleRow.add(rightBoldBtn);
+                    } else if ("80902-italic-text.png".equals(icon)) {
+                        rightItalicBtn = createRightTextButton(btnDef, styleGroup,
+                                b -> rightSetItalic(b.isSelected()));
+                        styleRow.add(rightItalicBtn);
+                    } else if ("80903-underline-text.png".equals(icon)) {
+                        rightUnderlineBtn = createRightTextButton(btnDef, styleGroup,
+                                b -> rightSetUnderline(b.isSelected()));
+                        styleRow.add(rightUnderlineBtn);
+                    } else if ("80904-tachado.png".equals(icon)) {
+                        rightStrikethroughBtn = createRightTextButton(btnDef, styleGroup,
+                                b -> rightSetStrikethrough(b.isSelected()));
+                        styleRow.add(rightStrikethroughBtn);
                     }
                 }
             }
@@ -902,6 +975,140 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         btn.setBorder(BorderFactory.createEmptyBorder());
         return btn;
     } // --- Fin del metodo createTextToggle ---
+
+
+    private JToggleButton createRightTextButton(ToolbarButtonDefinition btnDef, ButtonGroup group,
+            Consumer<JToggleButton> onClick) {
+        JToggleButton btn = createTextToggle(btnDef);
+        if (group != null) group.add(btn);
+        btn.addActionListener(e -> {
+            if (syncingTools) return;
+            onClick.accept(btn);
+        });
+        return btn;
+    } // --- Fin del metodo createRightTextButton ---
+
+
+    // --- Aplicaciones de propiedades desde el panel derecho (reutilizan componentBar) ---
+
+    private void rightSetFontFamily(String fam) {
+        if (componentBar == null) return;
+        componentBar.setTextFontFamily(fam);
+        componentBar.applyTextProperty(tl -> {
+            Font curr = tl.getFont();
+            tl.setFont(new Font(fam, curr.getStyle(), curr.getSize()));
+        });
+    } // --- Fin del metodo rightSetFontFamily ---
+
+
+    private void rightSetFontSize(int sz) {
+        if (componentBar == null) return;
+        componentBar.setTextFontSize(sz);
+        componentBar.applyTextProperty(tl -> {
+            Font curr = tl.getFont();
+            tl.setFont(curr.deriveFont((float) sz));
+        });
+    } // --- Fin del metodo rightSetFontSize ---
+
+
+    private void rightSetBold(boolean b) {
+        if (componentBar == null) return;
+        componentBar.setTextBold(b);
+        componentBar.applyTextProperty(tl -> {
+            Font curr = tl.getFont();
+            int style = b ? (curr.getStyle() | Font.BOLD) : (curr.getStyle() & ~Font.BOLD);
+            tl.setFont(curr.deriveFont(style));
+        });
+    } // --- Fin del metodo rightSetBold ---
+
+
+    private void rightSetItalic(boolean i) {
+        if (componentBar == null) return;
+        componentBar.setTextItalic(i);
+        componentBar.applyTextProperty(tl -> {
+            Font curr = tl.getFont();
+            int style = i ? (curr.getStyle() | Font.ITALIC) : (curr.getStyle() & ~Font.ITALIC);
+            tl.setFont(curr.deriveFont(style));
+        });
+    } // --- Fin del metodo rightSetItalic ---
+
+
+    private void rightSetUnderline(boolean u) {
+        if (componentBar == null) return;
+        componentBar.setTextUnderline(u);
+        componentBar.applyTextProperty(tl -> tl.setUnderline(u));
+    } // --- Fin del metodo rightSetUnderline ---
+
+
+    private void rightSetStrikethrough(boolean s) {
+        if (componentBar == null) return;
+        componentBar.setTextStrikethrough(s);
+        componentBar.applyTextProperty(tl -> tl.setStrikethrough(s));
+    } // --- Fin del metodo rightSetStrikethrough ---
+
+
+    private void rightSetAlignment(int align) {
+        if (componentBar == null) return;
+        componentBar.setTextAlignment(align);
+        componentBar.applyTextProperty(tl -> tl.setAlignment(align));
+    } // --- Fin del metodo rightSetAlignment ---
+
+
+    private void rightSetFlowColumns(boolean fc) {
+        if (componentBar == null) return;
+        componentBar.setTextFlowColumns(fc);
+        componentBar.applyTextProperty(tl -> tl.setFlowColumns(fc));
+    } // --- Fin del metodo rightSetFlowColumns ---
+
+
+    private void rightSetVertical(boolean v) {
+        if (componentBar == null) return;
+        componentBar.setTextVertical(v);
+        componentBar.applyTextProperty(tl -> tl.setVertical(v));
+    } // --- Fin del metodo rightSetVertical ---
+
+
+    private void syncToolsFromBar() {
+        if (componentBar == null || syncingTools) return;
+        syncingTools = true;
+        try {
+            String ff = componentBar.getTextFontFamily();
+            if (ff != null && rightFontCombo != null && !ff.equals(rightFontCombo.getSelectedItem())) {
+                rightFontCombo.setSelectedItem(ff);
+            }
+            int sz = componentBar.getTextFontSize();
+            if (sz > 0 && rightSizeCombo != null && rightSizeCombo.getSelectedItem() != null
+                    && !Integer.valueOf(sz).equals(rightSizeCombo.getSelectedItem())) {
+                rightSizeCombo.setSelectedItem(sz);
+            }
+            Boolean b = componentBar.isTextBold();
+            if (b != null && rightBoldBtn != null) rightBoldBtn.setSelected(b);
+            Boolean i = componentBar.isTextItalic();
+            if (i != null && rightItalicBtn != null) rightItalicBtn.setSelected(i);
+            Boolean u = componentBar.isTextUnderline();
+            if (u != null && rightUnderlineBtn != null) rightUnderlineBtn.setSelected(u);
+            Boolean s = componentBar.isTextStrikethrough();
+            if (s != null && rightStrikethroughBtn != null) rightStrikethroughBtn.setSelected(s);
+            int a = componentBar.getTextAlignment();
+            if (a >= 0) {
+                if (rightAlignLeftBtn != null) rightAlignLeftBtn.setSelected(a == SwingConstants.LEFT);
+                if (rightAlignCenterBtn != null) rightAlignCenterBtn.setSelected(a == SwingConstants.CENTER);
+                if (rightAlignRightBtn != null) rightAlignRightBtn.setSelected(a == SwingConstants.RIGHT);
+            }
+            Boolean v = componentBar.isTextVertical();
+            if (v != null) {
+                if (rightHorizontalBtn != null) rightHorizontalBtn.setSelected(!v);
+                if (rightVerticalBtn != null) rightVerticalBtn.setSelected(v);
+            }
+            Boolean fc = componentBar.isTextFlowColumns();
+            if (fc != null) {
+                if (rightFlowRowsBtn != null) rightFlowRowsBtn.setSelected(!fc);
+                if (rightFlowColumnsBtn != null) rightFlowColumnsBtn.setSelected(fc);
+            }
+        } finally {
+            syncingTools = false;
+        }
+    } // --- Fin del metodo syncToolsFromBar ---
 
 
     private JPanel wrapInCell(JComponent comp) {

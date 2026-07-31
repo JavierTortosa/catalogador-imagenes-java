@@ -272,6 +272,34 @@
             editar capas con formato rico preexistente.</li>
     </ul>
 
+    <h3>Panel Derecho de Texto (sincronizado)</h3>
+    <p>
+        El panel derecho del editor (<strong>Herramientas → sección Texto</strong>) ofrece
+        controles duplicados de formato de texto en dos pestañas:
+    </p>
+    <ul>
+        <li><strong>Alineamiento:</strong> botones de alineación (izquierda, centro, derecha,
+            justificado), flujo (línea/columna) y orientación (horizontal/vertical).</li>
+        <li><strong>Fuentes:</strong> selector de familia tipográfica, tamaño (8–72) y estilos
+            (negrita, cursiva, subrayado, tachado).</li>
+    </ul>
+    <p>
+        Estos controles están <strong>completamente sincronizados</strong> con la barra superior
+        (Parte B) y con la herramienta Texto:
+    </p>
+    <ul>
+        <li>Al cambiar cualquier propiedad desde el panel derecho, se aplica en tiempo real al
+            texto seleccionado y se actualiza la barra superior.</li>
+        <li>Al cambiar desde la barra superior, el panel derecho se actualiza al instante.</li>
+        <li>Al mover el cursor por un texto con formato rico, ambos paneles reflejan el formato
+            de la posición actual.</li>
+    </ul>
+    <p>
+        Internamente, los controles del panel derecho reutilizan la lógica de
+        <code>EditorComponentBar.applyTextProperty()</code>, de modo que los dos paneles se
+        comportan como si fueran el mismo conjunto de controles.
+    </p>
+
     <h3>Gizmo en TextTool</h3>
     <p>
         Cuando una <code>TextLayer</code> está seleccionada, la herramienta de texto muestra
@@ -288,9 +316,11 @@
 
     <h3>Sincronización Bidireccional</h3>
     <ul>
-        <li>Al hacer clic en una <code>TextLayer</code>, el panel de opciones se actualiza
-            con sus propiedades (fuente, tamaño, color, alineación, vertical).</li>
-        <li>Al cambiar una propiedad en el panel, se aplica inmediatamente a la capa seleccionada.</li>
+        <li>Al hacer clic en una <code>TextLayer</code>, el panel de opciones (barra superior)
+            y el panel derecho se actualizan con sus propiedades (fuente, tamaño, color,
+            alineación, vertical).</li>
+        <li>Al cambiar una propiedad en cualquiera de los dos paneles, se aplica inmediatamente
+            a la capa seleccionada y se refleja en el otro panel.</li>
         <li>La capa creada se añade automáticamente al modelo y aparece en el panel de capas
             gracias al sistema de notificación (<code>LayerModel.setChangeListener()</code>).</li>
     </ul>
