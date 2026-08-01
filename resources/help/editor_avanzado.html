@@ -117,7 +117,8 @@
     </p>
     <ul>
         <li><strong>Parte A (Fila 1):</strong> Combobox para seleccionar la herramienta activa,
-            más spinners para coordenadas (X, Y), ancho (W) y alto (H) de la selección o capa.
+            más spinners para coordenadas (X, Y), ancho (W), alto (H) y ángulo de rotación de la
+            selección o capa.
             A la derecha, botones de orden de capas y redimensionado del lienzo.</li>
         <li><strong>Parte B (Fila 2):</strong> Panel contextual que cambia según la herramienta
             activa, mostrando opciones específicas (tolerancia, desvanecido, fuentes, colores, etc.).</li>
@@ -127,9 +128,9 @@
     <table class="help-table">
         <tr><th>Herramienta</th><th>Opciones</th></tr>
         <tr><td>Edición</td><td>Checkboxes "Auto-selección" (activar la capa bajo el cursor),
-            "Tiradores" (mostrar el gizmo) y "Mantener proporción".</td></tr>
-        <tr><td>Transformar</td><td>Botones de sub-herramienta (mover, escalar, rotar) + checkbox "Mantener proporción".</td></tr>
-        <tr><td>Selección (marco/capa)</td><td>Deslizador de desvanecido (feather, 0-50 px) con indicador numérico.</td></tr>
+            "Tiradores" (mostrar el gizmo) y "Mantener proporción". Al seleccionar una capa muestra
+            spinners de posición (X, Y), tamaño (W, H) y <strong>ángulo de rotación</strong>.</td></tr>
+        <tr><td>Transformar</td><td>Botones de sub-herramienta (mover, escalar, rotar) + checkbox "Mantener proporción".</td></tr>        <tr><td>Selección (marco/capa)</td><td>Deslizador de desvanecido (feather, 0-50 px) con indicador numérico.</td></tr>
         <tr><td>Varita mágica</td><td>Tolerancia (0-255) y checkbox "Contiguo" (solo áreas conectadas).</td></tr>
         <tr><td>Recortar</td><td>Botones "Recortar eliminando selección" y "Recortar a nueva capa" + checkbox "Mantener original".</td></tr>
         <tr><td>Cuentagotas</td><td>Muestra el color capturado como muestra de color.</td></tr>
@@ -245,6 +246,12 @@
                 en tiempo real a la capa activa o a la selección actual en el editor inline.</td>
         </tr>
         <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80103-rotate.png"></td>
+            <td><strong>Ángulo:</strong> Spinner de grados (-360° a 360°) que rota la capa de texto
+                de forma no destructiva. Se sincroniza con el asa de rotación del gizmo y se
+                conserva al re-editar el texto.</td>
+        </tr>
+        <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_80914-underline.png"></td>
             <td><strong>Subrayado:</strong> Alterna el subrayado del texto. Si hay selección, se
                 aplica solo a la selección; si no, se aplica como atributo de entrada.</td>
@@ -327,7 +334,8 @@
             según el tipo de capa.</li>
         <li><strong>Tiradores (gizmo):</strong> si el checkbox "Tiradores" está activo, se dibuja
             el <code>TransformGizmo</code> alrededor de la capa activa, permitiendo
-            redimensionarla arrastrando sus manejadores.</li>
+            redimensionarla arrastrando sus manejadores y <strong>rotarla</strong> arrastrando el
+            asa circular del borde superior (Shift = múltiplos de 15°).</li>
     </ul>
 
     <h3>Sincronización Bidireccional</h3>
@@ -353,11 +361,32 @@
         <li><strong>Marco:</strong> Línea delgada azul alrededor de los bounds de la capa.</li>
         <li><strong>8 tiradores:</strong> Cuadrados en las esquinas (NW, NE, SW, SE) y puntos
             medios (N, S, E, W). Arrástralos para redimensionar.</li>
-        <li><strong>Asa de rotación:</strong> Círculo sobre el borde superior (no implementada
-            actualmente).</li>
+        <li><strong>Asa de rotación:</strong> Círculo sobre el borde superior. Arrástralo para
+            rotar la capa de forma <strong>no destructiva</strong> (guardando el ángulo, sin
+            rasterizar). Mantén <em>Shift</em> mientras arrastras para ajustar a múltiplos de 15°.</li>
         <li><strong>Cursor contextual:</strong> Cambia según el tirador activo.</li>
     </ul>
-    <p>El gizmo respeta las restricciones de tamaño mínimo (4 px) y proporción si está activo.</p>
+    <p>El gizmo respeta las restricciones de tamaño mínimo (4 px) y proporción si está activo.
+        Cuando la capa está rotada, el marco y los tiradores se dibujan también rotados.</p>
+
+    <h3>Rotación No Destructiva</h3>
+    <p>
+        La rotación de capas es <strong>no destructiva</strong>: el editor guarda el ángulo de la
+        capa como propiedad y lo aplica al pintar, de modo que la imagen o el texto originales no
+        se modifican (estilo Photoshop). Consecuencias prácticas:
+    </p>
+    <ul>
+        <li><strong>Imágenes:</strong> girar y volver a girar no acumula pérdida de calidad por
+            redondeo.</li>
+        <li><strong>Texto:</strong> un texto rotado sigue siendo completamente editable. Al hacer
+            doble clic se abre la edición inline conservando su rotación, y los cambios de fuente,
+            tamaño o contenido se aplican sin perder el ángulo.</li>
+        <li><strong>Formas:</strong> también se rotan sin rasterizar.</li>
+        <li><strong>Spinner de grados:</strong> en la barra de opciones aparece el campo
+            <strong>Ángulo</strong> (de -360° a 360°), tanto en el panel de Edición para capas de
+            imagen como en el panel de Texto para capas de texto. Escribir un valor o usar las
+            flechas rota la capa al instante.</li>
+    </ul>
 
     <h2>Panel de Capas</h2>
     <p>

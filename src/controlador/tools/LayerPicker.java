@@ -147,6 +147,18 @@ public class LayerPicker {
     } // --- Fin del metodo beginGizmo ---
 
     /**
+     * Inicia un arrastre de rotación no destructiva sobre la capa.
+     *
+     * @param layer capa a rotar (debe soportar {@link Layer#setRotation})
+     * @param start punto del ratón en el que se inicia el arrastre
+     * @return el drag de rotación activo, o null si la capa no tiene bounds
+     */
+    public RotateDrag beginRotate(Layer layer, Point start) {
+        if (layer == null || layer.getBounds() == null || start == null) return null;
+        return new RotateDrag(layer, new Point(start), layer.getRotation(), layer.getBounds());
+    } // --- Fin del metodo beginRotate ---
+
+    /**
      * Inicia un arrastre para mover la capa.
      *
      * @return el drag activo, o null si la capa no tiene bounds
@@ -183,6 +195,50 @@ public class LayerPicker {
         } // --- Fin del metodo end ---
 
     } // --- Fin de la clase GizmoDrag ---
+
+    /**
+     * Drag activo de rotación no destructiva. Calcula el ángulo a partir de la
+     * posición del ratón relativa al centro del bounds de la capa.
+     */
+    public static final class RotateDrag {
+
+        private final Layer layer;
+        private final Point start;
+        private final double startRotation;
+        private final Rectangle startBounds;
+
+        private RotateDrag(Layer layer, Point start, double startRotation, Rectangle startBounds) {
+            this.layer = layer;
+            this.start = start;
+            this.startRotation = startRotation;
+            this.startBounds = startBounds;
+        } // --- Fin del constructor RotateDrag ---
+
+        /**
+         * Aplica la rotación según la posición actual del ratón.
+         *
+         * @param current  posición actual del ratón
+         * @param shiftSnap si true, ajusta el ángulo a múltiplos de 15°
+         * @return el ángulo aplicado en grados
+         */
+        public double drag(Point current, boolean shiftSnap) {
+            double cx = startBounds.getCenterX();
+            double cy = startBounds.getCenterY();
+            double startAngle = Math.toDegrees(Math.atan2(start.y - cy, start.x - cx));
+            double currentAngle = Math.toDegrees(Math.atan2(current.y - cy, current.x - cx));
+            double rotation = startRotation + (currentAngle - startAngle);
+            if (shiftSnap) {
+                rotation = Math.round(rotation / 15.0) * 15.0;
+            }
+            layer.setRotation(rotation);
+            return rotation;
+        } // --- Fin del metodo drag ---
+
+        public void end() {
+            // sin estado interno que liberar
+        } // --- Fin del metodo end ---
+
+    } // --- Fin de la clase RotateDrag ---
 
     /**
      * Drag activo para mover una capa arrastrándola.

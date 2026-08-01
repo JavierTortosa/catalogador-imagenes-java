@@ -1240,20 +1240,20 @@ public class UIDefinitionService {
         );
         
         List<ToolbarComponentDefinition> componentbarEditorAvanzadoTransform = List.of(
-        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_MOVE,*/
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_MOVE,
                         "80101-move.png", "Mover", "editoravanzadotransform", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SCALE,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_SCALE,
                         "80102-escalar.png", "Escalar", "editoravanzadotransform", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ROTATE,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_ROTATE,
                         "80103-rotate.png", "Rotar", "editoravanzadotransform", ButtonType.TOGGLE)
         );
         
         List<ToolbarComponentDefinition> componentbarEditorAvanzadoLayerSelection = List.of(
          		  new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_PAGE,
                         "80120-target-page.png", "Tamaño del Lienzo", "editoravanzadolayerselection", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_LAYER,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_LAYER,
                         "80104-transform-layer.png", "Transformar una capa", "editoravanzadolayerselection", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_MARCO,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_MARCO,
                         "80105-transform.png", "Transformar un marco de selección", "editoravanzadolayerselection", ButtonType.TOGGLE)
         );
         

@@ -111,6 +111,24 @@ public class TextTool extends Tool {
         // Recuperar la TextLayer activa del modelo, si la hay
         Layer active = ctx.layerModel().getActiveLayer();
         selectedLayer = active instanceof TextLayer tl ? tl : null;
+
+        // Conectar el spinner de ángulo (rotación no destructiva del texto)
+        var bar = ctx.componentBar();
+        if (bar != null) {
+            bar.setAngleSpinnerListener(angle -> {
+                TextLayer target = editingLayer != null ? editingLayer : selectedLayer;
+                if (target != null) {
+                    target.setRotation(angle);
+                    ctx.canvasPanel().repaint();
+                }
+            });
+            if (selectedLayer != null) {
+                bar.getSpinnerAngle().setEnabled(true);
+                bar.syncAngleSpinner(selectedLayer);
+            } else {
+                bar.getSpinnerAngle().setEnabled(false);
+            }
+        }
     } // --- Fin del metodo onActivate ---
 
 
@@ -385,6 +403,7 @@ public class TextTool extends Tool {
         editingLayer = null;
         creationRect = null;
         selectedLayer = layer;
+        syncAngleSpinnerFor(layer);
     } // --- Fin del metodo selectLayer ---
 
 
@@ -395,7 +414,29 @@ public class TextTool extends Tool {
         selectedLayer = null;
         autoSize = false;
         autoSizeClickPoint = null;
+        disableAngleSpinner();
     } // --- Fin del metodo clearSelection ---
+
+
+    /**
+     * Habilita y sincroniza el spinner de ángulo con la rotación de la capa.
+     */
+    private void syncAngleSpinnerFor(TextLayer layer) {
+        var bar = ctx.componentBar();
+        if (bar == null) return;
+        bar.getSpinnerAngle().setEnabled(true);
+        bar.syncAngleSpinner(layer);
+    } // --- Fin del metodo syncAngleSpinnerFor ---
+
+
+    /**
+     * Deshabilita el spinner de ángulo al no haber capa de texto seleccionada.
+     */
+    private void disableAngleSpinner() {
+        var bar = ctx.componentBar();
+        if (bar == null) return;
+        bar.getSpinnerAngle().setEnabled(false);
+    } // --- Fin del metodo disableAngleSpinner ---
 
 
     private LayerPicker picker() {
@@ -501,6 +542,7 @@ public class TextTool extends Tool {
         syncSettingsFromLayer(layer);
         syncToComponentBar();
         showInlineFieldAt(layer.getBounds(), layer.getText());
+        syncAngleSpinnerFor(layer);
     } // --- Fin del metodo beginInlineEdit ---
 
 
@@ -516,6 +558,7 @@ public class TextTool extends Tool {
         syncSettingsFromLayer(layer);
         syncToComponentBar();
         showInlineFieldAt(layer.getBounds(), layer.getText());
+        syncAngleSpinnerFor(layer);
     } // --- Fin del metodo editExistingLayer ---
 
 
@@ -725,6 +768,7 @@ public class TextTool extends Tool {
             selectedLayer = layer;
             autoSize = false;
             autoSizeClickPoint = null;
+            syncAngleSpinnerFor(layer);
         } else if (creationRect != null) {
             String name = text.length() > 30 ? text.substring(0, 30) + "..." : text;
             TextLayer layer = new TextLayer(name, text, buildFont(), textColor,
@@ -741,6 +785,7 @@ public class TextTool extends Tool {
             ctx.layerModel().setActiveLayer(layer);
             selectedLayer = layer;
             creationRect = null;
+            syncAngleSpinnerFor(layer);
         }
 
         removeInlineField();

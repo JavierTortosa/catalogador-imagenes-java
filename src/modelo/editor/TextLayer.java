@@ -43,6 +43,7 @@ public class TextLayer implements Layer {
     private boolean strikethrough;
     private boolean flowColumns;
     private float opacity;
+    private double rotation;
 
     /** Runs con formato por carácter (rich text desde JTextPane) */
     private List<TextRun> runs;
@@ -74,7 +75,8 @@ public class TextLayer implements Layer {
                       int alignment, boolean vertical, boolean underline,
                       boolean strikethrough, boolean flowColumns, float lineSpacing,
                       Rectangle bounds, float opacity, boolean visible,
-                      boolean locked, boolean autoSize, List<TextRun> runs) {
+                      boolean locked, boolean autoSize, List<TextRun> runs,
+                      double rotation) {
         this.id = id;
         this.name = name;
         this.text = text;
@@ -92,6 +94,7 @@ public class TextLayer implements Layer {
         this.locked = locked;
         this.autoSize = autoSize;
         this.runs = runs;
+        this.rotation = rotation;
     } // --- Fin del constructor privado TextLayer ---
 
 
@@ -168,6 +171,12 @@ public class TextLayer implements Layer {
     @Override
     public void setOpacity(float opacity) { this.opacity = opacity; }
 
+    @Override
+    public double getRotation() { return rotation; }
+
+    @Override
+    public void setRotation(double rotation) { this.rotation = rotation; }
+
 
     @Override
     public void paint(Graphics2D g2) {
@@ -181,6 +190,9 @@ public class TextLayer implements Layer {
 
             if (opacity < 1.0f) {
                 g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
+            }
+            if (rotation != 0) {
+                g.rotate(Math.toRadians(rotation), bounds.getCenterX(), bounds.getCenterY());
             }
 
             g.setFont(font);
@@ -647,7 +659,8 @@ public class TextLayer implements Layer {
                 alignment, vertical, underline, strikethrough, flowColumns, lineSpacing,
                 new Rectangle(bounds),
                 opacity, visible, locked, autoSize,
-                runs != null ? new ArrayList<>(runs) : null);
+                runs != null ? new ArrayList<>(runs) : null,
+                rotation);
     } // --- Fin del metodo copy ---
 
 } // --- Fin de la clase TextLayer ---

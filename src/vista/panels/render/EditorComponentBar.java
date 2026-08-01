@@ -73,10 +73,12 @@ public class EditorComponentBar extends JPanel {
     private final JSpinner spinnerY;
     private final JSpinner spinnerW;
     private final JSpinner spinnerH;
+    private final JSpinner spinnerAngle;
     private final JLabel labelX;
     private final JLabel labelY;
     private final JLabel labelW;
     private final JLabel labelH;
+    private final JLabel labelAngle;
     private final JPanel toolControlsPanel;
     private final CardLayout cardLayout;
     private final Map<String, JPanel> toolOptionsMap;
@@ -179,6 +181,7 @@ public class EditorComponentBar extends JPanel {
     private String cropMode = "nueva_capa";
     private String zoomMode = "cursor";
     private JToggleButton transformTargetLayerBtn;
+    private boolean syncAngleGuard;
 
     {
         toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_EDICION,           this::buildEditPanel);
@@ -249,6 +252,8 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         spinnerW = createDimsSpinner();
         labelH = createDimLabel("H:");
         spinnerH = createDimsSpinner();
+        labelAngle = createDimLabel("\u00C1ngulo:");
+        spinnerAngle = createAngleSpinner();
 
         // Guardar componentes del modo herramienta
         leftPartToolComponents = new java.util.ArrayList<>();
@@ -317,6 +322,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
     public JSpinner getSpinnerY() { return spinnerY; }
     public JSpinner getSpinnerW() { return spinnerW; }
     public JSpinner getSpinnerH() { return spinnerH; }
+    public JSpinner getSpinnerAngle() { return spinnerAngle; }
     public boolean isAutoSelect()  { return chkAutoSelect.isSelected(); }
     public boolean isShowGizmo()   { return chkShowGizmo.isSelected(); }
     public boolean isKeepAspect()  { return chkKeepAspect.isSelected(); }
@@ -372,6 +378,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         row1Right.add(new JSeparator(SwingConstants.VERTICAL));
         // Checkboxes
         chkAutoSelect.setSelected(true);
+        chkShowGizmo.setSelected(true);
         chkKeepAspect.setSelected(true);
         for (JCheckBox chk : new JCheckBox[]{chkAutoSelect, chkShowGizmo, chkKeepAspect, chkAutoZoom}) {
             chk.setBackground(bg);
@@ -681,6 +688,11 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         lbH.setForeground(fgStatus);
         p.add(lbH);
         p.add(spinnerH);
+        p.add(Box.createHorizontalStrut(4));
+        JLabel lbAngle = new JLabel("\u00C1ngulo:");
+        lbAngle.setForeground(fgStatus);
+        p.add(lbAngle);
+        p.add(spinnerAngle);
         return p;
     } // --- Fin del metodo buildEditPanel ---
 
@@ -1112,6 +1124,13 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         });
         p.add(textColorBtn);
 
+        // Ángulo de rotación (no destructiva)
+        p.add(createSubSeparator(bg));
+        JLabel lbAngle = new JLabel("\u00C1ngulo:");
+        lbAngle.setForeground(fgStatus);
+        p.add(lbAngle);
+        p.add(spinnerAngle);
+
         // Botones ✓ (aceptar) y ✗ (cancelar) para edición inline
         p.add(createSubSeparator(bg));
         JButton btnAccept = new JButton();
@@ -1506,6 +1525,20 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
     } // --- Fin del metodo setEditToolSpinnerListener ---
 
 
+    /**
+     * Registra el listener del spinner de ángulo (un solo listener activo).
+     */
+    public void setAngleSpinnerListener(Consumer<Double> listener) {
+        for (javax.swing.event.ChangeListener cl : spinnerAngle.getChangeListeners()) {
+            spinnerAngle.removeChangeListener(cl);
+        }
+        spinnerAngle.addChangeListener(e -> {
+            if (syncAngleGuard) return;
+            listener.accept(((Number) spinnerAngle.getValue()).doubleValue());
+        });
+    } // --- Fin del metodo setAngleSpinnerListener ---
+
+
     public void updateEditLayerFields(Layer layer) {
         if (editLayerNameLabel != null) {
             editLayerNameLabel.setText(layer != null ? layer.getName() : "\u2014");
@@ -1513,11 +1546,41 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         if (layer != null && layer.getBounds() != null) {
             Rectangle b = layer.getBounds();
             updateDimensionSpinners(b.x, b.y, b.width, b.height);
+            setAngleSpinnerValue((int) Math.round(layer.getRotation()));
         } else {
             updateDimensionSpinners(0, 0, 0, 0);
+            setAngleSpinnerValue(0);
         }
         showEditToolPanel(layer);
     } // --- Fin del metodo updateEditLayerFields ---
+
+
+    /**
+     * Fija el valor del spinner de ángulo sin disparar los listeners de
+     * sincronización de edición.
+     */
+    private void setAngleSpinnerValue(int angle) {
+        if (syncAngleGuard) return;
+        syncAngleGuard = true;
+        try {
+            spinnerAngle.setValue(angle);
+        } finally {
+            syncAngleGuard = false;
+        }
+    } // --- Fin del metodo setAngleSpinnerValue ---
+
+
+    /**
+     * Sincroniza el spinner de ángulo con la rotación de la capa indicada
+     * (sin disparar los listeners de edición).
+     */
+    public void syncAngleSpinner(Layer layer) {
+        if (layer != null && layer.getBounds() != null) {
+            setAngleSpinnerValue((int) Math.round(layer.getRotation()));
+        } else {
+            setAngleSpinnerValue(0);
+        }
+    } // --- Fin del metodo syncAngleSpinner ---
 
 
     private JPanel buildShapesPanel(Color bg) {
@@ -1836,11 +1899,13 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         String iconKey = btnDef.claveIcono();
         String cmd = btnDef.comandoCanonico();
 
-        switch (iconKey) {
-            case "80101-move.png", "80102-escalar.png", "80103-rotate.png" -> {
-                String mode = switch (iconKey) {
-                    case "80102-escalar.png" -> "escalar";
-                    case "80103-rotate.png" -> "rotar";
+        switch (cmd) {
+            case AppActionCommands.CMD_ADVANCED_EDITOR_MOVE,
+                 AppActionCommands.CMD_ADVANCED_EDITOR_SCALE,
+                 AppActionCommands.CMD_ADVANCED_EDITOR_ROTATE -> {
+                String mode = switch (cmd) {
+                    case AppActionCommands.CMD_ADVANCED_EDITOR_SCALE -> "escalar";
+                    case AppActionCommands.CMD_ADVANCED_EDITOR_ROTATE -> "rotar";
                     default -> "mover";
                 };
                 btn.addActionListener(e -> {
@@ -1848,8 +1913,9 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
                 });
                 if ("mover".equals(mode)) btn.setSelected(true);
             }
-            case "80104-transform-layer.png", "80105-transform.png" -> {
-                String target = "80105-transform.png".equals(iconKey) ? "marco" : "capa";
+            case AppActionCommands.CMD_ADVANCED_EDITOR_LAYER,
+                 AppActionCommands.CMD_ADVANCED_EDITOR_MARCO -> {
+                String target = AppActionCommands.CMD_ADVANCED_EDITOR_MARCO.equals(cmd) ? "marco" : "capa";
                 btn.addActionListener(e -> {
                     if (btn.isSelected()) transformTarget = target;
                 });
@@ -1858,7 +1924,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
                     btn.setSelected(true);
                 }
             }
-            case "80120-target-page.png" -> {
+            case AppActionCommands.CMD_ADVANCED_EDITOR_PAGE -> {
                 btn.addActionListener(e -> {
                     if (btn.isSelected()) {
                         showCanvasResizeDialog();
@@ -1883,18 +1949,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
                 if ("cursor".equals(mode)) btn.setSelected(true);
             }
             case "81000-shape-rect.png" -> { /* el tipo de forma lo gestiona hookShapeSelection */ }
-            default -> {
-                if (AppActionCommands.CMD_ADVANCED_EDITOR_PAGE.equals(cmd)) {
-                    btn.addActionListener(e -> {
-                        if (btn.isSelected()) {
-                            showCanvasResizeDialog();
-                            if (transformTargetLayerBtn != null) {
-                                transformTargetLayerBtn.setSelected(true);
-                            }
-                        }
-                    });
-                }
-            }
+            default -> { /* sin estado asociado */ }
         }
     } // --- Fin del metodo hookSubToolState ---
 
@@ -1930,6 +1985,21 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         }
         return sp;
     } // --- Fin del metodo createDimsSpinner ---
+
+
+    private JSpinner createAngleSpinner() {
+        JSpinner sp = new JSpinner(new SpinnerNumberModel(0, -360, 360, 1));
+        sp.setPreferredSize(new Dimension(52, 20));
+        sp.setMaximumSize(new Dimension(52, 20));
+        sp.setMinimumSize(new Dimension(52, 20));
+        sp.setEnabled(false);
+        var editor = sp.getEditor();
+        if (editor instanceof JSpinner.DefaultEditor de) {
+            de.getTextField().setColumns(4);
+            de.getTextField().setHorizontalAlignment(JLabel.RIGHT);
+        }
+        return sp;
+    } // --- Fin del metodo createAngleSpinner ---
 
 
     // ===================== HOME MODE =====================
@@ -2461,6 +2531,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         labelY.setForeground(fg);
         labelW.setForeground(fg);
         labelH.setForeground(fg);
+        labelAngle.setForeground(fg);
 
         ToolItem sel = (ToolItem) toolCombo.getSelectedItem();
         buildRow1RightSide();

@@ -20,6 +20,9 @@ public interface Layer {
     Rectangle getBounds();
     void setBounds(Rectangle bounds);
 
+    double getRotation();
+    void setRotation(double rotation);
+
     boolean isVisible();
     void setVisible(boolean visible);
 

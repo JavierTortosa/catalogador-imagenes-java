@@ -4,10 +4,7 @@ import java.awt.Cursor;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
-import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
 
 import modelo.editor.ImageLayer;
 import modelo.gizmo.TransformGizmo;
@@ -26,11 +23,8 @@ public class TransformTool extends Tool {
     private Handle activeHandle;
     private Point dragStart;
 
-    // Estado de rotación: se re-renderiza desde la imagen original para no
-    // acumular error de redondeo en cada arrastre.
-    private Rectangle rotateStartBounds;
-    private BufferedImage rotateStartImage;
-    private double rotateStartAngle;
+    // Arrastre de rotación no destructiva (delegado en LayerPicker)
+    private LayerPicker.RotateDrag rotateDrag;
 
     @Override
     public String getCommandKey() {
@@ -48,8 +42,7 @@ public class TransformTool extends Tool {
     public void onDeactivate() {
         activeHandle = null;
         dragStart = null;
-        rotateStartImage = null;
-        rotateStartBounds = null;
+        rotateDrag = null;
     } // --- Fin del metodo onDeactivate ---
 
     private ImageLayer getActiveLayer() {
@@ -73,6 +66,21 @@ public class TransformTool extends Tool {
         ImageLayer layer = getActiveLayer();
         return layer != null ? layer.getBounds() : null;
     } // --- Fin del metodo getTargetBounds ---
+
+    /**
+     * Sincroniza la rotación del gizmo con la de la capa activa (el marco de
+     * selección no tiene rotación propia, se deja a 0).
+     */
+    private void syncGizmoRotation() {
+        double rotation = 0;
+        if (!targetMarco()) {
+            ImageLayer layer = getActiveLayer();
+            if (layer != null) {
+                rotation = layer.getRotation();
+            }
+        }
+        gizmo.setRotation(rotation);
+    } // --- Fin del metodo syncGizmoRotation ---
 
     /**
      * Filtra los tiradores del gizmo según el modo seleccionado en la barra.
@@ -105,6 +113,7 @@ public class TransformTool extends Tool {
         Rectangle bounds = getTargetBounds();
         if (bounds == null) return;
 
+        syncGizmoRotation();
         Handle h = gizmo.hitTest(e.getPoint(), bounds);
         if (!allowedHandle(h)) h = Handle.NONE;
         activeHandle = h;
@@ -114,13 +123,14 @@ public class TransformTool extends Tool {
 
         if (activeHandle == Handle.ROTATE) {
             ImageLayer layer = getActiveLayer();
-            if (layer == null || layer.getImage() == null) {
+            if (layer == null) {
                 activeHandle = Handle.NONE;
                 return;
             }
-            rotateStartBounds = new Rectangle(bounds);
-            rotateStartImage = copyImage(layer.getImage());
-            rotateStartAngle = angleOf(e.getPoint(), bounds);
+            rotateDrag = ctx.layerPicker().beginRotate(layer, e.getPoint());
+            if (rotateDrag == null) {
+                activeHandle = Handle.NONE;
+            }
             return;
         }
 
@@ -131,12 +141,9 @@ public class TransformTool extends Tool {
     @Override
     public void mouseDragged(MouseEvent e) {
         if (activeHandle == Handle.ROTATE) {
-            Rectangle base = rotateStartBounds;
-            if (base == null) return;
-            double delta = angleOf(e.getPoint(), base) - rotateStartAngle;
-            ImageLayer layer = getActiveLayer();
-            if (layer != null) {
-                rotateLayer(layer, rotateStartImage, base, delta);
+            if (rotateDrag != null) {
+                boolean shift = (e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) != 0;
+                rotateDrag.drag(e.getPoint(), shift);
                 ctx.canvasPanel().repaint();
             }
             return;
@@ -160,8 +167,7 @@ public class TransformTool extends Tool {
         }
         activeHandle = null;
         dragStart = null;
-        rotateStartImage = null;
-        rotateStartBounds = null;
+        rotateDrag = null;
     } // --- Fin del metodo mouseReleased ---
 
     @Override
@@ -169,6 +175,7 @@ public class TransformTool extends Tool {
         Rectangle bounds = getTargetBounds();
         if (bounds == null) return;
 
+        syncGizmoRotation();
         Handle handle = gizmo.hitTest(e.getPoint(), bounds);
         if (allowedHandle(handle)) {
             ctx.canvasPanel().setCursor(gizmo.getCursor(handle));
@@ -181,6 +188,7 @@ public class TransformTool extends Tool {
     public void paintOverlay(Graphics2D g2) {
         Rectangle bounds = getTargetBounds();
         if (bounds == null) return;
+        syncGizmoRotation();
         gizmo.draw(g2, bounds);
     } // --- Fin del metodo paintOverlay ---
 
@@ -190,6 +198,7 @@ public class TransformTool extends Tool {
         if (bounds == null) return Cursor.getDefaultCursor();
         Point mp = ctx.canvasPanel().getMousePosition();
         if (mp != null) {
+            syncGizmoRotation();
             Handle h = gizmo.hitTest(mp, bounds);
             if (allowedHandle(h)) {
                 return gizmo.getCursor(h);
@@ -197,53 +206,5 @@ public class TransformTool extends Tool {
         }
         return Cursor.getDefaultCursor();
     } // --- Fin del metodo getCursor ---
-
-    private static BufferedImage copyImage(BufferedImage src) {
-        if (src == null) return null;
-        BufferedImage copy = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = copy.createGraphics();
-        g.drawImage(src, 0, 0, null);
-        g.dispose();
-        return copy;
-    } // --- Fin del metodo copyImage ---
-
-    /**
-     * Rota la imagen original alrededor de su centro y reajusta bounds
-     * manteniendo el centro del marco base.
-     */
-    private static void rotateLayer(ImageLayer layer, BufferedImage src,
-            Rectangle base, double angleDeg) {
-        if (layer == null || src == null) return;
-
-        double rad = Math.toRadians(angleDeg);
-        int w = src.getWidth();
-        int h = src.getHeight();
-        double cos = Math.abs(Math.cos(rad));
-        double sin = Math.abs(Math.sin(rad));
-        int nw = Math.max(1, (int) Math.ceil(w * cos + h * sin));
-        int nh = Math.max(1, (int) Math.ceil(w * sin + h * cos));
-
-        BufferedImage out = new BufferedImage(nw, nh, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = out.createGraphics();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        AffineTransform tx = new AffineTransform();
-        tx.translate((nw - w) / 2.0, (nh - h) / 2.0);
-        tx.rotate(rad, w / 2.0, h / 2.0);
-        g2.setTransform(tx);
-        g2.drawImage(src, 0, 0, null);
-        g2.dispose();
-
-        int cx = base.x + base.width / 2;
-        int cy = base.y + base.height / 2;
-        layer.setImage(out);
-        layer.setBounds(new Rectangle(cx - nw / 2, cy - nh / 2, nw, nh));
-    } // --- Fin del metodo rotateLayer ---
-
-    private static double angleOf(Point p, Rectangle b) {
-        double cx = b.getCenterX();
-        double cy = b.getCenterY();
-        return Math.toDegrees(Math.atan2(p.y - cy, p.x - cx));
-    } // --- Fin del metodo angleOf ---
 
 } // --- Fin de la clase TransformTool ---

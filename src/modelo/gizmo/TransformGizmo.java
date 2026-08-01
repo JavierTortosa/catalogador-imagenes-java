@@ -73,9 +73,17 @@ public class TransformGizmo {
     public void draw(Graphics2D g2, Rectangle bounds) {
         if (bounds == null || bounds.isEmpty()) return;
 
-        drawFrame(g2, bounds);
-        drawHandles(g2, bounds);
-        drawRotationHandle(g2, bounds);
+        Graphics2D g = (Graphics2D) g2.create();
+        try {
+            if (rotation != 0) {
+                g.rotate(Math.toRadians(rotation), bounds.getCenterX(), bounds.getCenterY());
+            }
+            drawFrame(g, bounds);
+            drawHandles(g, bounds);
+            drawRotationHandle(g, bounds);
+        } finally {
+            g.dispose();
+        }
     } // --- Fin del metodo draw ---
 
 
@@ -165,8 +173,22 @@ public class TransformGizmo {
     public Handle hitTest(Point mouse, Rectangle bounds) {
         if (bounds == null || mouse == null) return Handle.NONE;
 
+        // Si el gizmo está rotado, des-rotar el punto del ratón alrededor del
+        // centro para comparar en el sistema de coordenadas local del marco.
         int mx = mouse.x;
         int my = mouse.y;
+        if (rotation != 0) {
+            double cx = bounds.getCenterX();
+            double cy = bounds.getCenterY();
+            double rad = Math.toRadians(-rotation);
+            double cos = Math.cos(rad);
+            double sin = Math.sin(rad);
+            double dx = mouse.x - cx;
+            double dy = mouse.y - cy;
+            mx = (int) Math.round(cx + dx * cos - dy * sin);
+            my = (int) Math.round(cy + dx * sin + dy * cos);
+        }
+
         int cx = bounds.x + bounds.width / 2;
         int cy = bounds.y + bounds.height / 2;
 

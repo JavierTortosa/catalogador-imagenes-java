@@ -23,6 +23,7 @@ public class ImageLayer implements Layer {
     private boolean locked;
     private float opacity;
     private LayerType type;
+    private double rotation;
 
     // Metadatos de forma (solo para capas LayerType.SHAPE, null/0 en el resto)
     private String shapeType;
@@ -70,6 +71,16 @@ public class ImageLayer implements Layer {
     public void setBounds(Rectangle bounds) {
         this.bounds = bounds;
     } // --- Fin del metodo setBounds ---
+
+    @Override
+    public double getRotation() {
+        return rotation;
+    } // --- Fin del metodo getRotation ---
+
+    @Override
+    public void setRotation(double rotation) {
+        this.rotation = rotation;
+    } // --- Fin del metodo setRotation ---
 
     public boolean isVisible() {
         return visible;
@@ -155,12 +166,17 @@ public class ImageLayer implements Layer {
     public void paint(Graphics2D g2) {
         if (!visible || image == null || bounds == null) return;
 
-        if (opacity < 1.0f) {
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
-        }
-        g2.drawImage(image, bounds.x, bounds.y, bounds.width, bounds.height, null);
-        if (opacity < 1.0f) {
-            g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
+        Graphics2D g = (Graphics2D) g2.create();
+        try {
+            if (opacity < 1.0f) {
+                g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
+            }
+            if (rotation != 0) {
+                g.rotate(Math.toRadians(rotation), bounds.getCenterX(), bounds.getCenterY());
+            }
+            g.drawImage(image, bounds.x, bounds.y, bounds.width, bounds.height, null);
+        } finally {
+            g.dispose();
         }
     } // --- Fin del metodo paint ---
 
@@ -193,6 +209,7 @@ public class ImageLayer implements Layer {
         clone.shapeStrokeWidth = this.shapeStrokeWidth;
         clone.shapeRenderW = this.shapeRenderW;
         clone.shapeRenderH = this.shapeRenderH;
+        clone.rotation = this.rotation;
         return clone;
     } // --- Fin del metodo copy ---
 

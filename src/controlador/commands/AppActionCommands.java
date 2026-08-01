@@ -281,6 +281,13 @@ public interface AppActionCommands {
     public static final String CMD_ADVANCED_EDITOR_PANTALLA_COMPLETA = "cmd.advanced.editor.pantalla_completa";
     public static final String CMD_ADVANCED_EDITOR_PAGE              = "cmd.advanced.editor.page";
 
+    // --- Editor Avanzado: sub-herramientas de transformación ---
+    public static final String CMD_ADVANCED_EDITOR_MOVE              = "cmd.advanced.editor.transform.mover";
+    public static final String CMD_ADVANCED_EDITOR_SCALE             = "cmd.advanced.editor.transform.escalar";
+    public static final String CMD_ADVANCED_EDITOR_ROTATE            = "cmd.advanced.editor.transform.rotar";
+    public static final String CMD_ADVANCED_EDITOR_LAYER             = "cmd.advanced.editor.transform.capa";
+    public static final String CMD_ADVANCED_EDITOR_MARCO             = "cmd.advanced.editor.transform.marco";
+
     // --- Editor Avanzado: sub-herramientas de texto ---
     public static final String CMD_EDITOR_TEXTO_NEGRITA              = "cmd.editor.texto.negrita";
     public static final String CMD_EDITOR_TEXTO_CURSIVA              = "cmd.editor.texto.cursiva";

@@ -34,6 +34,7 @@ public class EditTool extends Tool {
     private boolean gizmoDragging;
     private Point dragStart;
     private LayerPicker.GizmoDrag gizmoDrag;
+    private LayerPicker.RotateDrag rotateDrag;
     private LayerPicker.DragMove move;
     private Layer ctrlRestoreLayer;
 
@@ -83,11 +84,24 @@ public class EditTool extends Tool {
     } // --- Fin del metodo syncLayerFromSpinners ---
 
 
+    private void syncLayerFromAngleSpinner() {
+        Layer layer = model().getActiveLayer();
+        if (layer == null) return;
+        try {
+            double angle = ((Number) bar().getSpinnerAngle().getValue()).doubleValue();
+            layer.setRotation(angle);
+            ctx.canvasPanel().repaint();
+        } catch (Exception ignored) {
+        }
+    } // --- Fin del metodo syncLayerFromAngleSpinner ---
+
+
     private void enableSpinners(boolean enabled) {
         bar().getSpinnerX().setEnabled(enabled);
         bar().getSpinnerY().setEnabled(enabled);
         bar().getSpinnerW().setEnabled(enabled);
         bar().getSpinnerH().setEnabled(enabled);
+        bar().getSpinnerAngle().setEnabled(enabled);
     } // --- Fin del metodo enableSpinners ---
 
 
@@ -109,6 +123,7 @@ public class EditTool extends Tool {
                 syncLayerFromSpinners();
             }
         });
+        bar().setAngleSpinnerListener(angle -> syncLayerFromAngleSpinner());
     } // --- Fin del metodo onActivate ---
 
 
@@ -128,17 +143,24 @@ public class EditTool extends Tool {
         gizmoDragging = false;
         dragging = false;
         gizmoDrag = null;
+        rotateDrag = null;
         move = null;
 
         boolean ctrl = (e.getModifiersEx() & MouseEvent.CTRL_DOWN_MASK) != 0;
         boolean alt = (e.getModifiersEx() & MouseEvent.ALT_DOWN_MASK) != 0;
 
-        // 1. Tiradores del gizmo (MOVE y ROTATE se excluyen: MOVE lo maneja el paso 5)
+        // 1. Tiradores del gizmo (MOVE se excluye: lo maneja el paso 5)
         if (isShowGizmo() && active != null && active.getBounds() != null) {
+            ctx.gizmo().setRotation(active.getRotation());
             TransformGizmo.Handle h = picker().gizmoHitTest(p, active);
-            if (h != TransformGizmo.Handle.NONE
-                    && h != TransformGizmo.Handle.MOVE
-                    && h != TransformGizmo.Handle.ROTATE) {
+            if (h == TransformGizmo.Handle.ROTATE) {
+                rotateDrag = picker().beginRotate(active, p);
+                if (rotateDrag != null) {
+                    gizmoDragging = true;
+                    dragStart = p;
+                    return;
+                }
+            } else if (h != TransformGizmo.Handle.NONE && h != TransformGizmo.Handle.MOVE) {
                 gizmoDrag = picker().beginGizmo(h, active);
                 gizmoDragging = true;
                 dragStart = p;
@@ -208,6 +230,14 @@ public class EditTool extends Tool {
     public void mouseDragged(MouseEvent e) {
         Layer active = model().getActiveLayer();
 
+        if (gizmoDragging && rotateDrag != null && dragStart != null) {
+            boolean shift = (e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) != 0;
+            rotateDrag.drag(e.getPoint(), shift);
+            bar().updateEditLayerFields(active);
+            ctx.canvasPanel().repaint();
+            return;
+        }
+
         if (gizmoDragging && gizmoDrag != null && dragStart != null) {
             int dx = e.getX() - dragStart.x;
             int dy = e.getY() - dragStart.y;
@@ -237,8 +267,12 @@ public class EditTool extends Tool {
         if (gizmoDragging && gizmoDrag != null) {
             gizmoDrag.end();
         }
+        if (gizmoDragging && rotateDrag != null) {
+            rotateDrag.end();
+        }
         gizmoDragging = false;
         gizmoDrag = null;
+        rotateDrag = null;
         dragging = false;
         move = null;
         dragStart = null;
@@ -285,6 +319,7 @@ public class EditTool extends Tool {
         if (!isShowGizmo()) return;
         Layer active = model().getActiveLayer();
         if (active == null || active.getBounds() == null) return;
+        ctx.gizmo().setRotation(active.getRotation());
         ctx.gizmo().draw(g2, active.getBounds());
     } // --- Fin del metodo paintOverlay ---
 
@@ -299,8 +334,9 @@ public class EditTool extends Tool {
         Point mp = ctx.canvasPanel().getMousePosition();
         if (mp != null) {
             if (isShowGizmo()) {
+                ctx.gizmo().setRotation(active.getRotation());
                 TransformGizmo.Handle h = ctx.gizmo().hitTest(mp, active.getBounds());
-                if (h != TransformGizmo.Handle.NONE && h != TransformGizmo.Handle.ROTATE) {
+                if (h != TransformGizmo.Handle.NONE) {
                     return ctx.gizmo().getCursor(h);
                 }
             }

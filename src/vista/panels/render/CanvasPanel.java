@@ -157,13 +157,21 @@ public class CanvasPanel extends JPanel {
 
         // Resaltar la capa activa (guía visual de dónde se va a pintar/editar)
         if (layerModel != null && layerModel.getActiveLayer() != null) {
-            Rectangle b = layerModel.getActiveLayer().getBounds();
+            Layer layer = layerModel.getActiveLayer();
+            Rectangle b = layer.getBounds();
             if (b != null) {
                 Stroke orig = g2.getStroke();
                 g2.setStroke(new BasicStroke(1f, BasicStroke.CAP_BUTT,
                         BasicStroke.JOIN_BEVEL, 0, new float[]{4f, 4f}, 0));
                 g2.setColor(new Color(255, 140, 0, 160));
-                g2.draw(b);
+                if (layer.getRotation() != 0) {
+                    Graphics2D rg = (Graphics2D) g2.create();
+                    rg.rotate(Math.toRadians(layer.getRotation()), b.getCenterX(), b.getCenterY());
+                    rg.draw(b);
+                    rg.dispose();
+                } else {
+                    g2.draw(b);
+                }
                 g2.setStroke(orig);
             }
         }
