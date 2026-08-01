@@ -534,7 +534,11 @@ public class TextTool extends Tool {
                 String fam = StyleConstants.getFontFamily(attrs);
                 int sz = StyleConstants.getFontSize(attrs);
                 if (fam == null) fam = fontFamily;
-                if (sz < 1) sz = fontSize;
+                if (sz < 1) {
+                    sz = fontSize;
+                } else {
+                    sz = Math.max(1, Math.round(sz / (float) ctx.canvasPanel().getZoom()));
+                }
                 boolean bld = StyleConstants.isBold(attrs);
                 boolean ita = StyleConstants.isItalic(attrs);
                 int style = (bld ? Font.BOLD : 0) | (ita ? Font.ITALIC : 0);
@@ -556,13 +560,14 @@ public class TextTool extends Tool {
     private void restoreRuns(JTextPane pane, TextLayer layer) {
         List<TextLayer.TextRun> runs = layer.getRuns();
         if (runs == null || runs.isEmpty()) return;
+        double zoom = ctx.canvasPanel().getZoom();
         StyledDocument doc = pane.getStyledDocument();
         try {
             doc.remove(0, doc.getLength());
             for (TextLayer.TextRun run : runs) {
                 SimpleAttributeSet attrs = new SimpleAttributeSet();
                 StyleConstants.setFontFamily(attrs, run.font().getFamily());
-                StyleConstants.setFontSize(attrs, run.font().getSize());
+                StyleConstants.setFontSize(attrs, Math.max(1, (int) Math.round(run.font().getSize() * zoom)));
                 StyleConstants.setBold(attrs, run.font().isBold());
                 StyleConstants.setItalic(attrs, run.font().isItalic());
                 StyleConstants.setForeground(attrs, run.color());
@@ -619,8 +624,11 @@ public class TextTool extends Tool {
         syncingFromSelection = true;
         try {
             if (uniform) {
+                int docSz = StyleConstants.getFontSize(attrs);
+                double zoom = ctx.canvasPanel().getZoom();
+                int baseSz = docSz > 0 ? Math.max(1, (int) Math.round(docSz / zoom)) : docSz;
                 bar.setTextFontFamily(StyleConstants.getFontFamily(attrs));
-                bar.setTextFontSize(StyleConstants.getFontSize(attrs));
+                bar.setTextFontSize(baseSz);
                 bar.setTextBold(StyleConstants.isBold(attrs));
                 bar.setTextItalic(StyleConstants.isItalic(attrs));
                 bar.setTextUnderline(StyleConstants.isUnderline(attrs));

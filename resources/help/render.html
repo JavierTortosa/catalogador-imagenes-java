@@ -170,10 +170,11 @@
         <tr><td colspan="2"><hr class="separator"></td></tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_70007 - establece_imagen.png"></td>
-            <td><strong>Asignar preview al archivo:</strong> Comportamiento dual según la pestaña activa:
+            <td><strong>Asignar preview al archivo:</strong> Asigna la imagen del preview al destino según la vista visible y el contexto:
                 <ul>
-                    <li><strong>Sin renderizar:</strong> Captura la orientación actual del modelo 3D, los ajustes de imagen y fondo, y re-renderiza el PNG con esos parámetros.</li>
-                    <li><strong>Con imagen:</strong> Copia la imagen actual del visor 2D a <code>outputDir/nombreBase.png</code> y la muestra en el grid de imágenes, dándole prioridad sobre las imágenes extraídas automáticamente.</li>
+                    <li><strong>Editor avanzado activo:</strong> Añade la imagen actual como capa nueva en el canvas. Si el visor muestra una imagen 2D (cargada o composición exportada) usa esa imagen; en modo 3D re-renderiza el STL con los ajustes actuales. Si el canvas está vacío se redimensiona al tamaño de la imagen.</li>
+                    <li><strong>Vista 2D visible:</strong> Copia la imagen actual del visor 2D a <code>outputDir/nombreBase.png</code> y la muestra en el grid de imágenes, dándole prioridad sobre las imágenes extraídas automáticamente.</li>
+                    <li><strong>Vista 3D visible:</strong> Captura la orientación actual del modelo 3D, los ajustes de imagen y fondo, y re-renderiza el PNG con esos parámetros.</li>
                 </ul>
             </td>
         </tr>

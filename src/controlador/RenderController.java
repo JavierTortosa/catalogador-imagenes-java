@@ -1527,12 +1527,15 @@ public class RenderController {
 
 
     /**
-     * Re-renderiza el STL actual con la orientación del preview 3D y los
-     * ajustes de brillo/contraste/AA/fondo. Sobrescribe el PNG en outputDir
-     * y actualiza la rejilla de thumbnails.
+     * Asigna la imagen del preview al destino según el contexto: si el editor
+     * avanzado está activo la añade como capa nueva; si el visor muestra una
+     * imagen 2D (imagen cargada o composición exportada al preview) la manda al
+     * grid; en otro caso re-renderiza el STL 3D y lo asigna al grid.
      */
     public void asignarPreviewAlArchivo() {
-        if (panel.isCandidateTabConImagen()) {
+        if (panel.isAdvanceEditActive()) {
+            agregarPreviewAlEditor();
+        } else if (panel.isShowing2DView()) {
             asignarImagenAlGrid();
         } else {
             asignarRenderAlGrid();
@@ -1572,11 +1575,38 @@ public class RenderController {
     private void asignarRenderAlGrid() {
         if (currentTriangles == null || currentPreviewPath == null) {
             JOptionPane.showMessageDialog(parentFrame,
-                    "No hay ning\u00FAn modelo cargado en el preview.\n"
+                    "No hay ningún modelo cargado en el preview.\n"
                     + "Haz clic en un thumbnail de la rejilla primero.",
                     "Asignar preview", JOptionPane.WARNING_MESSAGE);
             return;
         }
+
+        try {
+            BufferedImage img = renderizarPreview();
+            if (img == null) return;
+            ImageIO.write(img, "PNG", currentPreviewPath.toFile());
+            logger.info("Preview re-renderizado y guardado: {} ({}x{})",
+                    currentPreviewPath.getFileName(), img.getWidth(), img.getHeight());
+            putCachedTriangles(currentPreviewPath, currentTriangles);
+            thumbnailsAprobados.add(currentPreviewPath);
+            refreshThumbnails(currentPreviewPath);
+        } catch (IOException e) {
+            logger.error("Error al guardar PNG re-renderizado: {}", currentPreviewPath, e);
+            JOptionPane.showMessageDialog(parentFrame,
+                    "Error al guardar la imagen:\n" + e.getMessage(),
+                    "Asignar preview", JOptionPane.ERROR_MESSAGE);
+        }
+    } // --- Fin del metodo asignarRenderAlGrid ---
+
+
+    /**
+     * Renderiza el STL actual con la orientación y los ajustes de
+     * brillo/contraste/AA/fondo del panel de preview.
+     *
+     * @return la imagen renderizada, o null si no hay modelo cargado
+     */
+    private BufferedImage renderizarPreview() {
+        if (currentTriangles == null) return null;
 
         double rotX = panel.getPreview3DFX().getRotateXAngle();
         double rotY = panel.getPreview3DFX().getRotateYAngle();
@@ -1598,26 +1628,51 @@ public class RenderController {
             bgImageScale = panel.getBgImageScaleSlider().getValue() / 50.0;
         }
 
-        try {
-            BufferedImage img = renderer.renderizarConAjustes(currentTriangles,
-                    rotX, rotY, antiAlias, brightness, contrast,
-                    bgMode, solidColor, gradientStart, gradientEnd,
-                    bgImage, bgImageScale);
-            ImageIO.write(img, "PNG", currentPreviewPath.toFile());
-            logger.info("Preview re-renderizado y guardado: {} (rotX={}, rotY={}, AA={}, fondo={})",
-                    currentPreviewPath.getFileName(),
-                    String.format("%.1f", rotX), String.format("%.1f", rotY),
-                    antiAlias, bgMode);
-            putCachedTriangles(currentPreviewPath, currentTriangles);
-            thumbnailsAprobados.add(currentPreviewPath);
-            refreshThumbnails(currentPreviewPath);
-        } catch (IOException e) {
-            logger.error("Error al guardar PNG re-renderizado: {}", currentPreviewPath, e);
+        return renderer.renderizarConAjustes(currentTriangles,
+                rotX, rotY, antiAlias, brightness, contrast,
+                bgMode, solidColor, gradientStart, gradientEnd,
+                bgImage, bgImageScale);
+    } // --- Fin del metodo renderizarPreview ---
+
+
+    /**
+     * Añade la imagen del preview actual como capa nueva en el editor avanzado.
+     * Si el visor muestra una imagen 2D usa esa imagen; en modo 3D re-renderiza
+     * el STL con los ajustes actuales. Si el canvas está vacío se redimensiona
+     * al tamaño de la imagen.
+     */
+    private void agregarPreviewAlEditor() {
+        BufferedImage img = panel.isShowing2DView()
+                ? panel.getCurrentImage2D()
+                : renderizarPreview();
+        if (img == null) {
             JOptionPane.showMessageDialog(parentFrame,
-                    "Error al guardar la imagen:\n" + e.getMessage(),
-                    "Asignar preview", JOptionPane.ERROR_MESSAGE);
+                    "No hay imagen en el preview.\n"
+                    + "Carga una imagen o un modelo en la rejilla primero.",
+                    "Agregar al editor", JOptionPane.WARNING_MESSAGE);
+            return;
         }
-    } // --- Fin del metodo asignarRenderAlGrid ---
+
+        var aep = panel.getAdvanceEditPanel();
+        if (aep == null || aep.getCanvas() == null) return;
+        var cm = aep.getCanvas().getCanvasModel();
+        var lm = aep.getCanvas().getLayerModel();
+        if (cm == null || lm == null) return;
+
+        if (lm.size() == 0) {
+            cm.setSize(img.getWidth(), img.getHeight());
+        }
+
+        RenderCandidate selected = getSelectedCandidate();
+        String nombre = selected != null ? selected.nombreBase : "Preview";
+        modelo.editor.ImageLayer capa = new modelo.editor.ImageLayer(nombre, img,
+                new java.awt.Rectangle(0, 0, img.getWidth(), img.getHeight()));
+        lm.addLayer(capa);
+        lm.setActiveLayer(capa);
+        aep.getCanvas().repaint();
+        logger.info("[RenderController] Preview añadido al editor avanzado como capa: {} ({}x{})",
+                nombre, img.getWidth(), img.getHeight());
+    } // --- Fin del metodo agregarPreviewAlEditor ---
 
 
     // ========== Métodos de control de vista ==========
@@ -1904,35 +1959,11 @@ public class RenderController {
                     return;
                 }
 
-                double rotX = panel.getPreview3DFX().getRotateXAngle();
-                double rotY = panel.getPreview3DFX().getRotateYAngle();
-                int brightness = panel.getBrightnessSlider().getValue();
-                int contrast = panel.getContrastSlider().getValue();
-                boolean antiAlias = panel.getChkAntiAlias().isSelected();
-
-                String bgMode = panel.getSelectedBgMode();
-                Color solidColor = panel.getSolidBgColor();
-                Color gradientStart = panel.getGradientStartColor();
-                Color gradientEnd = panel.getGradientEndColor();
-                BufferedImage bgImage = null;
-                double bgImageScale = 1.0;
-                if ("image".equals(bgMode)) {
-                    String imgPath = panel.getBgImageField().getText();
-                    if (!imgPath.isEmpty()) {
-                        bgImage = loadBgImageAWT(Path.of(imgPath));
-                    }
-                    bgImageScale = panel.getBgImageScaleSlider().getValue() / 50.0;
-                }
-
-                BufferedImage img = renderer.renderizarConAjustes(currentTriangles,
-                        rotX, rotY, antiAlias, brightness, contrast,
-                        bgMode, solidColor, gradientStart, gradientEnd,
-                        bgImage, bgImageScale);
+                BufferedImage img = renderizarPreview();
+                if (img == null) return;
                 ImageIO.write(img, "PNG", destFile.toFile());
-                logger.info("Preview 3D descargado: {} (rotX={}, rotY={}, AA={}, fondo={})",
-                        destFile.getFileName(),
-                        String.format("%.1f", rotX), String.format("%.1f", rotY),
-                        antiAlias, bgMode);
+                logger.info("Preview 3D descargado: {} ({}x{})",
+                        destFile.getFileName(), img.getWidth(), img.getHeight());
             }
 
             JOptionPane.showMessageDialog(parentFrame,

@@ -1047,10 +1047,18 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
                 && preview3DFX.isShowing();
     }
 
+    public boolean isShowing2DView() {
+        return currentImage2D != null && imageDisplayPanel.isShowing();
+    }
+
     public void set2DImage(BufferedImage image) {
         this.currentImage2D = image;
         resetImageZoom();
         imageDisplayPanel.repaint();
+    }
+
+    public BufferedImage getCurrentImage2D() {
+        return currentImage2D;
     }
 
     public void clearViewer2D() {
