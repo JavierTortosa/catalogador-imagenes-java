@@ -38,21 +38,20 @@ import javax.swing.text.StyledDocument;
 import controlador.commands.AppActionCommands;
 import modelo.editor.Layer;
 import modelo.editor.TextLayer;
-import modelo.gizmo.TransformGizmo;
-import modelo.gizmo.TransformGizmo.Handle;
 import vista.panels.render.CanvasPanel;
 
 /**
- * Herramienta de texto con edici\u00F3n inline sobre el canvas.
+ * Herramienta de texto con edici\u00F3n inline sobre el canvas (Type Tool).
  * <p>
- * Arrastrar crea un rect\u00E1ngulo donde aparece un JTextPane para escribir.
- * Doble clic sobre una TextLayer existente permite re-editar el texto.
- * Las propiedades (fuente, tama\u00F1o, color, estilo) se leen del panel de
- * opciones y se aplican tanto al crear como al modificar.
+ * Un clic sobre una TextLayer existente entra directamente en edici\u00F3n
+ * inline (estilo Photoshop); arrastrar o hacer clic en vac\u00EDo crea un nuevo
+ * texto con un JTextPane para escribir. Las propiedades (fuente, tama\u00F1o,
+ * color, estilo) se leen del panel de opciones y se aplican tanto al crear como
+ * al modificar.
  * <p>
- * Cuando hay una TextLayer seleccionada, se dibuja el TransformGizmo alrededor
- * de sus bounds, permitiendo mover y redimensionar la capa sin cambiar de
- * herramienta.
+ * La selecci\u00F3n de capas est\u00E1 delegada en {@link LayerPicker}; para
+ * mover o redimensionar un texto se usa la herramienta de edici\u00F3n
+ * (EditTool).
  */
 public class TextTool extends Tool {
 
@@ -66,10 +65,8 @@ public class TextTool extends Tool {
     private TextLayer editingLayer;   // non-null durante edici\u00F3n inline
     private Rectangle creationRect;   // rect\u00E1ngulo en coords canvas para la nueva capa
 
-    // --- gizmo (transformaci\u00F3n) ---
-    private TextLayer selectedLayer;   // capa que muestra el gizmo
-    private boolean gizmoDragActive;
-    private Point gizmoDragStart;
+    // --- capa de texto activa (se sincroniza con LayerModel.activeIndex) ---
+    private TextLayer selectedLayer;
 
     // --- auto-size (single click) ---
     private boolean autoSize;
@@ -90,6 +87,9 @@ public class TextTool extends Tool {
     private int alignment = SwingConstants.LEFT;
     private boolean vertical;
 
+    /** Atributo de párrafo que marca la alineación justificada en el JTextPane */
+    private static final String ATTR_JUSTIFY = "editoravanzado.texto.justify";
+
     private static final float DASH[] = { 4f, 4f };
 
 
@@ -105,8 +105,6 @@ public class TextTool extends Tool {
         dragStart = null;
         dragRect = null;
         dragging = false;
-        gizmoDragActive = false;
-        gizmoDragStart = null;
         autoSize = false;
         autoSizeClickPoint = null;
 
@@ -119,6 +117,9 @@ public class TextTool extends Tool {
     @Override
     public void onDeactivate() {
         returnToEditOnEmptyClick = false;
+        if (inlineField != null) {
+            commitInlineText();
+        }
         clearSelection();
     } // --- Fin del metodo onDeactivate ---
 
@@ -272,37 +273,17 @@ public class TextTool extends Tool {
 
         Point p = e.getPoint();
 
-        // 1 — Gizmo sobre la capa seleccionada (arrastrar tirador)
-        if (selectedLayer != null && selectedLayer.getBounds() != null
-                && selectedLayer.getBounds().contains(p)) {
-
-            // 1a — Doble clic → editar inline
-            if (e.getClickCount() >= 2) {
-                beginInlineEdit(selectedLayer);
-                return;
-            }
-
-            // 1b — Gizmo hit test
-            Handle h = ctx.gizmo().hitTest(p, selectedLayer.getBounds());
-            if (h != Handle.NONE && h != Handle.ROTATE) {
-                ctx.gizmo().startDrag(h, new Rectangle(selectedLayer.getBounds()), null);
-                gizmoDragActive = true;
-                gizmoDragStart = p;
-                return;
-            }
-
-            // 1c — Clic en el cuerpo (Handle.MOVE se captura arriba); no hacer nada
-            return;
-        }
-
-        // 2 — Clic en una TextLayer diferente → seleccionarla
+        // 1 — Clic sobre una TextLayer → edición inline (tipo Photoshop: un clic edita)
         TextLayer clicked = findTextLayerAt(p);
         if (clicked != null) {
-            selectLayer(clicked);
+            if (clicked != selectedLayer) {
+                selectLayer(clicked);
+            }
+            beginInlineEdit(clicked);
             return;
         }
 
-        // 3 — Clic en vacío: volver a EditTool si vine desde allí, o crear nuevo texto
+        // 2 — Clic en vacío: volver a EditTool si vine desde allí, o crear nuevo texto
         if (returnToEditOnEmptyClick) {
             returnToEditOnEmptyClick = false;
             clearSelection();
@@ -316,20 +297,6 @@ public class TextTool extends Tool {
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        // Gizmo drag (transformar capa seleccionada)
-        if (gizmoDragActive && selectedLayer != null && gizmoDragStart != null) {
-            int dx = e.getX() - gizmoDragStart.x;
-            int dy = e.getY() - gizmoDragStart.y;
-            Rectangle newBounds = ctx.gizmo().drag(dx, dy);
-            if (newBounds != null) {
-                selectedLayer.setBounds(newBounds);
-                ctx.canvasPanel().repaint();
-            }
-            // No actualizamos gizmoDragStart para que dx/dy sean acumulativos
-            // desde el punto de inicio del drag (as\u00ED lo maneja drag())
-            return;
-        }
-
         // Drag para crear nuevo texto
         if (dragStart == null) return;
         if (!dragging) {
@@ -346,16 +313,6 @@ public class TextTool extends Tool {
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        // Fin de gizmo drag
-        if (gizmoDragActive) {
-            ctx.gizmo().endDrag();
-            gizmoDragActive = false;
-            gizmoDragStart = null;
-            // La capa se actualiz\u00F3 en mouseDragged
-            updateActiveLayerInModel();
-            return;
-        }
-
         // Creación de nuevo texto
         if (dragStart == null) return;
 
@@ -393,26 +350,12 @@ public class TextTool extends Tool {
 
     @Override
     public void mouseMoved(MouseEvent e) {
-        // Cambiar cursor seg\u00FAn el tirador del gizmo
-        if (selectedLayer != null && selectedLayer.getBounds() != null
-                && selectedLayer.getBounds().contains(e.getPoint())) {
-            Handle h = ctx.gizmo().hitTest(e.getPoint(), selectedLayer.getBounds());
-            if (h != Handle.NONE) {
-                ctx.canvasPanel().setCursor(ctx.gizmo().getCursor(h));
-                return;
-            }
-        }
         ctx.canvasPanel().setCursor(getCursor());
     } // --- Fin del metodo mouseMoved ---
 
 
     @Override
     public void paintOverlay(Graphics2D g2) {
-        // Gizmo alrededor de la capa seleccionada (solo si no hay edici\u00F3n inline activa)
-        if (inlineField == null && selectedLayer != null && selectedLayer.getBounds() != null) {
-            ctx.gizmo().draw(g2, selectedLayer.getBounds());
-        }
-
         // Rect\u00E1ngulo de arrastre para nuevo texto
         if (dragging && dragRect != null) {
             Stroke orig = g2.getStroke();
@@ -435,7 +378,7 @@ public class TextTool extends Tool {
 
 
     private void selectLayer(TextLayer layer) {
-        ctx.layerModel().setActiveLayer(layer);
+        picker().activateLayer(layer);
         syncSettingsFromLayer(layer);
         syncToComponentBar();
         removeInlineField();
@@ -455,30 +398,17 @@ public class TextTool extends Tool {
     } // --- Fin del metodo clearSelection ---
 
 
-    /**
-     * Sincroniza el selectedLayer como capa activa del modelo por si el gizmo
-     * cambi\u00F3 sus bounds y la vista necesita conocer la selecci\u00F3n actual.
-     */
-    private void updateActiveLayerInModel() {
-        if (selectedLayer != null) {
-            ctx.layerModel().setActiveLayer(selectedLayer);
-        }
-    } // --- Fin del metodo updateActiveLayerInModel ---
+    private LayerPicker picker() {
+        return ctx.layerPicker();
+    } // --- Fin del metodo picker ---
 
 
     // ==================== Buscar TextLayer bajo el cursor ====================
 
 
     private TextLayer findTextLayerAt(Point p) {
-        java.util.List<Layer> layers = ctx.layerModel().getLayers();
-        for (int i = layers.size() - 1; i >= 0; i--) {
-            Layer l = layers.get(i);
-            if (l instanceof TextLayer tl && l.isVisible() && l.getBounds() != null
-                    && l.getBounds().contains(p)) {
-                return tl;
-            }
-        }
-        return null;
+        Layer l = picker().findLayerAt(p, lyr -> lyr instanceof TextLayer);
+        return l instanceof TextLayer tl ? tl : null;
     } // --- Fin del metodo findTextLayerAt ---
 
 
@@ -536,6 +466,7 @@ public class TextTool extends Tool {
 
         SimpleAttributeSet alignAttrs = new SimpleAttributeSet();
         StyleConstants.setAlignment(alignAttrs, toStyleAlignment(alignment));
+        alignAttrs.addAttribute(ATTR_JUSTIFY, alignment == TextLayer.ALIGN_JUSTIFY);
         pane.setParagraphAttributes(alignAttrs, true);
 
         pane.getInputMap().put(KeyStroke.getKeyStroke("control ENTER"), "commitInline");
@@ -696,14 +627,19 @@ public class TextTool extends Tool {
                 bar.setTextStrikethrough(StyleConstants.isStrikeThrough(attrs));
             }
             AttributeSet pAttrs = doc.getParagraphElement(startPos).getAttributes();
-            Integer pAlign = (Integer) pAttrs.getAttribute(javax.swing.text.StyleConstants.Alignment);
-            if (pAlign != null) {
-                int mapped = switch (pAlign) {
-                    case javax.swing.text.StyleConstants.ALIGN_CENTER -> TextLayer.ALIGN_CENTER;
-                    case javax.swing.text.StyleConstants.ALIGN_RIGHT -> TextLayer.ALIGN_RIGHT;
-                    default -> TextLayer.ALIGN_LEFT;
-                };
-                bar.setTextAlignment(mapped);
+            if (Boolean.TRUE.equals(pAttrs.getAttribute(ATTR_JUSTIFY))) {
+                bar.setTextAlignment(TextLayer.ALIGN_JUSTIFY);
+            } else {
+                Integer pAlign = (Integer) pAttrs.getAttribute(javax.swing.text.StyleConstants.Alignment);
+                if (pAlign != null) {
+                    int mapped = switch (pAlign) {
+                        case javax.swing.text.StyleConstants.ALIGN_CENTER -> TextLayer.ALIGN_CENTER;
+                        case javax.swing.text.StyleConstants.ALIGN_RIGHT -> TextLayer.ALIGN_RIGHT;
+                        case javax.swing.text.StyleConstants.ALIGN_JUSTIFIED -> TextLayer.ALIGN_JUSTIFY;
+                        default -> TextLayer.ALIGN_LEFT;
+                    };
+                    bar.setTextAlignment(mapped);
+                }
             }
         } finally {
             syncingFromSelection = false;
@@ -758,6 +694,7 @@ public class TextTool extends Tool {
             editingLayer.setUnderline(underline);
             editingLayer.setStrikethrough(strikethrough);
             editingLayer.setFlowColumns(flowColumns);
+            applyFixedBoxIfNeeded(editingLayer);
             selectedLayer = editingLayer;
         } else if (autoSize && autoSizeClickPoint != null) {
             // Auto-size (single click): dimensiones se ajustan al texto
@@ -774,6 +711,7 @@ public class TextTool extends Tool {
             layer.setFlowColumns(flowColumns);
             layer.setAutoSize(true);
             recalcAutoBounds(layer);
+            applyFixedBoxIfNeeded(layer);
             ctx.layerModel().addLayer(layer);
             ctx.layerModel().setActiveLayer(layer);
             selectedLayer = layer;
@@ -806,6 +744,23 @@ public class TextTool extends Tool {
             switchToEditTool();
         }
     } // --- Fin del metodo commitInlineText ---
+
+
+    /**
+     * Convierte una capa auto-size a caja fija cuando hay justificado o flujo en
+     * columnas, para que el efecto sea visible aunque el texto se creara con un
+     * solo clic. Si la capa no es auto-size no hace nada.
+     */
+    private void applyFixedBoxIfNeeded(TextLayer layer) {
+        if (layer == null || !layer.isAutoSize()) return;
+        if (alignment != TextLayer.ALIGN_JUSTIFY && !flowColumns) return;
+        layer.setAutoSize(false);
+        Rectangle b = layer.getBounds();
+        int w = alignment == TextLayer.ALIGN_JUSTIFY
+                ? Math.max(b.width * 3 / 2, 200)
+                : Math.max(b.width * 2, 240);
+        layer.setBounds(new Rectangle(b.x, b.y, w, b.height));
+    } // --- Fin del metodo applyFixedBoxIfNeeded ---
 
 
     /**
@@ -881,10 +836,11 @@ public class TextTool extends Tool {
 
     private static int toStyleAlignment(int swingAlign) {
         return switch (swingAlign) {
-            case SwingConstants.LEFT   -> StyleConstants.ALIGN_LEFT;
-            case SwingConstants.CENTER -> StyleConstants.ALIGN_CENTER;
-            case SwingConstants.RIGHT  -> StyleConstants.ALIGN_RIGHT;
-            default                    -> StyleConstants.ALIGN_LEFT;
+            case SwingConstants.LEFT      -> StyleConstants.ALIGN_LEFT;
+            case SwingConstants.CENTER    -> StyleConstants.ALIGN_CENTER;
+            case SwingConstants.RIGHT     -> StyleConstants.ALIGN_RIGHT;
+            case TextLayer.ALIGN_JUSTIFY  -> StyleConstants.ALIGN_JUSTIFIED;
+            default                       -> StyleConstants.ALIGN_LEFT;
         };
     } // --- Fin del metodo toStyleAlignment ---
 
@@ -949,8 +905,9 @@ public class TextTool extends Tool {
                 pane.setCharacterAttributes(charAttrs, true);
             }
 
-            SimpleAttributeSet alignAttrs = new SimpleAttributeSet();
+            SimpleAttributeSet alignAttrs = new SimpleAttributeSet(pane.getParagraphAttributes());
             StyleConstants.setAlignment(alignAttrs, toStyleAlignment(alignment));
+            alignAttrs.addAttribute(ATTR_JUSTIFY, alignment == TextLayer.ALIGN_JUSTIFY);
             pane.setParagraphAttributes(alignAttrs, true);
         }
     } // --- Fin del metodo syncInlineStyle ---

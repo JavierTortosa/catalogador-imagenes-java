@@ -1,10 +1,12 @@
 package vista.panels.render;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Stroke;
 
 import javax.swing.JPanel;
 
@@ -150,6 +152,19 @@ public class CanvasPanel extends JPanel {
             for (Layer layer : layerModel.getLayers()) {
                 if (!layer.isVisible() || layer.getOpacity() < 0.01f) continue;
                 layer.paint(g2);
+            }
+        }
+
+        // Resaltar la capa activa (guía visual de dónde se va a pintar/editar)
+        if (layerModel != null && layerModel.getActiveLayer() != null) {
+            Rectangle b = layerModel.getActiveLayer().getBounds();
+            if (b != null) {
+                Stroke orig = g2.getStroke();
+                g2.setStroke(new BasicStroke(1f, BasicStroke.CAP_BUTT,
+                        BasicStroke.JOIN_BEVEL, 0, new float[]{4f, 4f}, 0));
+                g2.setColor(new Color(255, 140, 0, 160));
+                g2.draw(b);
+                g2.setStroke(orig);
             }
         }
 

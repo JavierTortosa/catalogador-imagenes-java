@@ -15,12 +15,10 @@ import modelo.editor.ImageLayer;
  * Herramienta bote de pintura.
  * <p>
  * Rellena píxeles de color similar con un color sólido, usando BFS con
- * tolerancia sobre la imagen de la capa activa.
+ * tolerancia sobre la imagen de la capa activa. Lee color, tolerancia y modo
+ * contiguo desde la barra de opciones (Parte B).
  */
 public class PaintBucketTool extends Tool {
-
-    private static final int DEFAULT_TOLERANCE = 32;
-    private static final Color DEFAULT_COLOR = Color.RED;
 
     @Override
     public String getCommandKey() {
@@ -38,8 +36,9 @@ public class PaintBucketTool extends Tool {
         int my = e.getY() - layer.getBounds().y;
         if (mx < 0 || my < 0 || mx >= img.getWidth() || my >= img.getHeight()) return;
 
-        int tolerance = DEFAULT_TOLERANCE;
-        Color fillColor = DEFAULT_COLOR;
+        int tolerance = ctx.componentBar().getPaintBucketTolerance();
+        boolean contiguous = ctx.componentBar().isPaintBucketContiguous();
+        Color fillColor = ctx.componentBar().getPaintBucketColor();
         int fillRgb = (fillColor.getRGB() & 0x00FFFFFF) | (0xFF000000);
         int targetRgb = img.getRGB(mx, my) & 0x00FFFFFF;
 
@@ -48,10 +47,31 @@ public class PaintBucketTool extends Tool {
 
         int w = img.getWidth();
         int h = img.getHeight();
+
+        if (contiguous) {
+            floodFill(img, w, h, mx, my, targetRgb, tolerance, fillRgb);
+        } else {
+            fillAllMatching(img, w, h, targetRgb, tolerance, fillRgb);
+        }
+
+        // Respetar el checkbox de auto-selección de capa de la barra
+        if (ctx.componentBar().isAutoSelect()) {
+            ctx.layerModel().setActiveLayer(layer);
+            ctx.canvasPanel().repaint();
+        }
+    } // --- Fin del metodo mousePressed ---
+
+    private ImageLayer getActiveLayer() {
+        if (ctx.layerModel() == null) return null;
+        return ctx.layerModel().getActiveLayer() instanceof ImageLayer il ? il : null;
+    } // --- Fin del metodo getActiveLayer ---
+
+    private void floodFill(BufferedImage img, int w, int h,
+            int sx, int sy, int targetRgb, int tolerance, int fillRgb) {
         BitSet visited = new BitSet(w * h);
         Deque<Point> queue = new ArrayDeque<>();
-        queue.add(new Point(mx, my));
-        visited.set(my * w + mx);
+        queue.add(new Point(sx, sy));
+        visited.set(sy * w + sx);
 
         while (!queue.isEmpty()) {
             Point p = queue.poll();
@@ -62,12 +82,19 @@ public class PaintBucketTool extends Tool {
             checkNeighbor(img, w, h, p.x, p.y - 1, targetRgb, tolerance, visited, queue);
             checkNeighbor(img, w, h, p.x, p.y + 1, targetRgb, tolerance, visited, queue);
         }
-    } // --- Fin del metodo mousePressed ---
+    } // --- Fin del metodo floodFill ---
 
-    private ImageLayer getActiveLayer() {
-        if (ctx.layerModel() == null) return null;
-        return ctx.layerModel().getActiveLayer() instanceof ImageLayer il ? il : null;
-    } // --- Fin del metodo getActiveLayer ---
+    private void fillAllMatching(BufferedImage img, int w, int h,
+            int targetRgb, int tolerance, int fillRgb) {
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int pixel = img.getRGB(x, y) & 0x00FFFFFF;
+                if (colorDistance(pixel, targetRgb) <= tolerance) {
+                    img.setRGB(x, y, fillRgb);
+                }
+            }
+        }
+    } // --- Fin del metodo fillAllMatching ---
 
     private void checkNeighbor(BufferedImage img, int w, int h,
             int x, int y, int targetRgb, int tolerance,
@@ -78,12 +105,16 @@ public class PaintBucketTool extends Tool {
         visited.set(idx);
 
         int pixel = img.getRGB(x, y) & 0x00FFFFFF;
-        int dr = Math.abs(((pixel >> 16) & 0xFF) - ((targetRgb >> 16) & 0xFF));
-        int dg = Math.abs(((pixel >> 8) & 0xFF) - ((targetRgb >> 8) & 0xFF));
-        int db = Math.abs((pixel & 0xFF) - (targetRgb & 0xFF));
-        if (dr + dg + db <= tolerance) {
+        if (colorDistance(pixel, targetRgb) <= tolerance) {
             queue.add(new Point(x, y));
         }
     } // --- Fin del metodo checkNeighbor ---
+
+    private static int colorDistance(int a, int b) {
+        int dr = Math.abs(((a >> 16) & 0xFF) - ((b >> 16) & 0xFF));
+        int dg = Math.abs(((a >> 8) & 0xFF) - ((b >> 8) & 0xFF));
+        int db = Math.abs((a & 0xFF) - (b & 0xFF));
+        return dr + dg + db;
+    } // --- Fin del metodo colorDistance ---
 
 } // --- Fin de la clase PaintBucketTool ---

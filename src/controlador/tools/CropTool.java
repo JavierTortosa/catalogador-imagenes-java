@@ -17,8 +17,6 @@ import modelo.editor.ImageLayer;
  */
 public class CropTool extends Tool {
 
-    private boolean keepOriginal;
-
     @Override
     public String getCommandKey() {
         return AppActionCommands.CMD_ADVANCED_EDITOR_RECORTAR;
@@ -29,6 +27,9 @@ public class CropTool extends Tool {
         if (ctx.selectionModel() == null || !ctx.selectionModel().isActive()) return;
         ImageLayer layer = getActiveLayer();
         if (layer == null) return;
+
+        boolean keepOriginal = ctx.componentBar().isCropKeepOriginal();
+        boolean eliminar = "eliminar".equals(ctx.componentBar().getCropMode());
 
         Rectangle sel = ctx.selectionModel().getBounds();
         BufferedImage img = layer.getImage();
@@ -49,24 +50,32 @@ public class CropTool extends Tool {
         int ih = Math.min(rh, img.getHeight() - iy);
         if (iw <= 0 || ih <= 0) return;
 
-        BufferedImage sub = img.getSubimage(ix, iy, iw, ih);
-        BufferedImage copy = new BufferedImage(iw, ih, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = copy.createGraphics();
-        g2.drawImage(sub, 0, 0, null);
-        g2.dispose();
-
-        // Create new layer from selection
-        Rectangle newBounds = new Rectangle(lx + ix, ly + iy, iw, ih);
-        ImageLayer newLayer = new ImageLayer(
-                layer.getName() + " (recorte)", copy, newBounds);
-        ctx.layerModel().addLayer(newLayer);
-
-        // Clear original selection if not keeping original
-        if (!keepOriginal) {
+        if (eliminar) {
+            // Modo eliminar: borra el contenido seleccionado (transparencia)
             Graphics2D clearG = img.createGraphics();
             clearG.setComposite(java.awt.AlphaComposite.Clear);
             clearG.fillRect(ix, iy, iw, ih);
             clearG.dispose();
+        } else {
+            // Modo nueva capa: extrae el contenido a una capa nueva
+            BufferedImage sub = img.getSubimage(ix, iy, iw, ih);
+            BufferedImage copy = new BufferedImage(iw, ih, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2 = copy.createGraphics();
+            g2.drawImage(sub, 0, 0, null);
+            g2.dispose();
+
+            Rectangle newBounds = new Rectangle(lx + ix, ly + iy, iw, ih);
+            ImageLayer newLayer = new ImageLayer(
+                    layer.getName() + " (recorte)", copy, newBounds);
+            ctx.layerModel().addLayer(newLayer);
+
+            // Clear original selection if not keeping original
+            if (!keepOriginal) {
+                Graphics2D clearG = img.createGraphics();
+                clearG.setComposite(java.awt.AlphaComposite.Clear);
+                clearG.fillRect(ix, iy, iw, ih);
+                clearG.dispose();
+            }
         }
 
         ctx.selectionModel().clear();

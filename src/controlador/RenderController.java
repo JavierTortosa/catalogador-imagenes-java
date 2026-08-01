@@ -1692,8 +1692,6 @@ public class RenderController {
                 var lm = aep.getCanvas().getLayerModel();
                 var sm = aep.getCanvas().getSelectionModel();
                 var gizmo = new modelo.gizmo.TransformGizmo();
-                var ctx = new controlador.tools.ToolContext(
-                        cm, lm, sm, gizmo, aep.getCanvas(), aep.getComponentBar());
                 canvasController = new controlador.tools.CanvasController(
                         aep.getCanvas(), aep.getComponentBar(), cm, lm, sm, gizmo);
                 canvasController.registerTool(new controlador.tools.TransformTool());
@@ -1706,7 +1704,14 @@ public class RenderController {
                 canvasController.registerTool(new controlador.tools.TextTool());
                 canvasController.registerTool(new controlador.tools.ShapeTool());
                 canvasController.registerTool(new controlador.tools.GradientTool());
+                canvasController.registerTool(new controlador.tools.ZoomTool());
                 canvasController.registerTool(new controlador.tools.EditTool());
+                var textTool = (controlador.tools.TextTool) canvasController.getTool(
+                        AppActionCommands.CMD_ADVANCED_EDITOR_TEXTO);
+                canvasController.getLayerEditorRegistry()
+                        .register(new controlador.tools.editors.TextLayerEditor(textTool));
+                canvasController.getLayerEditorRegistry()
+                        .register(new controlador.tools.editors.ShapeLayerEditor());
                 aep.setCanvasController(canvasController);
                 aep.getCanvas().setCanvasController(canvasController);
                 canvasController.setActiveTool(AppActionCommands.CMD_ADVANCED_EDITOR_EDICION);

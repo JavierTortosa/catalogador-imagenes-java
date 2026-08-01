@@ -18,7 +18,7 @@ public class ZoomTool extends Tool {
 
     @Override
     public String getCommandKey() {
-        return controlador.commands.AppActionCommands.CMD_ADVANCED_EDITOR_EDICION;
+        return AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM;
     } // --- Fin del metodo getCommandKey ---
 
     @Override
@@ -37,8 +37,14 @@ public class ZoomTool extends Tool {
         double newZoom = Math.max(0.1, Math.min(10.0, oldZoom * factor));
         double ox = cp.getOffsetX();
         double oy = cp.getOffsetY();
-        double newOx = mx - (mx - ox) * (newZoom / oldZoom);
-        double newOy = my - (my - oy) * (newZoom / oldZoom);
+        double anchorX = mx;
+        double anchorY = my;
+        if ("centro".equals(ctx.componentBar().getZoomMode())) {
+            anchorX = cp.getWidth() / 2.0;
+            anchorY = cp.getHeight() / 2.0;
+        }
+        double newOx = anchorX - (anchorX - ox) * (newZoom / oldZoom);
+        double newOy = anchorY - (anchorY - oy) * (newZoom / oldZoom);
         cp.setZoom(newZoom);
         cp.setPan(newOx, newOy);
     } // --- Fin del metodo zoomAroundPoint ---

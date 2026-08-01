@@ -32,6 +32,8 @@ public class CanvasController {
     private Tool activeTool;
     private final CanvasPanel canvasPanel;
     private final EditorComponentBar componentBar;
+    private final LayerPicker layerPicker;
+    private final controlador.tools.editors.LayerEditorRegistry layerEditorRegistry;
     private ToolContext sharedContext;
 
     /**
@@ -49,7 +51,12 @@ public class CanvasController {
         this.canvasPanel = Objects.requireNonNull(canvasPanel);
         this.componentBar = Objects.requireNonNull(componentBar);
         this.sharedContext = new ToolContext(canvasModel, layerModel,
-                selectionModel, gizmo, canvasPanel, componentBar);
+                selectionModel, gizmo, canvasPanel, componentBar, null, null);
+        this.layerPicker = new LayerPicker(sharedContext);
+        this.layerEditorRegistry = new controlador.tools.editors.LayerEditorRegistry();
+        this.sharedContext = new ToolContext(canvasModel, layerModel,
+                selectionModel, gizmo, canvasPanel, componentBar,
+                layerPicker, layerEditorRegistry);
 
         installListeners();
     } // --- Fin del constructor CanvasController ---
@@ -102,11 +109,20 @@ public class CanvasController {
     public void setContext(CanvasModel canvasModel, LayerModel layerModel,
             SelectionModel selectionModel, TransformGizmo gizmo) {
         this.sharedContext = new ToolContext(canvasModel, layerModel,
-                selectionModel, gizmo, canvasPanel, componentBar);
+                selectionModel, gizmo, canvasPanel, componentBar,
+                layerPicker, layerEditorRegistry);
+        layerPicker.setContext(sharedContext);
         for (Tool tool : toolMap.values()) {
             tool.setContext(sharedContext);
         }
     } // --- Fin del metodo setContext ---
+
+    /**
+     * @return el registro de editores de capa (para registrar adapters por tipo)
+     */
+    public controlador.tools.editors.LayerEditorRegistry getLayerEditorRegistry() {
+        return layerEditorRegistry;
+    } // --- Fin del metodo getLayerEditorRegistry ---
 
 
     /**

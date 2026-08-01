@@ -277,6 +277,7 @@ public interface AppActionCommands {
     public static final String CMD_ADVANCED_EDITOR_DEGRADADO          = "cmd.advanced.editor.degradado";
     public static final String CMD_ADVANCED_EDITOR_TEXTO              = "cmd.advanced.editor.texto";
     public static final String CMD_ADVANCED_EDITOR_FORMAS             = "cmd.advanced.editor.formas";
+    public static final String CMD_ADVANCED_EDITOR_ZOOM                = "cmd.advanced.editor.zoom";
     public static final String CMD_ADVANCED_EDITOR_PANTALLA_COMPLETA = "cmd.advanced.editor.pantalla_completa";
     public static final String CMD_ADVANCED_EDITOR_PAGE              = "cmd.advanced.editor.page";
 

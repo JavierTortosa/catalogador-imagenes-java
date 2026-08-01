@@ -46,7 +46,11 @@
     <table class="controls-table">
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_80000-edicion.png"></td>
-            <td><strong>Edición:</strong> Herramienta por defecto. Navegación básica del lienzo.</td>
+            <td><strong>Edición:</strong> Herramienta por defecto. Selecciona, mueve y transforma
+                capas. 1 clic sobre una capa la activa (si la auto-selección está activa), 1 clic
+                en vacío deselecciona, y el arrastre mueve la capa activa. Si el checkbox
+                "Tiradores" está activo se muestra el gizmo para redimensionar.
+                Ver <a href="#edicion">sección Edición</a>.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_80001-transform.png"></td>
@@ -122,7 +126,8 @@
     <h3>Parte B — Paneles por Herramienta</h3>
     <table class="help-table">
         <tr><th>Herramienta</th><th>Opciones</th></tr>
-        <tr><td>Edición</td><td>Sin opciones (panel vacío).</td></tr>
+        <tr><td>Edición</td><td>Checkboxes "Auto-selección" (activar la capa bajo el cursor),
+            "Tiradores" (mostrar el gizmo) y "Mantener proporción".</td></tr>
         <tr><td>Transformar</td><td>Botones de sub-herramienta (mover, escalar, rotar) + checkbox "Mantener proporción".</td></tr>
         <tr><td>Selección (marco/capa)</td><td>Deslizador de desvanecido (feather, 0-50 px) con indicador numérico.</td></tr>
         <tr><td>Varita mágica</td><td>Tolerancia (0-255) y checkbox "Contiguo" (solo áreas conectadas).</td></tr>
@@ -153,11 +158,13 @@
             <code>JTextPane</code>, con el mismo soporte de formato rico.</li>
         <li><strong>Enter</strong> o <strong>Ctrl+Enter</strong> → confirma el texto y crea la
             <code>TextLayer</code> con el nombre = primeros 30 caracteres del contenido.</li>
-        <li><strong>Doble clic</strong> sobre una <code>TextLayer</code> existente → re-edita el
-            texto inline, restaurando el formato rico previo (<code>TextRun</code>) en el
-            <code>JTextPane</code>.</li>
+        <li><strong>Un clic</strong> sobre una <code>TextLayer</code> existente → re-edita el
+            texto inline directamente (tipo Photoshop), restaurando el formato rico previo
+            (<code>TextRun</code>) en el <code>JTextPane</code>.</li>
         <li><strong>Focus lost</strong> → también confirma automáticamente (excepto si el foco va
             a un control de la barra de opciones).</li>
+        <li><strong>Cambiar de herramienta</strong> durante la edición inline → confirma el texto
+            automáticamente (la capa se crea o actualiza antes de desactivar la herramienta).</li>
     </ul>
 
     <h3>Formato por Carácter</h3>
@@ -300,19 +307,28 @@
         comportan como si fueran el mismo conjunto de controles.
     </p>
 
-    <h3>Gizmo en TextTool</h3>
+    <h2 id="edicion">Herramienta Edición (atajos)</h2>
     <p>
-        Cuando una <code>TextLayer</code> está seleccionada, la herramienta de texto muestra
-        el <strong>TransformGizmo</strong> alrededor de sus bounds (igual que la herramienta
-        Transformar). Esto permite:
+        La herramienta <strong>Edición</strong> es la herramienta universal de selección y
+        manipulación. Además de la navegación básica, ofrece los siguientes comportamientos:
     </p>
     <ul>
-        <li><strong>Mover</strong> la capa arrastrando el cuerpo.</li>
-        <li><strong>Redimensionar</strong> arrastrando los tiradores de esquina o punto medio.</li>
-        <li>El cursor cambia automáticamente según el tirador (<code>NW_RESIZE</code>,
-            <code>E_RESIZE</code>, <code>MOVE</code>, etc.).</li>
+        <li><strong>1 clic</strong> sobre una capa → la activa (si la auto-selección está activa).
+            Un clic en vacío deselecciona.</li>
+        <li><strong>Arrastre</strong> → mueve la capa activa. El cursor cambia a modo mover sobre
+            su área.</li>
+        <li><strong>Alt+arrastre</strong> → duplica la capa activa y mueve la copia en el mismo
+            gesto.</li>
+        <li><strong>Ctrl+clic</strong> sobre una capa → la activa temporalmente (sin cambiar la
+            selección permanente); al soltar, se restaura la capa activa previa.</li>
+        <li><strong>Flechas del teclado</strong> → mueven la capa activa 1 px (Shift = 10 px).</li>
+        <li><strong>Doble clic</strong> sobre una <code>TextLayer</code> o una capa de forma →
+            edita su contenido (atajo). Abre la edición inline de texto o el panel de formas,
+            según el tipo de capa.</li>
+        <li><strong>Tiradores (gizmo):</strong> si el checkbox "Tiradores" está activo, se dibuja
+            el <code>TransformGizmo</code> alrededor de la capa activa, permitiendo
+            redimensionarla arrastrando sus manejadores.</li>
     </ul>
-    <p>El gizmo se oculta durante la edición inline (doble clic) y reaparece al confirmar.</p>
 
     <h3>Sincronización Bidireccional</h3>
     <ul>
@@ -329,7 +345,8 @@
     <p>
         El <strong>TransformGizmo</strong> es un conjunto de tiradores visuales que se dibujan
         alrededor del rectángulo de una capa. Está disponible en la herramienta Transformar
-        (para cualquier capa) y en la herramienta Texto (para capas de texto).
+        (para cualquier capa) y en la herramienta Edición cuando el checkbox "Tiradores" está
+        activo.
     </p>
     <p>Sus componentes son:</p>
     <ul>

@@ -1,6 +1,7 @@
 package modelo.editor;
 
 import java.awt.AlphaComposite;
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -22,6 +23,14 @@ public class ImageLayer implements Layer {
     private boolean locked;
     private float opacity;
     private LayerType type;
+
+    // Metadatos de forma (solo para capas LayerType.SHAPE, null/0 en el resto)
+    private String shapeType;
+    private Color shapeFill;
+    private Color shapeStroke;
+    private float shapeStrokeWidth;
+    private int shapeRenderW;
+    private int shapeRenderH;
 
     public ImageLayer(String name, BufferedImage image, Rectangle bounds) {
         this.id = UUID.randomUUID().toString();
@@ -94,6 +103,54 @@ public class ImageLayer implements Layer {
         this.type = type;
     } // --- Fin del metodo setType ---
 
+    public String getShapeType() {
+        return shapeType;
+    } // --- Fin del metodo getShapeType ---
+
+    public void setShapeType(String shapeType) {
+        this.shapeType = shapeType;
+    } // --- Fin del metodo setShapeType ---
+
+    public Color getShapeFill() {
+        return shapeFill;
+    } // --- Fin del metodo getShapeFill ---
+
+    public void setShapeFill(Color shapeFill) {
+        this.shapeFill = shapeFill;
+    } // --- Fin del metodo setShapeFill ---
+
+    public Color getShapeStroke() {
+        return shapeStroke;
+    } // --- Fin del metodo getShapeStroke ---
+
+    public void setShapeStroke(Color shapeStroke) {
+        this.shapeStroke = shapeStroke;
+    } // --- Fin del metodo setShapeStroke ---
+
+    public float getShapeStrokeWidth() {
+        return shapeStrokeWidth;
+    } // --- Fin del metodo getShapeStrokeWidth ---
+
+    public void setShapeStrokeWidth(float shapeStrokeWidth) {
+        this.shapeStrokeWidth = shapeStrokeWidth;
+    } // --- Fin del metodo setShapeStrokeWidth ---
+
+    public int getShapeRenderW() {
+        return shapeRenderW;
+    } // --- Fin del metodo getShapeRenderW ---
+
+    public void setShapeRenderW(int shapeRenderW) {
+        this.shapeRenderW = shapeRenderW;
+    } // --- Fin del metodo setShapeRenderW ---
+
+    public int getShapeRenderH() {
+        return shapeRenderH;
+    } // --- Fin del metodo getShapeRenderH ---
+
+    public void setShapeRenderH(int shapeRenderH) {
+        this.shapeRenderH = shapeRenderH;
+    } // --- Fin del metodo setShapeRenderH ---
+
     @Override
     public void paint(Graphics2D g2) {
         if (!visible || image == null || bounds == null) return;
@@ -130,6 +187,12 @@ public class ImageLayer implements Layer {
         clone.locked = this.locked;
         clone.opacity = this.opacity;
         clone.type = this.type;
+        clone.shapeType = this.shapeType;
+        clone.shapeFill = this.shapeFill;
+        clone.shapeStroke = this.shapeStroke;
+        clone.shapeStrokeWidth = this.shapeStrokeWidth;
+        clone.shapeRenderW = this.shapeRenderW;
+        clone.shapeRenderH = this.shapeRenderH;
         return clone;
     } // --- Fin del metodo copy ---
 

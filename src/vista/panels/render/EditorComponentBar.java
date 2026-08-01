@@ -8,6 +8,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -48,8 +49,10 @@ import javax.swing.UIManager;
 
 import controlador.commands.AppActionCommands;
 import controlador.tools.CanvasController;
+import controlador.tools.ShapeTool;
 import controlador.tools.TextTool;
 import modelo.editor.CanvasModel;
+import modelo.editor.ImageLayer;
 import modelo.editor.Layer;
 import modelo.editor.LayerModel;
 import modelo.editor.TextLayer;
@@ -143,6 +146,40 @@ public class EditorComponentBar extends JPanel {
     private JToggleButton textHorizontalBtn;
     private JToggleButton textVerticalBtn;
 
+    // ===== Opciones de herramientas (Parte B) conectadas a las Tools =====
+    private JSlider featherSlider;
+    private JSpinner wandToleranceSpinner;
+    private JCheckBox wandContiguousChk;
+    private JCheckBox cropKeepOriginalChk;
+    private int eyedropperSampleSize = 1;
+    private Color eyedropperColor = Color.WHITE;
+    private JLabel eyedropperSwatch;
+    private JLabel eyedropperRgbLabel;
+    private Color paintBucketColor = new Color(255, 0, 0);
+    private JSpinner paintToleranceSpinner;
+    private JCheckBox paintContiguousChk;
+    private Color gradientStartColor = new Color(255, 0, 0);
+    private Color gradientEndColor = new Color(0, 0, 255);
+    private JComboBox<String> gradientTypeCombo;
+    private JSlider gradientOpacitySlider;
+    private Color shapeFillColor = new Color(200, 200, 200);
+    private Color shapeStrokeColor = Color.BLACK;
+    private JSpinner shapeStrokeWidthSpinner;
+    private String selectedShapeType = "rect";
+
+    // Referencias para sincronizar el panel de formas al editar una capa existente
+    private JButton shapeFillSwatch;
+    private JButton shapeStrokeSwatch;
+    private final Map<String, JToggleButton> shapeTypeButtons = new HashMap<>();
+    private Runnable onShapeChange;
+
+    public void setOnShapeChange(Runnable r) { this.onShapeChange = r; }
+    private String transformMode = "mover";
+    private String transformTarget = "capa";
+    private String cropMode = "nueva_capa";
+    private String zoomMode = "cursor";
+    private JToggleButton transformTargetLayerBtn;
+
     {
         toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_EDICION,           this::buildEditPanel);
         toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_TRANSFORMAR, this::buildTransformPanel);
@@ -155,6 +192,7 @@ public class EditorComponentBar extends JPanel {
         toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_DEGRADADO, this::buildGradientPanel);
         toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_TEXTO, this::buildTextPanel);
         toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_FORMAS, this::buildShapesPanel);
+toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoomTypePanel);
     }
 
 
@@ -573,7 +611,12 @@ public class EditorComponentBar extends JPanel {
     public void showEditToolPanel(Layer layer) {
         String editKey = AppActionCommands.CMD_ADVANCED_EDITOR_EDICION;
         String textKey = AppActionCommands.CMD_ADVANCED_EDITOR_TEXTO;
-        if (layer instanceof TextLayer && toolOptionsMap.containsKey(textKey)) {
+        String shapeKey = AppActionCommands.CMD_ADVANCED_EDITOR_FORMAS;
+        if (layer instanceof ImageLayer il && il.getType() == ImageLayer.LayerType.SHAPE
+                && toolOptionsMap.containsKey(shapeKey)) {
+            loadShapeProperties(il);
+            cardLayout.show(toolControlsPanel, shapeKey);
+        } else if (layer instanceof TextLayer && toolOptionsMap.containsKey(textKey)) {
             cardLayout.show(toolControlsPanel, textKey);
         } else if (toolOptionsMap.containsKey(editKey)) {
             cardLayout.show(toolControlsPanel, editKey);
@@ -593,14 +636,17 @@ public class EditorComponentBar extends JPanel {
     private JPanel buildTransformPanel(Color bg) {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
         p.setBackground(bg);
-        ButtonGroup group = new ButtonGroup();
-        addButtonsFromDef(p, "editoravanzadotransform", bg, group);
+        ButtonGroup modeGroup = new ButtonGroup();
+        addButtonsFromDef(p, "editoravanzadotransform", bg, modeGroup);
         p.add(createSubSeparator(bg));
-        addButtonsFromDef(p, "editoravanzadolayerselection", bg, group);
+        ButtonGroup targetGroup = new ButtonGroup();
+        addButtonsFromDef(p, "editoravanzadolayerselection", bg, targetGroup);
 
         JCheckBox keepAspect = new JCheckBox("Mantener proporción");
         keepAspect.setBackground(bg);
         keepAspect.setForeground(fgStatus);
+        keepAspect.setSelected(chkKeepAspect.isSelected());
+        keepAspect.addItemListener(e -> chkKeepAspect.setSelected(keepAspect.isSelected()));
         p.add(Box.createHorizontalStrut(4));
         p.add(keepAspect);
 
@@ -653,6 +699,7 @@ public class EditorComponentBar extends JPanel {
         val.setForeground(fgStatus);
         p.add(val);
         slider.addChangeListener(e -> val.setText(String.valueOf(slider.getValue())));
+        featherSlider = slider;
         return p;
     } // --- Fin del metodo buildFeatherPanel ---
 
@@ -672,6 +719,8 @@ public class EditorComponentBar extends JPanel {
         contiguo.setSelected(true);
         p.add(Box.createHorizontalStrut(4));
         p.add(contiguo);
+        wandToleranceSpinner = tol;
+        wandContiguousChk = contiguo;
         return p;
     } // --- Fin del metodo buildWandPanel ---
 
@@ -686,6 +735,7 @@ public class EditorComponentBar extends JPanel {
         mantener.setForeground(fgStatus);
         p.add(Box.createHorizontalStrut(4));
         p.add(mantener);
+        cropKeepOriginalChk = mantener;
         return p;
     } // --- Fin del metodo buildCropPanel ---
 
@@ -703,8 +753,29 @@ public class EditorComponentBar extends JPanel {
             rb.setForeground(fgStatus);
             group.add(rb);
             p.add(rb);
+            rb.addActionListener(e -> {
+                String sel = rb.getText();
+                eyedropperSampleSize = "3×3".equals(sel) ? 3 : "5×5".equals(sel) ? 5 : 1;
+            });
         }
         group.getElements().nextElement().setSelected(true);
+
+        p.add(Box.createHorizontalStrut(8));
+        JLabel lbM = new JLabel("Capturado:");
+        lbM.setForeground(fgStatus);
+        p.add(lbM);
+        JLabel swatch = new JLabel();
+        swatch.setOpaque(true);
+        swatch.setPreferredSize(new Dimension(20, 20));
+        swatch.setBackground(eyedropperColor);
+        swatch.setBorder(BorderFactory.createLineBorder(swatchBorderColor()));
+        p.add(swatch);
+        JLabel rgb = new JLabel("RGB(255,255,255)");
+        rgb.setForeground(fgStatus);
+        p.add(rgb);
+        eyedropperSwatch = swatch;
+        eyedropperRgbLabel = rgb;
+
         return p;
     } // --- Fin del metodo buildEyedropperPanel ---
 
@@ -713,7 +784,7 @@ public class EditorComponentBar extends JPanel {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
         p.setBackground(bg);
         // Color swatch button
-        p.add(createColorSwatch(new Color(255, 0, 0), "Color de relleno", bg));
+        p.add(createColorSwatch(new Color(255, 0, 0), "Color de relleno", bg, c -> paintBucketColor = c));
         p.add(Box.createHorizontalStrut(6));
         // Tolerancia
         JLabel lb = new JLabel("Tolerancia:");
@@ -728,6 +799,8 @@ public class EditorComponentBar extends JPanel {
         contiguo.setForeground(fgStatus);
         contiguo.setSelected(true);
         p.add(contiguo);
+        paintToleranceSpinner = tol;
+        paintContiguousChk = contiguo;
         return p;
     } // --- Fin del metodo buildPaintBucketPanel ---
 
@@ -736,8 +809,10 @@ public class EditorComponentBar extends JPanel {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
         p.setBackground(bg);
 
-        JButton colorStart = createColorSwatch(Color.RED, "Color inicial", bg);
-        JButton colorEnd = createColorSwatch(Color.BLUE, "Color final", bg);
+        JButton colorStart = createColorSwatch(Color.RED, "Color inicial", bg,
+                c -> gradientStartColor = c);
+        JButton colorEnd = createColorSwatch(Color.BLUE, "Color final", bg,
+                c -> gradientEndColor = c);
         JComboBox<String> typeCombo = new JComboBox<>(
                 new String[]{"Lineal", "Radial", "Angular", "Reflejado", "Diamante"});
         typeCombo.setPreferredSize(new Dimension(90, 22));
@@ -763,13 +838,31 @@ public class EditorComponentBar extends JPanel {
                     } else if ("Lineal".equals(tipo)) {
                         g2.setPaint(new java.awt.GradientPaint(0, 0, c1, w, h, c2));
                     } else if ("Angular".equals(tipo)) {
-                        g2.setPaint(new java.awt.GradientPaint(0, h / 2f, c1, w, h / 2f, c2));
+                        // Abanico cónico alrededor del centro del preview
+                        int cx = w / 2, cy = h / 2;
+                        double maxR = Math.hypot(cx, cy) + 4;
+                        int n = 120;
+                        double prevA = 0;
+                        for (int i = 1; i <= n; i++) {
+                            double a = 2 * Math.PI * i / n;
+                            g2.setColor(lerpColor(c1, c2, (double) i / n));
+                            java.awt.geom.Path2D.Double tri = new java.awt.geom.Path2D.Double();
+                            tri.moveTo(cx, cy);
+                            tri.lineTo(cx + maxR * Math.cos(prevA), cy + maxR * Math.sin(prevA));
+                            tri.lineTo(cx + maxR * Math.cos(a), cy + maxR * Math.sin(a));
+                            tri.closePath();
+                            g2.fill(tri);
+                            prevA = a;
+                        }
+                        g2.dispose();
+                        return;
                     } else if ("Reflejado".equals(tipo)) {
-                        int mid = h / 2;
-                        g2.setPaint(new java.awt.GradientPaint(0, 0, c1, 0, mid, c2));
-                        g2.fillRect(0, 0, w, mid);
-                        g2.setPaint(new java.awt.GradientPaint(0, mid, c2, 0, h, c1));
-                        g2.fillRect(0, mid, w, h - mid);
+                        // Espejo horizontal: c1 → c2 en la mitad izquierda y c2 → c1 en la derecha
+                        int mid = w / 2;
+                        g2.setPaint(new java.awt.GradientPaint(0, h / 2f, c1, mid, h / 2f, c2));
+                        g2.fillRect(0, 0, mid, h);
+                        g2.setPaint(new java.awt.GradientPaint(mid, h / 2f, c2, w, h / 2f, c1));
+                        g2.fillRect(mid, 0, w - mid, h);
                         g2.dispose();
                         return;
                     } else if ("Diamante".equals(tipo)) {
@@ -811,6 +904,9 @@ public class EditorComponentBar extends JPanel {
         op.setPreferredSize(new Dimension(50, 20));
         p.add(op);
 
+        gradientTypeCombo = typeCombo;
+        gradientOpacitySlider = op;
+
         return p;
     } // --- Fin del metodo buildGradientPanel ---
 
@@ -834,6 +930,102 @@ public class EditorComponentBar extends JPanel {
         // 3. Notificar al panel derecho para que se sincronice
         if (onTextChange != null) onTextChange.run();
     } // --- Fin del metodo applyTextProperty ---
+
+
+    /**
+     * Aplica una propiedad de texto convirtiendo previamente las capas auto-size
+     * a caja fija, para que el justificado y el flujo en columnas sean visibles
+     * incluso en texto creado con un solo clic.
+     */
+    public void applyTextPropertyFixedBox(Consumer<modelo.editor.TextLayer> action, float widthFactor, int minWidth) {
+        applyTextProperty(tl -> {
+            if (tl.isAutoSize()) {
+                tl.setAutoSize(false);
+                Rectangle b = tl.getBounds();
+                int w = Math.max(Math.round(b.width * widthFactor), minWidth);
+                tl.setBounds(new Rectangle(b.x, b.y, w, b.height));
+            }
+            action.accept(tl);
+        });
+    } // --- Fin del metodo applyTextPropertyFixedBox ---
+
+
+    /**
+     * Re-renderiza la capa de forma activa con los parámetros actuales del panel
+     * de formas (tipo, relleno, borde, grosor). No hace nada si la capa activa no
+     * es una forma.
+     */
+    public void applyShapeProperty() {
+        if (canvasController == null) return;
+
+        var layerModel = canvasController.getContext().layerModel();
+        if (layerModel != null && layerModel.getActiveLayer() instanceof ImageLayer il
+                && il.getType() == ImageLayer.LayerType.SHAPE) {
+            reRenderShape(il);
+            updateDimensionSpinners(il.getBounds().x, il.getBounds().y,
+                    il.getBounds().width, il.getBounds().height);
+            canvasController.getContext().canvasPanel().repaint();
+        }
+
+        if (onShapeChange != null) onShapeChange.run();
+    } // --- Fin del metodo applyShapeProperty ---
+
+
+    /**
+     * Renderiza de nuevo la forma de la capa en su tamaño de render original
+     * (shapeRenderW/H), recorta al contenido y actualiza imagen y bounds.
+     */
+    private void reRenderShape(ImageLayer il) {
+        String type = il.getShapeType() != null ? il.getShapeType() : "rect";
+        int iw = Math.max(1, il.getShapeRenderW() > 0 ? il.getShapeRenderW() : il.getBounds().width);
+        int ih = Math.max(1, il.getShapeRenderH() > 0 ? il.getShapeRenderH() : il.getBounds().height);
+        Color fill = getShapeFillColor();
+        Color stroke = getShapeStrokeColor();
+        float width = getShapeStrokeWidth();
+
+        BufferedImage img = ShapeTool.renderShape(iw, ih, type, fill, stroke, width);
+        Rectangle bounds = new Rectangle(il.getBounds().x, il.getBounds().y, img.getWidth(), img.getHeight());
+        Rectangle content = ShapeTool.contentBounds(img);
+        if (content != null && (content.x != 0 || content.y != 0
+                || content.width != img.getWidth() || content.height != img.getHeight())) {
+            BufferedImage trimmed = new BufferedImage(content.width, content.height,
+                    BufferedImage.TYPE_INT_ARGB);
+            Graphics2D tg = trimmed.createGraphics();
+            tg.drawImage(img, -content.x, -content.y, null);
+            tg.dispose();
+            img = trimmed;
+            bounds = new Rectangle(il.getBounds().x + content.x, il.getBounds().y + content.y,
+                    content.width, content.height);
+        }
+
+        il.setImage(img);
+        il.setBounds(bounds);
+        il.setShapeType(type);
+        il.setShapeFill(fill);
+        il.setShapeStroke(stroke);
+        il.setShapeStrokeWidth(width);
+        il.setShapeRenderW(iw);
+        il.setShapeRenderH(ih);
+    } // --- Fin del metodo reRenderShape ---
+
+
+    /**
+     * Sincroniza el panel de formas con los parámetros guardados en una capa
+     * de forma seleccionada (tipo, relleno, borde, grosor).
+     */
+    public void loadShapeProperties(ImageLayer il) {
+        if (il == null) return;
+        if (il.getShapeType() != null) selectedShapeType = il.getShapeType();
+        if (il.getShapeFill() != null) shapeFillColor = il.getShapeFill();
+        if (il.getShapeStroke() != null) shapeStrokeColor = il.getShapeStroke();
+        if (shapeStrokeWidthSpinner != null) {
+            shapeStrokeWidthSpinner.setValue((int) Math.round(il.getShapeStrokeWidth()));
+        }
+        if (shapeFillSwatch != null) shapeFillSwatch.setBackground(shapeFillColor);
+        if (shapeStrokeSwatch != null) shapeStrokeSwatch.setBackground(shapeStrokeColor);
+        JToggleButton btn = shapeTypeButtons.get(il.getShapeType());
+        if (btn != null) btn.setSelected(true);
+    } // --- Fin del metodo loadShapeProperties ---
 
 
     private JPanel buildTextPanel(Color bg) {
@@ -1009,13 +1201,15 @@ public class EditorComponentBar extends JPanel {
             btn.addActionListener(e -> applyTextProperty(tl -> tl.setAlignment(SwingConstants.RIGHT)));
         } else if ("80909-justified.png".equals(iconKey)) {
             textJustifiedBtn = btn;
-            btn.addActionListener(e -> applyTextProperty(tl -> tl.setAlignment(SwingConstants.LEFT)));
+            btn.addActionListener(e -> applyTextPropertyFixedBox(
+                    tl -> tl.setAlignment(modelo.editor.TextLayer.ALIGN_JUSTIFY), 1.5f, 200));
         } else if ("80910-text-flow-rows.png".equals(iconKey)) {
             textFlowRowsBtn = btn;
             btn.addActionListener(e -> applyTextProperty(tl -> tl.setFlowColumns(false)));
         } else if ("80911-text-flow-columns.png".equals(iconKey)) {
             textFlowColumnsBtn = btn;
-            btn.addActionListener(e -> applyTextProperty(tl -> tl.setFlowColumns(true)));
+            btn.addActionListener(e -> applyTextPropertyFixedBox(
+                    tl -> tl.setFlowColumns(true), 2f, 240));
         } else if ("80912-horizontal-text.png".equals(iconKey)) {
             textHorizontalBtn = btn;
             btn.addActionListener(e -> applyTextProperty(tl -> tl.setVertical(false)));
@@ -1093,6 +1287,7 @@ public class EditorComponentBar extends JPanel {
         if (textAlignLeftBtn != null && textAlignLeftBtn.isSelected())  return javax.swing.SwingConstants.LEFT;
         if (textAlignCenterBtn != null && textAlignCenterBtn.isSelected()) return javax.swing.SwingConstants.CENTER;
         if (textAlignRightBtn != null && textAlignRightBtn.isSelected()) return javax.swing.SwingConstants.RIGHT;
+        if (textJustifiedBtn != null && textJustifiedBtn.isSelected()) return modelo.editor.TextLayer.ALIGN_JUSTIFY;
         return -1;
     } // --- Fin del metodo getTextAlignment ---
 
@@ -1101,6 +1296,7 @@ public class EditorComponentBar extends JPanel {
         if (textAlignLeftBtn != null)   textAlignLeftBtn.setSelected(align == javax.swing.SwingConstants.LEFT);
         if (textAlignCenterBtn != null) textAlignCenterBtn.setSelected(align == javax.swing.SwingConstants.CENTER);
         if (textAlignRightBtn != null)  textAlignRightBtn.setSelected(align == javax.swing.SwingConstants.RIGHT);
+        if (textJustifiedBtn != null)   textJustifiedBtn.setSelected(align == modelo.editor.TextLayer.ALIGN_JUSTIFY);
         if (onTextChange != null) onTextChange.run();
     } // --- Fin del metodo setTextAlignment ---
 
@@ -1151,6 +1347,140 @@ public class EditorComponentBar extends JPanel {
     } // --- Fin del metodo setTextFlowColumns ---
 
 
+    // ==================== Opciones de herramientas (Parte B) ====================
+
+
+    public int getFeatherAmount() {
+        return featherSlider != null ? featherSlider.getValue() : 0;
+    } // --- Fin del metodo getFeatherAmount ---
+
+
+    public int getWandTolerance() {
+        if (wandToleranceSpinner != null) {
+            return ((Number) wandToleranceSpinner.getValue()).intValue();
+        }
+        return 32;
+    } // --- Fin del metodo getWandTolerance ---
+
+
+    public boolean isWandContiguous() {
+        return wandContiguousChk == null || wandContiguousChk.isSelected();
+    } // --- Fin del metodo isWandContiguous ---
+
+
+    public boolean isCropKeepOriginal() {
+        return cropKeepOriginalChk != null && cropKeepOriginalChk.isSelected();
+    } // --- Fin del metodo isCropKeepOriginal ---
+
+
+    public int getEyedropperSampleSize() {
+        return eyedropperSampleSize;
+    } // --- Fin del metodo getEyedropperSampleSize ---
+
+
+    public Color getEyedropperColor() {
+        return eyedropperColor != null ? eyedropperColor : Color.WHITE;
+    } // --- Fin del metodo getEyedropperColor ---
+
+
+    /**
+     * Muestra el color capturado por el cuentagotas en el swatch y en el label RGB.
+     */
+    public void setEyedropperColor(Color c) {
+        if (c == null) return;
+        eyedropperColor = c;
+        if (eyedropperSwatch != null) {
+            eyedropperSwatch.setBackground(c);
+        }
+        if (eyedropperRgbLabel != null) {
+            eyedropperRgbLabel.setText(String.format("RGB(%d,%d,%d)",
+                    c.getRed(), c.getGreen(), c.getBlue()));
+        }
+    } // --- Fin del metodo setEyedropperColor ---
+
+
+    public Color getPaintBucketColor() {
+        return paintBucketColor != null ? paintBucketColor : Color.RED;
+    } // --- Fin del metodo getPaintBucketColor ---
+
+
+    public int getPaintBucketTolerance() {
+        if (paintToleranceSpinner != null) {
+            return ((Number) paintToleranceSpinner.getValue()).intValue();
+        }
+        return 32;
+    } // --- Fin del metodo getPaintBucketTolerance ---
+
+
+    public boolean isPaintBucketContiguous() {
+        return paintContiguousChk == null || paintContiguousChk.isSelected();
+    } // --- Fin del metodo isPaintBucketContiguous ---
+
+
+    public Color getGradientStartColor() {
+        return gradientStartColor != null ? gradientStartColor : Color.RED;
+    } // --- Fin del metodo getGradientStartColor ---
+
+
+    public Color getGradientEndColor() {
+        return gradientEndColor != null ? gradientEndColor : Color.BLUE;
+    } // --- Fin del metodo getGradientEndColor ---
+
+
+    public String getGradientType() {
+        return gradientTypeCombo != null
+                ? (String) gradientTypeCombo.getSelectedItem() : "Lineal";
+    } // --- Fin del metodo getGradientType ---
+
+
+    public int getGradientOpacity() {
+        return gradientOpacitySlider != null ? gradientOpacitySlider.getValue() : 100;
+    } // --- Fin del metodo getGradientOpacity ---
+
+
+    public Color getShapeFillColor() {
+        return shapeFillColor != null ? shapeFillColor : new Color(200, 200, 200);
+    } // --- Fin del metodo getShapeFillColor ---
+
+
+    public Color getShapeStrokeColor() {
+        return shapeStrokeColor != null ? shapeStrokeColor : Color.BLACK;
+    } // --- Fin del metodo getShapeStrokeColor ---
+
+
+    public int getShapeStrokeWidth() {
+        if (shapeStrokeWidthSpinner != null) {
+            return ((Number) shapeStrokeWidthSpinner.getValue()).intValue();
+        }
+        return 1;
+    } // --- Fin del metodo getShapeStrokeWidth ---
+
+
+    public String getSelectedShapeType() {
+        return selectedShapeType != null ? selectedShapeType : "rect";
+    } // --- Fin del metodo getSelectedShapeType ---
+
+
+    public String getTransformMode() {
+        return transformMode != null ? transformMode : "mover";
+    } // --- Fin del metodo getTransformMode ---
+
+
+    public String getTransformTarget() {
+        return transformTarget != null ? transformTarget : "capa";
+    } // --- Fin del metodo getTransformTarget ---
+
+
+    public String getCropMode() {
+        return cropMode != null ? cropMode : "nueva_capa";
+    } // --- Fin del metodo getCropMode ---
+
+
+    public String getZoomMode() {
+        return zoomMode != null ? zoomMode : "cursor";
+    } // --- Fin del metodo getZoomMode ---
+
+
     public void updateDimensionSpinners(int x, int y, int w, int h) {
         spinnerX.setValue(x);
         spinnerY.setValue(y);
@@ -1193,6 +1523,7 @@ public class EditorComponentBar extends JPanel {
     private JPanel buildShapesPanel(Color bg) {
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
         p.setBackground(bg);
+        shapeTypeButtons.clear();
         ButtonGroup group = new ButtonGroup();
         ToolbarDefinition def = getSubDef("editoravanzadoformas");
         if (def != null) {
@@ -1208,13 +1539,23 @@ public class EditorComponentBar extends JPanel {
                             JLabel lb = new JLabel("Relleno:");
                             lb.setForeground(fgStatus);
                             p.add(lb);
-                            p.add(createColorSwatch(new Color(200, 200, 200), "Color de relleno", bg));
+                            shapeFillSwatch = createColorSwatch(new Color(200, 200, 200), "Color de relleno", bg,
+                                    c -> {
+                                        shapeFillColor = c;
+                                        applyShapeProperty();
+                                    });
+                            p.add(shapeFillSwatch);
                         } else if ("Borde".equals(text)) {
                             p.add(Box.createHorizontalStrut(4));
                             JLabel lb = new JLabel("Borde:");
                             lb.setForeground(fgStatus);
                             p.add(lb);
-                            p.add(createColorSwatch(Color.BLACK, "Color del borde", bg));
+                            shapeStrokeSwatch = createColorSwatch(Color.BLACK, "Color del borde", bg,
+                                    c -> {
+                                        shapeStrokeColor = c;
+                                        applyShapeProperty();
+                                    });
+                            p.add(shapeStrokeSwatch);
                         } else if ("Grosor de Borde".equals(text)) {
                             p.add(Box.createHorizontalStrut(4));
                             JLabel lb = new JLabel("Grosor:");
@@ -1223,15 +1564,59 @@ public class EditorComponentBar extends JPanel {
                             JSpinner sp = new JSpinner(new SpinnerNumberModel(1, 0, 50, 1));
                             sp.setPreferredSize(new Dimension(50, 20));
                             p.add(sp);
+                            sp.addChangeListener(e -> applyShapeProperty());
+                            shapeStrokeWidthSpinner = sp;
                         }
                     } else {
-                        p.add(createSubToolButton(btnDef, bg, group));
+                        JToggleButton shapeBtn = createSubToolButton(btnDef, bg, group);
+                        hookShapeSelection(shapeBtn, btnDef);
+                        p.add(shapeBtn);
                     }
                 }
             }
         }
         return p;
     } // --- Fin del metodo buildShapesPanel ---
+
+
+    /**
+     * Vincula el tipo de forma (rect, ellipse, line, triangle, polygon) al
+     * subtool correspondiente del panel de formas.
+     */
+    private void hookShapeSelection(JToggleButton btn, ToolbarButtonDefinition btnDef) {
+        String iconKey = btnDef.claveIcono();
+        String type = switch (iconKey) {
+            case "81001-shape-ellipse.png" -> "ellipse";
+            case "81002-shape-line.png" -> "line";
+            case "81003-shape-triangle.png" -> "triangle";
+            case "81004-shape-polygon.png" -> "polygon";
+            default -> "rect";
+        };
+        btn.addActionListener(e -> {
+            if (btn.isSelected()) {
+                selectedShapeType = type;
+                applyShapeProperty();
+            }
+        });
+        shapeTypeButtons.put(type, btn);
+        if ("rect".equals(type)) {
+            btn.setSelected(true);
+        }
+    } // --- Fin del metodo hookShapeSelection ---
+
+
+    private JPanel buildZoomTypePanel(Color bg) {
+        JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
+        p.setBackground(bg);
+        ButtonGroup group = new ButtonGroup();
+        addButtonsFromDef(p, "editoravanzadozoomtype", bg, group);
+        JLabel hint = new JLabel("Clic: acercar · Clic derecho: alejar");
+        hint.setForeground(fgStatus);
+        hint.setFont(hint.getFont().deriveFont(10f));
+        p.add(Box.createHorizontalStrut(6));
+        p.add(hint);
+        return p;
+    } // --- Fin del metodo buildZoomTypePanel ---
 
 
     // ===================== HELPERS =====================
@@ -1265,6 +1650,20 @@ public class EditorComponentBar extends JPanel {
     private static Color swatchBorderColor() {
         Color c = UIManager.getColor("Component.borderColor");
         return c != null ? c : new Color(120, 120, 120);
+    }
+
+
+    /**
+     * Interpola linealmente entre dos colores (incluyendo alfa). t = 0 → a, t = 1 → b.
+     */
+    private static Color lerpColor(Color a, Color b, double t) {
+        if (t <= 0) return a;
+        if (t >= 1) return b;
+        return new Color(
+                a.getRed() + (int) Math.round((b.getRed() - a.getRed()) * t),
+                a.getGreen() + (int) Math.round((b.getGreen() - a.getGreen()) * t),
+                a.getBlue() + (int) Math.round((b.getBlue() - a.getBlue()) * t),
+                a.getAlpha() + (int) Math.round((b.getAlpha() - a.getAlpha()) * t));
     }
 
 
@@ -1403,7 +1802,7 @@ public class EditorComponentBar extends JPanel {
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Sub-herramienta — sin implementacion todavia
+                // Sub-herramienta — la acción real la conecta hookSubToolState
             }
         };
         action.putValue(Action.ACTION_COMMAND_KEY, btnDef.comandoCanonico());
@@ -1423,8 +1822,81 @@ public class EditorComponentBar extends JPanel {
         btn.setBackground(bg);
         btn.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
         group.add(btn);
+        hookSubToolState(btn, btnDef);
         return btn;
     } // --- Fin del metodo createSubToolButton ---
+
+
+    /**
+     * Conecta los botones sub-herramienta (modo transform, target de
+     * transformación, modo de recorte, tipo de zoom) con el estado interno de
+     * la barra.
+     */
+    private void hookSubToolState(JToggleButton btn, ToolbarButtonDefinition btnDef) {
+        String iconKey = btnDef.claveIcono();
+        String cmd = btnDef.comandoCanonico();
+
+        switch (iconKey) {
+            case "80101-move.png", "80102-escalar.png", "80103-rotate.png" -> {
+                String mode = switch (iconKey) {
+                    case "80102-escalar.png" -> "escalar";
+                    case "80103-rotate.png" -> "rotar";
+                    default -> "mover";
+                };
+                btn.addActionListener(e -> {
+                    if (btn.isSelected()) transformMode = mode;
+                });
+                if ("mover".equals(mode)) btn.setSelected(true);
+            }
+            case "80104-transform-layer.png", "80105-transform.png" -> {
+                String target = "80105-transform.png".equals(iconKey) ? "marco" : "capa";
+                btn.addActionListener(e -> {
+                    if (btn.isSelected()) transformTarget = target;
+                });
+                if ("capa".equals(target)) {
+                    transformTargetLayerBtn = btn;
+                    btn.setSelected(true);
+                }
+            }
+            case "80120-target-page.png" -> {
+                btn.addActionListener(e -> {
+                    if (btn.isSelected()) {
+                        showCanvasResizeDialog();
+                        if (transformTargetLayerBtn != null) {
+                            transformTargetLayerBtn.setSelected(true);
+                        }
+                    }
+                });
+            }
+            case "80502-recortar-eliminar.png", "80503-recortar-nueva-capa.png" -> {
+                String mode = "80502-recortar-eliminar.png".equals(iconKey) ? "eliminar" : "nueva_capa";
+                btn.addActionListener(e -> {
+                    if (btn.isSelected()) cropMode = mode;
+                });
+                if ("nueva_capa".equals(mode)) btn.setSelected(true);
+            }
+            case "80112-zoom_al_centro_48x48.png", "80111-zoom_al_cursor_48x48.png" -> {
+                String mode = "80112-zoom_al_centro_48x48.png".equals(iconKey) ? "centro" : "cursor";
+                btn.addActionListener(e -> {
+                    if (btn.isSelected()) zoomMode = mode;
+                });
+                if ("cursor".equals(mode)) btn.setSelected(true);
+            }
+            case "81000-shape-rect.png" -> { /* el tipo de forma lo gestiona hookShapeSelection */ }
+            default -> {
+                if (AppActionCommands.CMD_ADVANCED_EDITOR_PAGE.equals(cmd)) {
+                    btn.addActionListener(e -> {
+                        if (btn.isSelected()) {
+                            showCanvasResizeDialog();
+                            if (transformTargetLayerBtn != null) {
+                                transformTargetLayerBtn.setSelected(true);
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    } // --- Fin del metodo hookSubToolState ---
 
 
     private Component createSubSeparator(Color bg) {

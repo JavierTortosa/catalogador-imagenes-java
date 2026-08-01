@@ -66,6 +66,7 @@ public class MarqueeSelectionTool extends Tool {
         if (currentRect != null && currentRect.width > 2 && currentRect.height > 2) {
             if (ctx.selectionModel() != null) {
                 ctx.selectionModel().setBounds(currentRect);
+                ctx.selectionModel().setFeather(ctx.componentBar().getFeatherAmount());
             }
         } else {
             if (ctx.selectionModel() != null) {

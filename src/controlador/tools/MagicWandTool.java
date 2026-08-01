@@ -16,11 +16,10 @@ import modelo.editor.ImageLayer;
  * <p>
  * Selecciona píxeles de color similar partiendo del punto pulsado, usando BFS
  * con tolerancia. El resultado se representa como un rectángulo delimitador
- * sobre el {@code SelectionModel}.
+ * sobre el {@code SelectionModel}. Lee tolerancia y modo contiguo desde la
+ * barra de opciones (Parte B).
  */
 public class MagicWandTool extends Tool {
-
-    private static final int DEFAULT_TOLERANCE = 32;
 
     @Override
     public String getCommandKey() {
@@ -38,7 +37,8 @@ public class MagicWandTool extends Tool {
         int my = e.getY() - layer.getBounds().y;
         if (mx < 0 || my < 0 || mx >= img.getWidth() || my >= img.getHeight()) return;
 
-        int tolerance = DEFAULT_TOLERANCE;
+        int tolerance = ctx.componentBar().getWandTolerance();
+        boolean contiguous = ctx.componentBar().isWandContiguous();
         int targetRgb = img.getRGB(mx, my) & 0x00FFFFFF;
 
         int w = img.getWidth();
@@ -50,20 +50,34 @@ public class MagicWandTool extends Tool {
 
         int minX = mx, maxX = mx, minY = my, maxY = my;
 
-        while (!queue.isEmpty()) {
-            Point p = queue.poll();
-            int px = p.x;
-            int py = p.y;
+        if (contiguous) {
+            while (!queue.isEmpty()) {
+                Point p = queue.poll();
+                int px = p.x;
+                int py = p.y;
 
-            if (px < minX) minX = px;
-            if (px > maxX) maxX = px;
-            if (py < minY) minY = py;
-            if (py > maxY) maxY = py;
+                if (px < minX) minX = px;
+                if (px > maxX) maxX = px;
+                if (py < minY) minY = py;
+                if (py > maxY) maxY = py;
 
-            checkNeighbor(img, w, h, px - 1, py, targetRgb, tolerance, visited, queue);
-            checkNeighbor(img, w, h, px + 1, py, targetRgb, tolerance, visited, queue);
-            checkNeighbor(img, w, h, px, py - 1, targetRgb, tolerance, visited, queue);
-            checkNeighbor(img, w, h, px, py + 1, targetRgb, tolerance, visited, queue);
+                checkNeighbor(img, w, h, px - 1, py, targetRgb, tolerance, visited, queue);
+                checkNeighbor(img, w, h, px + 1, py, targetRgb, tolerance, visited, queue);
+                checkNeighbor(img, w, h, px, py - 1, targetRgb, tolerance, visited, queue);
+                checkNeighbor(img, w, h, px, py + 1, targetRgb, tolerance, visited, queue);
+            }
+        } else {
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    int pixel = img.getRGB(x, y) & 0x00FFFFFF;
+                    if (colorDistance(pixel, targetRgb) <= tolerance) {
+                        if (x < minX) minX = x;
+                        if (x > maxX) maxX = x;
+                        if (y < minY) minY = y;
+                        if (y > maxY) maxY = y;
+                    }
+                }
+            }
         }
 
         int fx = minX + layer.getBounds().x;
@@ -72,6 +86,7 @@ public class MagicWandTool extends Tool {
 
         if (ctx.selectionModel() != null) {
             ctx.selectionModel().setBounds(sel);
+            ctx.selectionModel().setFeather(ctx.componentBar().getFeatherAmount());
         }
     } // --- Fin del metodo mousePressed ---
 
@@ -89,12 +104,16 @@ public class MagicWandTool extends Tool {
         visited.set(idx);
 
         int pixel = img.getRGB(x, y) & 0x00FFFFFF;
-        int dr = Math.abs(((pixel >> 16) & 0xFF) - ((targetRgb >> 16) & 0xFF));
-        int dg = Math.abs(((pixel >> 8) & 0xFF) - ((targetRgb >> 8) & 0xFF));
-        int db = Math.abs((pixel & 0xFF) - (targetRgb & 0xFF));
-        if (dr + dg + db <= tolerance) {
+        if (colorDistance(pixel, targetRgb) <= tolerance) {
             queue.add(new Point(x, y));
         }
     } // --- Fin del metodo checkNeighbor ---
+
+    private static int colorDistance(int a, int b) {
+        int dr = Math.abs(((a >> 16) & 0xFF) - ((b >> 16) & 0xFF));
+        int dg = Math.abs(((a >> 8) & 0xFF) - ((b >> 8) & 0xFF));
+        int db = Math.abs((a & 0xFF) - (b & 0xFF));
+        return dr + dg + db;
+    } // --- Fin del metodo colorDistance ---
 
 } // --- Fin de la clase MagicWandTool ---

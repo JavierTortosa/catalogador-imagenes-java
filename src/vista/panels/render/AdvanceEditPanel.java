@@ -91,6 +91,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     private JToggleButton rightAlignLeftBtn;
     private JToggleButton rightAlignCenterBtn;
     private JToggleButton rightAlignRightBtn;
+    private JToggleButton rightJustifiedBtn;
     private JToggleButton rightFlowRowsBtn;
     private JToggleButton rightFlowColumnsBtn;
     private JToggleButton rightHorizontalBtn;
@@ -432,6 +433,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         this.canvasController = cc;
         componentBar.setCanvasController(cc);
         componentBar.setOnTextChange(this::syncToolsFromBar);
+        componentBar.setOnShapeChange(this::syncToolsFromBar);
         layerCardPanel.setOnDoubleClick(textLayer -> {
             if (canvasController != null) {
                 TextTool tt = (TextTool) canvasController.getTool(AppActionCommands.CMD_ADVANCED_EDITOR_TEXTO);
@@ -536,9 +538,9 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                                 b -> rightSetAlignment(SwingConstants.RIGHT));
                         alignRow.add(rightAlignRightBtn);
                     } else if ("80909-justified.png".equals(icon)) {
-                        JToggleButton b = createRightTextButton(btnDef, alignGroup,
-                                x -> rightSetAlignment(SwingConstants.LEFT));
-                        alignRow.add(b);
+                        rightJustifiedBtn = createRightTextButton(btnDef, alignGroup,
+                                b -> rightSetAlignment(modelo.editor.TextLayer.ALIGN_JUSTIFY));
+                        alignRow.add(rightJustifiedBtn);
                     } else if ("80910-text-flow-rows.png".equals(icon)) {
                         rightFlowRowsBtn = createRightTextButton(btnDef, flowGroup,
                                 b -> rightSetFlowColumns(false));
@@ -1050,14 +1052,22 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     private void rightSetAlignment(int align) {
         if (componentBar == null) return;
         componentBar.setTextAlignment(align);
-        componentBar.applyTextProperty(tl -> tl.setAlignment(align));
+        if (align == modelo.editor.TextLayer.ALIGN_JUSTIFY) {
+            componentBar.applyTextPropertyFixedBox(tl -> tl.setAlignment(align), 1.5f, 200);
+        } else {
+            componentBar.applyTextProperty(tl -> tl.setAlignment(align));
+        }
     } // --- Fin del metodo rightSetAlignment ---
 
 
     private void rightSetFlowColumns(boolean fc) {
         if (componentBar == null) return;
         componentBar.setTextFlowColumns(fc);
-        componentBar.applyTextProperty(tl -> tl.setFlowColumns(fc));
+        if (fc) {
+            componentBar.applyTextPropertyFixedBox(tl -> tl.setFlowColumns(true), 2f, 240);
+        } else {
+            componentBar.applyTextProperty(tl -> tl.setFlowColumns(false));
+        }
     } // --- Fin del metodo rightSetFlowColumns ---
 
 
@@ -1094,6 +1104,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                 if (rightAlignLeftBtn != null) rightAlignLeftBtn.setSelected(a == SwingConstants.LEFT);
                 if (rightAlignCenterBtn != null) rightAlignCenterBtn.setSelected(a == SwingConstants.CENTER);
                 if (rightAlignRightBtn != null) rightAlignRightBtn.setSelected(a == SwingConstants.RIGHT);
+                if (rightJustifiedBtn != null) rightJustifiedBtn.setSelected(a == modelo.editor.TextLayer.ALIGN_JUSTIFY);
             }
             Boolean v = componentBar.isTextVertical();
             if (v != null) {

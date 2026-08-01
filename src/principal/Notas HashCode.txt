@@ -1,0 +1,33 @@
+Un hash (o función resumen) es, explicado de forma sencilla, una "huella digital" única para un archivo.
+Imagínatelo así: no importa si tu archivo es un STL de 500 MB o un pequeño archivo de texto, el programa lo pasa por una "trituradora matemática" (el algoritmo de hash) y el resultado es una cadena de texto corta y fija (por ejemplo: a1b2c3d4...).
+¿Por qué es fundamental para tu programa de 40k archivos?
+Si tienes el archivo "modelo_dragon.stl" en la carpeta A y el mismo archivo renombrado como "dragon_v2.stl" en la carpeta B, tu computadora los ve como archivos distintos porque tienen nombres distintos. Pero su contenido es idéntico.
+Si calculas el hash del contenido:
+Detección de duplicados: Si dos archivos generan el mismo hash, el contenido es 100% igual. Puedes avisar: "¡Ojo! Este archivo ya lo procesaste en el proyecto X".
+Integridad: Puedes saber si un archivo ha sido modificado. Si el hash cambia, el archivo ya no es el mismo.
+Identificación rápida: En lugar de comparar byte por byte (que es lentísimo), comparas sus hashes (que es instantáneo).
+¿Cómo aplicarlo en tu programa?
+Como estás trabajando con Java, es muy fácil generar esto. Podrías añadir un campo String hash a tus records StlEntry o RenderCandidate.
+Ejemplo conceptual en Java (usando MD5 o SHA-256):
+code
+Java
+import java.security.MessageDigest;
+import java.nio.file.Files;
+
+public String calcularHash(Path path) throws Exception {
+    byte[] data = Files.readAllBytes(path);
+    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+    byte[] hashBytes = digest.digest(data);
+    
+    // Convertir bytes a formato hexadecimal para poder leerlo
+    StringBuilder sb = new StringBuilder();
+    for (byte b : hashBytes) {
+        sb.append(String.format("%02x", b));
+    }
+    return sb.toString();
+}
+Aplicado a tu proyecto de gestión 3D:
+Cuando escaneas (Scanner): Al procesar un STL, calculas su hash.
+En tu Base de Datos: Guardas: Nombre | Ruta | Hash | Estado.
+La ventaja: Si mañana mueves archivos de sitio o haces copias, tu programa puede decirte: "He detectado que este archivo ya existe en tu base de datos, ¿quieres usar la información que ya tenía guardada?". Esto te ahorraría tener que volver a generar renders o re-etiquetar imágenes para archivos que ya habías trabajado anteriormente.
+En resumen: Es la forma más inteligente de organizar una biblioteca de 40.000 archivos, porque dejas de confiar en los nombres de los archivos (que suelen ser un desastre en internet) y pasas a confiar en el contenido real del archivo.
