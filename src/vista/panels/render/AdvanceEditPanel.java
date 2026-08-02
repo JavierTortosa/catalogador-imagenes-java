@@ -194,6 +194,12 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
         canvasPanel = new CanvasPanel();
         canvasPanel.setBackground(bgMain);
+        // El cuentagotas publica "foregroundColor" en el canvas → actualiza el frontal de la barra
+        canvasPanel.addPropertyChangeListener("foregroundColor", evt -> {
+            if (evt.getNewValue() instanceof Color c) {
+                setColorFrontal(c);
+            }
+        });
         advanceEditSplit.setLeftComponent(canvasPanel);
         advanceEditSplit.setRightComponent(advanceEditToolsPanel);
         advanceEditSplit.setDividerLocation(Integer.MAX_VALUE);
@@ -1347,14 +1353,13 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             }
             btn.addActionListener(e -> {
                 if (AppActionCommands.CMD_ADVANCED_EDITOR_RESET_COLORS.equals(cmdKey)) {
-                    colorFrontal = Color.WHITE;
-                    colorFondo = Color.BLACK;
+                    setColorFrontal(Color.WHITE);
+                    setColorFondo(Color.BLACK);
                 } else if (AppActionCommands.CMD_ADVANCED_EDITOR_INVERT_COLORS.equals(cmdKey)) {
                     Color tmp = colorFrontal;
-                    colorFrontal = colorFondo;
-                    colorFondo = tmp;
+                    setColorFrontal(colorFondo);
+                    setColorFondo(tmp);
                 }
-                if (colorBoxesComponent != null) colorBoxesComponent.repaint();
             });
             buttonsRow.add(btn);
         }
@@ -1386,9 +1391,9 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                                 frontal ? "Color frontal" : "Color de fondo", current);
                         if (chosen == null) return;
                         if (frontal) {
-                            colorFrontal = chosen;
+                            setColorFrontal(chosen);
                         } else {
-                            colorFondo = chosen;
+                            setColorFondo(chosen);
                         }
                         repaint();
                     }
@@ -1458,5 +1463,32 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     public Color getColorFondo() {
         return colorFondo;
     } // --- Fin del metodo getColorFondo ---
+
+
+    /**
+     * Establece el color frontal y lo propaga a las herramientas que pintan
+     * con el primer plano (bote, relleno de formas, texto y degradado inicial).
+     */
+    public void setColorFrontal(Color c) {
+        if (c == null) return;
+        colorFrontal = c;
+        if (colorBoxesComponent != null) colorBoxesComponent.repaint();
+        componentBar.setPaintBucketColor(c);
+        componentBar.setShapeFillColor(c);
+        componentBar.setTextColor(c);
+        componentBar.setGradientStartColor(c);
+    } // --- Fin del metodo setColorFrontal ---
+
+
+    /**
+     * Establece el color de fondo y lo propaga a las herramientas que lo usan
+     * (actualmente el color final del degradado).
+     */
+    public void setColorFondo(Color c) {
+        if (c == null) return;
+        colorFondo = c;
+        if (colorBoxesComponent != null) colorBoxesComponent.repaint();
+        componentBar.setGradientEndColor(c);
+    } // --- Fin del metodo setColorFondo ---
 
 } // --- Fin de la clase AdvanceEditPanel ---

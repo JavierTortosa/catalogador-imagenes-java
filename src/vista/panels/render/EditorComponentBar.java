@@ -158,10 +158,14 @@ public class EditorComponentBar extends JPanel {
     private JLabel eyedropperSwatch;
     private JLabel eyedropperRgbLabel;
     private Color paintBucketColor = new Color(255, 0, 0);
+    private JButton paintBucketSwatch;
     private JSpinner paintToleranceSpinner;
     private JCheckBox paintContiguousChk;
     private Color gradientStartColor = new Color(255, 0, 0);
     private Color gradientEndColor = new Color(0, 0, 255);
+    private JButton gradientStartSwatch;
+    private JButton gradientEndSwatch;
+    private JPanel gradientPreviewPanel;
     private JComboBox<String> gradientTypeCombo;
     private JSlider gradientOpacitySlider;
     private Color shapeFillColor = new Color(200, 200, 200);
@@ -796,7 +800,8 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
         p.setBackground(bg);
         // Color swatch button
-        p.add(createColorSwatch(new Color(255, 0, 0), "Color de relleno", bg, c -> paintBucketColor = c));
+        paintBucketSwatch = createColorSwatch(new Color(255, 0, 0), "Color de relleno", bg, c -> paintBucketColor = c);
+        p.add(paintBucketSwatch);
         p.add(Box.createHorizontalStrut(6));
         // Tolerancia
         JLabel lb = new JLabel("Tolerancia:");
@@ -825,6 +830,8 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
                 c -> gradientStartColor = c);
         JButton colorEnd = createColorSwatch(Color.BLUE, "Color final", bg,
                 c -> gradientEndColor = c);
+        gradientStartSwatch = colorStart;
+        gradientEndSwatch = colorEnd;
         JComboBox<String> typeCombo = new JComboBox<>(
                 new String[]{"Lineal", "Radial", "Angular", "Reflejado", "Diamante"});
         typeCombo.setPreferredSize(new Dimension(90, 22));
@@ -892,6 +899,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         preview.setPreferredSize(new Dimension(28, 20));
         preview.setBackground(bg);
         preview.setBorder(BorderFactory.createLineBorder(swatchBorderColor()));
+        gradientPreviewPanel = preview;
 
         // Forzar repintado del preview al cambiar colores o tipo
         colorStart.addActionListener(e -> preview.repaint());
@@ -1421,6 +1429,36 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
     public Color getPaintBucketColor() {
         return paintBucketColor != null ? paintBucketColor : Color.RED;
     } // --- Fin del metodo getPaintBucketColor ---
+
+
+    public void setPaintBucketColor(Color c) {
+        if (c == null) return;
+        paintBucketColor = c;
+        if (paintBucketSwatch != null) paintBucketSwatch.setBackground(c);
+    } // --- Fin del metodo setPaintBucketColor ---
+
+
+    public void setShapeFillColor(Color c) {
+        if (c == null) return;
+        shapeFillColor = c;
+        if (shapeFillSwatch != null) shapeFillSwatch.setBackground(c);
+    } // --- Fin del metodo setShapeFillColor ---
+
+
+    public void setGradientStartColor(Color c) {
+        if (c == null) return;
+        gradientStartColor = c;
+        if (gradientStartSwatch != null) gradientStartSwatch.setBackground(c);
+        if (gradientPreviewPanel != null) gradientPreviewPanel.repaint();
+    } // --- Fin del metodo setGradientStartColor ---
+
+
+    public void setGradientEndColor(Color c) {
+        if (c == null) return;
+        gradientEndColor = c;
+        if (gradientEndSwatch != null) gradientEndSwatch.setBackground(c);
+        if (gradientPreviewPanel != null) gradientPreviewPanel.repaint();
+    } // --- Fin del metodo setGradientEndColor ---
 
 
     public int getPaintBucketTolerance() {
