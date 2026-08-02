@@ -575,36 +575,36 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             List<ToolbarComponentDefinition> textoDefs = uiDefinitionService.getToolbarDefinition("editoravanzadotexto").componentes();
             for (ToolbarComponentDefinition comp : textoDefs) {
                 if (comp instanceof ToolbarButtonDefinition btnDef) {
-                    String icon = btnDef.claveIcono();
-                    if ("80906-align-left.png".equals(icon)) {
+                    String cmd = btnDef.comandoCanonico();
+                    if (AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_LEFT.equals(cmd)) {
                         rightAlignLeftBtn = createRightTextButton(btnDef, alignGroup,
                                 b -> rightSetAlignment(SwingConstants.LEFT));
                         alignRow.add(rightAlignLeftBtn);
-                    } else if ("80907-align-center.png".equals(icon)) {
+                    } else if (AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_CENTER.equals(cmd)) {
                         rightAlignCenterBtn = createRightTextButton(btnDef, alignGroup,
                                 b -> rightSetAlignment(SwingConstants.CENTER));
                         alignRow.add(rightAlignCenterBtn);
-                    } else if ("80908-align-right.png".equals(icon)) {
+                    } else if (AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_RIGHT.equals(cmd)) {
                         rightAlignRightBtn = createRightTextButton(btnDef, alignGroup,
                                 b -> rightSetAlignment(SwingConstants.RIGHT));
                         alignRow.add(rightAlignRightBtn);
-                    } else if ("80909-justified.png".equals(icon)) {
+                    } else if (AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_JUSTIFY.equals(cmd)) {
                         rightJustifiedBtn = createRightTextButton(btnDef, alignGroup,
                                 b -> rightSetAlignment(modelo.editor.TextLayer.ALIGN_JUSTIFY));
                         alignRow.add(rightJustifiedBtn);
-                    } else if ("80910-text-flow-rows.png".equals(icon)) {
+                    } else if (AppActionCommands.CMD_EDITOR_TEXTO_FLOW_ROWS.equals(cmd)) {
                         rightFlowRowsBtn = createRightTextButton(btnDef, flowGroup,
                                 b -> rightSetFlowColumns(false));
                         flowRow.add(rightFlowRowsBtn);
-                    } else if ("80911-text-flow-columns.png".equals(icon)) {
+                    } else if (AppActionCommands.CMD_EDITOR_TEXTO_FLOW_COLUMNS.equals(cmd)) {
                         rightFlowColumnsBtn = createRightTextButton(btnDef, flowGroup,
                                 b -> rightSetFlowColumns(true));
                         flowRow.add(rightFlowColumnsBtn);
-                    } else if ("80912-horizontal-text.png".equals(icon)) {
+                    } else if (AppActionCommands.CMD_EDITOR_TEXTO_HORIZONTAL.equals(cmd)) {
                         rightHorizontalBtn = createRightTextButton(btnDef, orientGroup,
                                 b -> rightSetVertical(false));
                         orientRow.add(rightHorizontalBtn);
-                    } else if ("80913-vertical-text.png".equals(icon)) {
+                    } else if (AppActionCommands.CMD_EDITOR_TEXTO_VERTICAL.equals(cmd)) {
                         rightVerticalBtn = createRightTextButton(btnDef, orientGroup,
                                 b -> rightSetVertical(true));
                         orientRow.add(rightVerticalBtn);
@@ -635,8 +635,9 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             List<ToolbarComponentDefinition> textoDefs = uiDefinitionService.getToolbarDefinition("editoravanzadotexto").componentes();
             for (ToolbarComponentDefinition comp : textoDefs) {
                 if (comp instanceof ToolbarButtonDefinition btnDef) {
+                    String cmd = btnDef.comandoCanonico();
                     String icon = btnDef.claveIcono();
-                    if ("80900-search-font.png".equals(icon)) {
+                    if (AppActionCommands.CMD_EDITOR_TEXTO_FUENTE.equals(cmd)) {
                         if (iconUtils != null) {
                             fontRow.add(new JLabel(iconUtils.getScaledIcon(icon, 16, 16)));
                         }
@@ -649,7 +650,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                             String sel = (String) rightFontCombo.getSelectedItem();
                             if (sel != null) rightSetFontFamily(sel);
                         });
-                    } else if ("80905-font-size.png".equals(icon)) {
+                    } else if (AppActionCommands.CMD_EDITOR_TEXTO_TAMANO.equals(cmd)) {
                         if (iconUtils != null) {
                             sizeRow.add(new JLabel(iconUtils.getScaledIcon(icon, 16, 16)));
                         }
@@ -663,19 +664,19 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                             Integer sel = (Integer) rightSizeCombo.getSelectedItem();
                             if (sel != null) rightSetFontSize(sel);
                         });
-                    } else if ("80901-bold-text.png".equals(icon)) {
+                    } else if (AppActionCommands.CMD_EDITOR_TEXTO_NEGRITA.equals(cmd)) {
                         rightBoldBtn = createRightTextButton(btnDef, styleGroup,
                                 b -> rightSetBold(b.isSelected()));
                         styleRow.add(rightBoldBtn);
-                    } else if ("80902-italic-text.png".equals(icon)) {
+                    } else if (AppActionCommands.CMD_EDITOR_TEXTO_CURSIVA.equals(cmd)) {
                         rightItalicBtn = createRightTextButton(btnDef, styleGroup,
                                 b -> rightSetItalic(b.isSelected()));
                         styleRow.add(rightItalicBtn);
-                    } else if ("80903-underline-text.png".equals(icon)) {
+                    } else if (AppActionCommands.CMD_EDITOR_TEXTO_SUBRAYADO.equals(cmd)) {
                         rightUnderlineBtn = createRightTextButton(btnDef, styleGroup,
                                 b -> rightSetUnderline(b.isSelected()));
                         styleRow.add(rightUnderlineBtn);
-                    } else if ("80904-tachado.png".equals(icon)) {
+                    } else if (AppActionCommands.CMD_EDITOR_TEXTO_TACHADO.equals(cmd)) {
                         rightStrikethroughBtn = createRightTextButton(btnDef, styleGroup,
                                 b -> rightSetStrikethrough(b.isSelected()));
                         styleRow.add(rightStrikethroughBtn);

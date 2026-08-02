@@ -1269,24 +1269,24 @@ public class UIDefinitionService {
         
         
         List<ToolbarComponentDefinition> componentbarEditorAvanzadoZoomType = List.of(
-        		    new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ZOOM_CENTER,*/
+        		    new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM_CENTER,
                         "80112-zoom_al_centro_48x48.png", "Zoom al centro de la imagen", "editoravanzadozoomtype", ButtonType.TOGGLE)
-        		  , new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ZOOM_CURSOR,*/
+        		  , new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM_CURSOR,
                           "80111-zoom_al_cursor_48x48.png", "Zoom hacia el puntero del raton", "editoravanzadozoomtype", ButtonType.TOGGLE)
         );
         
         
         List<ToolbarComponentDefinition> componentbarEditorAvanzadoCrop = List.of(
-        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_CROP_SELECTION,*/
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_CROP_SELECTION,
                         "80502-recortar-eliminar.png", "Recorta eliminando seleccion", "editoravanzadocrop", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_CROP_LAYER,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_CROP_LAYER,
                         "80503-recortar-nueva-capa.png", "Recorta Creando una Nueva Capa", "editoravanzadocrop", ButtonType.TOGGLE)
         );
         
         List<ToolbarComponentDefinition> componentbarEditorAvanzadoTexto = List.of(
         		
         		//este boton solo es un icono que acompaña al jcombobox con la lista de fuentes
-        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_TEXTO_FUENTE,
         				"80900-search-font.png", "", "editoravanzadotexto", ButtonType.TOGGLE)
         		  
         		//aqui va el jcombobox con la lista de fuentes  
@@ -1302,7 +1302,7 @@ public class UIDefinitionService {
         		
         		
         		// este boton en realidad solo es el icono que acompaña al jcombobox con la lista de tamaños de fuente
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_TEXTO_TAMANO,
                         "80905-font-size.png", "", "editoravanzadotexto", ButtonType.TOGGLE)
         		
         		// aqui va un JComboBox con los tamaños de la fuente 
@@ -1313,17 +1313,17 @@ public class UIDefinitionService {
                         "80907-align-center.png", "Alinear al Centro", "editoravanzadotexto", ButtonType.TOGGLE)
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_RIGHT,
                         "80908-align-right.png", "Alinear a la Derecha", "editoravanzadotexto", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_JUSTIFY,
                         "80909-justified.png", "Justificado", "editoravanzadotexto", ButtonType.TOGGLE)
         		
         		// estos 2 botones son el mismo con 2 iconos
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_TEXTO_FLOW_ROWS,
                         "80910-text-flow-rows.png", "Texto en Linea", "editoravanzadotexto", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_TEXTO_FLOW_COLUMNS,
                         "80911-text-flow-columns.png", "Texto en Columna", "editoravanzadotexto", ButtonType.TOGGLE)
         		
         		// estos 2 botones son el mismo con 2 iconos        		
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_TEXTO_HORIZONTAL,
                         "80912-horizontal-text.png", "Texto Horizontal", "editoravanzadotexto", ButtonType.TOGGLE)
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_TEXTO_VERTICAL,
                         "80913-vertical-text.png", "Texto Vertical", "editoravanzadotexto", ButtonType.TOGGLE)
@@ -1340,26 +1340,26 @@ public class UIDefinitionService {
         
         List<ToolbarComponentDefinition> componentbarEditorAvanzadoFormas = List.of(
         		
-        		  new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SHAPE_RECT,*/
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_SHAPE_RECT,
                         "81000-shape-rect.png", "Rectangulo", "editoravanzadoformas", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SHAPE_LINE,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_SHAPE_LINE,
                         "81002-shape-line.png", "Linea", "editoravanzadoformas", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SHAPE_ELLIPSE,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_SHAPE_ELLIPSE,
                         "81001-shape-ellipse.png", "Elipse", "editoravanzadoformas", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SHAPE_TRIANGLE,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_SHAPE_TRIANGLE,
                         "81003-shape-triangle.png", "Triangulo", "editoravanzadoformas", ButtonType.TOGGLE)
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_SHAPE_POLYGON,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_SHAPE_POLYGON,
                         "81004-shape-polygon.png", "Poligono", "editoravanzadoformas", ButtonType.TOGGLE)
         		
         		// estos 3 botones no tienen icono porque son especiales
         			// label "Relleno" + cuadrado con el color del relleno que al pulsarlo abre el selector de color 
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_FILL_COLOR,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_FILL_COLOR,
                         "", "Relleno", "editoravanzadoformas", ButtonType.TOGGLE)
         			// label "Borde" + cuadrado con el color del relleno que al pulsarlo abre el selector de color
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_STROKE_COLOR,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_STROKE_COLOR,
                         "", "Borde", "editoravanzadoformas", ButtonType.TOGGLE)
         			// label "Grosor" + spin para los pixeles de grosor
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_STROKE_WIDTH,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_STROKE_WIDTH,
                         "", "Grosor de Borde", "editoravanzadoformas", ButtonType.TOGGLE)
         );
         

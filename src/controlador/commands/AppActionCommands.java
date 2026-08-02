@@ -298,7 +298,31 @@ public interface AppActionCommands {
     public static final String CMD_EDITOR_TEXTO_ALIGN_LEFT           = "cmd.editor.texto.align.left";
     public static final String CMD_EDITOR_TEXTO_ALIGN_CENTER         = "cmd.editor.texto.align.center";
     public static final String CMD_EDITOR_TEXTO_ALIGN_RIGHT          = "cmd.editor.texto.align.right";
+    public static final String CMD_EDITOR_TEXTO_ALIGN_JUSTIFY        = "cmd.editor.texto.align.justify";
+    public static final String CMD_EDITOR_TEXTO_FLOW_ROWS            = "cmd.editor.texto.flow.rows";
+    public static final String CMD_EDITOR_TEXTO_FLOW_COLUMNS         = "cmd.editor.texto.flow.columns";
+    public static final String CMD_EDITOR_TEXTO_HORIZONTAL           = "cmd.editor.texto.horizontal";
     public static final String CMD_EDITOR_TEXTO_VERTICAL             = "cmd.editor.texto.vertical";
+    public static final String CMD_EDITOR_TEXTO_FUENTE               = "cmd.editor.texto.fuente";
+    public static final String CMD_EDITOR_TEXTO_TAMANO               = "cmd.editor.texto.tamano";
+
+    // --- Editor Avanzado: tipos de zoom ---
+    public static final String CMD_ADVANCED_EDITOR_ZOOM_CENTER       = "cmd.advanced.editor.zoom.centro";
+    public static final String CMD_ADVANCED_EDITOR_ZOOM_CURSOR       = "cmd.advanced.editor.zoom.cursor";
+
+    // --- Editor Avanzado: modos de recorte ---
+    public static final String CMD_ADVANCED_EDITOR_CROP_SELECTION    = "cmd.advanced.editor.crop.seleccion";
+    public static final String CMD_ADVANCED_EDITOR_CROP_LAYER        = "cmd.advanced.editor.crop.capa";
+
+    // --- Editor Avanzado: tipos de forma y sus propiedades ---
+    public static final String CMD_ADVANCED_EDITOR_SHAPE_RECT        = "cmd.advanced.editor.shape.rect";
+    public static final String CMD_ADVANCED_EDITOR_SHAPE_ELLIPSE     = "cmd.advanced.editor.shape.ellipse";
+    public static final String CMD_ADVANCED_EDITOR_SHAPE_LINE        = "cmd.advanced.editor.shape.line";
+    public static final String CMD_ADVANCED_EDITOR_SHAPE_TRIANGLE    = "cmd.advanced.editor.shape.triangle";
+    public static final String CMD_ADVANCED_EDITOR_SHAPE_POLYGON     = "cmd.advanced.editor.shape.polygon";
+    public static final String CMD_ADVANCED_EDITOR_FILL_COLOR        = "cmd.advanced.editor.shape.fill_color";
+    public static final String CMD_ADVANCED_EDITOR_STROKE_COLOR      = "cmd.advanced.editor.shape.stroke_color";
+    public static final String CMD_ADVANCED_EDITOR_STROKE_WIDTH      = "cmd.advanced.editor.shape.stroke_width";
 
     // --- D-Pad ---
     public static final String CMD_PREVIEW_RENDER_DPAD_TOP_LEFT      = "cmd.preview.render.dpad.top_left";

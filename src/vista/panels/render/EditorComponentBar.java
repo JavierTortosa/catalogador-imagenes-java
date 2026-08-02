@@ -1064,7 +1064,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
                     String iconKey = btnDef.claveIcono();
 
                     // 1. Icono informativo + combo de fuentes (con FontListCellRenderer)
-                    if ("80900-search-font.png".equals(iconKey)) {
+                    if (AppActionCommands.CMD_EDITOR_TEXTO_FUENTE.equals(cmd)) {
                         JLabel iconLb = createIconLabel(btnDef, bg);
                         p.add(iconLb);
                         String[] fonts = java.awt.GraphicsEnvironment
@@ -1084,7 +1084,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
                         p.add(textFontCombo);
 
                     // 2. Icono informativo + combo de tamaños
-                    } else if ("80905-font-size.png".equals(iconKey)) {
+                    } else if (AppActionCommands.CMD_EDITOR_TEXTO_TAMANO.equals(cmd)) {
                         JLabel iconLb = createIconLabel(btnDef, bg);
                         p.add(iconLb);
                         Integer[] sizes = {8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72};
@@ -1106,12 +1106,16 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
                     } else {
                         String tooltip = btnDef.textoTooltip();
                         ButtonGroup targetGroup = null;
-                        if ("80906-align-left.png".equals(iconKey) || "80907-align-center.png".equals(iconKey)
-                                || "80908-align-right.png".equals(iconKey) || "80909-justified.png".equals(iconKey)) {
+                        if (AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_LEFT.equals(cmd)
+                                || AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_CENTER.equals(cmd)
+                                || AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_RIGHT.equals(cmd)
+                                || AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_JUSTIFY.equals(cmd)) {
                             targetGroup = alignGroup;
-                        } else if ("80910-text-flow-rows.png".equals(iconKey) || "80911-text-flow-columns.png".equals(iconKey)) {
+                        } else if (AppActionCommands.CMD_EDITOR_TEXTO_FLOW_ROWS.equals(cmd)
+                                || AppActionCommands.CMD_EDITOR_TEXTO_FLOW_COLUMNS.equals(cmd)) {
                             targetGroup = flowGroup;
-                        } else if ("80912-horizontal-text.png".equals(iconKey) || "80913-vertical-text.png".equals(iconKey)) {
+                        } else if (AppActionCommands.CMD_EDITOR_TEXTO_HORIZONTAL.equals(cmd)
+                                || AppActionCommands.CMD_EDITOR_TEXTO_VERTICAL.equals(cmd)) {
                             targetGroup = orientationGroup;
                         }
 
@@ -1226,18 +1230,18 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         } else if ("80908-align-right.png".equals(iconKey) || AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_RIGHT.equals(cmd)) {
             textAlignRightBtn = btn;
             btn.addActionListener(e -> applyTextProperty(tl -> tl.setAlignment(SwingConstants.RIGHT)));
-        } else if ("80909-justified.png".equals(iconKey)) {
+        } else if ("80909-justified.png".equals(iconKey) || AppActionCommands.CMD_EDITOR_TEXTO_ALIGN_JUSTIFY.equals(cmd)) {
             textJustifiedBtn = btn;
             btn.addActionListener(e -> applyTextPropertyFixedBox(
                     tl -> tl.setAlignment(modelo.editor.TextLayer.ALIGN_JUSTIFY), 1.5f, 200));
-        } else if ("80910-text-flow-rows.png".equals(iconKey)) {
+        } else if ("80910-text-flow-rows.png".equals(iconKey) || AppActionCommands.CMD_EDITOR_TEXTO_FLOW_ROWS.equals(cmd)) {
             textFlowRowsBtn = btn;
             btn.addActionListener(e -> applyTextProperty(tl -> tl.setFlowColumns(false)));
-        } else if ("80911-text-flow-columns.png".equals(iconKey)) {
+        } else if ("80911-text-flow-columns.png".equals(iconKey) || AppActionCommands.CMD_EDITOR_TEXTO_FLOW_COLUMNS.equals(cmd)) {
             textFlowColumnsBtn = btn;
             btn.addActionListener(e -> applyTextPropertyFixedBox(
                     tl -> tl.setFlowColumns(true), 2f, 240));
-        } else if ("80912-horizontal-text.png".equals(iconKey)) {
+        } else if ("80912-horizontal-text.png".equals(iconKey) || AppActionCommands.CMD_EDITOR_TEXTO_HORIZONTAL.equals(cmd)) {
             textHorizontalBtn = btn;
             btn.addActionListener(e -> applyTextProperty(tl -> tl.setVertical(false)));
         } else if ("80913-vertical-text.png".equals(iconKey) || AppActionCommands.CMD_EDITOR_TEXTO_VERTICAL.equals(cmd)) {
@@ -1628,46 +1632,40 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         ButtonGroup group = new ButtonGroup();
         ToolbarDefinition def = getSubDef("editoravanzadoformas");
         if (def != null) {
-            int idx = 0;
-            int total = def.componentes().size();
             for (ToolbarComponentDefinition comp : def.componentes()) {
-                idx++;
                 if (comp instanceof ToolbarButtonDefinition btnDef) {
-                    if (idx > total - 3) {
-                        // Últimas 3: relleno, borde, grosor → componentes custom
-                        String text = btnDef.textoTooltip();
-                        if ("Relleno".equals(text)) {
-                            JLabel lb = new JLabel("Relleno:");
-                            lb.setForeground(fgToolbar);
-                            p.add(lb);
-                            shapeFillSwatch = createColorSwatch(new Color(200, 200, 200), "Color de relleno", bg,
-                                    c -> {
-                                        shapeFillColor = c;
-                                        applyShapeProperty();
-                                    });
-                            p.add(shapeFillSwatch);
-                        } else if ("Borde".equals(text)) {
-                            p.add(Box.createHorizontalStrut(4));
-                            JLabel lb = new JLabel("Borde:");
-                            lb.setForeground(fgToolbar);
-                            p.add(lb);
-                            shapeStrokeSwatch = createColorSwatch(Color.BLACK, "Color del borde", bg,
-                                    c -> {
-                                        shapeStrokeColor = c;
-                                        applyShapeProperty();
-                                    });
-                            p.add(shapeStrokeSwatch);
-                        } else if ("Grosor de Borde".equals(text)) {
-                            p.add(Box.createHorizontalStrut(4));
-                            JLabel lb = new JLabel("Grosor:");
-                            lb.setForeground(fgToolbar);
-                            p.add(lb);
-                            JSpinner sp = new JSpinner(new SpinnerNumberModel(1, 0, 50, 1));
-                            sp.setPreferredSize(new Dimension(50, 20));
-                            p.add(sp);
-                            sp.addChangeListener(e -> applyShapeProperty());
-                            shapeStrokeWidthSpinner = sp;
-                        }
+                    String cmd = btnDef.comandoCanonico();
+                    if (AppActionCommands.CMD_ADVANCED_EDITOR_FILL_COLOR.equals(cmd)) {
+                        JLabel lb = new JLabel("Relleno:");
+                        lb.setForeground(fgToolbar);
+                        p.add(lb);
+                        shapeFillSwatch = createColorSwatch(new Color(200, 200, 200), "Color de relleno", bg,
+                                c -> {
+                                    shapeFillColor = c;
+                                    applyShapeProperty();
+                                });
+                        p.add(shapeFillSwatch);
+                    } else if (AppActionCommands.CMD_ADVANCED_EDITOR_STROKE_COLOR.equals(cmd)) {
+                        p.add(Box.createHorizontalStrut(4));
+                        JLabel lb = new JLabel("Borde:");
+                        lb.setForeground(fgToolbar);
+                        p.add(lb);
+                        shapeStrokeSwatch = createColorSwatch(Color.BLACK, "Color del borde", bg,
+                                c -> {
+                                    shapeStrokeColor = c;
+                                    applyShapeProperty();
+                                });
+                        p.add(shapeStrokeSwatch);
+                    } else if (AppActionCommands.CMD_ADVANCED_EDITOR_STROKE_WIDTH.equals(cmd)) {
+                        p.add(Box.createHorizontalStrut(4));
+                        JLabel lb = new JLabel("Grosor:");
+                        lb.setForeground(fgToolbar);
+                        p.add(lb);
+                        JSpinner sp = new JSpinner(new SpinnerNumberModel(1, 0, 50, 1));
+                        sp.setPreferredSize(new Dimension(50, 20));
+                        p.add(sp);
+                        sp.addChangeListener(e -> applyShapeProperty());
+                        shapeStrokeWidthSpinner = sp;
                     } else {
                         JToggleButton shapeBtn = createSubToolButton(btnDef, bg, group);
                         hookShapeSelection(shapeBtn, btnDef);
@@ -1685,12 +1683,12 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
      * subtool correspondiente del panel de formas.
      */
     private void hookShapeSelection(JToggleButton btn, ToolbarButtonDefinition btnDef) {
-        String iconKey = btnDef.claveIcono();
-        String type = switch (iconKey) {
-            case "81001-shape-ellipse.png" -> "ellipse";
-            case "81002-shape-line.png" -> "line";
-            case "81003-shape-triangle.png" -> "triangle";
-            case "81004-shape-polygon.png" -> "polygon";
+        String cmd = btnDef.comandoCanonico();
+        String type = switch (cmd) {
+            case AppActionCommands.CMD_ADVANCED_EDITOR_SHAPE_ELLIPSE -> "ellipse";
+            case AppActionCommands.CMD_ADVANCED_EDITOR_SHAPE_LINE -> "line";
+            case AppActionCommands.CMD_ADVANCED_EDITOR_SHAPE_TRIANGLE -> "triangle";
+            case AppActionCommands.CMD_ADVANCED_EDITOR_SHAPE_POLYGON -> "polygon";
             default -> "rect";
         };
         btn.addActionListener(e -> {
@@ -1934,7 +1932,6 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
      * la barra.
      */
     private void hookSubToolState(JToggleButton btn, ToolbarButtonDefinition btnDef) {
-        String iconKey = btnDef.claveIcono();
         String cmd = btnDef.comandoCanonico();
 
         switch (cmd) {
@@ -1972,21 +1969,23 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
                     }
                 });
             }
-            case "80502-recortar-eliminar.png", "80503-recortar-nueva-capa.png" -> {
-                String mode = "80502-recortar-eliminar.png".equals(iconKey) ? "eliminar" : "nueva_capa";
+            case AppActionCommands.CMD_ADVANCED_EDITOR_CROP_SELECTION,
+                 AppActionCommands.CMD_ADVANCED_EDITOR_CROP_LAYER -> {
+                String mode = AppActionCommands.CMD_ADVANCED_EDITOR_CROP_SELECTION.equals(cmd) ? "eliminar" : "nueva_capa";
                 btn.addActionListener(e -> {
                     if (btn.isSelected()) cropMode = mode;
                 });
                 if ("nueva_capa".equals(mode)) btn.setSelected(true);
             }
-            case "80112-zoom_al_centro_48x48.png", "80111-zoom_al_cursor_48x48.png" -> {
-                String mode = "80112-zoom_al_centro_48x48.png".equals(iconKey) ? "centro" : "cursor";
+            case AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM_CENTER,
+                 AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM_CURSOR -> {
+                String mode = AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM_CENTER.equals(cmd) ? "centro" : "cursor";
                 btn.addActionListener(e -> {
                     if (btn.isSelected()) zoomMode = mode;
                 });
                 if ("cursor".equals(mode)) btn.setSelected(true);
             }
-            case "81000-shape-rect.png" -> { /* el tipo de forma lo gestiona hookShapeSelection */ }
+            case AppActionCommands.CMD_ADVANCED_EDITOR_SHAPE_RECT -> { /* el tipo de forma lo gestiona hookShapeSelection */ }
             default -> { /* sin estado asociado */ }
         }
     } // --- Fin del metodo hookSubToolState ---
