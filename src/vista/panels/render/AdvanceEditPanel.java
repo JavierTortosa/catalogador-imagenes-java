@@ -7,8 +7,11 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
@@ -25,6 +28,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -110,6 +114,11 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     private Color fgToolbar = clr("Label.foreground", 240, 240, 245);
     private Color borderColor = clr("Component.borderColor", 60, 60, 65);
     private Color fgSectionTitle = clr("Label.disabledForeground", 180, 180, 190);
+
+    // Colores frontal/fondo (estilo Photoshop) de la barra izquierda
+    private Color colorFrontal = Color.WHITE;
+    private Color colorFondo = Color.BLACK;
+    private JComponent colorBoxesComponent;
 
     private static Color clr(String key, int r, int g, int b) {
         Color c = javax.swing.UIManager.getColor(key);
@@ -1219,12 +1228,12 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             if (comp instanceof SeparatorDefinition) {
                 sepIndex++;
                 if (sepIndex == separatorCount) {
-                    toolbarContainer.add(Box.createVerticalGlue());
                     toolbarContainer.add(new JSeparator(JSeparator.HORIZONTAL));
                     bottomPanel = new JPanel();
                     bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.Y_AXIS));
                     bottomPanel.setBackground(bgToolbar);
                     toolbarContainer.add(bottomPanel);
+                    buildColorControls(bottomPanel);
                 }
             } else if (comp instanceof ToolbarButtonDefinition btnDef) {
                 String cmdKey = btnDef.comandoCanonico();
@@ -1308,6 +1317,110 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     } // --- Fin del metodo buildLeftToolbar ---
 
 
+    private void buildColorControls(JPanel bottomPanel) {
+        if (uiDefinitionService == null) return;
+
+        ToolbarDefinition tbDef = uiDefinitionService.getToolbarDefinition("editoravanzadocolor");
+        if (tbDef == null) return;
+
+        // Glue: empuja el bloque hacia abajo (anclado al fondo del panel)
+        bottomPanel.add(Box.createVerticalGlue());
+
+        // Fila con reset + invert, uno al lado del otro
+        JPanel buttonsRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 1, 2));
+        buttonsRow.setBackground(bgToolbar);
+        buttonsRow.setAlignmentX(JComponent.CENTER_ALIGNMENT);
+        for (ToolbarComponentDefinition comp : tbDef.componentes()) {
+            if (!(comp instanceof ToolbarButtonDefinition btnDef)) continue;
+            String cmdKey = btnDef.comandoCanonico();
+            JButton btn = new JButton();
+            btn.putClientProperty("JButton.buttonType", "regular");
+            btn.setToolTipText(btnDef.textoTooltip());
+            btn.setPreferredSize(new Dimension(16, 16));
+            btn.setMaximumSize(new Dimension(16, 16));
+            btn.setMinimumSize(new Dimension(16, 16));
+            btn.setFocusPainted(false);
+            btn.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+            if (iconUtils != null) {
+                javax.swing.ImageIcon icon = iconUtils.getScaledIcon(btnDef.claveIcono(), 12, 12);
+                if (icon != null) btn.setIcon(icon);
+            }
+            btn.addActionListener(e -> {
+                if (AppActionCommands.CMD_ADVANCED_EDITOR_RESET_COLORS.equals(cmdKey)) {
+                    colorFrontal = Color.WHITE;
+                    colorFondo = Color.BLACK;
+                } else if (AppActionCommands.CMD_ADVANCED_EDITOR_INVERT_COLORS.equals(cmdKey)) {
+                    Color tmp = colorFrontal;
+                    colorFrontal = colorFondo;
+                    colorFondo = tmp;
+                }
+                if (colorBoxesComponent != null) colorBoxesComponent.repaint();
+            });
+            buttonsRow.add(btn);
+        }
+        buttonsRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, buttonsRow.getPreferredSize().height));
+        bottomPanel.add(buttonsRow);
+
+        // Bloque de los dos cuadrados superpuestos (frontal delante, fondo detrás)
+        JComponent boxes = new JComponent() {
+            private static final long serialVersionUID = 1L;
+            private final Rectangle frontalRect = new Rectangle(2, 2, 16, 16);
+            private final Rectangle fondoRect = new Rectangle(8, 8, 20, 20);
+
+            {
+                setPreferredSize(new Dimension(30, 30));
+                setMaximumSize(new Dimension(30, 30));
+                setMinimumSize(new Dimension(30, 30));
+                setAlignmentX(JComponent.CENTER_ALIGNMENT);
+                setToolTipText("Clic: color frontal · Clic derecho: color de fondo");
+                addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        boolean frontal = frontalRect.contains(e.getPoint());
+                        boolean fondo = fondoRect.contains(e.getPoint());
+                        if (!frontal && !fondo) return;
+                        if (frontal && e.getButton() == MouseEvent.BUTTON3) frontal = false;
+                        if (!frontal && !fondo) return;
+                        Color current = frontal ? colorFrontal : colorFondo;
+                        Color chosen = JColorChooser.showDialog(AdvanceEditPanel.this,
+                                frontal ? "Color frontal" : "Color de fondo", current);
+                        if (chosen == null) return;
+                        if (frontal) {
+                            colorFrontal = chosen;
+                        } else {
+                            colorFondo = chosen;
+                        }
+                        repaint();
+                    }
+                });
+            }
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                // Fondo (cuadrado grande detrás, abajo-derecha)
+                g2.setColor(colorFondo);
+                g2.fillRect(fondoRect.x, fondoRect.y, fondoRect.width, fondoRect.height);
+                g2.setColor(new Color(200, 200, 200, 180));
+                g2.drawRect(fondoRect.x, fondoRect.y, fondoRect.width, fondoRect.height);
+
+                // Frontal (cuadrado pequeño delante, arriba-izquierda, tapa la esquina)
+                g2.setColor(colorFrontal);
+                g2.fillRect(frontalRect.x, frontalRect.y, frontalRect.width, frontalRect.height);
+                g2.setColor(new Color(200, 200, 200, 220));
+                g2.drawRect(frontalRect.x, frontalRect.y, frontalRect.width, frontalRect.height);
+
+                g2.dispose();
+            }
+        };
+        colorBoxesComponent = boxes;
+        bottomPanel.add(boxes);
+    } // --- Fin del metodo buildColorControls ---
+
+
     private void rebuildIfReady() {
         if (iconUtils == null || uiDefinitionService == null || themeManager == null) return;
         JPanel tc = getToolsContent();
@@ -1335,5 +1448,15 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             rp.toggleEditorFullscreen();
         }
     } // --- Fin del metodo toggleFullscreen ---
+
+
+    public Color getColorFrontal() {
+        return colorFrontal;
+    } // --- Fin del metodo getColorFrontal ---
+
+
+    public Color getColorFondo() {
+        return colorFondo;
+    } // --- Fin del metodo getColorFondo ---
 
 } // --- Fin de la clase AdvanceEditPanel ---

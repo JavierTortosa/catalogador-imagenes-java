@@ -279,6 +279,8 @@ public interface AppActionCommands {
     public static final String CMD_ADVANCED_EDITOR_FORMAS             = "cmd.advanced.editor.formas";
     public static final String CMD_ADVANCED_EDITOR_ZOOM                = "cmd.advanced.editor.zoom";
     public static final String CMD_ADVANCED_EDITOR_PANTALLA_COMPLETA = "cmd.advanced.editor.pantalla_completa";
+    public static final String CMD_ADVANCED_EDITOR_RESET_COLORS        = "cmd.advanced.editor.reset_colors";
+    public static final String CMD_ADVANCED_EDITOR_INVERT_COLORS       = "cmd.advanced.editor.invert_colors";
     public static final String CMD_ADVANCED_EDITOR_PAGE              = "cmd.advanced.editor.page";
 
     // --- Editor Avanzado: sub-herramientas de transformación ---

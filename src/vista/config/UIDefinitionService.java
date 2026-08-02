@@ -1242,6 +1242,13 @@ public class UIDefinitionService {
                         "80012-pantalla_completa_48x48.png", "Expandir el editor ocultando el resto de la interfaz", "tbeditoravanzado", ButtonType.TOGGLE)
         );
         
+        List<ToolbarComponentDefinition> componentbarEditorAvanzadoColor = List.of(
+         		  new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_RESET_COLORS,
+                        "80013-reset-colors.png", "Restablecer colores por defecto", "editoravanzadocolor", ButtonType.TOGGLE)
+         		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_INVERT_COLORS,
+                        "80014-invert-colors.png", "Intercambiar colores frontal/fondo", "editoravanzadocolor", ButtonType.TOGGLE)
+        );
+        
         List<ToolbarComponentDefinition> componentbarEditorAvanzadoTransform = List.of(
         		  new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_MOVE,
                         "80101-move.png", "Mover", "editoravanzadotransform", ButtonType.TOGGLE)
@@ -1630,6 +1637,11 @@ public class UIDefinitionService {
                 EnumSet.of(RENDER),
                 componentbarEditorAvanzadoFormas, tbarFree);
 
+        final ToolbarDefinition tbEditorAvanzadoColor = new ToolbarDefinition(
+                "editoravanzadocolor", "Colores", 1102,
+                EnumSet.of(RENDER),
+                componentbarEditorAvanzadoColor, tbarFree);
+
         final ToolbarDefinition tbEditorAvanzadoConfirmacion = new ToolbarDefinition(
                 "editoravanzadoconfirmacion", "Confirmacion", 1097,
                 EnumSet.of(RENDER),
@@ -1707,6 +1719,7 @@ public class UIDefinitionService {
                 tbEditorAvanzadoCrop,
                 tbEditorAvanzadoTexto,
                 tbEditorAvanzadoFormas,
+                tbEditorAvanzadoColor,
                 tbEditorAvanzadoConfirmacion,
                 tbHome,
                 tbHomeTools,
