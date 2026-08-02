@@ -12,6 +12,7 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
@@ -34,6 +35,7 @@ import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JToggleButton;
+import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -44,6 +46,7 @@ import controlador.commands.AppActionCommands;
 import controlador.tools.CanvasController;
 import controlador.tools.TextTool;
 import controlador.tools.Tool;
+import controlador.utils.EditorHotkeys;
 import modelo.editor.CanvasModel;
 import modelo.editor.ImageLayer;
 import modelo.editor.LayerModel;
@@ -53,6 +56,7 @@ import vista.config.ToolbarButtonDefinition;
 import vista.config.ToolbarComponentDefinition;
 import vista.config.ToolbarDefinition;
 import vista.config.UIDefinitionService;
+import vista.renderers.ToolBadgeIcon;
 import vista.theme.Tema;
 import vista.theme.ThemeChangeListener;
 import vista.theme.ThemeManager;
@@ -187,7 +191,30 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
         mainContent.add(advanceEditSplit, BorderLayout.CENTER);
         add(mainContent, BorderLayout.CENTER);
+
+        installEscapeBinding();
     } // --- Fin del constructor AdvanceEditPanel ---
+
+
+    private void installEscapeBinding() {
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "editor.escape");
+        getActionMap().put("editor.escape", new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handleEscapeLocal();
+            }
+        });
+    } // --- Fin del metodo installEscapeBinding ---
+
+
+    private void handleEscapeLocal() {
+        if (canvasController != null) {
+            canvasController.handleEscape();
+        }
+    } // --- Fin del metodo handleEscapeLocal ---
 
 
     private JPanel createHomePanel() {
@@ -423,6 +450,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             componentBar.setHomeMode(false);
         }
         componentBar.selectToolByCommand(commandKey);
+        selectToolButton(commandKey);
         if (canvasController != null) {
             canvasController.setActiveTool(commandKey);
         }
@@ -434,6 +462,16 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         componentBar.setCanvasController(cc);
         componentBar.setOnTextChange(this::syncToolsFromBar);
         componentBar.setOnShapeChange(this::syncToolsFromBar);
+        canvasController.setFullscreenToggle(this::toggleFullscreen);
+        canvasController.setFullscreenEscapeHandler(() -> {
+            RenderPanel rp = (RenderPanel) javax.swing.SwingUtilities
+                    .getAncestorOfClass(RenderPanel.class, this);
+            if (rp != null && rp.isFullscreen()) {
+                rp.toggleEditorFullscreen();
+                return true;
+            }
+            return false;
+        });
         layerCardPanel.setOnDoubleClick(textLayer -> {
             if (canvasController != null) {
                 TextTool tt = (TextTool) canvasController.getTool(AppActionCommands.CMD_ADVANCED_EDITOR_TEXTO);
@@ -1215,7 +1253,12 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                 if (iconUtils != null) {
                     javax.swing.ImageIcon icon = iconUtils.getScaledIcon(btnDef.claveIcono(), 20, 20);
                     if (icon != null) {
-                        action.putValue(Action.SMALL_ICON, icon);
+                        Character hotkey = EditorHotkeys.hotkeyFor(cmdKey);
+                        if (hotkey != null) {
+                            action.putValue(Action.SMALL_ICON, new ToolBadgeIcon(icon, hotkey));
+                        } else {
+                            action.putValue(Action.SMALL_ICON, icon);
+                        }
                     }
                 }
 

@@ -170,6 +170,27 @@ public class TransformTool extends Tool {
         rotateDrag = null;
     } // --- Fin del metodo mouseReleased ---
 
+
+    @Override
+    public boolean cancel() {
+        if (activeHandle == null) return false;
+        if (activeHandle == Handle.ROTATE) {
+            if (rotateDrag != null) {
+                rotateDrag.cancel();
+                rotateDrag = null;
+            }
+        } else {
+            Rectangle startBounds = gizmo.endDrag();
+            if (startBounds != null) {
+                applyTargetBounds(startBounds);
+            }
+        }
+        activeHandle = null;
+        dragStart = null;
+        ctx.canvasPanel().repaint();
+        return true;
+    } // --- Fin del metodo cancel ---
+
     @Override
     public void mouseMoved(MouseEvent e) {
         Rectangle bounds = getTargetBounds();

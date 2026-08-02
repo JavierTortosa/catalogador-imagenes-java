@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Herramientas del Modo Render</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <h1>Herramientas del Modo Render</h1>
+    <p>
+        Esta página detalla los paneles, barras y botones que componen la interfaz del
+        <a href="render.html">Modo Render</a>. La edición con capas se explica en la
+        <a href="editor_avanzado.html">guía del Editor Avanzado</a>.
+    </p>
+
+    <h2>Panel Izquierdo: Lista de Candidatos</h2>
+    <p>
+        La lista de candidatos se organiza en dos pestañas (<strong>JTabbedPane</strong>):
+    </p>
+    <table class="help-table">
+        <tr><th>Pestaña</th><th>Descripción</th></tr>
+        <tr>
+            <td><strong>Sin renderizar</strong></td>
+            <td>Archivos comprimidos (ZIP/RAR/7Z) que contienen STL pero no tienen imágenes embebidas. Se mostrarán en el grid de renders 3D tras procesarlos.</td>
+        </tr>
+        <tr>
+            <td><strong>Con imagen</strong></td>
+            <td>Archivos comprimidos que contienen imágenes (PNG, JPG, etc.) en su interior además de los STL. Sus imágenes se extraen automáticamente y se muestran en el grid de imágenes. Muestra el número de imágenes encontradas como <code>[N img]</code> junto al nombre.</td>
+        </tr>
+    </table>
+
+    <h3>Contenido Inferior Contextual</h3>
+    <p>
+        Al seleccionar un candidato, el panel inferior cambia según la pestaña activa:
+    </p>
+    <ul>
+        <li><strong>Sin renderizar:</strong> Lista todos los archivos STL dentro del comprimido en texto, ordenados por tamaño descendente. El primer STL se previsualiza automáticamente en 3D.</li>
+        <li><strong>Con imagen:</strong> Lista todas las imágenes embebidas. Al hacer doble clic en una imagen, se extrae y se muestra en el visor 2D.</li>
+    </ul>
+
+    <h3>Galería Visual (Derecha, bajo el Preview)</h3>
+    <p>
+        Al activar el botón <strong>Galería ZIP</strong> en la barra de vista preview, se muestran miniaturas de todos los STLs (en "Sin renderizar") o imágenes (en "Con imagen") del comprimido seleccionado en un filmstrip horizontal bajo el visor. Los STLs aparecen como placeholders y se renderizan en segundo plano, con una barra de progreso indicando el avance. Al hacer clic en una miniatura:
+    </p>
+    <ul>
+        <li>Se carga en el visor 2D para inspección.</li>
+        <li>Se sincroniza con la lista de texto izquierda, seleccionando el nombre correspondiente.</li>
+    </ul>
+    <p>El orden de las miniaturas coincide con el de la lista izquierda (tamaño descendente).</p>
+
+    <h3>Puntero entre Pestañas</h3>
+    <p>
+        El sistema recuerda el último elemento seleccionado en cada pestaña. Al cambiar entre "Sin renderizar" y "Con imagen", se restaura automáticamente la selección anterior de cada lista.
+    </p>
+
+    <h2>Panel Central: Grid Contextual</h2>
+    <p>
+        El grid central cambia según la pestaña activa de candidatos, mostrando una miniatura por archivo comprimido:
+    </p>
+    <table class="help-table">
+        <tr><th>Pestaña activa</th><th>Grid mostrado</th></tr>
+        <tr>
+            <td><strong>Sin renderizar</strong></td>
+            <td>Muestra los renders 3D generados (<code>nombreBase.png</code>) en la carpeta temporal. Cada thumbnail tiene 180px y al hacer clic se abre en el visor 3D.</td>
+        </tr>
+        <tr>
+            <td><strong>Con imagen</strong></td>
+            <td>Muestra la primera imagen extraída de cada comprimido. Las imágenes se buscan recursivamente hasta 3 niveles dentro de <code>outputDir/imagenes/nombreBase/</code>. Si se ha asignado una imagen manualmente (<code>nombreBase.png</code> en la raíz de <code>outputDir</code>), esta tiene prioridad.</td>
+        </tr>
+    </table>
+
+    <h2>Panel Derecho: Visor Dual 2D/3D</h2>
+    <p>
+        El panel derecho cuenta con un <strong>visor dual</strong> que alterna automáticamente según el tipo de contenido:
+    </p>
+
+    <h3>Vista 3D (PreviewPanel3DFX)</h3>
+    <p>
+        Visor 3D interactivo basado en JavaFX para inspeccionar modelos STL:
+    </p>
+    <ul>
+        <li><strong>Rotación:</strong> Arrastra con el ratón para rotar el modelo libremente.</li>
+        <li><strong>Zoom:</strong> Usa la rueda del ratón para acercar o alejar.</li>
+        <li><strong>Pan:</strong> Arrastra con el botón central para desplazar la cámara.</li>
+        <li><strong>Iluminación:</strong> Ajustable desde los controles del panel.</li>
+    </ul>
+
+    <h3>Vista 2D</h3>
+    <p>
+        Muestra imágenes extraídas de los comprimidos o renders generados. Aparece automáticamente al hacer doble clic en una imagen del panel inferior o del grid de imágenes.
+    </p>
+
+    <h2>Pestañas de Configuración</h2>
+    <p>En la parte inferior derecha hay dos pestañas que afectan al renderizado 3D:</p>
+
+    <h3>Pestaña "Imagen"</h3>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_brightness.png"></td>
+            <td><strong>Brillo:</strong> Barra deslizadora para ajustar el brillo de la imagen renderizada.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_contrast.png"></td>
+            <td><strong>Contraste:</strong> Barra deslizadora para ajustar el contraste.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_eye.png"></td>
+            <td><strong>Anti-Aliasing:</strong> Suavizado de bordes para reducir el efecto de escalera.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_crosshair.png"></td>
+            <td><strong>Ver cruceta:</strong> Muestra ejes de referencia X/Y/Z en el preview 3D.</td>
+        </tr>
+    </table>
+
+    <h3>Pestaña "Fondo"</h3>
+    <table class="help-table">
+        <tr><th>Modo</th><th>Descripción</th></tr>
+        <tr>
+            <td><strong>Sólido</strong></td>
+            <td>Fondo de un solo color con selector de color.</td>
+        </tr>
+        <tr>
+            <td><strong>Degradado</strong></td>
+            <td>Degradado lineal de dos colores con vista previa.</td>
+        </tr>
+        <tr>
+            <td><strong>Imagen</strong></td>
+            <td>Imagen personalizada como fondo con control de escala.</td>
+        </tr>
+        <tr>
+            <td><strong>Transparente</strong></td>
+            <td>Fondo con canal alfa. Opcionalmente superpone un patrón de cuadros.</td>
+        </tr>
+    </table>
+
+    <h2>Barra de Herramientas</h2>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70001 - escanear carpeta.png"></td>
+            <td><strong>Escanear carpeta:</strong> Abre un diálogo para seleccionar una carpeta y la escanea en busca de archivos comprimidos. Los resultados se clasifican automáticamente en las pestañas "Sin renderizar" y "Con imagen" según si contienen imágenes embebidas.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70002 - procesar seleccionados.png"></td>
+            <td><strong>Procesar seleccionados:</strong> Renderiza todos los candidatos. Genera un PNG por cada uno y extrae las imágenes embebidas de los que las contengan. Al finalizar, selecciona automáticamente el primer candidato en la pestaña "Sin renderizar".</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70003 - procesar archivo.png"></td>
+            <td><strong>Procesar archivo:</strong> Renderiza únicamente el candidato actualmente seleccionado.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70004 - copiar a origen.png"></td>
+            <td><strong>Copiar archivos:</strong> Copia los archivos procesados desde la carpeta temporal a la carpeta de origen.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70006 - abrir temp.png"></td>
+            <td><strong>Abrir carpeta temporal:</strong> Abre el explorador en la carpeta temporal de renders.</td>
+        </tr>
+        <tr><td colspan="2"><hr class="separator"></td></tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70007 - establece_imagen.png"></td>
+            <td><strong>Asignar preview al archivo:</strong> Asigna la imagen del preview al destino según la vista visible y el contexto:
+                <ul>
+                    <li><strong>Editor avanzado activo:</strong> Añade la imagen actual como capa nueva en el canvas. Si el visor muestra una imagen 2D (cargada o composición exportada) usa esa imagen; en modo 3D re-renderiza el STL con los ajustes actuales. Si el canvas está vacío se redimensiona al tamaño de la imagen.</li>
+                    <li><strong>Vista 2D visible:</strong> Copia la imagen actual del visor 2D a <code>outputDir/nombreBase.png</code> y la muestra en el grid de imágenes, dándole prioridad sobre las imágenes extraídas automáticamente.</li>
+                    <li><strong>Vista 3D visible:</strong> Captura la orientación actual del modelo 3D, los ajustes de imagen y fondo, y re-renderiza el PNG con esos parámetros.</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_7008 - descarga.png"></td>
+            <td><strong>Guardar preview en disco:</strong> Abre un selector de carpeta (empezando en la carpeta del comprimido original) y guarda el preview actual como PNG. Si el visor 3D está activo, renderiza el modelo con los ajustes actuales; si el visor 2D está activo, captura la imagen mostrada.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70008-clear-preview.png"></td>
+            <td><strong>Limpiar preview:</strong> Limpia el visor 2D/3D actual y el panel de capas.</td>
+        </tr>
+    </table>
+
+    <h2>Barra de Vista Preview (<em>previewrenderview</em>)</h2>
+    <p>Barra de botones toggle en el centro que controlan el modo de visualización del panel de preview:</p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70101-3d_grid.png"></td>
+            <td><strong>Grid 3D:</strong> Muestra el panel de preview en modo rejilla 3D. Los renders 3D se organizan en una cuadrícula para comparar múltiples modelos.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70102-2d_grid.png"></td>
+            <td><strong>Grid 2D:</strong> Cambia el panel de preview a modo rejilla 2D, mostrando las imágenes extraídas o renders en una cuadrícula.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70103-multimage.png"></td>
+            <td><strong>Collage:</strong> Activa el modo de edición multi-imagen (collage). Muestra las toolbars de ordenación y carga de capas en el lateral EAST, y habilita la pestaña "Capas" en el panel derecho para gestionar las imágenes apiladas.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70104-gallery-view.png"></td>
+            <td><strong>Galería ZIP:</strong> Botón toggle independiente. Al activarlo, extrae todo el contenido del comprimido seleccionado y lo muestra en miniaturas bajo el visor:
+                <ul>
+                    <li><strong>Sin renderizar:</strong> Muestra todos los STLs como placeholders. Los renderiza en segundo plano con barra de progreso.</li>
+                    <li><strong>Con imagen:</strong> Extrae y muestra todas las imágenes del ZIP.</li>
+                </ul>
+                Al hacer clic en una miniatura se carga en el visor y se sincroniza la selección con la lista de texto izquierda.</td>
+        </tr>
+    </table>
+    <p>Los tres primeros botones son <strong>excluyentes</strong> (solo uno puede estar activo a la vez). El botón Galería ZIP es independiente y puede combinarse con cualquiera de ellos.</p>
+
+    <h2>Barra de Orden de Capas (<em>layerorderpreview</em>)</h2>
+    <p>Barra vertical en el lateral EAST, visible en modo <strong>Collage</strong> y <strong>Editor Avanzado</strong>. Permite reordenar las capas de imágenes apiladas:</p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70201-bring-to-front.png"></td>
+            <td><strong>Traer al frente:</strong> Mueve la capa seleccionada a la posición más alta (sobre todas las demás).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70202-bring-forward.png"></td>
+            <td><strong>Subir un nivel:</strong> Desplaza la capa seleccionada una posición hacia arriba.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70203-send-backward.png"></td>
+            <td><strong>Bajar un nivel:</strong> Desplaza la capa seleccionada una posición hacia abajo.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70204-send-to-back.png"></td>
+            <td><strong>Enviar al fondo:</strong> Mueve la capa seleccionada a la posición más baja (detrás de todas).</td>
+        </tr>
+    </table>
+
+    <h2>Barra de Carga de Capas (<em>layerloadpreview</em>)</h2>
+    <p>Barra vertical en el lateral EAST, visible únicamente en modo <strong>Collage</strong> y <strong>Editor Avanzado</strong>. Gestiona la adición y eliminación de capas:</p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70301-clean-and-add-image.png"></td>
+            <td><strong>Limpiar y añadir imagen:</strong> Borra todas las capas existentes y extrae la imagen seleccionada del comprimido para mostrarla como nueva capa.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70302-add-image-to-group.png"></td>
+            <td><strong>Añadir capa:</strong> Extrae la imagen seleccionada del comprimido actual y la añade como una nueva capa sobre las existentes, sin borrar las anteriores.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70304-nueva-capa.png"></td>
+            <td><strong>Añade capa nueva:</strong> Crea una capa vacía (transparente) del tamaño del lienzo en el editor avanzado.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70303-delete-layer.png"></td>
+            <td><strong>Borrar capa:</strong> Elimina la capa actualmente seleccionada en la lista de capas.</td>
+        </tr>
+    </table>
+
+    <h2>Modo Collage (Edición Multi-Imagen)</h2>
+    <p>
+        El <strong>Modo Collage</strong> permite apilar varias imágenes como capas superpuestas para componer una imagen final. Se activa desde el botón "Collage" en la barra central de vista preview.
+    </p>
+    <h3>Pestaña "Capas"</h3>
+    <p>
+        Al activar el modo collage o el editor avanzado aparece la pestaña <strong>"Capas"</strong>
+        en el panel derecho. Muestra las capas como tarjetas visuales apiladas verticalmente
+        (<code>LayerCardPanel</code>). Cada tarjeta incluye:
+    </p>
+    <ul>
+        <li><strong>Miniatura:</strong> Vista previa en 48×48 del contenido de la capa.</li>
+        <li><strong>Nombre editable:</strong> Campo de texto para renombrar la capa.</li>
+        <li><strong>Ojo de visibilidad:</strong> Toggle que muestra/oculta la capa en el lienzo.</li>
+        <li><strong>Candado de bloqueo:</strong> Toggle que impide modificar la capa.</li>
+        <li><strong>Selección:</strong> Al hacer clic en una tarjeta se selecciona esa capa como activa en el editor.</li>
+    </ul>
+    <p>El panel se actualiza automáticamente gracias al sistema de notificación del modelo de capas.</p>
+    <p>Consulta el <a href="editor_avanzado.html">Editor Avanzado</a> para más detalles sobre la gestión de capas.</p>
+
+    <h2>Barra de Información Superior</h2>
+    <p>Al seleccionar un candidato se muestran: nombre, ruta, tamaño, fecha, formato e índice respecto al total.</p>
+
+</body>
+</html>

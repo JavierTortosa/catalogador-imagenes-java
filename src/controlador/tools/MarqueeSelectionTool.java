@@ -79,6 +79,17 @@ public class MarqueeSelectionTool extends Tool {
         currentRect = null;
     } // --- Fin del metodo mouseReleased ---
 
+
+    @Override
+    public boolean cancel() {
+        if (!dragging) return false;
+        dragging = false;
+        startPoint = null;
+        currentRect = null;
+        ctx.canvasPanel().repaint();
+        return true;
+    } // --- Fin del metodo cancel ---
+
     @Override
     public void paintOverlay(Graphics2D g2) {
         if (!dragging || currentRect == null) return;

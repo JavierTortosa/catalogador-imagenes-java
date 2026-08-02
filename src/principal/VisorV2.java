@@ -43,7 +43,6 @@ public class VisorV2 {
     }
 
     // EDITOR AVANZADO
-    // FIXME el boton de fullscreen no se queda marcado
     
     
     // GENERAL

@@ -92,6 +92,19 @@ public abstract class Tool {
     } // --- Fin del metodo onDeactivate ---
 
     /**
+     * Cancela la operación en curso (arrastre, edición inline, etc.) cuando el
+     * usuario pulsa ESC.
+     * <p>
+     * Debe devolver {@code true} si había una operación que cancelar; si
+     * devuelve {@code false} el editor continúa con la cadena de deselección.
+     *
+     * @return {@code true} si se canceló algo
+     */
+    public boolean cancel() {
+        return false;
+    } // --- Fin del metodo cancel ---
+
+    /**
      * @return cursor que debe mostrarse cuando esta herramienta está activa
      */
     public Cursor getCursor() {

@@ -286,6 +286,44 @@ public class EditTool extends Tool {
     } // --- Fin del metodo mouseReleased ---
 
 
+    @Override
+    public boolean cancel() {
+        boolean hadDrag = gizmoDragging || dragging;
+        if (gizmoDragging) {
+            Layer active = model().getActiveLayer();
+            if (gizmoDrag != null) {
+                Rectangle restored = gizmoDrag.cancel();
+                if (restored != null && active != null) {
+                    active.setBounds(restored);
+                }
+                gizmoDrag = null;
+            }
+            if (rotateDrag != null) {
+                rotateDrag.cancel();
+                rotateDrag = null;
+            }
+            gizmoDragging = false;
+        }
+        if (dragging) {
+            if (move != null) {
+                move.cancel();
+                move = null;
+            }
+            dragging = false;
+        }
+        dragStart = null;
+        if (ctrlRestoreLayer != null) {
+            picker().activateLayer(ctrlRestoreLayer);
+            ctrlRestoreLayer = null;
+        }
+        if (hadDrag) {
+            bar().updateEditLayerFields(model().getActiveLayer());
+            ctx.canvasPanel().repaint();
+        }
+        return hadDrag;
+    } // --- Fin del metodo cancel ---
+
+
     // ======================== TECLADO ========================
 
 

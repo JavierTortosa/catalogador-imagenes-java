@@ -37,6 +37,7 @@ import javax.swing.JList;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -1816,7 +1817,7 @@ public class VisorController implements IModoController, ThemeChangeListener {
 	    titulo.putClientProperty("FlatLaf.style", "font: bold $h2.font"); // Estilo para FlatLaf
 	    gbc.gridx = 0;
 	    gbc.gridy = 0;
-	    gbc.gridwidth = 2; // Ocupa las dos columnas
+	    gbc.gridwidth = 3; // Ocupa las tres columnas
 	    gbc.anchor = GridBagConstraints.CENTER;
 	    gbc.insets = new Insets(0, 0, 20, 0);
 	    panelPrincipal.add(titulo, gbc);
@@ -1897,10 +1898,42 @@ public class VisorController implements IModoController, ThemeChangeListener {
 
 	    panelPrincipal.add(columna2, gbc);
 
+	    // --- COLUMNA 3 ---
+	    gbc.gridx = 2;
+	    gbc.insets = new Insets(0, 20, 10, 0); // Espaciado: arriba, izq, abajo, derecha
+
+	    JPanel columna3 = new JPanel();
+	    columna3.setLayout(new BoxLayout(columna3, BoxLayout.Y_AXIS));
+
+	    // --- Sección Editor Avanzado ---
+	    columna3.add(createHelpSection("Editor Avanzado", new String[][]{
+	        {"E", "Edición"},
+	        {"V", "Transformar"},
+	        {"M", "Selección por marco"},
+	        {"L", "Selección por capa"},
+	        {"W", "Varita mágica"},
+	        {"C", "Recortar"},
+	        {"I", "Cuentagotas"},
+	        {"G", "Bote de pintura"},
+	        {"D", "Degradado"},
+	        {"T", "Texto"},
+	        {"U", "Formas"},
+	        {"Z", "Zoom"},
+	        {"F", "Pantalla completa"},
+	        {"Esc", "Cancelar / salir de pantalla completa"}
+	    }));
+
+	    panelPrincipal.add(columna3, gbc);
+
 	    // --- MOSTRAR EL DIÁLOGO ---
+	    JScrollPane scrollPane = new JScrollPane(panelPrincipal);
+	    scrollPane.setBorder(BorderFactory.createEmptyBorder());
+	    scrollPane.setPreferredSize(new java.awt.Dimension(980, 460));
+	    scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
 	    JOptionPane.showMessageDialog(
 	        view,
-	        panelPrincipal,
+	        scrollPane,
 	        "Ayuda: Atajos de Teclado",
 	        JOptionPane.INFORMATION_MESSAGE
 	    );

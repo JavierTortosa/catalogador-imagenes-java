@@ -51,6 +51,7 @@ public abstract class EditorToolAction extends AbstractAction {
             case AppActionCommands.CMD_ADVANCED_EDITOR_DEGRADADO -> new DegradadoAction();
             case AppActionCommands.CMD_ADVANCED_EDITOR_TEXTO -> new TextoAction();
             case AppActionCommands.CMD_ADVANCED_EDITOR_FORMAS -> new FormasAction();
+            case AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM -> new ZoomAction();
             default -> null;
         };
         if (action != null) {

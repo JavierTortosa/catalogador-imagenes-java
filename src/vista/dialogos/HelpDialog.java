@@ -98,8 +98,8 @@ public class HelpDialog extends JDialog {
         top.add(carruselFolder);
         
         DefaultMutableTreeNode renderFolder = new DefaultMutableTreeNode(new HelpPageInfo("Modo Render", "render.html"));
+        renderFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Herramientas", "herramientas.html")));
         renderFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Editor Avanzado", "editor_avanzado.html")));
-        renderFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Herramientas del Editor", "editoravanzado_autogen.html")));
         top.add(renderFolder);
 
         DefaultMutableTreeNode configFolder = new DefaultMutableTreeNode(new HelpPageInfo("Configuración", "configuracion.html"));

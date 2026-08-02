@@ -194,6 +194,17 @@ public class LayerPicker {
             ctx.gizmo().endDrag();
         } // --- Fin del metodo end ---
 
+        /**
+         * Cancela el arrastre restaurando los bounds iniciales.
+         *
+         * @return los bounds originales restaurados
+         */
+        public Rectangle cancel() {
+            Rectangle restored = ctx.gizmo().drag(0, 0);
+            ctx.gizmo().endDrag();
+            return restored;
+        } // --- Fin del metodo cancel ---
+
     } // --- Fin de la clase GizmoDrag ---
 
     /**
@@ -238,6 +249,13 @@ public class LayerPicker {
             // sin estado interno que liberar
         } // --- Fin del metodo end ---
 
+        /**
+         * Cancela la rotación restaurando el ángulo inicial.
+         */
+        public void cancel() {
+            layer.setRotation(startRotation);
+        } // --- Fin del metodo cancel ---
+
     } // --- Fin de la clase RotateDrag ---
 
     /**
@@ -268,6 +286,13 @@ public class LayerPicker {
             layer.setBounds(nb);
             return nb;
         } // --- Fin del metodo move ---
+
+        /**
+         * Cancela el movimiento restaurando los bounds iniciales.
+         */
+        public void cancel() {
+            layer.setBounds(startBounds);
+        } // --- Fin del metodo cancel ---
 
     } // --- Fin de la clase DragMove ---
 

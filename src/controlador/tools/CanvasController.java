@@ -10,9 +10,11 @@ import java.awt.event.MouseMotionListener;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BooleanSupplier;
 
 import javax.swing.SwingUtilities;
 
+import controlador.utils.EditorHotkeys;
 import modelo.editor.CanvasModel;
 import modelo.editor.LayerModel;
 import modelo.editor.SelectionModel;
@@ -35,6 +37,8 @@ public class CanvasController {
     private final LayerPicker layerPicker;
     private final controlador.tools.editors.LayerEditorRegistry layerEditorRegistry;
     private ToolContext sharedContext;
+    private Runnable fullscreenToggle;
+    private BooleanSupplier fullscreenEscapeHandler;
 
     /**
      * @param canvasPanel   vista del canvas
@@ -174,6 +178,52 @@ public class CanvasController {
     } // --- Fin del metodo updateCursor ---
 
 
+    /**
+     * Registra el callback de alternar pantalla completa (tecla F).
+     *
+     * @param fullscreenToggle acción a ejecutar, o null para desactivarla
+     */
+    public void setFullscreenToggle(Runnable fullscreenToggle) {
+        this.fullscreenToggle = fullscreenToggle;
+    } // --- Fin del metodo setFullscreenToggle ---
+
+
+    /**
+     * Registra el handler de ESC cuando el editor está en pantalla completa.
+     * <p>
+     * Debe devolver {@code true} si ha salido de pantalla completa (el ESC se
+     * considera resuelto) o {@code false} si no estaba en fullscreen.
+     *
+     * @param fullscreenEscapeHandler handler de salida de fullscreen, o null
+     */
+    public void setFullscreenEscapeHandler(BooleanSupplier fullscreenEscapeHandler) {
+        this.fullscreenEscapeHandler = fullscreenEscapeHandler;
+    } // --- Fin del metodo setFullscreenEscapeHandler ---
+
+
+    /**
+     * Procesa la tecla ESC: primero se intenta salir de pantalla completa, si
+     * no aplica se cancela la operación en curso de la herramienta activa y, si
+     * tampoco había nada que cancelar, se deselecciona la capa activa.
+     */
+    public void handleEscape() {
+        boolean handled = false;
+        if (fullscreenEscapeHandler != null) {
+            handled = fullscreenEscapeHandler.getAsBoolean();
+        }
+        if (!handled && activeTool != null) {
+            handled = activeTool.cancel();
+        }
+        if (!handled) {
+            if (sharedContext.selectionModel() != null) {
+                sharedContext.selectionModel().clear();
+            }
+            layerPicker.clearSelection();
+        }
+        canvasPanel.repaint();
+    } // --- Fin del metodo handleEscape ---
+
+
     // ======================== LISTENER INTERNO ========================
 
 
@@ -248,6 +298,26 @@ public class CanvasController {
 
         @Override
         public void keyPressed(KeyEvent e) {
+            int modifiers = e.getModifiersEx();
+            boolean clean = (modifiers & (KeyEvent.CTRL_DOWN_MASK
+                    | KeyEvent.ALT_DOWN_MASK | KeyEvent.META_DOWN_MASK)) == 0;
+            boolean noShift = (modifiers & KeyEvent.SHIFT_DOWN_MASK) == 0;
+
+            if (clean && e.getKeyCode() == KeyEvent.VK_F) {
+                if (fullscreenToggle != null) {
+                    fullscreenToggle.run();
+                }
+                e.consume();
+                return;
+            }
+            if (clean && noShift) {
+                String command = EditorHotkeys.commandForKeyCode(e.getKeyCode());
+                if (command != null) {
+                    setActiveTool(command);
+                    e.consume();
+                    return;
+                }
+            }
             if (activeTool != null) {
                 activeTool.keyPressed(e);
             }

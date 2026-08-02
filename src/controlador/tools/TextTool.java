@@ -725,6 +725,23 @@ public class TextTool extends Tool {
     } // --- Fin del metodo cancelInlineEdit ---
 
 
+    @Override
+    public boolean cancel() {
+        if (inlineField != null) {
+            cancelInlineEdit();
+            return true;
+        }
+        if (dragging || dragStart != null) {
+            dragging = false;
+            dragStart = null;
+            dragRect = null;
+            ctx.canvasPanel().repaint();
+            return true;
+        }
+        return false;
+    } // --- Fin del metodo cancel ---
+
+
     public void commitInlineText() {
         if (inlineField == null) return;
         String text = inlineField.getText();

@@ -1233,7 +1233,7 @@ public class UIDefinitionService {
         		
         		, new SeparatorDefinition()
         		
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,  /*CMD_ADVANCED_EDITOR_ZOOM,*/
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM,
                         "80011-zoom.png", "Acercar y alejar", "tbeditoravanzado", ButtonType.TOGGLE)
          		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_PANTALLA_COMPLETA,
                         "80012-pantalla_completa_48x48.png", "Expandir el editor ocultando el resto de la interfaz", "tbeditoravanzado", ButtonType.TOGGLE)

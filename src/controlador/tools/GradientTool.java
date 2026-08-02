@@ -74,6 +74,17 @@ public class GradientTool extends Tool {
         finishLayer(img, cw, ch);
     } // --- Fin del metodo mouseReleased ---
 
+
+    @Override
+    public boolean cancel() {
+        if (!dragging) return false;
+        dragging = false;
+        startPoint = null;
+        endPoint = null;
+        ctx.canvasPanel().repaint();
+        return true;
+    } // --- Fin del metodo cancel ---
+
     /**
      * Renderiza un lienzo completo con el degradado solicitado. Independiente del
      * contexto (también lo usa el verificador headless de regresión).

@@ -132,6 +132,19 @@ public class ShapeTool extends Tool {
         previewCacheKey = null;
     } // --- Fin del metodo mouseReleased ---
 
+
+    @Override
+    public boolean cancel() {
+        if (!dragging) return false;
+        dragging = false;
+        startPoint = null;
+        currentRect = null;
+        previewCache = null;
+        previewCacheKey = null;
+        ctx.canvasPanel().repaint();
+        return true;
+    } // --- Fin del metodo cancel ---
+
     /**
      * Renderiza la forma dentro de una imagen del tamaño dado. Lo usa tanto el
      * preview en vivo como la creación final de la capa, garantizando WYSIWYG.
