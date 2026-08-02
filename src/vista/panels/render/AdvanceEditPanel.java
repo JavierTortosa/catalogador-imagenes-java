@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import javax.swing.AbstractAction;
-import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -56,6 +55,7 @@ import vista.config.ToolbarButtonDefinition;
 import vista.config.ToolbarComponentDefinition;
 import vista.config.ToolbarDefinition;
 import vista.config.UIDefinitionService;
+import vista.components.ThemedToggleButton;
 import vista.renderers.ToolBadgeIcon;
 import vista.theme.Tema;
 import vista.theme.ThemeChangeListener;
@@ -79,6 +79,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     private modelo.editor.LayerModel editorLayerModel;
     private IconUtils iconUtils;
     private UIDefinitionService uiDefinitionService;
+    private ThemeManager themeManager;
     private int iconWidth = 24;
     private int iconHeight = 24;
     private boolean syncingTools;
@@ -106,8 +107,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     private Color bgTools = clr("Panel.background", 50, 50, 55);
     private Color bgToolbar = clr("Panel.background", 45, 45, 50);
     private Color bgHeader = clr("TabbedPane.contentAreaColor", 48, 48, 53);
-    private Color bgStatus = clr("Visor.statusBarBackground", 55, 55, 60);
-    private Color fgStatus = clr("Visor.statusBarForeground", 255, 255, 255);
+    private Color fgToolbar = clr("Label.foreground", 240, 240, 245);
     private Color borderColor = clr("Component.borderColor", 60, 60, 65);
     private Color fgSectionTitle = clr("Label.disabledForeground", 180, 180, 190);
 
@@ -159,10 +159,10 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         advanceEditToolsPanel.setMinimumSize(new Dimension(0, 0));
 
         JPanel toolsHeader = new JPanel(new BorderLayout());
-        toolsHeader.setBackground(bgStatus);
+        toolsHeader.setBackground(bgToolbar);
         toolsHeader.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 4));
         toolsTitle = new JLabel("Herramientas");
-        toolsTitle.setForeground(fgStatus);
+        toolsTitle.setForeground(fgToolbar);
         toolsHeader.add(toolsTitle, BorderLayout.WEST);
         advanceEditToolsPanel.add(toolsHeader, BorderLayout.NORTH);
 
@@ -287,13 +287,12 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         bgTools = tema.colorFondoPrincipal();
         bgToolbar = tema.colorFondoPrincipal();
         bgHeader = tema.colorFondoPrincipal();
-        bgStatus = tema.colorBarraEstadoFondo();
-        fgStatus = tema.colorBarraEstadoTexto();
+        fgToolbar = tema.colorTextoPrimario();
         borderColor = tema.colorBorde();
         fgSectionTitle = tema.colorTextoSecundario();
 
         setBackground(bgMain);
-        componentBar.updateTheme(bgStatus, fgStatus, borderColor);
+        componentBar.updateTheme(bgToolbar, fgToolbar, borderColor);
         toolbarContainer.setBackground(bgToolbar);
         mainContent.setBackground(bgMain);
         advanceEditSplit.setBackground(bgMain);
@@ -302,18 +301,18 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
         for (java.awt.Component c : advanceEditToolsPanel.getComponents()) {
             if (c instanceof JPanel h && ((BorderLayout) advanceEditToolsPanel.getLayout()).getLayoutComponent(BorderLayout.NORTH) == h) {
-                h.setBackground(bgStatus);
+                h.setBackground(bgToolbar);
                 for (java.awt.Component child : ((JPanel) h).getComponents()) {
-                    if (child instanceof JLabel) child.setForeground(fgStatus);
+                    if (child instanceof JLabel) child.setForeground(fgToolbar);
                 }
             }
         }
 
         canvasPanel.setBackground(bgMain);
-        toolsTitle.setForeground(fgStatus);
+        toolsTitle.setForeground(fgToolbar);
 
         if (layerCardPanel != null) {
-            layerCardPanel.updateTheme(bgTools, borderColor, fgStatus,
+            layerCardPanel.updateTheme(bgTools, borderColor, fgToolbar,
                     tema.colorSeleccionFondo());
         }
 
@@ -328,6 +327,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
 
     public void setThemeManager(ThemeManager themeManager) {
+        this.themeManager = themeManager;
         if (themeManager != null) {
             themeManager.addThemeChangeListener(this);
             applyTheme(themeManager.getTemaActual());
@@ -413,8 +413,6 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             btn.setPreferredSize(new Dimension(28, 28));
             btn.setMaximumSize(new Dimension(28, 28));
             btn.setMinimumSize(new Dimension(28, 28));
-            btn.setBackground(bgStatus);
-            btn.setForeground(fgStatus);
             btn.setFocusPainted(false);
             btn.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
             group.add(btn);
@@ -535,8 +533,8 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
         // --- Texto (tabs: alineamiento + fuentes) ---
         JTabbedPane textTabs = new JTabbedPane();
-        textTabs.setBackground(bgStatus);
-        textTabs.setForeground(fgSectionTitle);
+        textTabs.setBackground(bgToolbar);
+        textTabs.setForeground(fgToolbar);
         textTabs.setFont(textTabs.getFont().deriveFont(10f));
         textTabs.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
         textTabs.setPreferredSize(new Dimension(160, 140));
@@ -679,8 +677,8 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
         // --- Capas (tabs: capas + orden) ---
         JTabbedPane capasTabs = new JTabbedPane();
-        capasTabs.setBackground(bgStatus);
-        capasTabs.setForeground(fgSectionTitle);
+        capasTabs.setBackground(bgToolbar);
+        capasTabs.setForeground(fgToolbar);
         capasTabs.setFont(capasTabs.getFont().deriveFont(10f));
         capasTabs.setPreferredSize(new Dimension(160, 150));
         capasTabs.setMinimumSize(new Dimension(160, 100));
@@ -695,14 +693,14 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         JPanel opacityPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
         opacityPanel.setBackground(bgTools);
         JLabel opLbl = new JLabel("Opacidad:");
-        opLbl.setForeground(fgStatus);
+        opLbl.setForeground(fgToolbar);
         opLbl.setFont(opLbl.getFont().deriveFont(10f));
         opacityPanel.add(opLbl);
         javax.swing.JSlider opSlider = new javax.swing.JSlider(0, 100, 100);
         opSlider.setBackground(bgTools);
         opSlider.setPreferredSize(new Dimension(80, 20));
         JLabel opVal = new JLabel("100%");
-        opVal.setForeground(fgStatus);
+        opVal.setForeground(fgToolbar);
         opVal.setFont(opVal.getFont().deriveFont(10f));
         opSlider.addChangeListener(e -> {
             int v = opSlider.getValue();
@@ -1263,18 +1261,16 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                 }
 
                 boolean isFullscreen = AppActionCommands.CMD_ADVANCED_EDITOR_PANTALLA_COMPLETA.equals(cmdKey);
-                AbstractButton btn;
-                if (isFullscreen) {
-                    btn = new JButton(action);
-                } else {
-                    JToggleButton tb = new JToggleButton(action);
-                    tb.addItemListener(e -> {
+                ThemedToggleButton btn = new ThemedToggleButton(themeManager, action);
+                btn.putClientProperty("JButton.buttonType", "regular");
+                if (!isFullscreen) {
+                    btn.addItemListener(e -> {
                         if (e.getStateChange() == ItemEvent.SELECTED) {
                             if (syncingTools) return;
                             syncingTools = true;
                             try {
-                                Action a = ((javax.swing.AbstractButton) e.getSource()).getAction();
-                                Object cmd = a.getValue(Action.ACTION_COMMAND_KEY);
+                                Action a = btn.getAction();
+                                Object cmd = a != null ? a.getValue(Action.ACTION_COMMAND_KEY) : null;
                                 if (cmd instanceof String) {
                                     setActiveTool((String) cmd);
                                 }
@@ -1283,7 +1279,6 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                             }
                         }
                     });
-                    btn = tb;
                 }
                 btn.setAlignmentX(JComponent.CENTER_ALIGNMENT);
                 btn.setPreferredSize(new Dimension(28, 28));
@@ -1291,8 +1286,6 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                 btn.setMinimumSize(new Dimension(28, 28));
                 btn.setFocusPainted(false);
                 btn.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-                btn.setBackground(bgStatus);
-                btn.setForeground(fgStatus);
 
                 if (separatorCount > 0 && sepIndex == separatorCount) {
                     bottomPanel.add(btn);
@@ -1316,7 +1309,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
 
     private void rebuildIfReady() {
-        if (iconUtils == null || uiDefinitionService == null) return;
+        if (iconUtils == null || uiDefinitionService == null || themeManager == null) return;
         JPanel tc = getToolsContent();
         tc.removeAll();
         buildDefaultTools();

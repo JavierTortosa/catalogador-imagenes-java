@@ -88,7 +88,7 @@ public class EditorComponentBar extends JPanel {
 
     private IconUtils iconUtils;
     private UIDefinitionService uiDefinitionService;
-    private Color fgStatus = Color.WHITE;
+    private Color fgToolbar = Color.WHITE;
 
     // Home mode state
     private boolean homeActive;
@@ -216,7 +216,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
 
     public EditorComponentBar() {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setBackground(clr("Visor.statusBarBackground", 55, 55, 60));
+        setBackground(clr("Panel.background", 45, 45, 50));
 
         toolOptionsMap = new HashMap<>();
 
@@ -382,7 +382,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         chkKeepAspect.setSelected(true);
         for (JCheckBox chk : new JCheckBox[]{chkAutoSelect, chkShowGizmo, chkKeepAspect, chkAutoZoom}) {
             chk.setBackground(bg);
-            chk.setForeground(fgStatus);
+            chk.setForeground(fgToolbar);
             chk.setFont(chk.getFont().deriveFont(10f));
             chk.setFocusPainted(false);
             chk.setOpaque(false);
@@ -651,7 +651,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
 
         JCheckBox keepAspect = new JCheckBox("Mantener proporción");
         keepAspect.setBackground(bg);
-        keepAspect.setForeground(fgStatus);
+        keepAspect.setForeground(fgToolbar);
         keepAspect.setSelected(chkKeepAspect.isSelected());
         keepAspect.addItemListener(e -> chkKeepAspect.setSelected(keepAspect.isSelected()));
         p.add(Box.createHorizontalStrut(4));
@@ -665,32 +665,32 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
         p.setBackground(bg);
         JLabel capaLabel = new JLabel("Capa:");
-        capaLabel.setForeground(fgStatus);
+        capaLabel.setForeground(fgToolbar);
         p.add(capaLabel);
         editLayerNameLabel = new JLabel("\u2014");
-        editLayerNameLabel.setForeground(fgStatus);
+        editLayerNameLabel.setForeground(fgToolbar);
         editLayerNameLabel.setPreferredSize(new Dimension(70, 20));
         p.add(editLayerNameLabel);
         p.add(Box.createHorizontalStrut(4));
         JLabel lbX = new JLabel("X:");
-        lbX.setForeground(fgStatus);
+        lbX.setForeground(fgToolbar);
         p.add(lbX);
         p.add(spinnerX);
         JLabel lbY = new JLabel("Y:");
-        lbY.setForeground(fgStatus);
+        lbY.setForeground(fgToolbar);
         p.add(lbY);
         p.add(spinnerY);
         JLabel lbW = new JLabel("W:");
-        lbW.setForeground(fgStatus);
+        lbW.setForeground(fgToolbar);
         p.add(lbW);
         p.add(spinnerW);
         JLabel lbH = new JLabel("H:");
-        lbH.setForeground(fgStatus);
+        lbH.setForeground(fgToolbar);
         p.add(lbH);
         p.add(spinnerH);
         p.add(Box.createHorizontalStrut(4));
         JLabel lbAngle = new JLabel("\u00C1ngulo:");
-        lbAngle.setForeground(fgStatus);
+        lbAngle.setForeground(fgToolbar);
         p.add(lbAngle);
         p.add(spinnerAngle);
         return p;
@@ -701,14 +701,14 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
         p.setBackground(bg);
         JLabel lb = new JLabel("Desvanecer:");
-        lb.setForeground(fgStatus);
+        lb.setForeground(fgToolbar);
         p.add(lb);
         JSlider slider = new JSlider(0, 50, 0);
         slider.setBackground(bg);
         slider.setPreferredSize(new Dimension(80, 20));
         p.add(slider);
         JLabel val = new JLabel("0");
-        val.setForeground(fgStatus);
+        val.setForeground(fgToolbar);
         p.add(val);
         slider.addChangeListener(e -> val.setText(String.valueOf(slider.getValue())));
         featherSlider = slider;
@@ -720,14 +720,14 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
         p.setBackground(bg);
         JLabel lb = new JLabel("Tolerancia:");
-        lb.setForeground(fgStatus);
+        lb.setForeground(fgToolbar);
         p.add(lb);
         JSpinner tol = new JSpinner(new SpinnerNumberModel(32, 0, 255, 1));
         tol.setPreferredSize(new Dimension(50, 20));
         p.add(tol);
         JCheckBox contiguo = new JCheckBox("Contiguo");
         contiguo.setBackground(bg);
-        contiguo.setForeground(fgStatus);
+        contiguo.setForeground(fgToolbar);
         contiguo.setSelected(true);
         p.add(Box.createHorizontalStrut(4));
         p.add(contiguo);
@@ -744,7 +744,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         addButtonsFromDef(p, "editoravanzadocrop", bg, group);
         JCheckBox mantener = new JCheckBox("Mantener original");
         mantener.setBackground(bg);
-        mantener.setForeground(fgStatus);
+        mantener.setForeground(fgToolbar);
         p.add(Box.createHorizontalStrut(4));
         p.add(mantener);
         cropKeepOriginalChk = mantener;
@@ -756,13 +756,13 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
         p.setBackground(bg);
         JLabel lb = new JLabel("Tamaño de muestra:");
-        lb.setForeground(fgStatus);
+        lb.setForeground(fgToolbar);
         p.add(lb);
         ButtonGroup group = new ButtonGroup();
         for (String s : new String[]{"1×1", "3×3", "5×5"}) {
             JRadioButton rb = new JRadioButton(s);
             rb.setBackground(bg);
-            rb.setForeground(fgStatus);
+            rb.setForeground(fgToolbar);
             group.add(rb);
             p.add(rb);
             rb.addActionListener(e -> {
@@ -774,7 +774,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
 
         p.add(Box.createHorizontalStrut(8));
         JLabel lbM = new JLabel("Capturado:");
-        lbM.setForeground(fgStatus);
+        lbM.setForeground(fgToolbar);
         p.add(lbM);
         JLabel swatch = new JLabel();
         swatch.setOpaque(true);
@@ -783,7 +783,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         swatch.setBorder(BorderFactory.createLineBorder(swatchBorderColor()));
         p.add(swatch);
         JLabel rgb = new JLabel("RGB(255,255,255)");
-        rgb.setForeground(fgStatus);
+        rgb.setForeground(fgToolbar);
         p.add(rgb);
         eyedropperSwatch = swatch;
         eyedropperRgbLabel = rgb;
@@ -800,7 +800,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         p.add(Box.createHorizontalStrut(6));
         // Tolerancia
         JLabel lb = new JLabel("Tolerancia:");
-        lb.setForeground(fgStatus);
+        lb.setForeground(fgToolbar);
         p.add(lb);
         JSpinner tol = new JSpinner(new SpinnerNumberModel(32, 0, 255, 1));
         tol.setPreferredSize(new Dimension(50, 20));
@@ -808,7 +808,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         p.add(Box.createHorizontalStrut(4));
         JCheckBox contiguo = new JCheckBox("Contiguo");
         contiguo.setBackground(bg);
-        contiguo.setForeground(fgStatus);
+        contiguo.setForeground(fgToolbar);
         contiguo.setSelected(true);
         p.add(contiguo);
         paintToleranceSpinner = tol;
@@ -909,7 +909,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
 
         p.add(Box.createHorizontalStrut(4));
         JLabel lb = new JLabel("Opacidad:");
-        lb.setForeground(fgStatus);
+        lb.setForeground(fgToolbar);
         p.add(lb);
         JSlider op = new JSlider(0, 100, 100);
         op.setBackground(bg);
@@ -1127,7 +1127,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         // Ángulo de rotación (no destructiva)
         p.add(createSubSeparator(bg));
         JLabel lbAngle = new JLabel("\u00C1ngulo:");
-        lbAngle.setForeground(fgStatus);
+        lbAngle.setForeground(fgToolbar);
         p.add(lbAngle);
         p.add(spinnerAngle);
 
@@ -1600,7 +1600,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
                         String text = btnDef.textoTooltip();
                         if ("Relleno".equals(text)) {
                             JLabel lb = new JLabel("Relleno:");
-                            lb.setForeground(fgStatus);
+                            lb.setForeground(fgToolbar);
                             p.add(lb);
                             shapeFillSwatch = createColorSwatch(new Color(200, 200, 200), "Color de relleno", bg,
                                     c -> {
@@ -1611,7 +1611,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
                         } else if ("Borde".equals(text)) {
                             p.add(Box.createHorizontalStrut(4));
                             JLabel lb = new JLabel("Borde:");
-                            lb.setForeground(fgStatus);
+                            lb.setForeground(fgToolbar);
                             p.add(lb);
                             shapeStrokeSwatch = createColorSwatch(Color.BLACK, "Color del borde", bg,
                                     c -> {
@@ -1622,7 +1622,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
                         } else if ("Grosor de Borde".equals(text)) {
                             p.add(Box.createHorizontalStrut(4));
                             JLabel lb = new JLabel("Grosor:");
-                            lb.setForeground(fgStatus);
+                            lb.setForeground(fgToolbar);
                             p.add(lb);
                             JSpinner sp = new JSpinner(new SpinnerNumberModel(1, 0, 50, 1));
                             sp.setPreferredSize(new Dimension(50, 20));
@@ -1674,7 +1674,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         ButtonGroup group = new ButtonGroup();
         addButtonsFromDef(p, "editoravanzadozoomtype", bg, group);
         JLabel hint = new JLabel("Clic: acercar · Clic derecho: alejar");
-        hint.setForeground(fgStatus);
+        hint.setForeground(fgToolbar);
         hint.setFont(hint.getFont().deriveFont(10f));
         p.add(Box.createHorizontalStrut(6));
         p.add(hint);
@@ -1966,7 +1966,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
 
     private JLabel createDimLabel(String text) {
         JLabel lb = new JLabel(text);
-        lb.setForeground(fgStatus);
+        lb.setForeground(fgToolbar);
         lb.setFont(lb.getFont().deriveFont(10f));
         return lb;
     } // --- Fin del metodo createDimLabel ---
@@ -2075,7 +2075,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
 
         // Spinner ancho + unidad
         JLabel lbW = new JLabel("Ancho:");
-        lbW.setForeground(fgStatus);
+        lbW.setForeground(fgToolbar);
         p.add(lbW);
         homeWSpinner = new JSpinner(new SpinnerNumberModel(1920, 1, 99999, 1));
         homeWSpinner.setPreferredSize(new Dimension(65, 20));
@@ -2091,7 +2091,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
 
         // Spinner alto + unidad
         JLabel lbH = new JLabel("Alto:");
-        lbH.setForeground(fgStatus);
+        lbH.setForeground(fgToolbar);
         p.add(lbH);
         homeHSpinner = new JSpinner(new SpinnerNumberModel(1080, 1, 99999, 1));
         homeHSpinner.setPreferredSize(new Dimension(65, 20));
@@ -2119,6 +2119,11 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         p.add(homeColorSwatch);
 
         p.add(Box.createHorizontalStrut(8));
+
+        // Acciones de lienzo (nuevo, medidas, ajustar al contenido)
+        addHomeButtonsFromDef(p, "editoravanzadohomecanvas", bg, null);
+
+        p.add(Box.createHorizontalStrut(4));
 
         // Aceptar + Cancelar
         addHomeButtonsFromDef(p, "editoravanzadoconfirmacion", bg, null);
@@ -2312,6 +2317,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
                 Color bc = homeColorSwatch != null ? homeColorSwatch.getBackground() : new Color(200, 200, 200);
                 crearNuevoLienzo(w, h, bc);
             }
+            case AppActionCommands.CMD_HOME_LIENZO_AJUSTAR_CONTENIDO -> ajustarLienzoAlContenido();
             case AppActionCommands.CMD_HOME_ACEPTAR -> {
                 int w = homeWSpinner != null ? (Integer) homeWSpinner.getValue() : 1920;
                 int h = homeHSpinner != null ? (Integer) homeHSpinner.getValue() : 1080;
@@ -2376,6 +2382,48 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
 
         cerrarHome();
     } // --- Fin del metodo aplicarMedidasLienzo ---
+
+
+    private void ajustarLienzoAlContenido() {
+        AdvanceEditPanel aep = findAdvanceEditPanel();
+        if (aep == null) return;
+
+        var cm = aep.getCanvas().getCanvasModel();
+        var lm = aep.getCanvas().getLayerModel();
+        if (cm == null || lm == null) return;
+
+        int minX = Integer.MAX_VALUE;
+        int minY = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int maxY = Integer.MIN_VALUE;
+        boolean hayContenido = false;
+
+        for (Layer layer : lm.getLayers()) {
+            if (!layer.isVisible()) continue;
+            Rectangle b = layer.getBounds();
+            if (b == null) continue;
+            hayContenido = true;
+            minX = Math.min(minX, b.x);
+            minY = Math.min(minY, b.y);
+            maxX = Math.max(maxX, b.x + b.width);
+            maxY = Math.max(maxY, b.y + b.height);
+        }
+
+        if (!hayContenido) return;
+
+        // Trasladar el contenido al origen sin modificar sus tamaños
+        for (Layer layer : lm.getLayers()) {
+            if (!layer.isVisible()) continue;
+            Rectangle b = layer.getBounds();
+            if (b == null) continue;
+            layer.setBounds(new Rectangle(b.x - minX, b.y - minY, b.width, b.height));
+        }
+
+        cm.setSize(maxX - minX, maxY - minY);
+        aep.getCanvas().repaint();
+
+        cerrarHome();
+    } // --- Fin del metodo ajustarLienzoAlContenido ---
 
 
     private void cerrarHome() {
@@ -2520,7 +2568,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
 
 
     public void updateTheme(Color bg, Color fg, Color border) {
-        fgStatus = fg;
+        fgToolbar = fg;
         setBackground(bg);
         setBorder(BorderFactory.createMatteBorder(1, 0, 1, 0, border));
         updateChildColors(bg, fg, this);
@@ -2579,7 +2627,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
                 setForeground(list.getSelectionForeground());
             } else {
                 setBackground(list.getBackground());
-                setForeground(fgStatus);
+                setForeground(fgToolbar);
             }
             if (value != null) {
                 setText(value.tooltip());

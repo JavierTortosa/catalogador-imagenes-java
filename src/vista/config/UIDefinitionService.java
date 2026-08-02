@@ -1233,8 +1233,11 @@ public class UIDefinitionService {
         		
         		, new SeparatorDefinition()
         		
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM,
+         		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM,
                         "80011-zoom.png", "Acercar y alejar", "tbeditoravanzado", ButtonType.TOGGLE)
+         		
+         		, new SeparatorDefinition()
+         		
          		, new ToolbarButtonDefinition(AppActionCommands.CMD_ADVANCED_EDITOR_PANTALLA_COMPLETA,
                         "80012-pantalla_completa_48x48.png", "Expandir el editor ocultando el resto de la interfaz", "tbeditoravanzado", ButtonType.TOGGLE)
         );
@@ -1372,8 +1375,10 @@ public class UIDefinitionService {
         		
         		  new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_LIENZO_NUEVO,
                         "90102-nuevo-lienzo.png", "Nuevo Lienzo", "editoravanzadohomecanvas")
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_LIENZO_MEDIDAS,
+         		, new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_LIENZO_MEDIDAS,
                         "80120-target-page.png", "Cambio de Medidas del Lienzo", "editoravanzadohomecanvas")
+         		, new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_LIENZO_AJUSTAR_CONTENIDO,
+                        "80121-ajustar-lienzo.png", "Ajustar lienzo al contenido", "editoravanzadohomecanvas")
 		);
         		
         		

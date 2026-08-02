@@ -446,6 +446,7 @@ public interface AppActionCommands {
     public static final String CMD_HOME_CONTROL_IMAGEN     = "cmd.home.control_imagen";
     public static final String CMD_HOME_LIENZO_NUEVO       = "cmd.home.lienzo.nuevo";
     public static final String CMD_HOME_LIENZO_MEDIDAS     = "cmd.home.lienzo.medidas";
+    public static final String CMD_HOME_LIENZO_AJUSTAR_CONTENIDO = "cmd.home.lienzo.ajustar_contenido";
     public static final String CMD_HOME_ACEPTAR            = "cmd.home.aceptar";
     public static final String CMD_HOME_CANCELAR           = "cmd.home.cancelar";
     public static final String CMD_HOME_IMPORTAR           = "cmd.home.importar";
