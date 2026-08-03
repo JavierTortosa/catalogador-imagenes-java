@@ -43,7 +43,6 @@ public class VisorV2 {
     }
 
     // EDITOR AVANZADO
-    // TODO implementar combine layer en tool capas-> "70306-combine-layer.png" - CMD_PREVIEW_RENDER_DUPLICATE_LAYER
     // TODO implementar el invertir seleccion -> 
     
     

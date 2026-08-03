@@ -238,6 +238,7 @@ public interface AppActionCommands {
     public static final String CMD_PREVIEW_RENDER_ADD_IMAGE         = "cmd.preview.render.add_image";
     public static final String CMD_PREVIEW_RENDER_ADD_LAYER         = "cmd.preview.render.add_layer";
     public static final String CMD_PREVIEW_RENDER_DUPLICATE_LAYER   = "cmd.preview.render.duplicate_layer";
+    public static final String CMD_PREVIEW_RENDER_COMBINE_LAYER     = "cmd.preview.render.combine_layer";
     public static final String CMD_PREVIEW_RENDER_DELETE_LAYER      = "cmd.preview.render.delete_layer";
 
     // --- Alinear capa ---

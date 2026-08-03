@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -11,6 +13,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import java.util.function.Consumer;
@@ -45,6 +48,59 @@ public class LayerCardPanel extends JScrollPane {
     private Point dragStartPoint;
     private boolean dropDragging;
     private int dropTargetVisual = -1;
+    private LayerCard pressedCard;
+
+    private final MouseAdapter dragHandler = new MouseAdapter() {
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+            Point p = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), container);
+            dragStartPoint = p;
+            dragStartIndex = -1;
+            dropDragging = false;
+            dropTargetVisual = -1;
+            pressedCard = null;
+            if (layerModel == null) return;
+            // No iniciar arrastre desde el campo de nombre ni los toggles
+            Component deepest = container.getComponentAt(p);
+            if (deepest instanceof javax.swing.text.JTextComponent
+                    || deepest instanceof javax.swing.AbstractButton) {
+                return;
+            }
+            Component c = findCardAt(p);
+            if (c instanceof LayerCard card) {
+                dragStartIndex = card.getIndex();
+                pressedCard = card;
+            }
+        } // --- Fin del metodo mousePressed ---
+
+
+        @Override
+        public void mouseDragged(MouseEvent e) {
+            if (dragStartIndex < 0 || dragStartPoint == null || layerModel == null) return;
+            Point p = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), container);
+            if (!dropDragging) {
+                if (p.distance(dragStartPoint) < 5) return;
+                dropDragging = true;
+            }
+            updateDropIndicator(p);
+        } // --- Fin del metodo mouseDragged ---
+
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            if (dropDragging) {
+                if (pressedCard != null) {
+                    pressedCard.setSelectionSuppressed(true);
+                }
+                performDrop();
+            }
+            dragStartIndex = -1;
+            dragStartPoint = null;
+            pressedCard = null;
+        } // --- Fin del metodo mouseReleased ---
+
+    };
 
     public void setOnDoubleClick(Consumer<TextLayer> listener) {
         this.onDoubleClick = listener;
@@ -111,6 +167,8 @@ public class LayerCardPanel extends JScrollPane {
                         layerModel.getLayer(i), layerModel, i,
                         bgColor, borderColor, fgColor, selectedBg,
                         onDoubleClick);
+                card.addMouseListener(dragHandler);
+                card.addMouseMotionListener(dragHandler);
                 container.add(card);
             }
         }
@@ -134,57 +192,14 @@ public class LayerCardPanel extends JScrollPane {
 
 
     /**
-     * Registra los listeners de ratón sobre el contenedor. Los eventos de las
-     * tarjetas se propagan a este contenedor, por lo que no es necesario
-     * registrarlos en cada tarjeta.
+     * Registra los listeners de arrastre sobre el contenedor (zonas vacías) y
+     * el binding de ESC. Los arrastres sobre las tarjetas se registran por
+     * separado en {@link #rebuild()} sobre cada tarjeta, con ambos tipos de
+     * listener (ratón y movimiento) para que mouseDragged se dispare.
      */
     private void installDragAndDrop() {
-        container.addMouseListener(new java.awt.event.MouseAdapter() {
-
-            @Override
-            public void mousePressed(java.awt.event.MouseEvent e) {
-                dragStartPoint = e.getPoint();
-                dragStartIndex = -1;
-                dropDragging = false;
-                dropTargetVisual = -1;
-                if (layerModel == null) return;
-                // No iniciar arrastre desde el campo de nombre ni los toggles
-                java.awt.Component deepest = container.getComponentAt(e.getPoint());
-                if (deepest instanceof javax.swing.text.JTextComponent
-                        || deepest instanceof javax.swing.AbstractButton) {
-                    return;
-                }
-                Component c = findCardAt(e.getPoint());
-                if (c instanceof LayerCard card) {
-                    dragStartIndex = card.getIndex();
-                }
-            } // --- Fin del metodo mousePressed ---
-
-
-            @Override
-            public void mouseDragged(java.awt.event.MouseEvent e) {
-                if (dragStartIndex < 0 || dragStartPoint == null || layerModel == null) return;
-                if (!dropDragging) {
-                    if (e.getPoint().distance(dragStartPoint) < 5) return;
-                    dropDragging = true;
-                }
-                updateDropIndicator(e.getPoint());
-            } // --- Fin del metodo mouseDragged ---
-
-
-            @Override
-            public void mouseReleased(java.awt.event.MouseEvent e) {
-                if (!dropDragging) {
-                    dragStartIndex = -1;
-                    dragStartPoint = null;
-                    return;
-                }
-                performDrop();
-                dragStartIndex = -1;
-                dragStartPoint = null;
-            } // --- Fin del metodo mouseReleased ---
-
-        });
+        container.addMouseListener(dragHandler);
+        container.addMouseMotionListener(dragHandler);
 
         // ESC cancela el arrastre en curso
         container.getInputMap(javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
@@ -265,6 +280,7 @@ public class LayerCardPanel extends JScrollPane {
         dropDragging = false;
         dragStartIndex = -1;
         dragStartPoint = null;
+        pressedCard = null;
         removeDropIndicator();
     } // --- Fin del metodo cancelDrop ---
 

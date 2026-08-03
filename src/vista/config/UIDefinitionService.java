@@ -1848,7 +1848,7 @@ public class UIDefinitionService {
                 
             new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ADD_LAYER,
                     	"70304-nueva-capa.png", "Añade Capa Nueva", "previewRender"),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE /*CMD_PREVIEW_RENDER_DUPLICATE_LAYER*/,
+            new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_COMBINE_LAYER,
             			"70306-combine-layer.png", "Combina Capas", "previewRender"),
             new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DUPLICATE_LAYER,
                     	"70305-duplicate-layer.png", "Duplicar Capa", "previewRender"),

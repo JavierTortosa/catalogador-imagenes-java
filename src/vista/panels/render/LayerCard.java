@@ -5,6 +5,8 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -74,9 +76,13 @@ public class LayerCard extends JPanel {
 
     private Consumer<TextLayer> onDoubleClick;
 
+    // Suprime la selección al hacer clic tras un arrastre (para no perder la multiselección)
+    private boolean selectionSuppressed;
+
     // Colores temáticos (se reciben por constructor)
     private Color bgNormal;
     private Color bgSelected;
+    private Color bgActive;
     private Color fgText;
     private Color border;
 
@@ -90,6 +96,7 @@ public class LayerCard extends JPanel {
         this.border = border;
         this.fgText = fgText;
         this.bgSelected = bgSelected;
+        this.bgActive = blend(bgSelected, Color.WHITE, 0.22f);
         this.onDoubleClick = onDoubleClick;
 
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -162,18 +169,38 @@ public class LayerCard extends JPanel {
         });
         add(nameField);
 
-        // Click to select; double-click to edit text
-        addMouseListener(new java.awt.event.MouseAdapter() {
+        // Click en cualquier parte de la tarjeta selecciona la capa:
+        // - clic normal → selección simple
+        // - Ctrl+clic → alterna en la selección múltiple
+        // - Shift+clic → selecciona el rango desde la capa activa
+        // Doble-clic sobre una capa de texto inicia la edición inline
+        MouseAdapter cardClick = new MouseAdapter() {
             @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
+            public void mouseClicked(MouseEvent e) {
+                if (selectionSuppressed) {
+                    selectionSuppressed = false;
+                    return;
+                }
                 if (layerModel != null) {
-                    layerModel.setActiveLayer(index);
+                    if (e.isControlDown() || e.isMetaDown()) {
+                        layerModel.toggleSelected(index);
+                    } else if (e.isShiftDown()) {
+                        layerModel.selectRange(index);
+                    } else {
+                        layerModel.setSingleSelection(index);
+                    }
                 }
                 if (e.getClickCount() == 2 && layer instanceof TextLayer && onDoubleClick != null) {
                     onDoubleClick.accept((TextLayer) layer);
                 }
             }
-        });
+        };
+        addMouseListener(cardClick);
+        nameField.addMouseListener(cardClick);
+        // thumbLabel SIN listener propio: así reenvía el evento a la tarjeta,
+        // permitiendo tanto seleccionar como iniciar el arrastre desde la miniatura
+        eyeButton.addMouseListener(cardClick);
+        lockButton.addMouseListener(cardClick);
 
         updateSelection();
     } // --- Fin del constructor LayerCard ---
@@ -193,11 +220,23 @@ public class LayerCard extends JPanel {
 
 
     public void updateSelection() {
-        boolean selected = layerModel != null
-                && layerModel.getActiveIndex() == index;
-        setBackground(selected ? bgSelected : bgNormal);
+        boolean active = layerModel != null && layerModel.getActiveIndex() == index;
+        boolean selected = layerModel != null && layerModel.isSelected(index);
+        setBackground(active ? bgActive : (selected ? bgSelected : bgNormal));
         repaint();
     } // --- Fin del metodo updateSelection ---
+
+
+    /**
+     * Mezcla dos colores: {@code a} sobre {@code b} con la proporción indicada.
+     */
+    private static Color blend(Color a, Color b, float ratio) {
+        float r = Math.max(0f, Math.min(1f, ratio));
+        int red = Math.round(a.getRed() * (1 - r) + b.getRed() * r);
+        int green = Math.round(a.getGreen() * (1 - r) + b.getGreen() * r);
+        int blue = Math.round(a.getBlue() * (1 - r) + b.getBlue() * r);
+        return new Color(red, green, blue);
+    } // --- Fin del metodo blend ---
 
 
     public Layer getLayer() {
@@ -208,5 +247,14 @@ public class LayerCard extends JPanel {
     public int getIndex() {
         return index;
     } // --- Fin del metodo getIndex ---
+
+
+    /**
+     * Marca si el siguiente clic de selección debe ignorarse (lo usa el panel
+     * tras completar un arrastre, para no limpiar la multiselección).
+     */
+    void setSelectionSuppressed(boolean suppressed) {
+        this.selectionSuppressed = suppressed;
+    } // --- Fin del metodo setSelectionSuppressed ---
 
 } // --- Fin de la clase LayerCard ---

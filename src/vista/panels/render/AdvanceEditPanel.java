@@ -815,6 +815,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                     if (AppActionCommands.CMD_PREVIEW_RENDER_ADD_LAYER.equals(cmd)) {
                         layerToolbar.add(createAddLayerButton(btnDef));
                     } else if (AppActionCommands.CMD_PREVIEW_RENDER_DUPLICATE_LAYER.equals(cmd)
+                            || AppActionCommands.CMD_PREVIEW_RENDER_COMBINE_LAYER.equals(cmd)
                             || AppActionCommands.CMD_PREVIEW_RENDER_DELETE_LAYER.equals(cmd)) {
                         layerToolbar.add(createLayerActionButton(btnDef));
                     } else {
@@ -1010,6 +1011,9 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                         break;
                     case AppActionCommands.CMD_PREVIEW_RENDER_DUPLICATE_LAYER:
                         editorLayerModel.duplicateLayer(idx);
+                        break;
+                    case AppActionCommands.CMD_PREVIEW_RENDER_COMBINE_LAYER:
+                        editorLayerModel.mergeSelected();
                         break;
                     case AppActionCommands.CMD_PREVIEW_RENDER_BRING_TO_FRONT:
                         editorLayerModel.moveLayer(idx, editorLayerModel.size() - 1);
