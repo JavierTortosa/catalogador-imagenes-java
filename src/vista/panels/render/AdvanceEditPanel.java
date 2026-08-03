@@ -14,6 +14,8 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -69,6 +71,16 @@ import vista.util.IconUtils;
 public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
     private static final long serialVersionUID = 1L;
+
+    // --- Ancho adaptativo de la columna de herramientas ---
+    // Cuando se colapsa el preview, el panel crece en ancho: la mitad del espacio
+    // extra va a la columna (para que las tarjetas de capa no queden recortadas
+    // por los scrolls) y la otra mitad al canvas, con tope para no desperdiciar lienzo.
+    private static final int TOOLS_MIN_WIDTH = 200;
+    private static final int TOOLS_MAX_WIDTH = 320;
+    private int lastSplitWidth = -1;
+    private int toolsWidth = TOOLS_MIN_WIDTH;
+
 	private final CanvasPanel canvasPanel;
     private final JPanel advanceEditToolsPanel;
     private final JPanel toolbarContainer;
@@ -190,6 +202,20 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             int loc = (Integer) evt.getNewValue();
             int maxLoc = sp.getWidth() - sp.getDividerSize() - sp.getRightComponent().getMinimumSize().width;
             advanceEditToolsVisible = loc < maxLoc - 10;
+            // Sincronizar el estado del ancho adaptativo con la realidad del divider
+            if (sp.getWidth() > 0) {
+                toolsWidth = Math.max(TOOLS_MIN_WIDTH, sp.getWidth() - loc);
+                lastSplitWidth = sp.getWidth();
+            }
+        });
+
+        // Al crecer el panel (p. ej. colapsar el preview), repartir el espacio extra:
+        // mitad al canvas, mitad a la columna de herramientas (con tope)
+        advanceEditSplit.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                adjustToolsWidth();
+            }
         });
 
         canvasPanel = new CanvasPanel();
@@ -209,6 +235,31 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
         installEscapeBinding();
     } // --- Fin del constructor AdvanceEditPanel ---
+
+
+    /**
+     * Reparte el espacio extra de ancho del panel entre el canvas y la columna
+     * de herramientas: la mitad para cada uno, con tope en la columna para no
+     * quitar demasiado lienzo. Solo actúa mientras las herramientas estén visibles.
+     */
+    private void adjustToolsWidth() {
+        if (!advanceEditToolsVisible) return;
+        int w = advanceEditSplit.getWidth();
+        if (w <= 0) return;
+        if (lastSplitWidth < 0) {
+            lastSplitWidth = w;
+            return;
+        }
+        int delta = w - lastSplitWidth;
+        lastSplitWidth = w;
+        if (delta == 0) return;
+        toolsWidth = Math.max(TOOLS_MIN_WIDTH,
+                Math.min(TOOLS_MAX_WIDTH, toolsWidth + delta / 2));
+        int actual = w - advanceEditSplit.getDividerLocation();
+        if (Math.abs(actual - toolsWidth) > 6) {
+            advanceEditSplit.setDividerLocation(w - toolsWidth);
+        }
+    } // --- Fin del metodo adjustToolsWidth ---
 
 
     private void installEscapeBinding() {
@@ -358,8 +409,8 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                 JSplitPane sp = getSplit();
                 if (sp != null && sp.isShowing()) {
                     int w = sp.getWidth();
-                    if (w > 200) {
-                        sp.setDividerLocation(w - 180);
+                    if (w > TOOLS_MIN_WIDTH + 20) {
+                        sp.setDividerLocation(w - TOOLS_MIN_WIDTH);
                     }
                 }
             });

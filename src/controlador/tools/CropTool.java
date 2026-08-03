@@ -26,7 +26,7 @@ public class CropTool extends Tool {
     public void mousePressed(MouseEvent e) {
         if (ctx.selectionModel() == null || !ctx.selectionModel().isActive()) return;
         ImageLayer layer = getActiveLayer();
-        if (layer == null) return;
+        if (layer == null || layer.isLocked()) return;
 
         boolean keepOriginal = ctx.componentBar().isCropKeepOriginal();
         boolean eliminar = "eliminar".equals(ctx.componentBar().getCropMode());

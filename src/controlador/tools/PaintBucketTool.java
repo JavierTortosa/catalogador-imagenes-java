@@ -28,7 +28,7 @@ public class PaintBucketTool extends Tool {
     @Override
     public void mousePressed(MouseEvent e) {
         ImageLayer layer = getActiveLayer();
-        if (layer == null) return;
+        if (layer == null || layer.isLocked()) return;
         BufferedImage img = layer.getImage();
         if (img == null) return;
 

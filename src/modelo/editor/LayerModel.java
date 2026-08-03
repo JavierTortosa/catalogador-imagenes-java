@@ -34,6 +34,15 @@ public class LayerModel {
     } // --- Fin del metodo fireChanged ---
 
 
+    /**
+     * Notifica un cambio de propiedad de una capa (visibilidad, bloqueo, nombre)
+     * para que la vista reconstruya las tarjetas y repinte el canvas.
+     */
+    public void refresh() {
+        fireChanged();
+    } // --- Fin del metodo refresh ---
+
+
     public void addLayer(Layer layer) {
         layers.add(Objects.requireNonNull(layer));
         if (activeIndex < 0) {

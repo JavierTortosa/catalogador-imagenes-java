@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.68.50";
+        version = "V2.68.60";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -43,6 +43,8 @@ public class VisorV2 {
     }
 
     // EDITOR AVANZADO
+    // TODO implementar combine layer en tool capas-> "70306-combine-layer.png" - CMD_PREVIEW_RENDER_DUPLICATE_LAYER
+    // TODO implementar el invertir seleccion -> 
     
     
     // GENERAL

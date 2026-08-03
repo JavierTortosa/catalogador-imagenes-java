@@ -71,7 +71,7 @@ public class EditTool extends Tool {
 
     private void syncLayerFromSpinners() {
         Layer layer = model().getActiveLayer();
-        if (layer == null) return;
+        if (layer == null || layer.isLocked()) return;
         try {
             int x = ((Number) bar().getSpinnerX().getValue()).intValue();
             int y = ((Number) bar().getSpinnerY().getValue()).intValue();
@@ -86,7 +86,7 @@ public class EditTool extends Tool {
 
     private void syncLayerFromAngleSpinner() {
         Layer layer = model().getActiveLayer();
-        if (layer == null) return;
+        if (layer == null || layer.isLocked()) return;
         try {
             double angle = ((Number) bar().getSpinnerAngle().getValue()).doubleValue();
             layer.setRotation(angle);
@@ -216,7 +216,9 @@ public class EditTool extends Tool {
 
         // 5. Iniciar arrastre para mover o deseleccionar si se pulsa en vac\u00EDo
         active = model().getActiveLayer();
-        if (active != null && active.getBounds() != null && active.getBounds().contains(p)) {
+        if (active != null && active.getBounds() != null
+                && active.getBounds().contains(p)
+                && !active.isLocked()) {
             dragging = true;
             dragStart = p;
             move = picker().beginMove(p, active);
@@ -229,6 +231,7 @@ public class EditTool extends Tool {
     @Override
     public void mouseDragged(MouseEvent e) {
         Layer active = model().getActiveLayer();
+        if (active != null && active.isLocked()) return;
 
         if (gizmoDragging && rotateDrag != null && dragStart != null) {
             boolean shift = (e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) != 0;
@@ -331,6 +334,7 @@ public class EditTool extends Tool {
     public void keyPressed(KeyEvent e) {
         Layer active = model().getActiveLayer();
         if (active == null || active.getBounds() == null) return;
+        if (active.isLocked()) return;
 
         int step = e.isShiftDown() ? 10 : 1;
         int dx = 0, dy = 0;

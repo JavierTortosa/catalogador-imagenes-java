@@ -234,8 +234,19 @@ public class UIDefinitionService {
                 new MenuItemDefinition(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA,
                         MenuItemType.ITEM, "Mostrar Diálogo Lista de Imágenes...", null));
 
+        /*
+         * 
+         * 
+         * 
+         */
+        
         menuBarStructure.add(new MenuItemDefinition(null,
                 MenuItemType.MAIN_MENU, "Vista", vistaSubItems));
+        /*
+         * 
+         * 
+         * 
+         */
 
         // --- NUEVA SECCIÓN: MENÚ "MODO" ---
         List<MenuItemDefinition> modoSubItems = List.of(
@@ -256,9 +267,19 @@ public class UIDefinitionService {
                 new MenuItemDefinition(null,
                         MenuItemType.RADIO_GROUP_END, null, null) // Finaliza el grupo de radios
         );
+        
+        /*
+         * 
+         * 
+         */
         menuBarStructure.add(new MenuItemDefinition(null,
                 MenuItemType.MAIN_MENU, "Modo", modoSubItems));
 
+        /*
+         * 
+         * 
+         */
+        
         // --- SECCIÓN 6: MENÚ "PROYECTO" ---
         List<MenuItemDefinition> proyectoSubItems = List.of(
                 new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR,
@@ -288,9 +309,29 @@ public class UIDefinitionService {
                         MenuItemType.ITEM, "Vista Rapida de Imagenes Seleccionadas", null)
 
         );
+//        menuBarStructure.add(new MenuItemDefinition(null,
+//        		MenuItemType.MAIN_MENU, "Vista", vistaSubItems));
+//        menuBarStructure.add(new MenuItemDefinition(null,
+//        		MenuItemType.MAIN_MENU, "Modo", modoSubItems));
         menuBarStructure.add(new MenuItemDefinition(null,
                 MenuItemType.MAIN_MENU, "Proyecto", proyectoSubItems));
-
+        
+        // SECCION 6.5: MENU "MODO RENDER" 
+        List<MenuItemDefinition> renderSubItems = List.of(
+//                new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR,
+//                        MenuItemType.ITEM, "Gestionar Proyecto Actual...", null)
+                
+                  new MenuItemDefinition(AppActionCommands.CMD_RENDER_ESCANEAR_CARPETA, 
+                		MenuItemType.ITEM,"Escanear carpeta", null)
+                , new MenuItemDefinition(AppActionCommands.CMD_RENDER_PROCESAR_SELECCIONADOS, 
+                		MenuItemType.ITEM,"Procesar seleccionados", null)
+                , new MenuItemDefinition(AppActionCommands.CMD_RENDER_PROCESAR_ARCHIVO, 
+                		MenuItemType.ITEM,"Procesar archivo", null)
+        );
+        menuBarStructure.add(new MenuItemDefinition(null,
+                MenuItemType.MAIN_MENU, "Render", renderSubItems));
+        
+        
         // --- SECCIÓN 7: MENÚ "CONFIGURACIÓN" ---
         List<MenuItemDefinition> configSubItems = new ArrayList<>();
 
@@ -1156,8 +1197,6 @@ public class UIDefinitionService {
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_ABRIR_TEMP,
                         "70006 - abrir temp.png", "Abrir carpeta temporal", "toolbarRender")
         		
-        		
-        		
         		, new SeparatorDefinition()
         		
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_ASIGNAR_PREVIEW,
@@ -1189,7 +1228,6 @@ public class UIDefinitionService {
         		
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_GALLERY,
                         "70104-gallery-view.png", "Ver galeria del archivo comprimido", "previewrenderview", ButtonType.TOGGLE)
-        		
 		);
         
         List<ToolbarComponentDefinition> toolbarEditorAvanzado = List.of(
@@ -1810,6 +1848,8 @@ public class UIDefinitionService {
                 
             new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_ADD_LAYER,
                     	"70304-nueva-capa.png", "Añade Capa Nueva", "previewRender"),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE /*CMD_PREVIEW_RENDER_DUPLICATE_LAYER*/,
+            			"70306-combine-layer.png", "Combina Capas", "previewRender"),
             new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DUPLICATE_LAYER,
                     	"70305-duplicate-layer.png", "Duplicar Capa", "previewRender"),
             new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DELETE_LAYER,

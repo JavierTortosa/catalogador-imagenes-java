@@ -64,7 +64,8 @@ public class TransformTool extends Tool {
             return ctx.selectionModel().getBounds();
         }
         ImageLayer layer = getActiveLayer();
-        return layer != null ? layer.getBounds() : null;
+        if (layer == null || layer.isLocked()) return null;
+        return layer.getBounds();
     } // --- Fin del metodo getTargetBounds ---
 
     /**
@@ -102,7 +103,7 @@ public class TransformTool extends Tool {
             }
         } else {
             ImageLayer layer = getActiveLayer();
-            if (layer != null) {
+            if (layer != null && !layer.isLocked()) {
                 layer.setBounds(newBounds);
             }
         }

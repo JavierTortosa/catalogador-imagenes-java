@@ -117,7 +117,7 @@ public class TextTool extends Tool {
         if (bar != null) {
             bar.setAngleSpinnerListener(angle -> {
                 TextLayer target = editingLayer != null ? editingLayer : selectedLayer;
-                if (target != null) {
+                if (target != null && !target.isLocked()) {
                     target.setRotation(angle);
                     ctx.canvasPanel().repaint();
                 }
@@ -159,7 +159,7 @@ public class TextTool extends Tool {
     public void setFontFamily(String ff) {
         this.fontFamily = ff;
         TextLayer target = editingLayer != null ? editingLayer : selectedLayer;
-        if (target != null) {
+        if (target != null && !target.isLocked()) {
             target.setFont(buildFont());
             ctx.canvasPanel().repaint();
         }
@@ -169,7 +169,7 @@ public class TextTool extends Tool {
     public void setFontSize(int size) {
         this.fontSize = size;
         TextLayer target = editingLayer != null ? editingLayer : selectedLayer;
-        if (target != null) {
+        if (target != null && !target.isLocked()) {
             target.setFont(buildFont());
             ctx.canvasPanel().repaint();
         }
@@ -180,7 +180,7 @@ public class TextTool extends Tool {
     public void setBold(boolean b) {
         this.bold = b;
         TextLayer target = editingLayer != null ? editingLayer : selectedLayer;
-        if (target != null) {
+        if (target != null && !target.isLocked()) {
             target.setFont(buildFont());
             ctx.canvasPanel().repaint();
         }
@@ -191,7 +191,7 @@ public class TextTool extends Tool {
     public void setItalic(boolean i) {
         this.italic = i;
         TextLayer target = editingLayer != null ? editingLayer : selectedLayer;
-        if (target != null) {
+        if (target != null && !target.isLocked()) {
             target.setFont(buildFont());
             ctx.canvasPanel().repaint();
         }
@@ -206,7 +206,7 @@ public class TextTool extends Tool {
             inlineField.setCaretColor(c);
         }
         TextLayer target = editingLayer != null ? editingLayer : selectedLayer;
-        if (target != null) {
+        if (target != null && !target.isLocked()) {
             target.setColor(c);
             ctx.canvasPanel().repaint();
         }
@@ -216,7 +216,7 @@ public class TextTool extends Tool {
     public void setAlignment(int align) {
         this.alignment = align;
         TextLayer target = editingLayer != null ? editingLayer : selectedLayer;
-        if (target != null) {
+        if (target != null && !target.isLocked()) {
             target.setAlignment(align);
             ctx.canvasPanel().repaint();
         }
@@ -231,7 +231,7 @@ public class TextTool extends Tool {
     public void setUnderline(boolean u) {
         this.underline = u;
         TextLayer target = editingLayer != null ? editingLayer : selectedLayer;
-        if (target != null) {
+        if (target != null && !target.isLocked()) {
             target.setUnderline(u);
             ctx.canvasPanel().repaint();
         }
@@ -241,7 +241,7 @@ public class TextTool extends Tool {
     public void setStrikethrough(boolean s) {
         this.strikethrough = s;
         TextLayer target = editingLayer != null ? editingLayer : selectedLayer;
-        if (target != null) {
+        if (target != null && !target.isLocked()) {
             target.setStrikethrough(s);
             ctx.canvasPanel().repaint();
         }
@@ -251,7 +251,7 @@ public class TextTool extends Tool {
     public void setFlowColumns(boolean fc) {
         this.flowColumns = fc;
         TextLayer target = editingLayer != null ? editingLayer : selectedLayer;
-        if (target != null) {
+        if (target != null && !target.isLocked()) {
             target.setFlowColumns(fc);
             ctx.canvasPanel().repaint();
         }
@@ -536,6 +536,7 @@ public class TextTool extends Tool {
 
 
     private void beginInlineEdit(TextLayer layer) {
+        if (layer.isLocked()) return;
         removeInlineField();
         editingLayer = layer;
         selectedLayer = layer;
@@ -551,6 +552,7 @@ public class TextTool extends Tool {
      * Llamado desde EditTool al hacer doble clic.
      */
     public void editExistingLayer(TextLayer layer) {
+        if (layer.isLocked()) return;
         removeInlineField();
         editingLayer = layer;
         selectedLayer = layer;
@@ -753,16 +755,18 @@ public class TextTool extends Tool {
         }
 
         if (editingLayer != null) {
-            editingLayer.setText(text);
-            if (inlineField instanceof JTextPane pane) {
-                editingLayer.setRuns(extractRuns(pane));
+            if (!editingLayer.isLocked()) {
+                editingLayer.setText(text);
+                if (inlineField instanceof JTextPane pane) {
+                    editingLayer.setRuns(extractRuns(pane));
+                }
+                editingLayer.setAlignment(alignment);
+                editingLayer.setVertical(vertical);
+                editingLayer.setUnderline(underline);
+                editingLayer.setStrikethrough(strikethrough);
+                editingLayer.setFlowColumns(flowColumns);
+                applyFixedBoxIfNeeded(editingLayer);
             }
-            editingLayer.setAlignment(alignment);
-            editingLayer.setVertical(vertical);
-            editingLayer.setUnderline(underline);
-            editingLayer.setStrikethrough(strikethrough);
-            editingLayer.setFlowColumns(flowColumns);
-            applyFixedBoxIfNeeded(editingLayer);
             selectedLayer = editingLayer;
         } else if (autoSize && autoSizeClickPoint != null) {
             // Auto-size (single click): dimensiones se ajustan al texto
