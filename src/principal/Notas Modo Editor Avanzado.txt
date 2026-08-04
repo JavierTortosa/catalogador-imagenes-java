@@ -87,54 +87,54 @@ Decisiones cerradas con el usuario (04/08/2026):
 PLAN DE IMPLEMENTACIÓN
 ----------------------
 
-FASE 1 - Modo Editor como WorkMode
-1. Enum y comandos
-   - VisorModel.java:23 -> añadir EDITOR al enum WorkMode.
-   - VisorModel.getCurrentListContext (239) / getCurrentZoomContext (254):
+FASE 1 - Modo Editor como WorkMode  [HECHO 04/08/2026]
+1. Enum y comandos  [OK]
+   - [OK] VisorModel.java:23 -> añadir EDITOR al enum WorkMode.
+   - [OK] VisorModel.getCurrentListContext (239) / getCurrentZoomContext (254):
      añadir case RENDER y case EDITOR junto a VISUALIZADOR (hoy RENDER cae
      al default silencioso; hacerlo explícito).
-   - AppActionCommands.java -> CMD_MODO_EDITOR = "cmd.modo.editor".
+   - [OK] AppActionCommands.java -> CMD_MODO_EDITOR = "cmd.modo.editor".
 
-2. Barra de modos (UIDefinitionService.java:812-813)
-   - Reemplazar el placeholder CMD_FUNCIONALIDAD_PENDIENTE ("Editor Grafico",
+2. Barra de modos (UIDefinitionService.java:812-813)  [OK]
+   - [OK] Reemplazar el placeholder CMD_FUNCIONALIDAD_PENDIENTE ("Editor Grafico",
      8006-edit-mode.png) por CMD_MODO_EDITOR + tooltip "Modo Editor".
-   - ActionFactory: registerAction(CMD_MODO_EDITOR,
+   - [OK] ActionFactory: registerAction(CMD_MODO_EDITOR,
      createSwitchWorkModeAction(WorkMode.EDITOR, ...)) junto a RENDER (690).
 
-3. Cambio de modo (AppModeService)
-   - cambiarVistaPrincipal (121) -> case EDITOR -> "VISTA_RENDER"
+3. Cambio de modo (AppModeService)  [OK]
+   - [OK] cambiarVistaPrincipal (121) -> case EDITOR -> "VISTA_RENDER"
      (reutiliza la misma tarjeta; sin vista nueva ni reparenting).
-   - sincronizarBotonesModo (250 y 259) -> case EDITOR -> CMD_MODO_EDITOR
+   - [OK] sincronizarBotonesModo (250 y 259) -> case EDITOR -> CMD_MODO_EDITOR
      Y añadir CMD_MODO_EDITOR a la lista comandosDeModo (si solo se mete en
      uno, el toggle no se selecciona bien).
-   - entrarModo EDT-1 (426) -> case EDITOR: VISTA_RENDER +
+   - [OK] entrarModo EDT-1 (426) -> case EDITOR: VISTA_RENDER +
      renderController.activarModoEditor().
-   - salirModo (327) -> case EDITOR: renderController.desactivarModoEditor()
-     + guardado del documento temporal si sucio (Fase 2).
-   - reparentSharedDisplayContainer: EDITOR cae en default -> null -> sin
+   - [OK] salirModo (327) -> case EDITOR: renderController.desactivarModoEditor()
+     + guardado del documento temporal si sucio (Fase 2) [esto último pendiente Fase 2].
+   - [OK] reparentSharedDisplayContainer: EDITOR cae en default -> null -> sin
      reparenting (seguro).
 
-4. Nuevos métodos en RenderController
-   - activarModoEditor(): reutiliza la inicialización idempotente de
+4. Nuevos métodos en RenderController  [OK]
+   - [OK] activarModoEditor(): reutiliza la inicialización idempotente de
      toggleAdvanceEditMode() (CanvasModel/LayerModel/CanvasController si es
      la 1ª vez) + panel.setAdvanceEditActive(true) + panel.setEditorFullscreen(true).
-   - desactivarModoEditor(): setAdvanceEditActive(false) + setEditorFullscreen(false).
+   - [OK] desactivarModoEditor(): setAdvanceEditActive(false) + setEditorFullscreen(false).
 
-5. RenderPanel
-   - Nuevo setEditorFullscreen(boolean) IDEMPOTENTE (no toggle) para
+5. RenderPanel  [OK]
+   - [OK] Nuevo setEditorFullscreen(boolean) IDEMPOTENTE (no toggle) para
      ocultar/mostrar los paneles laterales (preview + archivos).
 
-6. ESC
-   - AdvanceEditPanel.setCanvasController (530-538): cambiar
+6. ESC  [PARCIAL]
+   - [OK] AdvanceEditPanel.setCanvasController (530-538): cambiar
      setFullscreenEscapeHandler para que devuelva false SIEMPRE (que ESC
      nunca salga de fullscreen).
-   - Ocultar el botón interno de fullscreen del editor cuando se está en
+   - [PENDIENTE] Ocultar el botón interno de fullscreen del editor cuando se está en
      Modo Editor (el fullscreen ya está activado).
 
-7. Toolbars
-   - ToolbarManager.reconstruirContenedorDeToolbars (143): en EDITOR solo
-     se muestra la nueva barra de documento (def con modosVisibles=[EDITOR])
-     y se oculta barra_estado_controles (229).
+7. Toolbars  [PARCIAL]
+   - [OK] ToolbarManager.reconstruirContenedorDeToolbars (143): se oculta
+     barra_estado_controles (229) en EDITOR y se añadió EDITOR a modo/modo_bottom.
+   - [PENDIENTE] barra_editor (def con modosVisibles=[EDITOR]) -> Fase 2.7.
 
 FASE 2 - Documento .edoc (semántica Modo Proyecto)
 1. Nuevo servicios/editor/EditorDocumentManager (espejo de ProjectManager):

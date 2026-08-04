@@ -1017,14 +1017,18 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
         return fullscreen;
     }
 
-    public void toggleEditorFullscreen() {
-        fullscreen = !fullscreen;
+    public void setEditorFullscreen(boolean fullscreen) {
+        this.fullscreen = fullscreen;
         Container leftWrapper = leftSplit != null ? leftSplit.getParent() : null;
         Container rightWrapper = rightPanel != null ? rightPanel.getParent() : null;
         if (leftWrapper instanceof JComponent) leftWrapper.setVisible(!fullscreen);
         if (rightWrapper instanceof JComponent) rightWrapper.setVisible(!fullscreen);
         revalidate();
         repaint();
+    } // --- Fin del metodo setEditorFullscreen ---
+
+    public void toggleEditorFullscreen() {
+        setEditorFullscreen(!fullscreen);
     } // --- Fin del metodo toggleEditorFullscreen ---
 
     public PreviewPanel3DFX getPreview3DFX() { return preview3DFX; }

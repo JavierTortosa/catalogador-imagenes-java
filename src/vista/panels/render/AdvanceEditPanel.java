@@ -100,6 +100,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     private int iconHeight = 24;
     private boolean syncingTools;
     private javax.swing.JToggleButton homeButton;
+    private javax.swing.JPanel homePanel;
     private CanvasController canvasController;
 
     // --- Retención de controles de texto del panel derecho ---
@@ -305,6 +306,8 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         homeButton.addActionListener(e -> toggleHomeMode());
         panel.add(homeButton, BorderLayout.CENTER);
 
+        homePanel = panel;
+
         return panel;
     } // --- Fin del metodo createHomePanel ---
 
@@ -359,6 +362,14 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
         setBackground(bgMain);
         componentBar.updateTheme(bgToolbar, fgToolbar, borderColor);
+
+        if (homePanel != null) {
+            homePanel.setBackground(bgToolbar);
+        }
+        if (homeButton != null) {
+            homeButton.setBackground(bgToolbar);
+            homeButton.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, borderColor));
+        }
         toolbarContainer.setBackground(bgToolbar);
         mainContent.setBackground(bgMain);
         advanceEditSplit.setBackground(bgMain);
@@ -527,15 +538,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         componentBar.setOnTextChange(this::syncToolsFromBar);
         componentBar.setOnShapeChange(this::syncToolsFromBar);
         canvasController.setFullscreenToggle(this::toggleFullscreen);
-        canvasController.setFullscreenEscapeHandler(() -> {
-            RenderPanel rp = (RenderPanel) javax.swing.SwingUtilities
-                    .getAncestorOfClass(RenderPanel.class, this);
-            if (rp != null && rp.isFullscreen()) {
-                rp.toggleEditorFullscreen();
-                return true;
-            }
-            return false;
-        });
+        canvasController.setFullscreenEscapeHandler(() -> false);
         layerCardPanel.setOnDoubleClick(textLayer -> {
             if (canvasController != null) {
                 TextTool tt = (TextTool) canvasController.getTool(AppActionCommands.CMD_ADVANCED_EDITOR_TEXTO);

@@ -215,6 +215,7 @@ public interface AppActionCommands {
     public static final String CMD_MODO_CLIENTE 					= "cmd.modo.cliente";
     public static final String CMD_VISTA_CAROUSEL 					= "cmd.vista.carousel";
     public static final String CMD_MODO_RENDER                      = "cmd.modo.render";
+    public static final String CMD_MODO_EDITOR                      = "cmd.modo.editor";
     public static final String CMD_RENDER_ESCANEAR_CARPETA          = "cmd.render.escanear_carpeta";
     public static final String CMD_RENDER_PROCESAR_SELECCIONADOS    = "cmd.render.procesar_seleccionados";
     public static final String CMD_RENDER_PROCESAR_ARCHIVO          = "cmd.render.procesar_archivo";

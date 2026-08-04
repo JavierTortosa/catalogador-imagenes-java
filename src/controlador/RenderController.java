@@ -1777,6 +1777,76 @@ public class RenderController {
     } // --- Fin del metodo toggleAdvanceEditMode ---
 
 
+    /**
+     * Activa el Modo Editor como modo de trabajo: garantiza que el editor avanzado
+     * esté inicializado y activa el fullscreen del editor (ocultando los paneles
+     * laterales de preview y archivos).
+     */
+    public void activarModoEditor() {
+        var aep = panel.getAdvanceEditPanel();
+        if (aep.getCanvas().getCanvasModel() == null) {
+            aep.setCanvasModel(new CanvasModel(1920, 1080));
+        }
+        if (aep.getCanvas().getLayerModel() == null) {
+            aep.setLayerModel(new LayerModel());
+        }
+        if (canvasController == null) {
+            var cm = aep.getCanvas().getCanvasModel();
+            var lm = aep.getCanvas().getLayerModel();
+            var sm = aep.getCanvas().getSelectionModel();
+            var gizmo = new modelo.gizmo.TransformGizmo();
+            canvasController = new controlador.tools.CanvasController(
+                    aep.getCanvas(), aep.getComponentBar(), cm, lm, sm, gizmo);
+            canvasController.registerTool(new controlador.tools.TransformTool());
+            canvasController.registerTool(new controlador.tools.MarqueeSelectionTool());
+            canvasController.registerTool(new controlador.tools.LayerSelectionTool());
+            canvasController.registerTool(new controlador.tools.MagicWandTool());
+            canvasController.registerTool(new controlador.tools.PaintBucketTool());
+            canvasController.registerTool(new controlador.tools.ColorPickerTool());
+            canvasController.registerTool(new controlador.tools.CropTool());
+            canvasController.registerTool(new controlador.tools.TextTool());
+            canvasController.registerTool(new controlador.tools.ShapeTool());
+            canvasController.registerTool(new controlador.tools.GradientTool());
+            canvasController.registerTool(new controlador.tools.ZoomTool());
+            canvasController.registerTool(new controlador.tools.EditTool());
+            var textTool = (controlador.tools.TextTool) canvasController.getTool(
+                    AppActionCommands.CMD_ADVANCED_EDITOR_TEXTO);
+            canvasController.getLayerEditorRegistry()
+                    .register(new controlador.tools.editors.TextLayerEditor(textTool));
+            canvasController.getLayerEditorRegistry()
+                    .register(new controlador.tools.editors.ShapeLayerEditor());
+            aep.setCanvasController(canvasController);
+            aep.getCanvas().setCanvasController(canvasController);
+            canvasController.setActiveTool(AppActionCommands.CMD_ADVANCED_EDITOR_EDICION);
+        }
+        panel.setAdvanceEditActive(true);
+        panel.setEditorFullscreen(true);
+        logger.info("[RenderController] Modo Editor activado.");
+    } // --- Fin del metodo activarModoEditor ---
+
+
+    /**
+     * Desactiva el Modo Editor: sale del fullscreen y restaura la vista normal del
+     * modo render.
+     */
+    public void desactivarModoEditor() {
+        panel.setEditorFullscreen(false);
+        panel.setAdvanceEditActive(false);
+        logger.info("[RenderController] Modo Editor desactivado.");
+    } // --- Fin del metodo desactivarModoEditor ---
+
+
+    /**
+     * Restaura la UI del Modo Editor al entrar en él (re-afirma el estado activo de
+     * forma idempotente).
+     */
+    public void restaurarUiModoEditor() {
+        if (panel.isAdvanceEditActive()) {
+            panel.setEditorFullscreen(true);
+        }
+    } // --- Fin del metodo restaurarUiModoEditor ---
+
+
     // ========== Stubs gestión de capas ==========
 
 

@@ -229,6 +229,9 @@ public class ToolbarManager implements ThemeChangeListener{
         JToolBar barraEstadoControles = getToolbar("barra_estado_controles");
         if (barraEstadoControles != null) {
             boolean debeSerVisible = (displayModeActual != DisplayMode.GRID);
+            if (modoActual == WorkMode.EDITOR) {
+                debeSerVisible = false;
+            }
             barraEstadoControles.setVisible(debeSerVisible);
             logger.debug("  -> Visibilidad condicional para 'barra_estado_controles': " + debeSerVisible);
         }

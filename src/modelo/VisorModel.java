@@ -26,7 +26,8 @@ public class VisorModel {
         DATOS,
         CLIENTE,
         CARROUSEL,
-        RENDER
+        RENDER,
+        EDITOR
     }
 
     public enum DisplayMode {
@@ -245,6 +246,8 @@ public class VisorModel {
                 return this.datosListContext;
             case CARROUSEL:
                 return this.carouselListContext;
+            case RENDER:
+            case EDITOR:
             case VISUALIZADOR:
             default:
                 return this.visualizadorListContext;
@@ -260,6 +263,8 @@ public class VisorModel {
                 return this.datosZoomContext;
             case CARROUSEL:
                 return this.carouselZoomContext;
+            case RENDER:
+            case EDITOR:
             case VISUALIZADOR:
             default:
                 return this.visualizadorZoomContext;

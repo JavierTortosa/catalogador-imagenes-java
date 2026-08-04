@@ -688,6 +688,8 @@ public class ActionFactory {
                 createSolicitarModoClienteAction());
         registerAction(AppActionCommands.CMD_MODO_RENDER,
                 createSwitchWorkModeAction(WorkMode.RENDER, AppActionCommands.CMD_MODO_RENDER, "Modo Render"));
+        registerAction(AppActionCommands.CMD_MODO_EDITOR,
+                createSwitchWorkModeAction(WorkMode.EDITOR, AppActionCommands.CMD_MODO_EDITOR, "Modo Editor"));
 
         // --- Acciones específicas del Modo Cliente ---
         registerAction(AppActionCommands.CMD_CLIENTE_ABRIR_PRJCL,

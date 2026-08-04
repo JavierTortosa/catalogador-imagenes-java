@@ -2620,6 +2620,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
 
         ToolItem sel = (ToolItem) toolCombo.getSelectedItem();
         buildRow1RightSide();
+        buildHomeRow1();
         buildAllToolPanels();
         if (sel != null) {
             showOptionsFor(sel.commandKey());

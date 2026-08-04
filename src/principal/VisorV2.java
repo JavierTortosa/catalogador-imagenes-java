@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.68.70";
+        version = "V2.68.80";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -45,13 +45,12 @@ public class VisorV2 {
     // EDITOR AVANZADO
     // TODO implementar el invertir seleccion en las herramientas de seleccion-> 80015-invertir-seleccion.png
     // TODO implementar el guardado de la composicion actual
-    // FIXME los botones del home no se actualizan en caliente
     // TODO implementar guias de alineado 
-    // FIXME implementar el scanner -> 70009-scanner.png -> CMD_RENDER_PROCESAR_HUERFANOS 
+    // TODO implementar el scanner -> 70009-scanner.png -> CMD_RENDER_PROCESAR_HUERFANOS 
     
     // GENERAL
     
-    // FIXME implementar el plan para el modo editor -> 8006-edit-mode.png -> CMD_MODO_EDIT
+    // TODO implementar el plan para el modo editor -> 8006-edit-mode.png -> CMD_MODO_EDIT
     // TODO añadir F1 para que muestre el panel de informacion
     // TODO añadir ctrl + 1-5 para activar el modo visor, proyecto, cliente, datos, carrousel
     // TODO Implementar un sistema de busqueda de archivos sin representacion

@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import controlador.ClientController;
 import controlador.DataController;
 import controlador.ProjectController;
+import controlador.RenderController;
 import controlador.VisorController;
 import controlador.commands.AppActionCommands;
 import controlador.managers.CarouselManager;
@@ -52,6 +53,7 @@ public class AppModeService {
     private ProjectController projectController;
     private DataController dataController;
     private ClientController clientController;
+    private RenderController renderController;
     private ConfigurationManager configuration;
     private ComponentRegistry registry;
     private Map<String, Action> actionMap;
@@ -90,6 +92,11 @@ public class AppModeService {
     } // --- FIN de metodo setClientController ---
 
 
+    public void setRenderController(RenderController renderController) {
+        this.renderController = renderController;
+    } // --- FIN de metodo setRenderController ---
+
+
     public void setInfobarImageManager(InfobarImageManager infobarImageManager) {
         this.infobarImageManager = infobarImageManager;
     } // --- FIN de metodo setInfobarImageManager ---
@@ -126,6 +133,7 @@ public class AppModeService {
             case CLIENTE -> "VISTA_CLIENTE";
             case CARROUSEL -> "VISTA_CARROUSEL_WORKMODE";
             case RENDER -> "VISTA_RENDER";
+            case EDITOR -> "VISTA_RENDER";
         };
         viewManager.cambiarAVista("container.workmodes", vistaName);
         logger.debug("[AppModeService] Vista cambiada a: {}", vistaName);
@@ -254,6 +262,7 @@ public class AppModeService {
             case CLIENTE       -> AppActionCommands.CMD_MODO_CLIENTE;
             case CARROUSEL     -> AppActionCommands.CMD_VISTA_CAROUSEL;
             case RENDER        -> AppActionCommands.CMD_MODO_RENDER;
+            case EDITOR        -> AppActionCommands.CMD_MODO_EDITOR;
         };
 
         List<String> comandosDeModo = List.of(
@@ -262,7 +271,8 @@ public class AppModeService {
                 AppActionCommands.CMD_MODO_DATOS,
                 AppActionCommands.CMD_MODO_CLIENTE,
                 AppActionCommands.CMD_VISTA_CAROUSEL,
-                AppActionCommands.CMD_MODO_RENDER);
+                AppActionCommands.CMD_MODO_RENDER,
+                AppActionCommands.CMD_MODO_EDITOR);
 
         for (String comando : comandosDeModo) {
             Action action = actionMap.get(comando);
@@ -393,8 +403,13 @@ public class AppModeService {
             }
         }
 
-        
-        
+        // --- LÓGICA AL SALIR DEL MODO EDITOR ---
+        if (modoQueSeAbandona == WorkMode.EDITOR && renderController != null) {
+            renderController.desactivarModoEditor();
+            logger.debug("    -> Modo Editor: Fullscreen del editor desactivado.");
+        }
+
+
     } // --- FIN de metodo salirModo ---
 
     public void entrarModo(WorkMode modoAlQueSeEntra) {
@@ -453,6 +468,15 @@ public class AppModeService {
                         infobarImageManager.limpiar();
                     }
                     break;
+                case EDITOR:
+                    viewManager.cambiarAVista("container.workmodes", "VISTA_RENDER");
+                    if (renderController != null) {
+                        renderController.activarModoEditor();
+                    }
+                    if (infobarImageManager != null) {
+                        infobarImageManager.limpiar();
+                    }
+                    break;
 
             }
 
@@ -507,6 +531,11 @@ public class AppModeService {
                         }
                         break;
                     case RENDER:
+                        break;
+                    case EDITOR:
+                        if (renderController != null) {
+                            renderController.restaurarUiModoEditor();
+                        }
                         break;
                 }
                 actualizarUiModo(modoAlQueSeEntra, actionMap);

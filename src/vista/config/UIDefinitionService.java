@@ -19,6 +19,7 @@ public class UIDefinitionService {
     private static final WorkMode DATA = WorkMode.DATOS;
     private static final WorkMode SLIDER = WorkMode.CARROUSEL;
     private static final WorkMode RENDER = WorkMode.RENDER;
+    private static final WorkMode EDITOR = WorkMode.EDITOR;
 
     // ========== CONSTANTES DE ALINEACIÓN ==========
     private static final ToolbarAlignment tbarLeft = ToolbarAlignment.LEFT;
@@ -809,8 +810,8 @@ public class UIDefinitionService {
                 		"4005-carrousel_48x48.png", "Vista Carrusel", "modo", ButtonType.TOGGLE)
                 , new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_RENDER, 
                 		"8005-render mode.png", "Modo Render", "modo", ButtonType.TOGGLE)
-                , new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE /*CMD_MODO_EDIT*/, 
-                		"8006-edit-mode.png", "Editor Grafico", "modo", ButtonType.TOGGLE)
+                , new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_EDITOR, 
+                		"8006-edit-mode.png", "Modo Editor", "modo", ButtonType.TOGGLE)
         );
 
         List<ToolbarButtonDefinition> botonesModoBottom = List.of(
@@ -1657,12 +1658,12 @@ public class UIDefinitionService {
 
         final ToolbarDefinition tbModo = new ToolbarDefinition(
                 "modo", "Modo", 1070,
-                EnumSet.of(VISOR, PROJECT, DATA, SLIDER, CLIENT, RENDER),
+                EnumSet.of(VISOR, PROJECT, DATA, SLIDER, CLIENT, RENDER, EDITOR),
                 List.copyOf(botonesModo), tbarFree);
 
         final ToolbarDefinition tbModoBottom = new ToolbarDefinition(
                 "modo_bottom", "Modo Bottom", 1080,
-                EnumSet.of(VISOR, PROJECT, DATA, SLIDER, CLIENT, RENDER),
+                EnumSet.of(VISOR, PROJECT, DATA, SLIDER, CLIENT, RENDER, EDITOR),
                 List.copyOf(botonesModoBottom), tbarFree);
 
         final ToolbarDefinition tbEditorAvanzado = new ToolbarDefinition(
