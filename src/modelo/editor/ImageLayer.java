@@ -33,6 +33,11 @@ public class ImageLayer implements Layer {
     private int shapeRenderW;
     private int shapeRenderH;
 
+    // Ruta de origen de la imagen (relativa al .edoc) cuando la capa proviene de
+    // un archivo externo. Si es null, la imagen se exporta a un PNG sidecar en
+    // la carpeta "_capas/" junto al documento.
+    private String srcPath;
+
     public ImageLayer(String name, BufferedImage image, Rectangle bounds) {
         this.id = UUID.randomUUID().toString();
         this.name = Objects.requireNonNull(name);
@@ -161,6 +166,14 @@ public class ImageLayer implements Layer {
     public void setShapeRenderH(int shapeRenderH) {
         this.shapeRenderH = shapeRenderH;
     } // --- Fin del metodo setShapeRenderH ---
+
+    public String getSrcPath() {
+        return srcPath;
+    } // --- Fin del metodo getSrcPath ---
+
+    public void setSrcPath(String srcPath) {
+        this.srcPath = srcPath;
+    } // --- Fin del metodo setSrcPath ---
 
     @Override
     public void paint(Graphics2D g2) {

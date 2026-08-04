@@ -87,6 +87,7 @@ public class RenderController {
     private final Map<Path, SourceInfo> pngSourceMap = new HashMap<>();
     private final Map<Path, SoftReference<List<Triangle>>> triangleCache = new HashMap<>();
     private final AwtModelRenderer renderer = new AwtModelRenderer();
+    private servicios.editor.EditorDocumentManager editorDocumentManager;
 
     private final RenderTempFileManager tempFileManager;
     private final RenderSceneController sceneController;
@@ -1821,8 +1822,127 @@ public class RenderController {
         }
         panel.setAdvanceEditActive(true);
         panel.setEditorFullscreen(true);
+
+        inicializarGestorDocumento(aep);
         logger.info("[RenderController] Modo Editor activado.");
     } // --- Fin del metodo activarModoEditor ---
+
+
+    /** Inicializa (si hace falta) el gestor de documento del editor. */
+    private void inicializarGestorDocumento(vista.panels.render.AdvanceEditPanel aep) {
+        if (editorDocumentManager == null) {
+            editorDocumentManager = new servicios.editor.EditorDocumentManager(config);
+        }
+        var cm = aep.getCanvas().getCanvasModel();
+        var lm = aep.getCanvas().getLayerModel();
+        if (editorDocumentManager.getCanvasModel() != cm
+                || editorDocumentManager.getLayerModel() != lm) {
+            editorDocumentManager.setDocument(cm, lm);
+            editorDocumentManager.setDirtyNotifier(this::refrescarTituloEditor);
+        }
+    } // --- Fin del metodo inicializarGestorDocumento ---
+
+
+    private void refrescarTituloEditor() {
+        if (editorDocumentManager == null) return;
+        String sufijo = editorDocumentManager.getArchivoActivo() != null
+                ? "[Documento: " + editorDocumentManager.getNombreDocumento() + "]"
+                : "[" + editorDocumentManager.getNombreDocumento() + "]";
+        if (editorDocumentManager.hayCambiosSinGuardar()) {
+            sufijo = "*" + sufijo;
+        }
+        logger.debug("[RenderController] Documento ({}) sucio={}",
+                editorDocumentManager.getNombreDocumento(),
+                editorDocumentManager.hayCambiosSinGuardar());
+    } // --- Fin del metodo refrescarTituloEditor ---
+
+
+    public servicios.editor.EditorDocumentManager getEditorDocumentManager() {
+        return editorDocumentManager;
+    } // --- Fin del metodo getEditorDocumentManager ---
+
+
+    public void nuevoDocumentoEditor() {
+        if (editorDocumentManager == null) {
+            var aep = panel.getAdvanceEditPanel();
+            inicializarGestorDocumento(aep);
+        }
+        editorDocumentManager.nuevoDocumento();
+        refrescarUiEditor();
+    } // --- Fin del metodo nuevoDocumentoEditor ---
+
+
+    public void guardarDocumentoEditor() {
+        if (editorDocumentManager == null) return;
+        editorDocumentManager.guardarAArchivo();
+        refrescarUiEditor();
+    } // --- Fin del metodo guardarDocumentoEditor ---
+
+
+    public void guardarDocumentoComoEditor(java.nio.file.Path ruta) {
+        if (editorDocumentManager == null) return;
+        editorDocumentManager.guardarComo(ruta);
+        refrescarUiEditor();
+    } // --- Fin del metodo guardarDocumentoComoEditor ---
+
+
+    public void abrirDocumentoEditor(java.nio.file.Path ruta) {
+        if (editorDocumentManager == null) {
+            var aep = panel.getAdvanceEditPanel();
+            inicializarGestorDocumento(aep);
+        }
+        if (editorDocumentManager.abrirDocumento(ruta)) {
+            refrescarUiEditor();
+        }
+    } // --- Fin del metodo abrirDocumentoEditor ---
+
+
+    private void refrescarUiEditor() {
+        var aep = panel.getAdvanceEditPanel();
+        aep.getCanvas().repaint();
+        aep.refreshLayerCards();
+    } // --- Fin del metodo refrescarUiEditor ---
+
+
+    public void abrirDocumentoEditorDialogo() {
+        javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
+        fc.setDialogTitle("Abrir documento del editor");
+        fc.setFileFilter(new FileNameExtensionFilter("Documento del editor (*.edoc)", "edoc"));
+        if (fc.showOpenDialog(parentFrame) != javax.swing.JFileChooser.APPROVE_OPTION) return;
+        abrirDocumentoEditor(fc.getSelectedFile().toPath());
+    } // --- Fin del metodo abrirDocumentoEditorDialogo ---
+
+
+    public void guardarDocumentoEditorDialogo() {
+        if (editorDocumentManager == null || editorDocumentManager.getArchivoActivo() == null) {
+            guardarDocumentoComoEditorDialogo();
+            return;
+        }
+        guardarDocumentoEditor();
+    } // --- Fin del metodo guardarDocumentoEditorDialogo ---
+
+
+    public void guardarDocumentoComoEditorDialogo() {
+        if (editorDocumentManager == null) {
+            var aep = panel.getAdvanceEditPanel();
+            inicializarGestorDocumento(aep);
+        }
+        javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
+        fc.setDialogTitle("Guardar documento del editor");
+        fc.setFileFilter(new FileNameExtensionFilter("Documento del editor (*.edoc)", "edoc"));
+        java.nio.file.Path actual = editorDocumentManager.getArchivoActivo();
+        if (actual != null) {
+            fc.setSelectedFile(actual.toFile());
+        } else {
+            fc.setSelectedFile(new java.io.File(editorDocumentManager.getNombreDocumento() + ".edoc"));
+        }
+        if (fc.showSaveDialog(parentFrame) != javax.swing.JFileChooser.APPROVE_OPTION) return;
+        java.io.File f = fc.getSelectedFile();
+        if (!f.getName().toLowerCase().endsWith(".edoc")) {
+            f = new java.io.File(f.getParentFile(), f.getName() + ".edoc");
+        }
+        guardarDocumentoComoEditor(f.toPath());
+    } // --- Fin del metodo guardarDocumentoComoEditorDialogo ---
 
 
     /**

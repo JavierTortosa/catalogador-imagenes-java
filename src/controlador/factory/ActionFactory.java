@@ -739,6 +739,11 @@ public class ActionFactory {
         registerAction(AppActionCommands.CMD_RENDER_DESCARGAR_ARCHIVOS, createRenderDescargarArchivosAction());
         registerAction(AppActionCommands.CMD_RENDER_CLEAR_PREVIEW, createRenderClearPreviewAction());
 
+        registerAction(AppActionCommands.CMD_EDITOR_NUEVO, createEditorNuevoAction());
+        registerAction(AppActionCommands.CMD_EDITOR_ABRIR, createEditorAbrirAction());
+        registerAction(AppActionCommands.CMD_EDITOR_GUARDAR, createEditorGuardarAction());
+        registerAction(AppActionCommands.CMD_EDITOR_GUARDAR_COMO, createEditorGuardarComoAction());
+
         registerAction(AppActionCommands.CMD_PREVIEW_RENDER_3DGRID, createPreviewRender3DGridAction());
         registerAction(AppActionCommands.CMD_PREVIEW_RENDER_2DGRID, createPreviewRender2DGridAction());
         registerAction(AppActionCommands.CMD_PREVIEW_RENDER_COLLAGE, createPreviewRenderCollageAction());
@@ -1202,6 +1207,46 @@ public class ActionFactory {
             }
         };
     } // --- Fin del metodo createRenderClearPreviewAction ---
+
+
+    private Action createEditorNuevoAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) renderController.nuevoDocumentoEditor();
+            }
+        };
+    } // --- Fin del metodo createEditorNuevoAction ---
+
+
+    private Action createEditorAbrirAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) renderController.abrirDocumentoEditorDialogo();
+            }
+        };
+    } // --- Fin del metodo createEditorAbrirAction ---
+
+
+    private Action createEditorGuardarAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) renderController.guardarDocumentoEditorDialogo();
+            }
+        };
+    } // --- Fin del metodo createEditorGuardarAction ---
+
+
+    private Action createEditorGuardarComoAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) renderController.guardarDocumentoComoEditorDialogo();
+            }
+        };
+    } // --- Fin del metodo createEditorGuardarComoAction ---
 
 
     private Action createPreviewRender3DGridAction() {

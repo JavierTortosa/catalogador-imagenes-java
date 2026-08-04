@@ -228,6 +228,10 @@ public interface AppActionCommands {
     public static final String CMD_PREVIEW_RENDER_2DGRID            = "cmd.preview.render.2dgrid";
     public static final String CMD_PREVIEW_RENDER_COLLAGE           = "cmd.preview.render.collage";
     public static final String CMD_PREVIEW_RENDER_ADVANCE_EDIT      = "cmd.preview.render.advance_edit";
+    public static final String CMD_EDITOR_NUEVO                      = "cmd.editor.nuevo";
+    public static final String CMD_EDITOR_ABRIR                      = "cmd.editor.abrir";
+    public static final String CMD_EDITOR_GUARDAR                    = "cmd.editor.guardar";
+    public static final String CMD_EDITOR_GUARDAR_COMO               = "cmd.editor.guardar_como";
     public static final String CMD_PREVIEW_RENDER_GALLERY           = "cmd.preview.render.gallery";
 
     public static final String CMD_PREVIEW_RENDER_BRING_TO_FRONT    = "cmd.preview.render.bring_to_front";

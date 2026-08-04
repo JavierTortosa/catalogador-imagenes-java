@@ -438,6 +438,13 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         return canvasPanel;
     } // --- Fin del metodo getCanvas ---
 
+
+    public void refreshLayerCards() {
+        if (layerCardPanel != null) {
+            layerCardPanel.rebuild();
+        }
+    } // --- Fin del metodo refreshLayerCards ---
+
     public void setLayerModel(modelo.editor.LayerModel layerModel) {
         this.editorLayerModel = layerModel;
         canvasPanel.setLayerModel(layerModel);

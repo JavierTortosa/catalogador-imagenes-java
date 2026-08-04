@@ -1661,6 +1661,22 @@ public class UIDefinitionService {
                 EnumSet.of(VISOR, PROJECT, DATA, SLIDER, CLIENT, RENDER, EDITOR),
                 List.copyOf(botonesModo), tbarFree);
 
+        // --- BARRA DE DOCUMENTO DEL EDITOR ---
+        final List<ToolbarButtonDefinition> botonesDocumentoEditor = List.of(
+                new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_NUEVO,
+                        "7102-nuevo_proyecto_48x48.png", "Nuevo documento", "editor"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_ABRIR,
+                        "7103-abrir_proyecto_48x48.png", "Abrir documento", "editor"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_GUARDAR,
+                        "7104-guardar_proyecto_48x48.png", "Guardar documento", "editor"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_GUARDAR_COMO,
+                        "7105-guardar_proyecto_como_48x48.png", "Guardar como", "editor"));
+
+        final ToolbarDefinition tbBarraEditor = new ToolbarDefinition(
+                "barra_editor", "Documento del Editor", 1075,
+                EnumSet.of(EDITOR),
+                List.copyOf(botonesDocumentoEditor), tbarLeft);
+
         final ToolbarDefinition tbModoBottom = new ToolbarDefinition(
                 "modo_bottom", "Modo Bottom", 1080,
                 EnumSet.of(VISOR, PROJECT, DATA, SLIDER, CLIENT, RENDER, EDITOR),
@@ -1738,6 +1754,7 @@ public class UIDefinitionService {
                 tbAbrirCarpeta,
                 tbProyecto,
                 tbCliente,
+                tbBarraEditor,
 
                 // CENTER
                 tbEdicion,

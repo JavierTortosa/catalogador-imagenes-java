@@ -16,7 +16,7 @@ public class LayerModel {
     private final List<Layer> layers;
     private final Set<Integer> selectedIndices;
     private int activeIndex;
-    private Runnable changeListener;
+    private final List<Runnable> changeListeners = new ArrayList<>();
 
 
     public LayerModel() {
@@ -31,13 +31,30 @@ public class LayerModel {
      * (alta, baja, orden, selecci\u00F3n). La vista debe suscribirse aqu\u00ED.
      */
     public void setChangeListener(Runnable listener) {
-        this.changeListener = listener;
+        this.changeListeners.clear();
+        if (listener != null) {
+            this.changeListeners.add(listener);
+        }
     } // --- Fin del metodo setChangeListener ---
 
 
+    /**
+     * A\u00F1ade un callback adicional de cambio sin reemplazar los existentes.
+     * \u00DAtil para que el {@code EditorDocumentManager} marque el documento
+     * como sucio adem\u00E1s de las suscripciones de la vista.
+     */
+    public void addChangeListener(Runnable listener) {
+        if (listener != null && !this.changeListeners.contains(listener)) {
+            this.changeListeners.add(listener);
+        }
+    } // --- Fin del metodo addChangeListener ---
+
+
     private void fireChanged() {
-        if (changeListener != null) {
-            changeListener.run();
+        for (Runnable listener : this.changeListeners) {
+            if (listener != null) {
+                listener.run();
+            }
         }
     } // --- Fin del metodo fireChanged ---
 

@@ -144,34 +144,40 @@ FASE 2 - Documento .edoc (semántica Modo Proyecto)
      nuevoDocumento(), abrirDocumento(Path), guardarAArchivo(), guardarComo(Path),
      guardarSesionDeRecuperacion(), eliminarSesionDeRecuperacion().
    - Se marca sucio desde LayerModel.changeListener + operaciones del
-     CanvasController (pintar, transformar).
+     CanvasController (pintar, transformar).   [PARCIAL: sucio vía LayerModel; falta pintar/transformar -> pendiente]
+   [HECHO] Clase EditorDocumentManager.java (servicios/editor/), EditorDoc.java (DTO),
+     ConfigKeys EDITOR_*, module-info opens servicios.editor+modelo.editor a gson,
+     ImageLayer.srcPath, LayerModel multi-listeners.
+   [PENDIENTE] guardarSesionDeRecuperacion/eliminarSesionDeRecuperacion (Fase 2.5).
+   [PENDIENTE] marcar sucio al pintar/transformar (hook en herramientas).
 2. Serialización JSON (Gson) versionada:
    - Cabecera: version, canvas (w/h/bg/transparent).
    - Capas por tipo: IMAGE (src + bounds/rotación/opacidad/visible/bloqueada),
      SHAPE (shapeType, fill/stroke ARGB, strokeWidth, renderW/H),
      TEXT (texto, fuente familia/estilo/talla, color, alineación, vertical,
      subrayado, tachado, lineSpacing, autoSize, flowColumns, runs).
-   - Adapters Gson para Rectangle, Color, Font, TextRun.
+   - Adapters Gson para Rectangle, Color, Font, TextRun.  [OK: se usan DTO con primitivas/string]
    - ImageLayer gana campo srcPath; en guardado, capas sin origen -> PNG en
-     "_capas/<id>.png" junto al .edoc.
-   - module-info.java: opens modelo.editor to com.google.gson.
+     "_capas/<id>.png" junto al .edoc.  [HECHO]
+   - module-info.java: opens modelo.editor to com.google.gson.  [HECHO]
 3. Título con '*': ViewManager.actualizarTituloVentana (1402) añade, cuando
    WorkMode == EDITOR, "[Documento: <nombre>]" con prefijo '*' si sucio
-   (mismo patrón que proyecto).
+   (mismo patrón que proyecto).  [PENDIENTE: hoy refrescarTituloEditor solo loguea]
 4. Salida del modo: AppModeService.salirModo(EDITOR) guarda a
    editor_temporal.edoc si hay sucio y no hay archivo con nombre (espejo de
-   VISUALIZADOR en AppModeService:349-366).
+   VISUALIZADOR en AppModeService:349-366).  [PENDIENTE]
 5. Cierre de app: integrar en ProjectLifecycleService.handleApplicationShutdown
    (187) - si el editor tiene '*' -> diálogo Guardar/No Guardar/Cancelar; si
    "No Guardar" -> guardarSesionDeRecuperacion() + clave de config
-   editor.recuperacion.pendiente.
+   editor.recuperacion.pendiente.  [PENDIENTE]
 6. Recuperación al entrar: GeneralController.gestionarRecuperacionAlEntrarModo
    (527) o método paralelo para EDITOR -> "Dejaste un documento sin guardar.
    ¿Cargarlo o descartar?"; cargar -> abrirDocumento, descartar -> nuevoDocumento.
+   [PENDIENTE]
 7. Toolbar del editor: ToolbarDefinition "barra_editor" (modosVisibles=[EDITOR],
    LEFT) con botones Nuevo/Abrir/Guardar/Guardar como (CMD_EDITOR_NUEVO/
    ABRIR/GUARDAR/GUARDAR_COMO), acciones delegando al RenderController/
-   EditorDocumentManager.
+   EditorDocumentManager.  [HECHO: barra_editor + 4 acciones + diálogos en RenderController]
 
 FASE 2.5 - Copiar/Pegar imagen
 1. Nuevo utils/ImageClipboard: copy(BufferedImage) y read() con
