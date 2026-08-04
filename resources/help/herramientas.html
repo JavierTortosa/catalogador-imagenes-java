@@ -242,6 +242,18 @@
             <td><strong>Añade capa nueva:</strong> Crea una capa vacía (transparente) del tamaño del lienzo en el editor avanzado.</td>
         </tr>
         <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70306-combine-layer.png"></td>
+            <td><strong>Combina Capas:</strong> Fusiona las capas seleccionadas en una única capa de imagen.
+                Las seleccionadas ocultas se descartan y las bloqueadas permanecen intactas. Requiere al menos
+                dos capas fusionables. El resultado ocupa la posición de la selección más alta y adopta el
+                nombre de la capa superior.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70305-duplicate-layer.png"></td>
+            <td><strong>Duplicar Capa:</strong> Crea una copia de la capa activa (o de cada capa seleccionada)
+                justo encima de la original, con el mismo contenido, tamaño y propiedades.</td>
+        </tr>
+        <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_70303-delete-layer.png"></td>
             <td><strong>Borrar capa:</strong> Elimina la capa actualmente seleccionada en la lista de capas.</td>
         </tr>
@@ -255,14 +267,26 @@
     <p>
         Al activar el modo collage o el editor avanzado aparece la pestaña <strong>"Capas"</strong>
         en el panel derecho. Muestra las capas como tarjetas visuales apiladas verticalmente
-        (<code>LayerCardPanel</code>). Cada tarjeta incluye:
+        (<code>LayerCardPanel</code>), con la capa superior arriba (estilo Photoshop). El panel
+        incluye una <strong>barra de scroll vertical</strong> que aparece cuando hay más capas de
+        las que caben. Cada tarjeta incluye, de izquierda a derecha:
     </p>
     <ul>
-        <li><strong>Miniatura:</strong> Vista previa en 48×48 del contenido de la capa.</li>
-        <li><strong>Nombre editable:</strong> Campo de texto para renombrar la capa.</li>
         <li><strong>Ojo de visibilidad:</strong> Toggle que muestra/oculta la capa en el lienzo.</li>
-        <li><strong>Candado de bloqueo:</strong> Toggle que impide modificar la capa.</li>
-        <li><strong>Selección:</strong> Al hacer clic en una tarjeta se selecciona esa capa como activa en el editor.</li>
+        <li><strong>Candado de bloqueo:</strong> Toggle que impide modificar la capa (queda excluida
+            de movimientos, duplicados y combinaciones).</li>
+        <li><strong>Miniatura:</strong> Vista previa en 40×40 del contenido de la capa.</li>
+        <li><strong>Nombre editable:</strong> Campo de texto para renombrar la capa (se encoge antes
+            que los toggles si el panel es estrecho).</li>
+    </ul>
+    <p><strong>Selección de capas:</strong></p>
+    <ul>
+        <li><strong>Clic</strong> en una tarjeta → la convierte en la única capa activa (fondo azul claro).</li>
+        <li><strong>Ctrl+clic</strong> → añade o quita la capa de la selección múltiple.</li>
+        <li><strong>Mayúsculas+clic</strong> → selecciona un rango continuo desde la capa activa.</li>
+        <li>La capa activa de la multiselección se distingue visualmente de las demás seleccionadas.</li>
+        <li><strong>Arrastrar</strong> una tarjeta con el ratón → la reordena dentro de la pila; una
+            línea azul indica la posición de destino. Pulsa <em>Esc</em> para cancelar el arrastre.</li>
     </ul>
     <p>El panel se actualiza automáticamente gracias al sistema de notificación del modelo de capas.</p>
     <p>Consulta el <a href="editor_avanzado.html">Editor Avanzado</a> para más detalles sobre la gestión de capas.</p>

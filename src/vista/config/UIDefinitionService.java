@@ -802,13 +802,15 @@ public class UIDefinitionService {
                 , new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR,
                         "8002-mostrar_favoritos_48x48.png", "Modo Proyecto", "modo", ButtonType.TOGGLE)
                 , new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_CLIENTE, 
-                		"8004-edicion_48x48.png", "Modo Cliente", "modo", ButtonType.TOGGLE)
+                		"21016-Ar-Environment.png", "Modo Cliente", "modo", ButtonType.TOGGLE)
                 , new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_DATOS, 
                 		"8003-datos_48x48.png", "Modo Datos", "modo", ButtonType.TOGGLE)
                 , new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_CAROUSEL, 
                 		"4005-carrousel_48x48.png", "Vista Carrusel", "modo", ButtonType.TOGGLE)
                 , new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_RENDER, 
                 		"8005-render mode.png", "Modo Render", "modo", ButtonType.TOGGLE)
+                , new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE /*CMD_MODO_EDIT*/, 
+                		"8006-edit-mode.png", "Editor Grafico", "modo", ButtonType.TOGGLE)
         );
 
         List<ToolbarButtonDefinition> botonesModoBottom = List.of(
@@ -1210,6 +1212,25 @@ public class UIDefinitionService {
         		
         );
         
+        List<ToolbarComponentDefinition> componentesToolbarRenderCenter = List.of(
+        		new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_ESCANEAR_CARPETA,
+                        "70001 - escanear carpeta.png", "Escanear carpeta", "toolbarRenderCenter")
+        		
+        		, new SeparatorDefinition()
+        		
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_PROCESAR_SELECCIONADOS,
+                        "70002 - procesar seleccionados.png", "Procesar seleccionados", "toolbarRenderCenter")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_PROCESAR_ARCHIVO,
+                        "70003 - procesar archivo.png", "Procesar archivo", "toolbarRenderCenter")
+        		
+        		, new SeparatorDefinition()
+        		
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE /*CMD_RENDER_PROCESAR_HUERFANOS*/,
+                        "70009-scanner.png", "Escanear Archivos Sin Representacion", "toolbarRenderCenter")
+        		
+        		
+		);
+        
         List<ToolbarComponentDefinition> componentesPreviewRenderView = List.of(
         		
         		new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_3DGRID,
@@ -1410,7 +1431,7 @@ public class UIDefinitionService {
         
         List<ToolbarComponentDefinition> componentbarEditorAvanzadoHomeTools = List.of(
         		  new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_LIENZO,
-                        "90101-lienzo.png", "Lienzo", "editoravanzadohometools", ButtonType.TOGGLE)
+                        "90001-lienzo.png", "Lienzo", "editoravanzadohometools", ButtonType.TOGGLE)
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_CONTROL_IMAGEN,
                         "21016-Ar-Environment.png", "Imagen", "editoravanzadohometools", ButtonType.TOGGLE)
 		);
@@ -1419,7 +1440,7 @@ public class UIDefinitionService {
         List<ToolbarComponentDefinition> componentbarEditorAvanzadoHomeCanvas = List.of(        		
         		
         		  new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_LIENZO_NUEVO,
-                        "90102-nuevo-lienzo.png", "Nuevo Lienzo", "editoravanzadohomecanvas")
+                        "90002-nuevo-lienzo.png", "Nuevo Lienzo", "editoravanzadohomecanvas")
          		, new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_LIENZO_MEDIDAS,
                         "80120-target-page.png", "Cambio de Medidas del Lienzo", "editoravanzadohomecanvas")
          		, new ToolbarButtonDefinition(AppActionCommands.CMD_HOME_LIENZO_AJUSTAR_CONTENIDO,
@@ -1515,6 +1536,11 @@ public class UIDefinitionService {
                 "editor_checkboxes", "Editor de Checkboxes", 270,
                 EnumSet.noneOf(WorkMode.class),
                 List.copyOf(botonesCheckboxEditor), tbarCenter);
+        
+        final ToolbarDefinition  tbToolbarRenderCenter= new ToolbarDefinition(
+                "toolbarRenderCenter", "Controles", 265,
+                EnumSet.of(RENDER),
+                List.copyOf(componentesToolbarRenderCenter), tbarCenter);
 
         // ==================== RIGHT ====================
         final ToolbarDefinition tbControl = new ToolbarDefinition(
@@ -1722,6 +1748,7 @@ public class UIDefinitionService {
                 tbGestionDatos,
                 tbEditorCheckboxes,
                 tbPreviewRenderView,
+                tbToolbarRenderCenter,
 
                 // RIGHT
                 tbControl,

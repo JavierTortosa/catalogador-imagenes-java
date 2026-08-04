@@ -1,0 +1,238 @@
+======================================================
+NOTAS - MODO EDITOR AVANZADO (Visor de Imágenes V2)
+Fecha: 04/08/2026
+======================================================
+
+OBJETIVO
+--------
+Añadir un botón "Modo Editor" en la barra de modos que abra el editor
+avanzado a pantalla completa (efecto Photoshop), como un modo de trabajo
+dedicado, igual que existen Modo Proyecto, Modo Datos o Modo Render.
+
+DECISIÓN DE ARQUITECTURA
+------------------------
+NO duplicar el AdvanceEditPanel. El editor ya es un editor de capas
+completo y reutilizable. Lo que cambia entre usos es el CONTEXTO/HOST:
+  - Modo Render (actual): editor dentro de RenderPanel, alimentado por el
+    preview 3D y que "envía a preview".
+  - Modo Editor (nuevo): el MISMO AdvanceEditPanel, como modo de trabajo
+    propio con persistencia (.edoc JSON + sidecar PNG).
+Un solo panel, dos modos de presentación. Se evita duplicar canvas,
+controlador de herramientas y lógica de capas.
+
+ENFOQUE: Opción B-lite (WorkMode.EDITOR sin duplicar)
+-----------------------------------------------------
+Decisiones cerradas con el usuario (04/08/2026):
+
+1. MODO NORMAL, SIN SALIDA ESPECIAL
+   - EDITOR es un WorkMode más. No hay "volver al modo anterior": se cambia
+     de modo con la barra igual que todos los modos.
+   - salirModo/entrarModo guardan/restauran el estado en memoria, como hace
+     todo el sistema (semántica de Modo Proyecto).
+
+2. CAMBIOS PENDIENTES = SEMÁNTICA MODO PROYECTO
+   - El editor mantiene en memoria lo que se está haciendo.
+   - Documento con nombre; antes de guardar es un temporal
+     (editor_temporal.edoc).
+   - Cualquier modificación en el canvas marca '*' en el título (sin
+     guardar). Al guardar desaparece el '*' y el nombre pasa a ser el del
+     archivo guardado.
+   - Al cerrar la app con '*' pendiente: avisar (Guardar / No Guardar /
+     Cancelar). Si "No Guardar": guardar sesión de recuperación.
+   - Al reabrir la app y entrar en Modo Editor: avisar de que se dejó un
+     documento sin guardar -> cargar o descartar (empezar limpio).
+
+3. FULLSCREEN (dos cosas DISTINTAS)
+   - "Fullscreen del modo render" = oculta los paneles laterales de render
+     (preview 3D y archivos). ES EL QUE USA EL MODO EDITOR.
+     * Al ENTRAR en Modo Editor -> activarlo (editor ocupa toda la zona).
+     * Al SALIR -> desactivarlo (se muestran de nuevo preview y archivos).
+   - "Fullscreen de la aplicación" = oculta la barra de Windows (ventana
+     completa real). NO SE TOCA: lo activa/desactiva el usuario manualmente.
+   - ESC NUNCA sale de fullscreen: solo cancela la herramienta activa o
+     limpia la selección (comportamiento actual de CanvasController).
+
+4. PERSISTENCIA .edoc (JSON + sidecar PNG)
+   - Fichero JSON (Gson) con versionado: cabecera (version, canvas) + capas
+     discriminadas por tipo.
+   - IMAGE -> referencia src (ruta relativa al .edoc) + transformaciones.
+   - SHAPE -> metadatos completos (shapeType, fill/stroke, strokeWidth...).
+   - TEXT -> texto + fuente (familia/estilo/talla) + alineación + runs...
+   - Capas raster SIN archivo previo (capa nueva, pintada, bote, fusión,
+     degradado...) -> se exportan a PNG en carpeta "_capas/" junto al .edoc
+     y se referencian por ruta. El JSON queda pequeño y legible.
+   - EXTENSIÓN: .edoc (confirmada).
+
+5. RENDER Y EDITOR = DOS DOCUMENTOS INDEPENDIENTES
+   - RENDER conserva su propia composición (capas collage/filmstrip + su
+     editor interno) en memoria.
+   - EDITOR gestiona su propio documento .edoc.
+   - Al cambiar de modo: salirModo guarda el documento del modo actual y
+     entrarModo carga el del modo destino en el MISMO AdvanceEditPanel
+     (swap de CanvasModel+LayerModel, ya soportado por setLayerModel/
+     setCanvasModel). Esto respeta la semántica de Modo Proyecto y hace
+     útil la copia cruzada.
+
+6. COPIAR / PEGAR IMAGEN
+   - Copiar en RENDER = aplanar LO QUE SE VE EN PANTALLA (el preview tal
+     cual, con la recolocación y las capas visibles) en UNA imagen.
+     * Si está activo el editor avanzado -> EditorComponentBar.composeBufferedImage().
+     * Si está la vista 2D normal -> aplanar imageDisplayPanel (collage o currentImage2D).
+   - Copiar en VISOR / PROYECTO / CLIENTE -> model.getCurrentImage().
+   - Pegar en EDITOR: Ctrl+V + botón CMD_EDITOR_PEGAR_IMAGEN -> crea un
+     ImageLayer ("Imagen pegada") centrado en el canvas -> addLayer -> sucio.
+   - Portapapeles del sistema (DataFlavor.imageFlavor) -> también pega en
+     apps externas (WhatsApp, etc.).
+
+PLAN DE IMPLEMENTACIÓN
+----------------------
+
+FASE 1 - Modo Editor como WorkMode
+1. Enum y comandos
+   - VisorModel.java:23 -> añadir EDITOR al enum WorkMode.
+   - VisorModel.getCurrentListContext (239) / getCurrentZoomContext (254):
+     añadir case RENDER y case EDITOR junto a VISUALIZADOR (hoy RENDER cae
+     al default silencioso; hacerlo explícito).
+   - AppActionCommands.java -> CMD_MODO_EDITOR = "cmd.modo.editor".
+
+2. Barra de modos (UIDefinitionService.java:812-813)
+   - Reemplazar el placeholder CMD_FUNCIONALIDAD_PENDIENTE ("Editor Grafico",
+     8006-edit-mode.png) por CMD_MODO_EDITOR + tooltip "Modo Editor".
+   - ActionFactory: registerAction(CMD_MODO_EDITOR,
+     createSwitchWorkModeAction(WorkMode.EDITOR, ...)) junto a RENDER (690).
+
+3. Cambio de modo (AppModeService)
+   - cambiarVistaPrincipal (121) -> case EDITOR -> "VISTA_RENDER"
+     (reutiliza la misma tarjeta; sin vista nueva ni reparenting).
+   - sincronizarBotonesModo (250 y 259) -> case EDITOR -> CMD_MODO_EDITOR
+     Y añadir CMD_MODO_EDITOR a la lista comandosDeModo (si solo se mete en
+     uno, el toggle no se selecciona bien).
+   - entrarModo EDT-1 (426) -> case EDITOR: VISTA_RENDER +
+     renderController.activarModoEditor().
+   - salirModo (327) -> case EDITOR: renderController.desactivarModoEditor()
+     + guardado del documento temporal si sucio (Fase 2).
+   - reparentSharedDisplayContainer: EDITOR cae en default -> null -> sin
+     reparenting (seguro).
+
+4. Nuevos métodos en RenderController
+   - activarModoEditor(): reutiliza la inicialización idempotente de
+     toggleAdvanceEditMode() (CanvasModel/LayerModel/CanvasController si es
+     la 1ª vez) + panel.setAdvanceEditActive(true) + panel.setEditorFullscreen(true).
+   - desactivarModoEditor(): setAdvanceEditActive(false) + setEditorFullscreen(false).
+
+5. RenderPanel
+   - Nuevo setEditorFullscreen(boolean) IDEMPOTENTE (no toggle) para
+     ocultar/mostrar los paneles laterales (preview + archivos).
+
+6. ESC
+   - AdvanceEditPanel.setCanvasController (530-538): cambiar
+     setFullscreenEscapeHandler para que devuelva false SIEMPRE (que ESC
+     nunca salga de fullscreen).
+   - Ocultar el botón interno de fullscreen del editor cuando se está en
+     Modo Editor (el fullscreen ya está activado).
+
+7. Toolbars
+   - ToolbarManager.reconstruirContenedorDeToolbars (143): en EDITOR solo
+     se muestra la nueva barra de documento (def con modosVisibles=[EDITOR])
+     y se oculta barra_estado_controles (229).
+
+FASE 2 - Documento .edoc (semántica Modo Proyecto)
+1. Nuevo servicios/editor/EditorDocumentManager (espejo de ProjectManager):
+   - Estado: dirty ('*'), nombreDocumento, archivoActivo (null = temporal),
+     archivoTemporal = editor_temporal.edoc, referencia a CanvasModel+LayerModel.
+   - API: hayCambiosSinGuardar(), markDocumentAsSaved(), notificarModificacion(),
+     nuevoDocumento(), abrirDocumento(Path), guardarAArchivo(), guardarComo(Path),
+     guardarSesionDeRecuperacion(), eliminarSesionDeRecuperacion().
+   - Se marca sucio desde LayerModel.changeListener + operaciones del
+     CanvasController (pintar, transformar).
+2. Serialización JSON (Gson) versionada:
+   - Cabecera: version, canvas (w/h/bg/transparent).
+   - Capas por tipo: IMAGE (src + bounds/rotación/opacidad/visible/bloqueada),
+     SHAPE (shapeType, fill/stroke ARGB, strokeWidth, renderW/H),
+     TEXT (texto, fuente familia/estilo/talla, color, alineación, vertical,
+     subrayado, tachado, lineSpacing, autoSize, flowColumns, runs).
+   - Adapters Gson para Rectangle, Color, Font, TextRun.
+   - ImageLayer gana campo srcPath; en guardado, capas sin origen -> PNG en
+     "_capas/<id>.png" junto al .edoc.
+   - module-info.java: opens modelo.editor to com.google.gson.
+3. Título con '*': ViewManager.actualizarTituloVentana (1402) añade, cuando
+   WorkMode == EDITOR, "[Documento: <nombre>]" con prefijo '*' si sucio
+   (mismo patrón que proyecto).
+4. Salida del modo: AppModeService.salirModo(EDITOR) guarda a
+   editor_temporal.edoc si hay sucio y no hay archivo con nombre (espejo de
+   VISUALIZADOR en AppModeService:349-366).
+5. Cierre de app: integrar en ProjectLifecycleService.handleApplicationShutdown
+   (187) - si el editor tiene '*' -> diálogo Guardar/No Guardar/Cancelar; si
+   "No Guardar" -> guardarSesionDeRecuperacion() + clave de config
+   editor.recuperacion.pendiente.
+6. Recuperación al entrar: GeneralController.gestionarRecuperacionAlEntrarModo
+   (527) o método paralelo para EDITOR -> "Dejaste un documento sin guardar.
+   ¿Cargarlo o descartar?"; cargar -> abrirDocumento, descartar -> nuevoDocumento.
+7. Toolbar del editor: ToolbarDefinition "barra_editor" (modosVisibles=[EDITOR],
+   LEFT) con botones Nuevo/Abrir/Guardar/Guardar como (CMD_EDITOR_NUEVO/
+   ABRIR/GUARDAR/GUARDAR_COMO), acciones delegando al RenderController/
+   EditorDocumentManager.
+
+FASE 2.5 - Copiar/Pegar imagen
+1. Nuevo utils/ImageClipboard: copy(BufferedImage) y read() con
+   DataFlavor.imageFlavor (patrón de CropDialog:130 y ViewManager:1108).
+2. Comando global CMD_COPIAR_IMAGEN (sensible al contexto, habilitado si hay
+   imagen actual):
+   - VISUALIZADOR / PROYECTO / CLIENTE -> model.getCurrentImage().
+   - RENDER -> aplanar lo visible (editor activo: composeBufferedImage;
+     vista 2D: imageDisplayPanel).
+   - Exponer en el menú contextual de la imagen (junto a "Copiar nombre" de
+     MenuPopupManager:235) y opcionalmente en toolbar.
+3. Pegar en el editor: Ctrl+V en AdvanceEditPanel/CanvasPanel (hoy no hay
+   pegado) + botón CMD_EDITOR_PEGAR_IMAGEN en el home/toolbar -> ImageLayer
+   centrado -> addLayer -> marcar sucio.
+
+FASE 2.6 - Documentos independientes RENDER/EDITOR
+- Swap del documento en el mismo AdvanceEditPanel al cambiar de modo:
+  salirModo guarda el documento del modo actual, entrarModo carga el del
+  modo destino (AdvanceEditPanel.setLayerModel:430 / setCanvasModel:447).
+- RENDER conserva su composición en memoria; EDITOR su .edoc.
+- La copia cruzada se hace por portapapeles (Fase 2.5).
+
+FASES FUTURAS (no incluidas en Fase 1/2)
+----------------------------------------
+- Fase 3: Efectos/ajustes de imagen (brillo, contraste, filtros, texturas).
+  NOTA: el home del editor YA tiene presets de lienzo, nuevo/medidas/ajustar
+  al contenido, importar imagen, exportar imagen y enviar a preview.
+  Lo que falta son los efectos de imagen (los editores de efectos no están
+  implementados).
+- Historial / undo / redo.
+- Exportar aplanado a PNG desde Modo Editor.
+
+DATOS CLAVE DEL CÓDIGO (referencia)
+-----------------------------------
+- WorkMode enum: src/modelo/VisorModel.java:23-30
+- Editor avanzado es tarjeta CARD_GRID_ADVANCE_EDIT en RenderPanel
+  (src/vista/panels/render/RenderPanel.java:74,317)
+- Activación actual: CMD_PREVIEW_RENDER_ADVANCE_EDIT ->
+  RenderController.toggleAdvanceEditMode() (src/controlador/RenderController.java:1735)
+- Swap de documento: AdvanceEditPanel.setLayerModel (430) / setCanvasModel (447)
+- Aplanar canvas del editor: EditorComponentBar.composeBufferedImage() (2579)
+- Vista 2D render (collage/capas): RenderPanel.imageDisplayPanel (332-371)
+- Imagen 2D actual del render: RenderPanel.getCurrentImage2D() (1060)
+- Fullscreen editor (toggle): RenderPanel.toggleEditorFullscreen() (1020)
+- ESC editor: AdvanceEditPanel.installEscapeBinding (265) ->
+  CanvasController.handleEscape (209) -> fullscreenEscapeHandler (530-538)
+- Barra de modos: UIDefinitionService.java:799-814 (placeholder editor: 812)
+- Sincronización toggle: AppModeService.sincronizarBotonesModo (243-276)
+- Vista render: ViewBuilder.java:386-393 (VISTA_RENDER)
+- Gestión de modos: AppModeService.cambiarVistaPrincipal (121),
+  actualizarUiModo (143), salirModo (327), entrarModo (426)
+- Acciones de modo: ActionFactory.createSwitchWorkModeAction (859)
+- Título con '*' de proyecto: ViewManager.actualizarTituloVentana (1402)
+- Patrón sucio/temporal/recuperación: ProjectManager (hayCambiosSinGuardar,
+  markProjectAsSaved, guardarAArchivo, archivoSeleccionTemporalPath:117,
+  guardarSesionDeRecuperacion/eliminarSesionDeRecuperacion:1234)
+- Cierre de app: ProjectLifecycleService.handleApplicationShutdown (187) /
+  promptToSaveChangesIfNecessary (153)
+- Recuperación al entrar en modo: GeneralController.gestionarRecuperacionAlEntrarModo (527)
+- Salvar temporal del visualizador: AppModeService.salirModo VISUALIZADOR (349-366)
+- Portapapeles texto: ViewManager.copiarListaAlPortapapeles (1108)
+- Portapapeles imagen (ejemplo): CropDialog (130-136)
+- Imagen actual en modelo: VisorModel.getCurrentImage() (campo currentImage:58)
+- Capa de imagen (sin srcPath hoy): modelo/editor/ImageLayer.java
