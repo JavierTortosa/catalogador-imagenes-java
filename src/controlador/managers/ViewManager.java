@@ -64,6 +64,9 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
     private DisplayModeManager displayModeManager;
     private InfobarStatusManager statusBarManager;
 
+    /** Sufijo "[Documento: ...]" del Modo Editor (null si no aplica). */
+    private String editorDocumentoTitulo;
+
     /**
      * Constructor refactorizado de ViewManager.
      * Ahora es un constructor simple, sin parámetros. Las dependencias
@@ -1386,6 +1389,11 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
         }
     }
 
+    public void setEditorDocumentoTitulo(String editorDocumentoTitulo) {
+        this.editorDocumentoTitulo = editorDocumentoTitulo;
+    } // --- Fin del metodo setEditorDocumentoTitulo ---
+
+
     public void actualizarTituloVentana() {
         controlador.VisorController controller = (view != null) ? view.getController() : null;
         if (controller == null || model == null) {
@@ -1427,6 +1435,12 @@ public class ViewManager implements IViewManager, ThemeChangeListener, Clipboard
                         + modoTrabajoStr.substring(1).toLowerCase();
                 tituloFinal += " | Modo: " + modoTrabajoStr;
             }
+        }
+
+        // Sufijo del documento del Modo Editor (con '*' si sucio)
+        if (editorDocumentoTitulo != null
+                && model.getCurrentWorkMode() == modelo.VisorModel.WorkMode.EDITOR) {
+            tituloFinal += " | " + editorDocumentoTitulo;
         }
 
         view.setTitle(tituloFinal);

@@ -98,6 +98,11 @@ public class TextTool extends Tool {
         return AppActionCommands.CMD_ADVANCED_EDITOR_TEXTO;
     } // --- Fin del metodo getCommandKey ---
 
+    @Override
+    public boolean modifiesContent() {
+        return true;
+    } // --- Fin del metodo modifiesContent ---
+
 
     @Override
     public void onActivate() {

@@ -26,6 +26,11 @@ public class PaintBucketTool extends Tool {
     } // --- Fin del metodo getCommandKey ---
 
     @Override
+    public boolean modifiesContent() {
+        return true;
+    } // --- Fin del metodo modifiesContent ---
+
+    @Override
     public void mousePressed(MouseEvent e) {
         ImageLayer layer = getActiveLayer();
         if (layer == null || layer.isLocked()) return;

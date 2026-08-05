@@ -151,6 +151,7 @@ public final class ConfigKeys {
     public static final String EDITOR_CARPETA_BASE 								= "editor.carpeta_base";
     public static final String EDITOR_ARCHIVO_TEMPORAL 							= "editor.archivo_temporal_nombre";
     public static final String EDITOR_ARCHIVO_RECUPERACION 						= "editor.archivo.recuperacion";
+    public static final String EDITOR_RECUPERACION_PENDIENTE 					= "editor.estado.recuperacion_pendiente";
     public static final String PROYECTOS_ULTIMA_SELECCION_KEY 					= "proyectos.estado.ultima_seleccion_key";
     public static final String PROYECTOS_ULTIMA_DESCARTES_KEY 					= "proyectos.estado.ultima_descartes_key";
     public static final String PROYECTOS_ULTIMO_PROYECTO_ABIERTO 				= "proyectos.estado.ultimo_proyecto_abierto";

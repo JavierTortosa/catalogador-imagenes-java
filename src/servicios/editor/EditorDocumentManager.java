@@ -65,6 +65,9 @@ public class EditorDocumentManager {
     /** Notificador externo de suciedad (p. ej. para refrescar el t\u00EDtulo). */
     private Runnable dirtyNotifier;
 
+    /** Nombre original del documento capturado al abrir una sesi\u00F3n de recuperaci\u00F3n. */
+    private String nombreRecuperado;
+
     public EditorDocumentManager(ConfigurationManager config) {
         this.config = config;
         this.gson = new GsonBuilder()
@@ -167,6 +170,98 @@ public class EditorDocumentManager {
 
 
     /**
+     * Marca el documento como reci\u00E9n recuperado: sin archivo activo (para
+     * forzar "Guardar como"), conservando el nombre original que ten\u00EDa el
+     * documento antes de guardarse la sesi\u00F3n, y con cambios sin guardar.
+     */
+    public void marcarComoRecuperado() {
+        this.archivoActivo = null;
+        this.nombreDocumento = (nombreRecuperado != null && !nombreRecuperado.isBlank())
+                ? nombreRecuperado
+                : NOMBRE_SIN_TITULO;
+        this.dirty = true;
+        notifyDirty();
+        logger.info("[EditorDocumentManager] Documento marcado como recuperado (\"{}\", sin guardar).", nombreDocumento);
+    } // --- Fin del metodo marcarComoRecuperado ---
+
+
+    // ==================== RECUPERACI\u00D3N ====================
+
+
+    /**
+     * Ruta del archivo de recuperaci\u00F3n de documento del editor.
+     *
+     * @return ruta completa del archivo de recuperaci\u00F3n
+     */
+    public Path getArchivoRecuperacionPath() {
+        String nombre = config.getString(ConfigKeys.EDITOR_ARCHIVO_RECUPERACION, "editor_recuperacion.edoc");
+        return this.carpetaBaseDocs.resolve(nombre);
+    } // --- Fin del metodo getArchivoRecuperacionPath ---
+
+
+    /**
+     * Comprueba si existe una sesi\u00F3n de recuperaci\u00F3n pendiente.
+     *
+     * @return {@code true} si hay un archivo de recuperaci\u00F3n legible
+     */
+    public boolean hasPendingRecovery() {
+        Path p = getArchivoRecuperacionPath();
+        return Files.exists(p) && Files.isReadable(p);
+    } // --- Fin del metodo hasPendingRecovery ---
+
+
+    /**
+     * Guarda el documento actual en el archivo de recuperaci\u00F3n sin tocar el
+     * estado del documento activo (ni el nombre ni el flag de suciedad).
+     *
+     * @return {@code true} si se guard\u00F3 correctamente
+     */
+    public boolean guardarSesionDeRecuperacion() {
+        if (canvasModel == null || layerModel == null) {
+            logger.error("[EditorDocumentManager] Modelos nulos; no se puede guardar la recuperaci\u00F3n.");
+            return false;
+        }
+        Path ruta = getArchivoRecuperacionPath();
+        Path rutaOriginal = this.archivoActivo;
+        boolean dirtyOriginal = this.dirty;
+        try {
+            // Los PNG sidecar de las capas sin origen se generan junto al archivo
+            // de recuperaci\u00F3n para que la sesi\u00F3n sea autocontenida.
+            this.archivoActivo = null;
+            Files.createDirectories(ruta.toAbsolutePath().getParent());
+            try (FileWriter writer = new FileWriter(ruta.toFile())) {
+                gson.toJson(generarDocumento(), writer);
+            }
+            logger.info("[EditorDocumentManager] Sesi\u00F3n de recuperaci\u00F3n guardada en {}", ruta.toAbsolutePath());
+            return true;
+        } catch (IOException e) {
+            logger.error("[EditorDocumentManager] Error al guardar la sesi\u00F3n de recuperaci\u00F3n en {}", ruta, e);
+            return false;
+        } finally {
+            // La recuperaci\u00F3n no debe alterar el estado del documento activo.
+            this.archivoActivo = rutaOriginal;
+            this.dirty = dirtyOriginal;
+        }
+    } // --- Fin del metodo guardarSesionDeRecuperacion ---
+
+
+    /**
+     * Elimina el archivo de sesi\u00F3n de recuperaci\u00F3n si existe.
+     */
+    public void eliminarSesionDeRecuperacion() {
+        try {
+            Path p = getArchivoRecuperacionPath();
+            if (Files.exists(p)) {
+                Files.delete(p);
+                logger.info("[EditorDocumentManager] Sesi\u00F3n de recuperaci\u00F3n eliminada.");
+            }
+        } catch (IOException e) {
+            logger.warn("[EditorDocumentManager] No se pudo eliminar la sesi\u00F3n de recuperaci\u00F3n: {}", e.getMessage());
+        }
+    } // --- Fin del metodo eliminarSesionDeRecuperacion ---
+
+
+    /**
      * Crea un nuevo documento vac\u00EDo (lienzo por defecto, sin capas).
      */
     public void nuevoDocumento() {
@@ -222,6 +317,7 @@ public class EditorDocumentManager {
         try (Reader reader = new FileReader(rutaArchivo.toFile())) {
             EditorDoc doc = gson.fromJson(reader, EditorDoc.class);
             aplicarDocumento(doc, rutaArchivo.toAbsolutePath().getParent());
+            this.nombreRecuperado = (doc != null) ? doc.nombreDocumento : null;
             this.archivoActivo = rutaArchivo;
             this.nombreDocumento = nombreDesdeRuta(rutaArchivo);
             this.dirty = false;
@@ -248,6 +344,7 @@ public class EditorDocumentManager {
     private EditorDoc generarDocumento() {
         EditorDoc doc = new EditorDoc();
         doc.version = EditorDoc.VERSION_ACTUAL;
+        doc.nombreDocumento = this.nombreDocumento;
 
         EditorDoc.CanvasDTO canvas = new EditorDoc.CanvasDTO();
         canvas.width = canvasModel.getWidth();

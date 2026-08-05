@@ -198,6 +198,10 @@ public class MenuPopupManager {
 
         // 3. Acciones de Archivo/Ubicación
         menu.add(new JMenuItem(actionMap.get(AppActionCommands.CMD_IMAGEN_LOCALIZAR)));
+        Action copiarImagenAction = actionMap.get(AppActionCommands.CMD_COPIAR_IMAGEN);
+        if (copiarImagenAction != null) {
+            menu.add(new JMenuItem(copiarImagenAction));
+        }
 
         menu.addSeparator();
 
@@ -251,6 +255,10 @@ public class MenuPopupManager {
                             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
                         });
                         menu.add(copiarItem);
+                        Action copiarImagenAction = actionMap.get(AppActionCommands.CMD_COPIAR_IMAGEN);
+                        if (copiarImagenAction != null) {
+                            menu.add(new JMenuItem(copiarImagenAction));
+                        }
                         menu.show(e.getComponent(), e.getX(), e.getY());
                     }
                 }

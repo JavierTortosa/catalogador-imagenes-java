@@ -662,6 +662,7 @@ public class AppInitializer {
                 this.actionFactory.setRenderController(rc);
                 this.generalController.setRenderController(rc);
                 this.appModeService.setRenderController(rc);
+                rc.setViewManager(this.viewManager);
                 rc.setIconUtils(this.iconUtils);
                 rc.setUiDefinitionService(this.uiDefSvc);
                 rc.setThemeManager(this.themeManager);

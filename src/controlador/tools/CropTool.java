@@ -23,6 +23,11 @@ public class CropTool extends Tool {
     } // --- Fin del metodo getCommandKey ---
 
     @Override
+    public boolean modifiesContent() {
+        return true;
+    } // --- Fin del metodo modifiesContent ---
+
+    @Override
     public void mousePressed(MouseEvent e) {
         if (ctx.selectionModel() == null || !ctx.selectionModel().isActive()) return;
         ImageLayer layer = getActiveLayer();

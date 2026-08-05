@@ -406,6 +406,14 @@ public class AppModeService {
         // --- LÓGICA AL SALIR DEL MODO EDITOR ---
         if (modoQueSeAbandona == WorkMode.EDITOR && renderController != null) {
             renderController.desactivarModoEditor();
+
+            // Si hay un documento sin nombre con cambios sin guardar, se persiste
+            // en el archivo temporal (editor_temporal.edoc) para no perderlo.
+            servicios.editor.EditorDocumentManager edm = renderController.getEditorDocumentManager();
+            if (edm != null && edm.hayCambiosSinGuardar() && edm.getArchivoActivo() == null) {
+                logger.info("Saliendo del Modo Editor con documento temporal sin guardar. Guardando en archivo temporal...");
+                edm.guardarAArchivo();
+            }
             logger.debug("    -> Modo Editor: Fullscreen del editor desactivado.");
         }
 

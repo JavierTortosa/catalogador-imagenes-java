@@ -1664,14 +1664,17 @@ public class UIDefinitionService {
         // --- BARRA DE DOCUMENTO DEL EDITOR ---
         final List<ToolbarButtonDefinition> botonesDocumentoEditor = List.of(
                 new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_NUEVO,
-                        "7102-nuevo_proyecto_48x48.png", "Nuevo documento", "editor"),
+                        "90002-nuevo-lienzo.png", "Nuevo documento", "editor"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_ABRIR,
-                        "7103-abrir_proyecto_48x48.png", "Abrir documento", "editor"),
+                        "70006 - abrir temp.png", "Abrir documento", "editor"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_GUARDAR,
                         "7104-guardar_proyecto_48x48.png", "Guardar documento", "editor"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_GUARDAR_COMO,
-                        "7105-guardar_proyecto_como_48x48.png", "Guardar como", "editor"));
+                        "7105-guardar_proyecto_como_48x48.png", "Guardar como", "editor"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_EDITOR_PEGAR_IMAGEN,
+                        "21012 copy files.png", "Pegar imagen (Ctrl+V)", "editor"));
 
+        
         final ToolbarDefinition tbBarraEditor = new ToolbarDefinition(
                 "barra_editor", "Documento del Editor", 1075,
                 EnumSet.of(EDITOR),

@@ -334,8 +334,114 @@ public class GeneralController
         if (renderController != null && !renderController.handleCloseWithPendingApprovedRenders()) {
             return;
         }
+        if (!gestionarDocumentoEditorAlCerrarApp()) {
+            return;
+        }
         projectLifecycleService.handleApplicationShutdown();
     } // --- FIN de metodo handleApplicationShutdown ---
+
+
+    /**
+     * Gestiona el aviso de documento del editor sin guardar al cerrar la app.
+     * Si el usuario elige "No Guardar" se persiste una sesión de recuperación.
+     *
+     * @return {@code false} si se debe cancelar el cierre
+     */
+    private boolean gestionarDocumentoEditorAlCerrarApp() {
+        if (renderController == null || renderController.getEditorDocumentManager() == null) {
+            return true;
+        }
+        var edm = renderController.getEditorDocumentManager();
+        if (!edm.hayCambiosSinGuardar()) {
+            return true;
+        }
+
+        String[] opciones = { "Guardar", "No Guardar", "Cancelar" };
+        int seleccion = JOptionPane.showOptionDialog(null,
+                "El documento del editor '" + edm.getNombreDocumento() + "' tiene cambios sin guardar. ¿Qué deseas hacer?",
+                "Documento del Editor sin Guardar",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.WARNING_MESSAGE,
+                null, opciones, opciones[0]);
+
+        switch (seleccion) {
+            case JOptionPane.YES_OPTION:
+                renderController.guardarDocumentoEditorDialogo();
+                return !edm.hayCambiosSinGuardar();
+            case JOptionPane.NO_OPTION:
+                if (edm.guardarSesionDeRecuperacion()) {
+                    configuration.setString(servicios.ConfigKeys.EDITOR_RECUPERACION_PENDIENTE,
+                            edm.getArchivoRecuperacionPath().toAbsolutePath().toString());
+                }
+                return true;
+            default:
+                return false;
+        }
+    } // --- FIN de metodo gestionarDocumentoEditorAlCerrarApp ---
+
+
+    /**
+     * Comprueba si existe una sesión de recuperación de documento del editor y
+     * gestiona la decisión del usuario (cargar, descartar o cancelar). Se
+     * invoca antes de entrar en el Modo Editor.
+     *
+     * @return {@code true} si se puede proceder a entrar en el modo,
+     *         {@code false} si el usuario canceló la recuperación
+     */
+    private boolean gestionarRecuperacionAlEntrarModoEditor() {
+        if (renderController == null) {
+            return true;
+        }
+        var edm = renderController.getOrCreateEditorDocumentManager();
+        if (edm == null || !edm.hasPendingRecovery()) {
+            return true;
+        }
+
+        // Limpiamos la clave de configuración para que no vuelva a saltar.
+        configuration.setString(servicios.ConfigKeys.EDITOR_RECUPERACION_PENDIENTE, "");
+        try {
+            configuration.guardarConfiguracion(configuration.getConfig());
+        } catch (java.io.IOException e) {
+            logger.error("Error al guardar la configuración tras limpiar la clave de recuperación del editor.", e);
+        }
+
+        String[] opciones = { "Cargar Documento", "Descartar", "Cancelar" };
+        int seleccion = JOptionPane.showOptionDialog(null,
+                "<html>Se dejó un <b>documento del editor</b> sin guardar en la sesión anterior.<br>" +
+                "¿Deseas <b>cargar</b> ese documento o <b>descartarlo</b> y empezar limpio?</html>",
+                "Recuperación de Documento del Editor",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null, opciones, opciones[0]);
+
+        if (seleccion == 0) {
+            try {
+                if (edm.abrirDocumento(edm.getArchivoRecuperacionPath())) {
+                    edm.eliminarSesionDeRecuperacion();
+                    edm.marcarComoRecuperado();
+                    logger.info("-> Documento del editor restaurado desde la sesión de recuperación.");
+                    return true;
+                }
+                logger.warn("-> No se pudo cargar el documento de recuperación del editor.");
+                JOptionPane.showMessageDialog(null,
+                        "No se pudo cargar el documento de recuperación.",
+                        "Error de Recuperación", JOptionPane.ERROR_MESSAGE);
+                return false;
+            } catch (Exception e) {
+                logger.error("Error al restaurar el documento del editor.", e);
+                JOptionPane.showMessageDialog(null,
+                        "No se pudo restaurar el documento anterior.",
+                        "Error de Recuperación", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+        } else if (seleccion == 1) {
+            edm.eliminarSesionDeRecuperacion();
+            edm.nuevoDocumento();
+            logger.info("-> Documento de recuperación del editor descartado.");
+            return true;
+        }
+        return false;
+    } // --- FIN de metodo gestionarRecuperacionAlEntrarModoEditor ---
 
     public void setRenderController(RenderController renderController) {
         this.renderController = renderController;
@@ -401,6 +507,13 @@ public class GeneralController
                 // ProjectManager.abrirProyecto() ya preguntó si entrar en modo cliente.
                 // No repetir la pregunta aquí.
             }
+        }
+
+        // --- PRE-VALIDACIÓN ESPECIAL PARA MODO EDITOR (recuperación) ---
+        if (modoDestino == WorkMode.EDITOR && !gestionarRecuperacionAlEntrarModoEditor()) {
+            logger.debug("[GeneralController] Entrada al Modo Editor cancelada por la recuperación.");
+            sincronizarEstadoBotonesDeModo();
+            return;
         }
 
         // --- Si una llamada recursiva (.prjcl) ya cambió el modo, abortar ---

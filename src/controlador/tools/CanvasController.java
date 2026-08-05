@@ -39,6 +39,8 @@ public class CanvasController {
     private ToolContext sharedContext;
     private Runnable fullscreenToggle;
     private BooleanSupplier fullscreenEscapeHandler;
+    private Runnable contentChangeCallback;
+    private Runnable pasteCallback;
 
     /**
      * @param canvasPanel   vista del canvas
@@ -202,6 +204,39 @@ public class CanvasController {
 
 
     /**
+     * Registra el callback que se invoca cuando una herramienta que modifica
+     * contenido completa un gesto (pintar, transformar, crear capa, recortar).
+     * Permite al {@code EditorDocumentManager} marcar el documento como sucio.
+     *
+     * @param contentChangeCallback callback de contenido modificado, o null
+     */
+    public void setContentChangeCallback(Runnable contentChangeCallback) {
+        this.contentChangeCallback = contentChangeCallback;
+    } // --- Fin del metodo setContentChangeCallback ---
+
+
+    /**
+     * Registra el callback de pegado (Ctrl+V) para el editor.
+     *
+     * @param pasteCallback callback de pegado, o null
+     */
+    public void setPasteCallback(Runnable pasteCallback) {
+        this.pasteCallback = pasteCallback;
+    } // --- Fin del metodo setPasteCallback ---
+
+
+    /**
+     * Notifica al documento que el contenido ha cambiado (llamado por las
+     * herramientas modificadoras al completar un gesto).
+     */
+    public void notifyContentChanged() {
+        if (contentChangeCallback != null) {
+            contentChangeCallback.run();
+        }
+    } // --- Fin del metodo notifyContentChanged ---
+
+
+    /**
      * Procesa la tecla ESC: primero se intenta salir de pantalla completa, si
      * no aplica se cancela la operación en curso de la herramienta activa y, si
      * tampoco había nada que cancelar, se deselecciona la capa activa.
@@ -266,6 +301,9 @@ public class CanvasController {
                     cp.x, cp.y, e.getClickCount(),
                     e.isPopupTrigger(), e.getButton());
             activeTool.mouseReleased(canvasEvent);
+            if (activeTool.modifiesContent()) {
+                notifyContentChanged();
+            }
             canvasPanel.repaint();
         } // --- Fin del metodo mouseReleased ---
 
@@ -306,6 +344,14 @@ public class CanvasController {
             if (clean && e.getKeyCode() == KeyEvent.VK_F) {
                 if (fullscreenToggle != null) {
                     fullscreenToggle.run();
+                }
+                e.consume();
+                return;
+            }
+            if ((modifiers & KeyEvent.CTRL_DOWN_MASK) != 0
+                    && e.getKeyCode() == KeyEvent.VK_V) {
+                if (pasteCallback != null) {
+                    pasteCallback.run();
                 }
                 e.consume();
                 return;

@@ -13,7 +13,20 @@
         El <strong>Editor Avanzado</strong> es un editor de imágenes completo con soporte de capas,
         herramientas de selección, pintura, texto y transformación. Se activa desde el botón
         <strong>Editor Avanzado</strong> en la barra de herramientas de previsualización
-        (Modo Render), sustituyendo al modo Collage.
+        (Modo Render), sustituyendo al modo Collage. También es el editor que usa el
+        <a href="modo_editor.html">Modo Editor</a> (modo de trabajo dedicado con documentos
+        <code>.edoc</code>, guardado y recuperación).
+    </p>
+
+    <h2>Documento, Guardado y Portapapeles</h2>
+    <p>
+        En el <a href="modo_editor.html">Modo Editor</a>, el trabajo se gestiona como un documento
+        <code>.edoc</code> con nombre, cambios pendientes (<code>*</code> en el título), guardado
+        temporal al cambiar de modo y <strong>recuperación automática</strong> si se cierra la
+        aplicación sin guardar. Desde cualquier contexto puedes <strong>copiar la imagen
+        actual</strong> (clic derecho → <em>Copiar imagen</em>) y <strong>pegarla en el
+        editor</strong> con <strong>Ctrl+V</strong> o el botón Pegar de la barra de documento,
+        creando una capa nueva centrada en el lienzo.
     </p>
 
     <h2>Modo Home (Pantalla Inicial)</h2>
@@ -107,7 +120,8 @@
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_80012-pantalla_completa_48x48.png"></td>
             <td><strong>Pantalla completa:</strong> Expande el editor ocupando toda la ventana,
-                ocultando el resto de la interfaz. Pulsa <em>Esc</em> o el mismo botón para salir.</td>
+                ocultando el resto de la interfaz. Pulsa el mismo botón (o <em>F</em>) para salir.
+                <em>Esc</em> nunca sale de pantalla completa: solo cancela la herramienta activa.</td>
         </tr>
     </table>
 
@@ -153,9 +167,10 @@
         <tr><td><strong>T</strong></td><td>Texto</td></tr>
         <tr><td><strong>U</strong></td><td>Formas</td></tr>
         <tr><td><strong>Z</strong></td><td>Zoom</td></tr>
-        <tr><td><strong>F</strong></td><td>Pantalla completa</td></tr>
-        <tr><td><strong>Esc</strong></td><td>Cancelar: edición de texto inline, arrastre en curso,
-            deseleccionar la capa activa o salir de pantalla completa</td></tr>
+        <tr><td><strong>F</strong></td><td>Pantalla completa (activar / desactivar)</td></tr>
+        <tr><td><strong>Ctrl+V</strong></td><td>Pegar imagen del portapapeles como nueva capa</td></tr>
+        <tr><td><strong>Esc</strong></td><td>Cancelar: edición de texto inline, arrastre en curso o
+            deseleccionar la capa activa (no sale de pantalla completa)</td></tr>
     </table>
     <p>
         Las teclas de herramienta se ignoran mientras se está escribiendo texto inline (el campo
@@ -412,7 +427,11 @@
     <ul>
         <li><strong>Marco:</strong> Línea delgada azul alrededor de los bounds de la capa.</li>
         <li><strong>8 tiradores:</strong> Cuadrados en las esquinas (NW, NE, SW, SE) y puntos
-            medios (N, S, E, W). Arrástralos para redimensionar.</li>
+            medios (N, S, E, W). Arrástralos para redimensionar. Al redimensionar desde una
+            <strong>esquina</strong>, la esquina opuesta queda <strong>fija</strong> (la imagen
+            crece/encoge hacia el ratón sin desplazarse); si "Mantener proporción" está activo,
+            las esquinas mantienen la relación ancho/alto y los tiradores laterales redimensionan
+            libremente.</li>
         <li><strong>Asa de rotación:</strong> Círculo sobre el borde superior. Arrástralo para
             rotar la capa de forma <strong>no destructiva</strong> (guardando el ángulo, sin
             rasterizar). Mantén <em>Shift</em> mientras arrastras para ajustar a múltiplos de 15°.</li>

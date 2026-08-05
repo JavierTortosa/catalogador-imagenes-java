@@ -43,6 +43,11 @@ public class GradientTool extends Tool {
     } // --- Fin del metodo getCommandKey ---
 
     @Override
+    public boolean modifiesContent() {
+        return true;
+    } // --- Fin del metodo modifiesContent ---
+
+    @Override
     public void mousePressed(MouseEvent e) {
         startPoint = e.getPoint();
         endPoint = null;

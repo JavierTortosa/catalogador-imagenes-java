@@ -2576,6 +2576,17 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
     } // --- Fin del metodo exportarAPreview ---
 
 
+    /**
+     * Devuelve una imagen plana de lo visible en el lienzo del editor (fondos
+     * m\u00E1s capas visibles), lista para copiar al portapapeles.
+     *
+     * @return la imagen aplanada, o {@code null} si no hay lienzo disponible
+     */
+    public BufferedImage flattenVisibleEditorImage() {
+        return composeBufferedImage();
+    } // --- Fin del metodo flattenVisibleEditorImage ---
+
+
     private BufferedImage composeBufferedImage() {
         AdvanceEditPanel aep = findAdvanceEditPanel();
         if (aep == null) return null;

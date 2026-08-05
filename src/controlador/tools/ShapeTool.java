@@ -41,6 +41,11 @@ public class ShapeTool extends Tool {
     } // --- Fin del metodo getCommandKey ---
 
     @Override
+    public boolean modifiesContent() {
+        return true;
+    } // --- Fin del metodo modifiesContent ---
+
+    @Override
     public void mousePressed(MouseEvent e) {
         startPoint = e.getPoint();
         currentRect = new Rectangle(startPoint.x, startPoint.y, 0, 0);

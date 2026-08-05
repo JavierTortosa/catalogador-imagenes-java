@@ -144,12 +144,15 @@ FASE 2 - Documento .edoc (semántica Modo Proyecto)
      nuevoDocumento(), abrirDocumento(Path), guardarAArchivo(), guardarComo(Path),
      guardarSesionDeRecuperacion(), eliminarSesionDeRecuperacion().
    - Se marca sucio desde LayerModel.changeListener + operaciones del
-     CanvasController (pintar, transformar).   [PARCIAL: sucio vía LayerModel; falta pintar/transformar -> pendiente]
+     CanvasController (pintar, transformar).   [HECHO: LayerModel + Tool.modifiesContent()/CanvasController.setContentChangeCallback]
    [HECHO] Clase EditorDocumentManager.java (servicios/editor/), EditorDoc.java (DTO),
      ConfigKeys EDITOR_*, module-info opens servicios.editor+modelo.editor a gson,
      ImageLayer.srcPath, LayerModel multi-listeners.
-   [PENDIENTE] guardarSesionDeRecuperacion/eliminarSesionDeRecuperacion (Fase 2.5).
-   [PENDIENTE] marcar sucio al pintar/transformar (hook en herramientas).
+   [HECHO] guardarSesionDeRecuperacion/eliminarSesionDeRecuperacion/marcarComoRecuperado
+     (recovery autocontenido en carpetaBaseDocs, sin alterar el doc activo).
+   [HECHO] marcar sucio al pintar/transformar (Tool.modifiesContent() en EditTool,
+     TransformTool, PaintBucketTool, GradientTool, ShapeTool, TextTool, CropTool;
+     CanvasController.notifyContentChanged() en mouseReleased).
 2. Serialización JSON (Gson) versionada:
    - Cabecera: version, canvas (w/h/bg/transparent).
    - Capas por tipo: IMAGE (src + bounds/rotación/opacidad/visible/bloqueada),
@@ -162,26 +165,27 @@ FASE 2 - Documento .edoc (semántica Modo Proyecto)
    - module-info.java: opens modelo.editor to com.google.gson.  [HECHO]
 3. Título con '*': ViewManager.actualizarTituloVentana (1402) añade, cuando
    WorkMode == EDITOR, "[Documento: <nombre>]" con prefijo '*' si sucio
-   (mismo patrón que proyecto).  [PENDIENTE: hoy refrescarTituloEditor solo loguea]
+   (mismo patrón que proyecto).  [HECHO: ViewManager.setEditorDocumentoTitulo + sufijo; RenderController.refrescarTituloEditor lo empuja; se limpia al salir]
 4. Salida del modo: AppModeService.salirModo(EDITOR) guarda a
    editor_temporal.edoc si hay sucio y no hay archivo con nombre (espejo de
-   VISUALIZADOR en AppModeService:349-366).  [PENDIENTE]
+   VISUALIZADOR en AppModeService:349-366).  [HECHO: en AppModeService.salirModo EDITOR]
 5. Cierre de app: integrar en ProjectLifecycleService.handleApplicationShutdown
    (187) - si el editor tiene '*' -> diálogo Guardar/No Guardar/Cancelar; si
    "No Guardar" -> guardarSesionDeRecuperacion() + clave de config
-   editor.recuperacion.pendiente.  [PENDIENTE]
+   editor.recuperacion.pendiente.  [HECHO: GeneralController.gestionarDocumentoEditorAlCerrarApp + ConfigKeys.EDITOR_RECUPERACION_PENDIENTE]
 6. Recuperación al entrar: GeneralController.gestionarRecuperacionAlEntrarModo
    (527) o método paralelo para EDITOR -> "Dejaste un documento sin guardar.
    ¿Cargarlo o descartar?"; cargar -> abrirDocumento, descartar -> nuevoDocumento.
-   [PENDIENTE]
+   [HECHO: GeneralController.gestionarRecuperacionAlEntrarModoEditor + pre-validación en cambiarModoDeTrabajo; RenderController.inicializarCanvasEditor/getOrCreateEditorDocumentManager]
 7. Toolbar del editor: ToolbarDefinition "barra_editor" (modosVisibles=[EDITOR],
    LEFT) con botones Nuevo/Abrir/Guardar/Guardar como (CMD_EDITOR_NUEVO/
    ABRIR/GUARDAR/GUARDAR_COMO), acciones delegando al RenderController/
-   EditorDocumentManager.  [HECHO: barra_editor + 4 acciones + diálogos en RenderController]
+   EditorDocumentManager.  [HECHO: barra_editor + 4 acciones + diálogos en RenderController + botón Pegar]
 
 FASE 2.5 - Copiar/Pegar imagen
 1. Nuevo utils/ImageClipboard: copy(BufferedImage) y read() con
    DataFlavor.imageFlavor (patrón de CropDialog:130 y ViewManager:1108).
+   [HECHO: controlador/utils/ImageClipboard.java]
 2. Comando global CMD_COPIAR_IMAGEN (sensible al contexto, habilitado si hay
    imagen actual):
    - VISUALIZADOR / PROYECTO / CLIENTE -> model.getCurrentImage().
@@ -189,9 +193,14 @@ FASE 2.5 - Copiar/Pegar imagen
      vista 2D: imageDisplayPanel).
    - Exponer en el menú contextual de la imagen (junto a "Copiar nombre" de
      MenuPopupManager:235) y opcionalmente en toolbar.
+   [HECHO: acción registrada (ActionFactory.createCopiarImagenAction -> copiarImagenActual),
+    RenderController.copiarImagenVisible + EditorComponentBar.flattenVisibleEditorImage,
+    expuesto en el menú contextual de la imagen (MenuPopupManager, junto a "Copiar nombre")]
 3. Pegar en el editor: Ctrl+V en AdvanceEditPanel/CanvasPanel (hoy no hay
    pegado) + botón CMD_EDITOR_PEGAR_IMAGEN en el home/toolbar -> ImageLayer
    centrado -> addLayer -> marcar sucio.
+   [HECHO: CMD_EDITOR_PEGAR_IMAGEN en barra_editor + Ctrl+V (CanvasController KeyHandler)
+    + RenderController.pegarImagenEditor (ImageLayer centrado + sucio)]
 
 FASE 2.6 - Documentos independientes RENDER/EDITOR
 - Swap del documento en el mismo AdvanceEditPanel al cambiar de modo:

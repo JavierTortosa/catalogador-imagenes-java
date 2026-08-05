@@ -257,12 +257,16 @@ public class TransformGizmo {
             default -> {}
         }
 
-        if (constraints.keepAspect() && dragStartBounds.width > 0 && dragStartBounds.height > 0) {
-            applyAspectConstraint(r);
+        if (constraints.keepAspect() && esTiradorEsquina(currentHandle)) {
+            applyAspectConstraint(r, dx, dy);
+        } else {
+            if (r.width < minS) {
+                r.width = minS;
+            }
+            if (r.height < minS) {
+                r.height = minS;
+            }
         }
-
-        if (r.width < minS) { r.width = minS; }
-        if (r.height < minS) { r.height = minS; }
 
         return r;
     } // --- Fin del metodo drag ---
@@ -291,25 +295,49 @@ public class TransformGizmo {
 
 
     /**
-     * Ajusta las dimensiones para mantener la relación de aspecto original.
+     * Ajusta las dimensiones manteniendo la relaci\u00F3n de aspecto y ANCLANDO
+     * la esquina opuesta al tirador arrastrado, para que la imagen no se
+     * desplace mientras se redimensiona. Solo se aplica a los tiradores de
+     * esquina (los laterales redimensionan libremente).
      */
-    private void applyAspectConstraint(Rectangle r) {
-        double aspect = (double) dragStartBounds.width / dragStartBounds.height;
-        int newW = Math.abs(r.width);
-        int newH = Math.abs(r.height);
+    private void applyAspectConstraint(Rectangle r, int dx, int dy) {
+        Rectangle s = dragStartBounds;
+        if (s == null || s.width <= 0 || s.height <= 0) return;
+        double aspect = (double) s.width / s.height;
 
-        if ((double) newW / newH > aspect) {
-            newW = (int) (newH * aspect);
-        } else {
-            newH = (int) (newW / aspect);
+        // Esquina fija (opuesta al tirador) y posici\u00F3n objetivo del tirador arrastrado.
+        int anchorX = 0, anchorY = 0, targetX = 0, targetY = 0;
+        switch (currentHandle) {
+            case NW -> { anchorX = s.x + s.width; anchorY = s.y + s.height; targetX = s.x + dx; targetY = s.y + dy; }
+            case NE -> { anchorX = s.x; anchorY = s.y + s.height; targetX = s.x + s.width + dx; targetY = s.y + dy; }
+            case SW -> { anchorX = s.x + s.width; anchorY = s.y; targetX = s.x + dx; targetY = s.y + s.height + dy; }
+            case SE -> { anchorX = s.x; anchorY = s.y; targetX = s.x + s.width + dx; targetY = s.y + s.height + dy; }
+            default -> { return; }
         }
 
-        if (newW < constraints.minSize()) newW = constraints.minSize();
-        if (newH < constraints.minSize()) newH = constraints.minSize();
+        int minS = constraints.minSize();
+        int newW = Math.max(minS, Math.abs(targetX - anchorX));
+        int newH = Math.max(minS, Math.abs(targetY - anchorY));
 
-        r.width = newW * Integer.signum(r.width);
-        r.height = newH * Integer.signum(r.height);
+        if (newW / (double) newH > aspect) {
+            newW = Math.max(minS, (int) Math.round(newH * aspect));
+        } else {
+            newH = Math.max(minS, (int) Math.round(newW / aspect));
+        }
+
+        r.x = snap(targetX < anchorX ? anchorX - newW : anchorX);
+        r.y = snap(targetY < anchorY ? anchorY - newH : anchorY);
+        r.width = newW;
+        r.height = newH;
     } // --- Fin del metodo applyAspectConstraint ---
+
+
+    /**
+     * Indica si el tirador es de una esquina (no lateral ni de rotaci\u00F3n).
+     */
+    private boolean esTiradorEsquina(Handle h) {
+        return h == Handle.NW || h == Handle.NE || h == Handle.SW || h == Handle.SE;
+    } // --- Fin del metodo esTiradorEsquina ---
 
 
     /**

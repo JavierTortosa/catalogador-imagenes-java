@@ -1843,7 +1843,8 @@ public class VisorController implements IModoController, ThemeChangeListener {
 	    // --- Sección Gestión ---
 	    columna1.add(createHelpSection("Gestión y Archivos", new String[][]{
 	        {"Barra Espaciadora", "Marcar / Desmarcar imagen"},
-	        {"Ctrl + L", "Localizar archivo en el explorador"}
+	        {"Ctrl + L", "Localizar archivo en el explorador"},
+	        {"Clic Derecho", "Menú contextual / Copiar imagen"}
 	    }));
 	    columna1.add(Box.createVerticalStrut(15));
 	    
@@ -1919,8 +1920,9 @@ public class VisorController implements IModoController, ThemeChangeListener {
 	        {"T", "Texto"},
 	        {"U", "Formas"},
 	        {"Z", "Zoom"},
-	        {"F", "Pantalla completa"},
-	        {"Esc", "Cancelar / salir de pantalla completa"}
+	        {"F", "Pantalla completa (activar / desactivar)"},
+	        {"Ctrl + V", "Pegar imagen del portapapeles como nueva capa"},
+	        {"Esc", "Cancelar herramienta (no sale de pantalla completa)"}
 	    }));
 
 	    panelPrincipal.add(columna3, gbc);

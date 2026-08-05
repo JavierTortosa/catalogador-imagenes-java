@@ -743,6 +743,8 @@ public class ActionFactory {
         registerAction(AppActionCommands.CMD_EDITOR_ABRIR, createEditorAbrirAction());
         registerAction(AppActionCommands.CMD_EDITOR_GUARDAR, createEditorGuardarAction());
         registerAction(AppActionCommands.CMD_EDITOR_GUARDAR_COMO, createEditorGuardarComoAction());
+        registerAction(AppActionCommands.CMD_EDITOR_PEGAR_IMAGEN, createEditorPegarImagenAction());
+        registerAction(AppActionCommands.CMD_COPIAR_IMAGEN, createCopiarImagenAction());
 
         registerAction(AppActionCommands.CMD_PREVIEW_RENDER_3DGRID, createPreviewRender3DGridAction());
         registerAction(AppActionCommands.CMD_PREVIEW_RENDER_2DGRID, createPreviewRender2DGridAction());
@@ -1247,6 +1249,56 @@ public class ActionFactory {
             }
         };
     } // --- Fin del metodo createEditorGuardarComoAction ---
+
+
+    private Action createEditorPegarImagenAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) renderController.pegarImagenEditor();
+            }
+        };
+    } // --- Fin del metodo createEditorPegarImagenAction ---
+
+
+    private Action createCopiarImagenAction() {
+        return new AbstractAction() {
+            {
+                putValue(Action.NAME, "Copiar imagen");
+                putValue(Action.SHORT_DESCRIPTION, "Copiar la imagen actual al portapapeles");
+            }
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                copiarImagenActual();
+            }
+        };
+    } // --- Fin del metodo createCopiarImagenAction ---
+
+
+    /**
+     * Copia la imagen "actual" al portapapeles seg\u00FAn el modo de trabajo:
+     * en EDITOR/RENDER aplana lo visible en pantalla; en el resto de modos usa
+     * la imagen actual del modelo.
+     */
+    private void copiarImagenActual() {
+        java.awt.image.BufferedImage img = null;
+        WorkMode modo = (model != null) ? model.getCurrentWorkMode() : null;
+        if (modo == WorkMode.EDITOR || modo == WorkMode.RENDER) {
+            if (renderController != null) {
+                img = renderController.copiarImagenVisible();
+            }
+        } else if (model != null) {
+            img = model.getCurrentImage();
+        }
+        if (img == null) {
+            JOptionPane.showMessageDialog(view,
+                    "No hay ninguna imagen que copiar en el modo actual.",
+                    "Copiar imagen", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        controlador.utils.ImageClipboard.copy(img);
+    } // --- Fin del metodo copiarImagenActual ---
 
 
     private Action createPreviewRender3DGridAction() {

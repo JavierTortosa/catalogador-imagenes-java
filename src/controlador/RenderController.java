@@ -88,6 +88,7 @@ public class RenderController {
     private final Map<Path, SoftReference<List<Triangle>>> triangleCache = new HashMap<>();
     private final AwtModelRenderer renderer = new AwtModelRenderer();
     private servicios.editor.EditorDocumentManager editorDocumentManager;
+    private controlador.managers.ViewManager viewManager;
 
     private final RenderTempFileManager tempFileManager;
     private final RenderSceneController sceneController;
@@ -1784,6 +1785,22 @@ public class RenderController {
      * laterales de preview y archivos).
      */
     public void activarModoEditor() {
+        inicializarCanvasEditor();
+        panel.setAdvanceEditActive(true);
+        panel.setEditorFullscreen(true);
+
+        inicializarGestorDocumento(panel.getAdvanceEditPanel());
+        refrescarTituloEditor();
+        logger.info("[RenderController] Modo Editor activado.");
+    } // --- Fin del metodo activarModoEditor ---
+
+
+    /**
+     * Garantiza que el canvas del editor tenga modelos y controlador de
+     * herramientas (idempotente). Se llama tanto al activar el Modo Editor como
+     * al comprobar recuperaciones antes de entrar.
+     */
+    private void inicializarCanvasEditor() {
         var aep = panel.getAdvanceEditPanel();
         if (aep.getCanvas().getCanvasModel() == null) {
             aep.setCanvasModel(new CanvasModel(1920, 1080));
@@ -1820,12 +1837,7 @@ public class RenderController {
             aep.getCanvas().setCanvasController(canvasController);
             canvasController.setActiveTool(AppActionCommands.CMD_ADVANCED_EDITOR_EDICION);
         }
-        panel.setAdvanceEditActive(true);
-        panel.setEditorFullscreen(true);
-
-        inicializarGestorDocumento(aep);
-        logger.info("[RenderController] Modo Editor activado.");
-    } // --- Fin del metodo activarModoEditor ---
+    } // --- Fin del metodo inicializarCanvasEditor ---
 
 
     /** Inicializa (si hace falta) el gestor de documento del editor. */
@@ -1840,6 +1852,10 @@ public class RenderController {
             editorDocumentManager.setDocument(cm, lm);
             editorDocumentManager.setDirtyNotifier(this::refrescarTituloEditor);
         }
+        if (canvasController != null) {
+            canvasController.setContentChangeCallback(editorDocumentManager::notificarModificacion);
+            canvasController.setPasteCallback(this::pegarImagenEditor);
+        }
     } // --- Fin del metodo inicializarGestorDocumento ---
 
 
@@ -1851,15 +1867,103 @@ public class RenderController {
         if (editorDocumentManager.hayCambiosSinGuardar()) {
             sufijo = "*" + sufijo;
         }
+        if (viewManager != null) {
+            viewManager.setEditorDocumentoTitulo(sufijo);
+            viewManager.actualizarTituloVentana();
+        }
         logger.debug("[RenderController] Documento ({}) sucio={}",
                 editorDocumentManager.getNombreDocumento(),
                 editorDocumentManager.hayCambiosSinGuardar());
     } // --- Fin del metodo refrescarTituloEditor ---
 
 
+    public void setViewManager(controlador.managers.ViewManager viewManager) {
+        this.viewManager = viewManager;
+    } // --- Fin del metodo setViewManager ---
+
+
     public servicios.editor.EditorDocumentManager getEditorDocumentManager() {
         return editorDocumentManager;
     } // --- Fin del metodo getEditorDocumentManager ---
+
+
+    /**
+     * Devuelve el gestor de documento del editor, cre\u00E1ndolo si hace falta
+     * (por ejemplo, al comprobar recuperaciones antes de entrar en el modo).
+     *
+     * @return el gestor de documento del editor (nunca {@code null})
+     */
+    public servicios.editor.EditorDocumentManager getOrCreateEditorDocumentManager() {
+        if (editorDocumentManager == null) {
+            inicializarCanvasEditor();
+            inicializarGestorDocumento(panel.getAdvanceEditPanel());
+        }
+        return editorDocumentManager;
+    } // --- Fin del metodo getOrCreateEditorDocumentManager ---
+
+
+    /**
+     * Pega la imagen del portapapeles del sistema como una nueva capa
+     * centrada en el lienzo del editor (Ctrl+V / bot\u00F3n Pegar).
+     */
+    public void pegarImagenEditor() {
+        getOrCreateEditorDocumentManager();
+        var cm = editorDocumentManager.getCanvasModel();
+        var lm = editorDocumentManager.getLayerModel();
+        if (cm == null || lm == null) return;
+
+        BufferedImage img = controlador.utils.ImageClipboard.read();
+        if (img == null) {
+            JOptionPane.showMessageDialog(parentFrame,
+                    "No hay ninguna imagen en el portapapeles del sistema.",
+                    "Pegar imagen", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        if (img.getWidth() > cm.getWidth() || img.getHeight() > cm.getHeight()) {
+            int w = Math.max(1, Math.min(img.getWidth(), cm.getWidth()));
+            int h = Math.max(1, Math.min(img.getHeight(), cm.getHeight()));
+            BufferedImage scaled = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = scaled.createGraphics();
+            g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
+                    java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g.drawImage(img, 0, 0, w, h, null);
+            g.dispose();
+            img = scaled;
+        }
+
+        int x = (cm.getWidth() - img.getWidth()) / 2;
+        int y = (cm.getHeight() - img.getHeight()) / 2;
+        modelo.editor.ImageLayer layer = new modelo.editor.ImageLayer("Imagen pegada",
+                img, new java.awt.Rectangle(x, y, img.getWidth(), img.getHeight()));
+        lm.addLayer(layer);
+        lm.setActiveLayer(layer);
+        editorDocumentManager.notificarModificacion();
+        refrescarUiEditor();
+        logger.info("[RenderController] Imagen pegada como nueva capa en el editor.");
+    } // --- Fin del metodo pegarImagenEditor ---
+
+
+    /**
+     * Devuelve una imagen plana de lo visible en el panel render/editor para
+     * copiar al portapapeles: si el editor avanzado est\u00E1 activo aplana sus
+     * capas visibles; si se muestra la vista 2D captura esa vista.
+     *
+     * @return la imagen aplanada, o {@code null} si no hay nada copiable
+     */
+    public BufferedImage copiarImagenVisible() {
+        if (panel.isAdvanceEditActive()) {
+            var aep = panel.getAdvanceEditPanel();
+            if (aep != null) {
+                BufferedImage img = aep.getComponentBar().flattenVisibleEditorImage();
+                if (img != null) return img;
+            }
+        }
+        if (panel.isShowing2DView()) {
+            return panel.capturarVistaActual();
+        }
+        return null;
+    } // --- Fin del metodo copiarImagenVisible ---
 
 
     public void nuevoDocumentoEditor() {
@@ -1941,6 +2045,13 @@ public class RenderController {
         if (!f.getName().toLowerCase().endsWith(".edoc")) {
             f = new java.io.File(f.getParentFile(), f.getName() + ".edoc");
         }
+        if (f.exists()) {
+            int opcion = javax.swing.JOptionPane.showConfirmDialog(parentFrame,
+                    "El archivo \"" + f.getName() + "\" ya existe.\n\u00BFSobrescribirlo?",
+                    "Confirmar sobrescritura", javax.swing.JOptionPane.YES_NO_OPTION,
+                    javax.swing.JOptionPane.WARNING_MESSAGE);
+            if (opcion != javax.swing.JOptionPane.YES_OPTION) return;
+        }
         guardarDocumentoComoEditor(f.toPath());
     } // --- Fin del metodo guardarDocumentoComoEditorDialogo ---
 
@@ -1952,6 +2063,10 @@ public class RenderController {
     public void desactivarModoEditor() {
         panel.setEditorFullscreen(false);
         panel.setAdvanceEditActive(false);
+        if (viewManager != null) {
+            viewManager.setEditorDocumentoTitulo(null);
+            viewManager.actualizarTituloVentana();
+        }
         logger.info("[RenderController] Modo Editor desactivado.");
     } // --- Fin del metodo desactivarModoEditor ---
 

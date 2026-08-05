@@ -43,6 +43,10 @@ public class EditTool extends Tool {
         return AppActionCommands.CMD_ADVANCED_EDITOR_EDICION;
     } // --- Fin del metodo getCommandKey ---
 
+    @Override
+    public boolean modifiesContent() {
+        return true;
+    } // --- Fin del metodo modifiesContent ---
 
     private LayerPicker picker() {
         return ctx.layerPicker();

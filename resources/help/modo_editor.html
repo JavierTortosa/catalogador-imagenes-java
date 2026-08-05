@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Modo Editor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <h1><img src="ICON_PLACEHOLDER_8006-edit-mode.png" class="header-icon">Modo Editor</h1>
+
+    <p>
+        El <strong>Modo Editor</strong> es un modo de trabajo dedicado (como Modo Proyecto, Modo
+        Datos o Modo Render) que abre el <a href="editor_avanzado.html">Editor Avanzado</a> a
+        pantalla completa para editar imágenes con capas y guardar el trabajo en documentos
+        propios con extensión <code>.edoc</code>.
+    </p>
+    <p>
+        Se activa desde el botón <strong>Modo Editor</strong> de la barra de modos
+        (<img src="ICON_PLACEHOLDER_8006-edit-mode.png" class="inline-icon">). Al entrar se ocultan
+        los paneles laterales del Modo Render (previsión 3D y archivos) para que el lienzo ocupe
+        toda la zona de trabajo, y al salir se restauran. Es el mismo editor que se usa dentro del
+        Modo Render, pero con su propia gestión de documentos.
+    </p>
+
+    <h2>Documento del Editor (.edoc)</h2>
+    <p>
+        Cada edición se organiza como un <strong>documento</strong> con las capas y el lienzo
+        (estilo Photoshop). El documento se guarda en un archivo <code>.edoc</code> (JSON) junto
+        con una carpeta <code>&lt;archivo&gt;_capas/</code> donde se exportan los PNG de las capas
+        sin origen (pintadas, degradados, fusiones, formas...).
+    </p>
+    <ul>
+        <li>Un documento <strong>sin guardar</strong> se considera un <em>temporal</em>
+            (<code>editor_temporal.edoc</code>).</li>
+        <li>Al <strong>modificar</strong> el lienzo (pintar, transformar, mover, añadir capas...)
+            el documento se marca como <strong>con cambios pendientes</strong> y el título de la
+            ventana muestra un <strong>asterisco (*)</strong> delante del nombre del documento.</li>
+        <li>Al <strong>guardar</strong>, desaparece el <code>*</code> y el nombre pasa a ser el del
+            archivo guardado.</li>
+    </ul>
+
+    <h2>Barra de Documento</h2>
+    <p>
+        En el Modo Editor se muestra la <strong>barra de documento</strong> con las operaciones
+        básicas del archivo:
+    </p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_90002-nuevo-lienzo.png"></td>
+            <td><strong>Nuevo documento:</strong> Reinicia el lienzo por defecto, sin capas.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70006 - abrir temp.png"></td>
+            <td><strong>Abrir documento:</strong> Carga un documento <code>.edoc</code> existente.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_7104-guardar_proyecto_48x48.png"></td>
+            <td><strong>Guardar documento:</strong> Guarda en el archivo activo, o en el temporal
+                si aún no tiene nombre. Si el archivo ya existe se pregunta antes de sobrescribirlo.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_7105-guardar_proyecto_como_48x48.png"></td>
+            <td><strong>Guardar como:</strong> Elige un archivo y nombre para el documento.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_21012 copy files.png"></td>
+            <td><strong>Pegar imagen (Ctrl+V):</strong> Inserta la imagen del portapapeles como una
+                nueva capa centrada en el lienzo.</td>
+        </tr>
+    </table>
+
+    <h2>Cambiar de Modo</h2>
+    <p>
+        El editor mantiene el trabajo <strong>en memoria</strong> mientras cambias de modo con la
+        barra de modos (misma semántica que el Modo Proyecto). Al salir del Modo Editor, si el
+        documento tiene cambios sin guardar y no tiene nombre, se guarda automáticamente en el
+        temporal <code>editor_temporal.edoc</code> para no perderlo.
+    </p>
+
+    <h2>Cerrar la Aplicación</h2>
+    <p>
+        Si cierras la aplicación con el documento marcado con <code>*</code>, se muestra el aviso
+        <strong>Guardar / No Guardar / Cancelar</strong>:
+    </p>
+    <ul>
+        <li><strong>Guardar:</strong> Guarda el documento (pregunta la ruta si no tiene nombre).</li>
+        <li><strong>No Guardar:</strong> Se guarda una <strong>sesión de recuperación</strong>
+            automática del trabajo.</li>
+        <li><strong>Cancelar:</strong> No se cierra la aplicación y se conserva la edición.</li>
+    </ul>
+
+    <h2>Recuperación al Entrar</h2>
+    <p>
+        Al volver a abrir la aplicación y entrar en el Modo Editor, si se dejó un documento sin
+        guardar se pregunta: <em>"Dejaste un documento sin guardar. ¿Cargarlo o descartar?"</em>.
+    </p>
+    <ul>
+        <li><strong>Cargar:</strong> Recupera el trabajo tal y como estaba, conservando el nombre
+            original del documento (con <code>*</code>, para que no sobrescriba la sesión de
+            recuperación).</li>
+        <li><strong>Descartar:</strong> Empieza con un lienzo limpio.</li>
+        <li><strong>Cancelar:</strong> No entra en el Modo Editor.</li>
+    </ul>
+    <p>Una vez recuperado con éxito, la sesión de recuperación se elimina automáticamente.</p>
+
+    <h2>Copiar y Pegar Imágenes</h2>
+    <p>
+        El sistema usa el <strong>portapapeles del sistema</strong> (imágenes), por lo que también
+        puedes pegar capturas desde otras aplicaciones (Paint, WhatsApp, navegador...) y copiar
+        para usarlas fuera del visor.
+    </p>
+    <ul>
+        <li><strong>Copiar imagen</strong> (clic derecho sobre una imagen → <em>Copiar imagen</em>):
+            Copia la imagen actual del contexto:
+            <ul>
+                <li>En <strong>Visualizador / Proyecto / Cliente:</strong> la imagen seleccionada.</li>
+                <li>En <strong>Render:</strong> lo que se ve en pantalla (si el editor avanzado está
+                    activo, aplana las capas visibles; si está la vista 2D, aplana el collage).</li>
+                <li>En <strong>Editor:</strong> la composición visible aplanada.</li>
+            </ul>
+        </li>
+        <li><strong>Pegar en el editor</strong> (<strong>Ctrl+V</strong> o botón Pegar de la barra
+            de documento): crea una capa <em>"Imagen pegada"</em> centrada en el lienzo, que queda
+            activa y lista para mover o redimensionar.</li>
+    </ul>
+
+    <p>
+        Para el detalle de las herramientas, el panel de capas, el gizmo de transformación y la
+        edición de texto, consulta la guía del <a href="editor_avanzado.html">Editor Avanzado</a>.
+    </p>
+
+</body>
+</html>

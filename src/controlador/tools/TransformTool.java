@@ -32,6 +32,11 @@ public class TransformTool extends Tool {
     } // --- Fin del metodo getCommandKey ---
 
     @Override
+    public boolean modifiesContent() {
+        return true;
+    } // --- Fin del metodo modifiesContent ---
+
+    @Override
     public void onActivate() {
         this.gizmo = ctx.gizmo();
         this.dragStart = null;

@@ -32,6 +32,19 @@ public abstract class Tool {
     public abstract String getCommandKey();
 
     /**
+     * Indica si esta herramienta modifica el contenido del documento (pinta,
+     * transforma, crea capas, recorta...). Las herramientas de solo selecci\u00F3n
+     * o navegaci\u00F3n devuelven {@code false}. Permite al controlador marcar el
+     * documento como "sucio" cuando la herramienta completa un gesto.
+     *
+     * @return {@code true} si la herramienta altera el contenido
+     */
+    public boolean modifiesContent() {
+        return false;
+    } // --- Fin del metodo modifiesContent ---
+
+
+    /**
      * Se ejecuta al hacer clic en el canvas.
      */
     public void mousePressed(MouseEvent e) {

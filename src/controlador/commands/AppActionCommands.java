@@ -232,6 +232,8 @@ public interface AppActionCommands {
     public static final String CMD_EDITOR_ABRIR                      = "cmd.editor.abrir";
     public static final String CMD_EDITOR_GUARDAR                    = "cmd.editor.guardar";
     public static final String CMD_EDITOR_GUARDAR_COMO               = "cmd.editor.guardar_como";
+    public static final String CMD_EDITOR_PEGAR_IMAGEN               = "cmd.editor.pegar_imagen";
+    public static final String CMD_COPIAR_IMAGEN                      = "cmd.copiar.imagen";
     public static final String CMD_PREVIEW_RENDER_GALLERY           = "cmd.preview.render.gallery";
 
     public static final String CMD_PREVIEW_RENDER_BRING_TO_FRONT    = "cmd.preview.render.bring_to_front";

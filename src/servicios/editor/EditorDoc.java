@@ -23,6 +23,9 @@ public final class EditorDoc {
     /** Capas del documento en orden de fondo a frente. */
     public List<LayerDTO> layers;
 
+    /** Nombre del documento (solo informativo; \u00FAtil al recuperar). */
+    public String nombreDocumento;
+
     /** DTO del lienzo. */
     public static final class CanvasDTO {
 

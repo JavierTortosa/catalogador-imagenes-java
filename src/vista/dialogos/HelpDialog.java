@@ -102,6 +102,8 @@ public class HelpDialog extends JDialog {
         renderFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Editor Avanzado", "editor_avanzado.html")));
         top.add(renderFolder);
 
+        top.add(new DefaultMutableTreeNode(new HelpPageInfo("Modo Editor", "modo_editor.html")));
+
         DefaultMutableTreeNode configFolder = new DefaultMutableTreeNode(new HelpPageInfo("Configuración", "configuracion.html"));
         configFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Configuración Avanzada", "configuracion.html")));
         configFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Personalizar Tema", "personalizar_tema.html")));

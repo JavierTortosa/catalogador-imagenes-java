@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.68.80";
+        version = "V2.68.90";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -43,17 +43,29 @@ public class VisorV2 {
     }
 
     // EDITOR AVANZADO
+    
     // TODO implementar el invertir seleccion en las herramientas de seleccion-> 80015-invertir-seleccion.png
     // TODO implementar el guardado de la composicion actual
     // TODO implementar guias de alineado 
     // TODO implementar el scanner -> 70009-scanner.png -> CMD_RENDER_PROCESAR_HUERFANOS 
+    // FIXME que pasa si hay cambios pendiente de guardar en el editor y en proyecto?
+    
+    
     
     // GENERAL
     
     // TODO implementar el plan para el modo editor -> 8006-edit-mode.png -> CMD_MODO_EDIT
+    // TODO implementar en la statusbar inferior una etiqueta de cambios sin guardar y que muestre donde (para ahorrar espacio podemos poner el boton de los modos editor y proyecto y pulsando que nos lleve a donde estan los cambios sin guardar
     // TODO añadir F1 para que muestre el panel de informacion
-    // TODO añadir ctrl + 1-5 para activar el modo visor, proyecto, cliente, datos, carrousel
+    // TODO añadir ctrl + 1-7 para activar el modo visor, proyecto, cliente, datos, carrousel, render, editor
     // TODO Implementar un sistema de busqueda de archivos sin representacion
+    
+    	// REVISIONES PENDIENTES
+    // TODO revision de los menus. hay menus que deberian estar disabled en ciertos modos, opciones que faltan y otras que sobran
+    // TODO revision de los botones. Hay botones que no deberian estar en algunos modos y otros que deberian estar disabled
+    // TODO revision de popupmenu. que popup se abre donde. hay popups que faltan y otros que no tienen las opciones como toca
+    // TODO revisar que las ayudas esten completas y contienen toda la informacion de los SRS
+    
     
     // VISUALIZADOR
     
