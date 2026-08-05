@@ -124,17 +124,18 @@ FASE 1 - Modo Editor como WorkMode  [HECHO 04/08/2026]
    - [OK] Nuevo setEditorFullscreen(boolean) IDEMPOTENTE (no toggle) para
      ocultar/mostrar los paneles laterales (preview + archivos).
 
-6. ESC  [PARCIAL]
+6. ESC  [HECHO]
    - [OK] AdvanceEditPanel.setCanvasController (530-538): cambiar
      setFullscreenEscapeHandler para que devuelva false SIEMPRE (que ESC
      nunca salga de fullscreen).
-   - [PENDIENTE] Ocultar el botón interno de fullscreen del editor cuando se está en
-     Modo Editor (el fullscreen ya está activado).
+   - [HECHO] Ocultar el botón interno de fullscreen del editor cuando se está en
+     Modo Editor (el fullscreen ya está activado): AdvanceEditPanel.setModoEditorActivo
+     (campo fullscreenToggleButton, oculto en buildLeftToolbar).
 
-7. Toolbars  [PARCIAL]
+7. Toolbars  [HECHO]
    - [OK] ToolbarManager.reconstruirContenedorDeToolbars (143): se oculta
      barra_estado_controles (229) en EDITOR y se añadió EDITOR a modo/modo_bottom.
-   - [PENDIENTE] barra_editor (def con modosVisibles=[EDITOR]) -> Fase 2.7.
+   - [HECHO] barra_editor (def con modosVisibles=[EDITOR]) -> Fase 2 (item 7).
 
 FASE 2 - Documento .edoc (semántica Modo Proyecto)
 1. Nuevo servicios/editor/EditorDocumentManager (espejo de ProjectManager):
@@ -202,12 +203,23 @@ FASE 2.5 - Copiar/Pegar imagen
    [HECHO: CMD_EDITOR_PEGAR_IMAGEN en barra_editor + Ctrl+V (CanvasController KeyHandler)
     + RenderController.pegarImagenEditor (ImageLayer centrado + sucio)]
 
-FASE 2.6 - Documentos independientes RENDER/EDITOR
+FASE 2.6 - Documentos independientes RENDER/EDITOR  [HECHO]
 - Swap del documento en el mismo AdvanceEditPanel al cambiar de modo:
   salirModo guarda el documento del modo actual, entrarModo carga el del
   modo destino (AdvanceEditPanel.setLayerModel:430 / setCanvasModel:447).
 - RENDER conserva su composición en memoria; EDITOR su .edoc.
 - La copia cruzada se hace por portapapeles (Fase 2.5).
+- Implementación: RenderController mantiene dos slots (canvasModelRender+
+  layerModelRender y canvasModelEditor+layerModelEditor). El panel muestra
+  uno u otro según el modo activo vía cargarDocumentoEnPanel(cm,lm,esEditor),
+  que además hace canvasController.setContext(...) y re-engancha
+  EditorDocumentManager.setDocument(cm,lm) cuando el doc es el del EDITOR
+  (setLayerModel reinstala el listener de la vista y limpia los demás).
+- LayerModel.removeChangeListener(Runnable) añadido; EditorDocumentManager
+  guarda capasChangeListener (Runnable fijo) y setDocument es idempotente.
+- toggleAdvanceEditMode es no-op en Modo Editor (no desactiva el editor).
+- notificarModificacionDocumentoActivo() solo ensucia si el doc EDITOR está
+  cargado en el panel; pegarImagenEditor usa el documento activo del panel.
 
 FASES FUTURAS (no incluidas en Fase 1/2)
 ----------------------------------------

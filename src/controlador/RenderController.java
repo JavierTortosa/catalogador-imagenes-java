@@ -94,6 +94,18 @@ public class RenderController {
     private final RenderSceneController sceneController;
     private controlador.tools.CanvasController canvasController;
 
+    // --- Fase 2.6: documentos independientes RENDER / EDITOR ---
+    // Ambos modos comparten el mismo AdvanceEditPanel, pero cada uno conserva su
+    // propio par (CanvasModel, LayerModel). Al cambiar de modo se hace un swap
+    // en el panel. RENDER mantiene su composición en memoria; EDITOR gestiona su
+    // documento .edoc a través de EditorDocumentManager.
+    private CanvasModel canvasModelRender;
+    private LayerModel layerModelRender;
+    private CanvasModel canvasModelEditor;
+    private LayerModel layerModelEditor;
+    private modelo.gizmo.TransformGizmo transformGizmo;
+    private boolean editorDocumentoCargadoEnPanel;
+
     private Path lastScanFolder;
     private Path outputDir;
     private Path imagesDir;
@@ -1735,44 +1747,14 @@ public class RenderController {
 
 
     public void toggleAdvanceEditMode() {
+        // En el Modo Editor el panel muestra el documento del editor: el toggle de
+        // la barra de render no debe desactivar el editor ni tocar su documento.
+        if (editorDocumentoCargadoEnPanel) {
+            return;
+        }
         boolean nuevo = !panel.isAdvanceEditActive();
         if (nuevo) {
-            var aep = panel.getAdvanceEditPanel();
-            if (aep.getCanvas().getCanvasModel() == null) {
-                aep.setCanvasModel(new CanvasModel(1920, 1080));
-            }
-            if (aep.getCanvas().getLayerModel() == null) {
-                aep.setLayerModel(new LayerModel());
-            }
-            if (canvasController == null) {
-                var cm = aep.getCanvas().getCanvasModel();
-                var lm = aep.getCanvas().getLayerModel();
-                var sm = aep.getCanvas().getSelectionModel();
-                var gizmo = new modelo.gizmo.TransformGizmo();
-                canvasController = new controlador.tools.CanvasController(
-                        aep.getCanvas(), aep.getComponentBar(), cm, lm, sm, gizmo);
-                canvasController.registerTool(new controlador.tools.TransformTool());
-                canvasController.registerTool(new controlador.tools.MarqueeSelectionTool());
-                canvasController.registerTool(new controlador.tools.LayerSelectionTool());
-                canvasController.registerTool(new controlador.tools.MagicWandTool());
-                canvasController.registerTool(new controlador.tools.PaintBucketTool());
-                canvasController.registerTool(new controlador.tools.ColorPickerTool());
-                canvasController.registerTool(new controlador.tools.CropTool());
-                canvasController.registerTool(new controlador.tools.TextTool());
-                canvasController.registerTool(new controlador.tools.ShapeTool());
-                canvasController.registerTool(new controlador.tools.GradientTool());
-                canvasController.registerTool(new controlador.tools.ZoomTool());
-                canvasController.registerTool(new controlador.tools.EditTool());
-                var textTool = (controlador.tools.TextTool) canvasController.getTool(
-                        AppActionCommands.CMD_ADVANCED_EDITOR_TEXTO);
-                canvasController.getLayerEditorRegistry()
-                        .register(new controlador.tools.editors.TextLayerEditor(textTool));
-                canvasController.getLayerEditorRegistry()
-                        .register(new controlador.tools.editors.ShapeLayerEditor());
-                aep.setCanvasController(canvasController);
-                aep.getCanvas().setCanvasController(canvasController);
-                canvasController.setActiveTool(AppActionCommands.CMD_ADVANCED_EDITOR_EDICION);
-            }
+            inicializarCanvasEditor();
         }
         panel.setAdvanceEditActive(nuevo);
         logger.info("[RenderController] Modo editor avanzado: {}", nuevo);
@@ -1781,40 +1763,45 @@ public class RenderController {
 
     /**
      * Activa el Modo Editor como modo de trabajo: garantiza que el editor avanzado
-     * esté inicializado y activa el fullscreen del editor (ocultando los paneles
-     * laterales de preview y archivos).
+     * esté inicializado, carga el documento del editor en el panel (swap del slot
+     * RENDER al slot EDITOR) y activa el fullscreen del editor (ocultando los
+     * paneles laterales de preview y archivos).
      */
     public void activarModoEditor() {
         inicializarCanvasEditor();
+        inicializarGestorDocumento();
+        cargarDocumentoEnPanel(canvasModelEditor, layerModelEditor, true);
         panel.setAdvanceEditActive(true);
         panel.setEditorFullscreen(true);
-
-        inicializarGestorDocumento(panel.getAdvanceEditPanel());
+        panel.getAdvanceEditPanel().setModoEditorActivo(true);
         refrescarTituloEditor();
         logger.info("[RenderController] Modo Editor activado.");
     } // --- Fin del metodo activarModoEditor ---
 
 
     /**
-     * Garantiza que el canvas del editor tenga modelos y controlador de
-     * herramientas (idempotente). Se llama tanto al activar el Modo Editor como
-     * al comprobar recuperaciones antes de entrar.
+     * Garantiza que el canvas del editor tenga el documento del RENDER (slot que
+     * el panel muestra por defecto) y el controlador de herramientas (idempotente).
+     * Se llama tanto al activar el Modo Editor como al usar el editor en modo
+     * RENDER. No toca el documento del EDITOR.
      */
     private void inicializarCanvasEditor() {
         var aep = panel.getAdvanceEditPanel();
-        if (aep.getCanvas().getCanvasModel() == null) {
-            aep.setCanvasModel(new CanvasModel(1920, 1080));
+        if (canvasModelRender == null) {
+            canvasModelRender = new CanvasModel(1920, 1080);
         }
-        if (aep.getCanvas().getLayerModel() == null) {
-            aep.setLayerModel(new LayerModel());
+        if (layerModelRender == null) {
+            layerModelRender = new LayerModel();
+        }
+        aep.setCanvasModel(canvasModelRender);
+        aep.setLayerModel(layerModelRender);
+        if (transformGizmo == null) {
+            transformGizmo = new modelo.gizmo.TransformGizmo();
         }
         if (canvasController == null) {
-            var cm = aep.getCanvas().getCanvasModel();
-            var lm = aep.getCanvas().getLayerModel();
             var sm = aep.getCanvas().getSelectionModel();
-            var gizmo = new modelo.gizmo.TransformGizmo();
             canvasController = new controlador.tools.CanvasController(
-                    aep.getCanvas(), aep.getComponentBar(), cm, lm, sm, gizmo);
+                    aep.getCanvas(), aep.getComponentBar(), canvasModelRender, layerModelRender, sm, transformGizmo);
             canvasController.registerTool(new controlador.tools.TransformTool());
             canvasController.registerTool(new controlador.tools.MarqueeSelectionTool());
             canvasController.registerTool(new controlador.tools.LayerSelectionTool());
@@ -1836,27 +1823,71 @@ public class RenderController {
             aep.setCanvasController(canvasController);
             aep.getCanvas().setCanvasController(canvasController);
             canvasController.setActiveTool(AppActionCommands.CMD_ADVANCED_EDITOR_EDICION);
+            canvasController.setContentChangeCallback(this::notificarModificacionDocumentoActivo);
+            canvasController.setPasteCallback(this::pegarImagenEditor);
         }
+        editorDocumentoCargadoEnPanel = false;
     } // --- Fin del metodo inicializarCanvasEditor ---
 
 
-    /** Inicializa (si hace falta) el gestor de documento del editor. */
-    private void inicializarGestorDocumento(vista.panels.render.AdvanceEditPanel aep) {
+    /**
+     * Inicializa (si hace falta) el gestor de documento del editor, ligándolo
+     * SIEMPRE al slot del EDITOR (independiente del slot RENDER que muestra el
+     * panel por defecto).
+     */
+    private void inicializarGestorDocumento() {
         if (editorDocumentManager == null) {
             editorDocumentManager = new servicios.editor.EditorDocumentManager(config);
         }
-        var cm = aep.getCanvas().getCanvasModel();
-        var lm = aep.getCanvas().getLayerModel();
-        if (editorDocumentManager.getCanvasModel() != cm
-                || editorDocumentManager.getLayerModel() != lm) {
-            editorDocumentManager.setDocument(cm, lm);
+        if (canvasModelEditor == null) {
+            canvasModelEditor = new CanvasModel(1920, 1080);
+        }
+        if (layerModelEditor == null) {
+            layerModelEditor = new LayerModel();
+        }
+        if (editorDocumentManager.getCanvasModel() != canvasModelEditor
+                || editorDocumentManager.getLayerModel() != layerModelEditor) {
+            editorDocumentManager.setDocument(canvasModelEditor, layerModelEditor);
             editorDocumentManager.setDirtyNotifier(this::refrescarTituloEditor);
         }
-        if (canvasController != null) {
-            canvasController.setContentChangeCallback(editorDocumentManager::notificarModificacion);
-            canvasController.setPasteCallback(this::pegarImagenEditor);
-        }
     } // --- Fin del metodo inicializarGestorDocumento ---
+
+
+    /**
+     * Carga un par (CanvasModel, LayerModel) en el panel del editor (swap de
+     * documento) y re-apunta el contexto del controlador de herramientas.
+     *
+     * @param cm               modelo del lienzo a cargar
+     * @param lm               modelo de capas a cargar
+     * @param esDocumentoEditor {@code true} si es el documento del Modo Editor
+     */
+    private void cargarDocumentoEnPanel(CanvasModel cm, LayerModel lm, boolean esDocumentoEditor) {
+        var aep = panel.getAdvanceEditPanel();
+        aep.setCanvasModel(cm);
+        aep.setLayerModel(lm);
+        if (esDocumentoEditor && editorDocumentManager != null) {
+            // setLayerModel reinstala el listener de la vista (limpia los demás),
+            // así que se re-engancha el de suciedad del documento del editor.
+            editorDocumentManager.setDocument(cm, lm);
+        }
+        if (canvasController != null) {
+            canvasController.setContext(cm, lm, aep.getCanvas().getSelectionModel(), transformGizmo);
+        }
+        editorDocumentoCargadoEnPanel = esDocumentoEditor;
+        aep.getCanvas().repaint();
+        aep.refreshLayerCards();
+    } // --- Fin del metodo cargarDocumentoEnPanel ---
+
+
+    /**
+     * Marca sucio el documento del editor solo si es el documento activo en el
+     * panel (las modificaciones sobre el slot RENDER no deben ensuciarlo).
+     */
+    private void notificarModificacionDocumentoActivo() {
+        if (editorDocumentoCargadoEnPanel && editorDocumentManager != null) {
+            editorDocumentManager.notificarModificacion();
+        }
+    } // --- Fin del metodo notificarModificacionDocumentoActivo ---
 
 
     private void refrescarTituloEditor() {
@@ -1895,8 +1926,7 @@ public class RenderController {
      */
     public servicios.editor.EditorDocumentManager getOrCreateEditorDocumentManager() {
         if (editorDocumentManager == null) {
-            inicializarCanvasEditor();
-            inicializarGestorDocumento(panel.getAdvanceEditPanel());
+            inicializarGestorDocumento();
         }
         return editorDocumentManager;
     } // --- Fin del metodo getOrCreateEditorDocumentManager ---
@@ -1904,12 +1934,15 @@ public class RenderController {
 
     /**
      * Pega la imagen del portapapeles del sistema como una nueva capa
-     * centrada en el lienzo del editor (Ctrl+V / bot\u00F3n Pegar).
+     * centrada en el lienzo activo del editor (Ctrl+V / bot\u00F3n Pegar). El
+     * pegado se aplica al documento que el panel esté mostrando en ese momento
+     * (slot RENDER si se usa el editor dentro del modo Render, slot EDITOR si
+     * se usa el Modo Editor).
      */
     public void pegarImagenEditor() {
-        getOrCreateEditorDocumentManager();
-        var cm = editorDocumentManager.getCanvasModel();
-        var lm = editorDocumentManager.getLayerModel();
+        var aep = panel.getAdvanceEditPanel();
+        var cm = aep.getCanvas().getCanvasModel();
+        var lm = aep.getCanvas().getLayerModel();
         if (cm == null || lm == null) return;
 
         BufferedImage img = controlador.utils.ImageClipboard.read();
@@ -1938,7 +1971,7 @@ public class RenderController {
                 img, new java.awt.Rectangle(x, y, img.getWidth(), img.getHeight()));
         lm.addLayer(layer);
         lm.setActiveLayer(layer);
-        editorDocumentManager.notificarModificacion();
+        notificarModificacionDocumentoActivo();
         refrescarUiEditor();
         logger.info("[RenderController] Imagen pegada como nueva capa en el editor.");
     } // --- Fin del metodo pegarImagenEditor ---
@@ -1968,8 +2001,7 @@ public class RenderController {
 
     public void nuevoDocumentoEditor() {
         if (editorDocumentManager == null) {
-            var aep = panel.getAdvanceEditPanel();
-            inicializarGestorDocumento(aep);
+            inicializarGestorDocumento();
         }
         editorDocumentManager.nuevoDocumento();
         refrescarUiEditor();
@@ -1992,8 +2024,7 @@ public class RenderController {
 
     public void abrirDocumentoEditor(java.nio.file.Path ruta) {
         if (editorDocumentManager == null) {
-            var aep = panel.getAdvanceEditPanel();
-            inicializarGestorDocumento(aep);
+            inicializarGestorDocumento();
         }
         if (editorDocumentManager.abrirDocumento(ruta)) {
             refrescarUiEditor();
@@ -2028,8 +2059,7 @@ public class RenderController {
 
     public void guardarDocumentoComoEditorDialogo() {
         if (editorDocumentManager == null) {
-            var aep = panel.getAdvanceEditPanel();
-            inicializarGestorDocumento(aep);
+            inicializarGestorDocumento();
         }
         javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
         fc.setDialogTitle("Guardar documento del editor");
@@ -2057,12 +2087,18 @@ public class RenderController {
 
 
     /**
-     * Desactiva el Modo Editor: sale del fullscreen y restaura la vista normal del
-     * modo render.
+     * Desactiva el Modo Editor: restaura el documento del RENDER en el panel
+     * (swap del slot EDITOR al slot RENDER), sale del fullscreen y restaura la
+     * vista normal del modo render.
      */
     public void desactivarModoEditor() {
+        if (canvasModelRender == null || layerModelRender == null) {
+            inicializarCanvasEditor();
+        }
+        cargarDocumentoEnPanel(canvasModelRender, layerModelRender, false);
         panel.setEditorFullscreen(false);
         panel.setAdvanceEditActive(false);
+        panel.getAdvanceEditPanel().setModoEditorActivo(false);
         if (viewManager != null) {
             viewManager.setEditorDocumentoTitulo(null);
             viewManager.actualizarTituloVentana();

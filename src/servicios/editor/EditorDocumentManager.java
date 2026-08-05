@@ -65,6 +65,9 @@ public class EditorDocumentManager {
     /** Notificador externo de suciedad (p. ej. para refrescar el t\u00EDtulo). */
     private Runnable dirtyNotifier;
 
+    /** Listener fijo que marca el documento como sucio ante cambios del modelo de capas. */
+    private final Runnable capasChangeListener = () -> notificarModificacion();
+
     /** Nombre original del documento capturado al abrir una sesi\u00F3n de recuperaci\u00F3n. */
     private String nombreRecuperado;
 
@@ -104,13 +107,18 @@ public class EditorDocumentManager {
 
     /**
      * Asigna los modelos del documento activo y suscribe el listener de cambios
-     * para marcar el documento como sucio ante cualquier modificaci\u00F3n.
+     * para marcar el documento como sucio ante cualquier modificaci\u00F3n. Es
+     * idempotente: al llamarse varias veces con el mismo modelo no acumula
+     * listeners ni pierde el enganche cuando el panel reinstala el suyo.
      */
     public void setDocument(CanvasModel canvasModel, LayerModel layerModel) {
+        if (this.layerModel != null) {
+            this.layerModel.removeChangeListener(capasChangeListener);
+        }
         this.canvasModel = canvasModel;
         this.layerModel = layerModel;
         if (layerModel != null) {
-            layerModel.addChangeListener(() -> notificarModificacion());
+            layerModel.addChangeListener(capasChangeListener);
         }
     } // --- Fin del metodo setDocument ---
 

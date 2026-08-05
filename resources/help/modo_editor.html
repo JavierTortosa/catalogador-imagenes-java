@@ -20,7 +20,8 @@
         (<img src="ICON_PLACEHOLDER_8006-edit-mode.png" class="inline-icon">). Al entrar se ocultan
         los paneles laterales del Modo Render (previsión 3D y archivos) para que el lienzo ocupe
         toda la zona de trabajo, y al salir se restauran. Es el mismo editor que se usa dentro del
-        Modo Render, pero con su propia gestión de documentos.
+        Modo Render, pero con su <strong>documento propio e independiente</strong>: lo que edites
+        aquí no afecta a la composición del editor del Modo Render, y viceversa.
     </p>
 
     <h2>Documento del Editor (.edoc)</h2>
@@ -69,6 +70,24 @@
                 nueva capa centrada en el lienzo.</td>
         </tr>
     </table>
+
+    <h2>Documentos Independientes (Render y Editor)</h2>
+    <p>
+        El editor avanzado mantiene <strong>dos documentos separados</strong> en memoria:
+    </p>
+    <ul>
+        <li><strong>Documento RENDER:</strong> la composición que se edita con el editor dentro del
+            Modo Render (botón <em>Editor Avanzado</em> de la previsualización). Es un lienzo de
+            trabajo en memoria, sin archivo asociado.</li>
+        <li><strong>Documento EDITOR:</strong> el documento del Modo Editor, con su propia gestión
+            de guardado en <code>.edoc</code> (nombre, cambios pendientes, recuperación).</li>
+    </ul>
+    <p>
+        Al cambiar entre el Modo Render y el Modo Editor, cada uno <strong>conserva intacto su
+        documento</strong> aunque uses el mismo editor. Para llevar contenido de uno a otro se usa
+        el <strong>portapapeles</strong>: <em>Copiar imagen</em> en un contexto y <em>Pegar</em>
+        (Ctrl+V) en el otro.
+    </p>
 
     <h2>Cambiar de Modo</h2>
     <p>

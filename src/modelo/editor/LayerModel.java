@@ -50,6 +50,18 @@ public class LayerModel {
     } // --- Fin del metodo addChangeListener ---
 
 
+    /**
+     * Elimina un callback de cambio previamente registrado.
+     *
+     * @param listener el callback a eliminar
+     */
+    public void removeChangeListener(Runnable listener) {
+        if (listener != null) {
+            this.changeListeners.remove(listener);
+        }
+    } // --- Fin del metodo removeChangeListener ---
+
+
     private void fireChanged() {
         for (Runnable listener : this.changeListeners) {
             if (listener != null) {

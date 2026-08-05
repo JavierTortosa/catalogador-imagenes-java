@@ -103,6 +103,11 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     private javax.swing.JPanel homePanel;
     private CanvasController canvasController;
 
+    // --- Modo Editor (WorkMode.EDITOR): el fullscreen ya está activado, así que
+    // el botón interno de fullscreen se oculta para no confundir al usuario. ---
+    private boolean modoEditorActivo;
+    private JToggleButton fullscreenToggleButton;
+
     // --- Retención de controles de texto del panel derecho ---
     private JComboBox<String> rightFontCombo;
     private JComboBox<Integer> rightSizeCombo;
@@ -427,6 +432,23 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             });
         }
     } // --- Fin del metodo setActive ---
+
+
+    /**
+     * Marca si el editor está siendo usado como Modo Editor (WorkMode.EDITOR).
+     * En ese modo el fullscreen ya está activado, por lo que se oculta el botón
+     * interno de fullscreen de la barra izquierda.
+     *
+     * @param activo {@code true} si el editor actúa como Modo Editor
+     */
+    public void setModoEditorActivo(boolean activo) {
+        this.modoEditorActivo = activo;
+        if (fullscreenToggleButton != null) {
+            fullscreenToggleButton.setVisible(!activo);
+            toolbarContainer.revalidate();
+            toolbarContainer.repaint();
+        }
+    } // --- Fin del metodo setModoEditorActivo ---
 
 
     public boolean isActive() {
@@ -1344,7 +1366,10 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                 boolean isFullscreen = AppActionCommands.CMD_ADVANCED_EDITOR_PANTALLA_COMPLETA.equals(cmdKey);
                 ThemedToggleButton btn = new ThemedToggleButton(themeManager, action);
                 btn.putClientProperty("JButton.buttonType", "regular");
-                if (!isFullscreen) {
+                if (isFullscreen) {
+                    fullscreenToggleButton = btn;
+                    btn.setVisible(!modoEditorActivo);
+                } else {
                     btn.addItemListener(e -> {
                         if (e.getStateChange() == ItemEvent.SELECTED) {
                             if (syncingTools) return;
