@@ -411,3 +411,32 @@ PANEO DEL CANVAS [HECHO]
   cualquier sitio (util si el lienzo cubre todo el panel).
 - No se uso Espacio+arrastre porque el GlobalInputManager (KeyEventDispatcher
   global) consume VK_SPACE para CMD_PROYECTO_TOGGLE_MARCA. Compila EXIT=0.
+
+PANEL "DISPOSICION" + REFERENCIA DE ALINEACION [HECHO]
+- Panel único "Disposicion" (acordeon EXCLUSIVO) en el panel Herramientas:
+  las secciones Alinear, Distribuir, Espacio, Auto distribuir y Opciones se
+  apilan una encima de la otra; al expandir una se colapsan las demas (estilo
+  acordeon). Estado inicial: "Alinear" expandido, el resto colapsado.
+- AdvanceEditPanel: createSectionInternal(...) extrae la logica de colapso de
+  createSection; createSectionExclusive(title, content, grupoDisposicion)
+  registra la accion de colapso propia en el grupo y al expandir ejecuta el
+  colapso de las demas. createGridFromDefs(defs, columns, collectInto) devuelve
+  la cuadricula sin cabecera (contenido de cada seccion). createSection y
+  createSectionFromDefs conservan su comportamiento (independiente).
+- Referencia de alineacion configurable (solo Alinear, en memoria, compartida
+  por panel y combos de la barra): LayerDistributionActions.ReferenceMode enum
+  { LIENZO, SELECCION, CAPA_MAESTRA } + estado estatico get/setReferenceMode
+  (default SELECCION) y get/setMasterLayerId. computeReference(targets, lm, cm,
+  mode): LIENZO -> lienzo; SELECCION -> union de las capas objetivo (con <2 cae
+  al lienzo para no romper el comportamiento de capa unica); CAPA_MAESTRA ->
+  bounds de la capa maestra (visible/no bloqueada, fallback a SELECCION).
+- Seccion "Opciones": groupbox "Referencia de alineacion" con 3 JRadioButton
+  (Lienzo/Seleccion/Capa maestra) + controles de capa maestra (boton "Usar capa
+  activa como maestra", etiqueta con el nombre, boton "Quitar"). Al cambiar el
+  modo o la maestra se actualiza LayerDistributionActions y la etiqueta
+  (refreshDisposicionMasterControls, conectada tambien al changeListener del
+  LayerModel para reflejar renombrados/borrados).
+- Alinear con seleccion multiple ya usaba la union de bounds (capa virtual
+  Photoshop): 100,100 + 200,200 -> centro 150. Confirmado. Distribuir y
+  Espaciar conservan su semantica de extremos (primera/ultima fijas);
+  AutoDistributeActions sigue usando el lienzo. Compila (mvn compile EXIT=0).

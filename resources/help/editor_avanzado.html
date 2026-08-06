@@ -449,6 +449,51 @@
             gracias al sistema de notificación (<code>LayerModel.setChangeListener()</code>).</li>
     </ul>
 
+    <h2 id="disposicion">Panel de Disposición</h2>
+    <p>
+        En el panel derecho, la sección <strong>Disposición</strong> agrupa todas las operaciones
+        de colocación de capas en un <strong>acordeón exclusivo</strong>: las secciones se apilan
+        una encima de la otra y, al expandir una (clic en su cabecera), las demás se cierran
+        automáticamente. Esto mantiene el panel compacto; solo la sección que necesitas está
+        abierta. Incluye:
+    </p>
+    <ul>
+        <li><strong>Alinear:</strong> Alinea las capas seleccionadas respecto a la
+            <strong>referencia</strong> elegida (ver <a href="#referencia">Opciones</a>). Con
+            varias capas seleccionadas se alinean como si formaran una única capa virtual cuyo
+            contorno es la unión de todas ellas (estilo Photoshop: si una capa va de (100,100) a
+            otra que termina en (200,200), centrar coloca ambas en el punto 150).</li>
+        <li><strong>Distribuir:</strong> Reparte las capas a intervalos iguales entre los valores
+            extremos de la propia magnitud (bordes o centros), dejando fijas la primera y la
+            última. La operación es idempotente (repetirla no dispersa las capas). Los botones se
+            deshabilitan con menos de 3 capas efectivas.</li>
+        <li><strong>Espacio:</strong> Iguala el hueco entre capas consecutivas sin mover la primera
+            ni la última (estilo Photoshop "Distribute Spacing").</li>
+        <li><strong>Auto distribuir:</strong> Coloca automáticamente las capas visibles en una
+            cuadrícula sobre el lienzo (fija por posición, por tamaño de capa o escalando para
+            ajustar).</li>
+        <li><strong>Opciones:</strong> Configura la referencia de alineación (ver
+            <a href="#referencia">abajo</a>).</li>
+    </ul>
+
+    <h3 id="referencia">Opciones — Referencia de Alineación</h3>
+    <p>
+        La alineación puede tomar como referencia uno de estos tres modos:
+    </p>
+    <ul>
+        <li><strong>Lienzo:</strong> Alinea respecto a los bordes y al centro del lienzo completo.</li>
+        <li><strong>Selección:</strong> Alinea respecto a la unión de las capas seleccionadas (la
+            "capa virtual"). Es el modo por defecto y el comportamiento tipo Photoshop.</li>
+        <li><strong>Capa maestra:</strong> Alinea las demás capas respecto a una capa designada.
+            Pulsa <strong>"Usar capa activa como maestra"</strong> para fijar la capa actualmente
+            activa como referencia, y <strong>"Quitar"</strong> para deshacerla. Si la capa maestra
+            no existe o no es válida, se usa la selección.</li>
+    </ul>
+    <p>
+        El modo elegido también se aplica a los combos <em>Alinear</em> de la barra superior del
+        editor, y se conserva mientras dure la sesión (no se guarda entre ejecuciones).
+    </p>
+
     <h2>Gizmo de Transformación</h2>
     <p>
         El <strong>TransformGizmo</strong> es un conjunto de tiradores visuales que se dibujan

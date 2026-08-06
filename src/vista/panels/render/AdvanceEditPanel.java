@@ -36,6 +36,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
@@ -90,6 +91,9 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     private final JSplitPane advanceEditSplit;
     private final EditorComponentBar componentBar;
     private final List<JButton> distributeButtons = new ArrayList<>();
+    private JLabel disposicionMasterLabel;
+    private JButton disposicionUsarMaestraBtn;
+    private JButton disposicionQuitarMaestraBtn;
     private final JLabel toolsTitle;
     private boolean advanceEditToolsVisible;
     private boolean advanceEditActive;
@@ -485,6 +489,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                 canvasPanel.repaint();
             }
             updateDistributeButtonsState();
+            refreshDisposicionMasterControls();
             componentBar.updateDistributeButtonState();
         });
         updateDistributeButtonsState();
@@ -639,17 +644,36 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         container.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
 
         if (iconUtils != null && uiDefinitionService != null) {
-            container.add(createSectionFromDefs("Alinear",
-                    uiDefinitionService.getComponentesLayerAlign(), 3));
-            container.add(Box.createVerticalStrut(2));
-            container.add(createSectionFromDefs("Distribuir",
-                    uiDefinitionService.getComponentesLayerDistribute(), 3, distributeButtons));
-            container.add(Box.createVerticalStrut(2));
-            container.add(createSectionFromDefs("Espacio",
-                    uiDefinitionService.getComponentesLayerDistributeSpace(), 2));
-            container.add(Box.createVerticalStrut(2));
-            container.add(createSectionFromDefs("Auto distribuir",
-                    uiDefinitionService.getComponentesLayerAutoDistribute(), 2));
+            // Panel "Disposición": acordeón exclusivo con las operaciones de
+            // disposición de capas y la sección de opciones de referencia.
+            java.util.List<Runnable> grupoDisposicion = new java.util.ArrayList<>();
+            JPanel disposicion = new JPanel();
+            disposicion.setLayout(new BoxLayout(disposicion, BoxLayout.Y_AXIS));
+            disposicion.setBackground(bgTools);
+
+            disposicion.add(createSectionExclusive("Alinear",
+                    createGridFromDefs(uiDefinitionService.getComponentesLayerAlign(), 3, null), grupoDisposicion));
+            disposicion.add(Box.createVerticalStrut(2));
+            disposicion.add(createSectionExclusive("Distribuir",
+                    createGridFromDefs(uiDefinitionService.getComponentesLayerDistribute(), 3, distributeButtons),
+                    grupoDisposicion));
+            disposicion.add(Box.createVerticalStrut(2));
+            disposicion.add(createSectionExclusive("Espacio",
+                    createGridFromDefs(uiDefinitionService.getComponentesLayerDistributeSpace(), 2, null),
+                    grupoDisposicion));
+            disposicion.add(Box.createVerticalStrut(2));
+            disposicion.add(createSectionExclusive("Auto distribuir",
+                    createGridFromDefs(uiDefinitionService.getComponentesLayerAutoDistribute(), 2, null),
+                    grupoDisposicion));
+            disposicion.add(Box.createVerticalStrut(2));
+            disposicion.add(buildDisposicionOpciones(grupoDisposicion));
+
+            // Estado inicial: "Alinear" expandido y el resto colapsado
+            for (int i = 1; i < grupoDisposicion.size(); i++) {
+                grupoDisposicion.get(i).run();
+            }
+
+            container.add(createSection("Disposición", disposicion, false));
         }
 
         // --- Texto (tabs: alineamiento + fuentes) ---
@@ -889,12 +913,192 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     } // --- Fin del metodo buildDefaultTools ---
 
 
+    /**
+     * Sección "Opciones" del panel Disposición: referencia de alineación
+     * (lienzo, selección o capa maestra) y controles de la capa maestra.
+     * Participa en el acordeón exclusivo a través de {@code grupoDisposicion}.
+     *
+     * @param grupoDisposicion grupo de colapso exclusivo compartido
+     * @return la sección de opciones construida
+     */
+    private JPanel buildDisposicionOpciones(java.util.List<Runnable> grupoDisposicion) {
+        JPanel options = new JPanel();
+        options.setLayout(new BoxLayout(options, BoxLayout.Y_AXIS));
+        options.setBackground(bgTools);
+        options.setBorder(BorderFactory.createEmptyBorder(6, 8, 8, 8));
+
+        // --- Referencia de alineación ---
+        JPanel refPanel = new JPanel(new GridLayout(0, 1, 0, 2));
+        refPanel.setBackground(bgTools);
+        refPanel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(borderColor),
+                "Referencia de alineación",
+                javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.TOP,
+                new Font("SansSerif", Font.BOLD, 10), fgSectionTitle));
+
+        JRadioButton rbLienzo = styleOption("Lienzo");
+        JRadioButton rbSeleccion = styleOption("Selección");
+        JRadioButton rbMaestra = styleOption("Capa maestra");
+        ButtonGroup refGroup = new ButtonGroup();
+        refGroup.add(rbLienzo);
+        refGroup.add(rbSeleccion);
+        refGroup.add(rbMaestra);
+
+        switch (LayerDistributionActions.getReferenceMode()) {
+            case LIENZO -> rbLienzo.setSelected(true);
+            case CAPA_MAESTRA -> rbMaestra.setSelected(true);
+            default -> rbSeleccion.setSelected(true);
+        }
+
+        refPanel.add(rbLienzo);
+        refPanel.add(rbSeleccion);
+        refPanel.add(rbMaestra);
+        options.add(refPanel);
+        options.add(Box.createVerticalStrut(6));
+
+        // --- Controles de capa maestra ---
+        disposicionMasterLabel = new JLabel();
+        disposicionMasterLabel.setForeground(fgToolbar);
+        disposicionMasterLabel.setFont(disposicionMasterLabel.getFont().deriveFont(10f));
+        disposicionMasterLabel.setAlignmentX(LEFT_ALIGNMENT);
+        options.add(disposicionMasterLabel);
+        options.add(Box.createVerticalStrut(4));
+
+        disposicionUsarMaestraBtn = styleSmallButton("Usar capa activa como maestra");
+        disposicionUsarMaestraBtn.addActionListener(e -> {
+            if (editorLayerModel == null) return;
+            modelo.editor.Layer master = editorLayerModel.getActiveLayer();
+            if (master != null) {
+                LayerDistributionActions.setMasterLayerId(master.getId());
+                refreshDisposicionMasterControls();
+            }
+        });
+        disposicionUsarMaestraBtn.setAlignmentX(LEFT_ALIGNMENT);
+        options.add(disposicionUsarMaestraBtn);
+        options.add(Box.createVerticalStrut(4));
+
+        disposicionQuitarMaestraBtn = styleSmallButton("Quitar");
+        disposicionQuitarMaestraBtn.addActionListener(e -> {
+            LayerDistributionActions.setMasterLayerId(null);
+            refreshDisposicionMasterControls();
+        });
+        disposicionQuitarMaestraBtn.setAlignmentX(LEFT_ALIGNMENT);
+        options.add(disposicionQuitarMaestraBtn);
+
+        // --- Listener común de los radios ---
+        java.util.function.Consumer<java.awt.event.ActionEvent> onModeChange = e -> {
+            if (rbLienzo.isSelected()) {
+                LayerDistributionActions.setReferenceMode(LayerDistributionActions.ReferenceMode.LIENZO);
+            } else if (rbMaestra.isSelected()) {
+                LayerDistributionActions.setReferenceMode(LayerDistributionActions.ReferenceMode.CAPA_MAESTRA);
+            } else {
+                LayerDistributionActions.setReferenceMode(LayerDistributionActions.ReferenceMode.SELECCION);
+            }
+            refreshDisposicionMasterControls();
+        };
+        rbLienzo.addActionListener(onModeChange::accept);
+        rbSeleccion.addActionListener(onModeChange::accept);
+        rbMaestra.addActionListener(onModeChange::accept);
+
+        refreshDisposicionMasterControls();
+
+        return createSectionExclusive("Opciones", options, grupoDisposicion);
+    } // --- Fin del metodo buildDisposicionOpciones ---
+
+
+    /**
+     * Actualiza la etiqueta de la capa maestra y el estado habilitado de sus
+     * controles según el modo de referencia activo.
+     */
+    private void refreshDisposicionMasterControls() {
+        if (disposicionMasterLabel == null || disposicionUsarMaestraBtn == null
+                || disposicionQuitarMaestraBtn == null) {
+            return;
+        }
+        boolean masterMode = LayerDistributionActions.getReferenceMode()
+                == LayerDistributionActions.ReferenceMode.CAPA_MAESTRA;
+        String masterId = LayerDistributionActions.getMasterLayerId();
+        if (masterId == null) {
+            disposicionMasterLabel.setText("Sin capa maestra");
+        } else {
+            modelo.editor.Layer master = findLayerById(masterId);
+            disposicionMasterLabel.setText(master != null
+                    ? "Maestra: " + master.getName()
+                    : "Maestra (capa no encontrada)");
+        }
+        disposicionUsarMaestraBtn.setEnabled(masterMode);
+        disposicionQuitarMaestraBtn.setEnabled(masterMode);
+        disposicionMasterLabel.setEnabled(masterMode);
+    } // --- Fin del metodo refreshDisposicionMasterControls ---
+
+
+    /**
+     * Localiza una capa del modelo por su id.
+     *
+     * @param layerId id de la capa a buscar
+     * @return la capa, o {@code null} si no existe
+     */
+    private modelo.editor.Layer findLayerById(String layerId) {
+        if (editorLayerModel == null || layerId == null) return null;
+        for (modelo.editor.Layer layer : editorLayerModel.getLayers()) {
+            if (layerId.equals(layer.getId())) {
+                return layer;
+            }
+        }
+        return null;
+    } // --- Fin del metodo findLayerById ---
+
+
+    private JRadioButton styleOption(String text) {
+        JRadioButton rb = new JRadioButton(text);
+        rb.setBackground(bgTools);
+        rb.setForeground(fgToolbar);
+        rb.setFont(rb.getFont().deriveFont(10f));
+        rb.setFocusPainted(false);
+        rb.setOpaque(false);
+        return rb;
+    } // --- Fin del metodo styleOption ---
+
+
+    private JButton styleSmallButton(String text) {
+        JButton btn = new JButton(text);
+        btn.setFocusPainted(false);
+        btn.setFont(btn.getFont().deriveFont(10f));
+        btn.setBackground(bgTools);
+        return btn;
+    } // --- Fin del metodo styleSmallButton ---
+
+
     private JPanel createSection(String title, JComponent content) {
         return createSection(title, content, false);
     } // --- Fin del metodo createSection ---
 
 
     private JPanel createSection(String title, JComponent content, boolean stretch) {
+        return createSectionInternal(title, content, stretch, null);
+    } // --- Fin del metodo createSection (stretch) ---
+
+
+    /**
+     * Crea una sección colapsable dentro de un acordeón <strong>exclusivo</strong>:
+     * al expandirla se colapsan automáticamente las demás secciones del grupo.
+     * <p>
+     * Cada sección añade su acción de colapso a {@code exclusiveGroup}; el
+     * expandido recorre el grupo para colapsar al resto antes de abrirse.
+     *
+     * @param title          título de la cabecera clicable
+     * @param content        contenido de la sección
+     * @param exclusiveGroup lista compartida de acciones de colapso del acordeón
+     * @return la sección construida
+     */
+    private JPanel createSectionExclusive(String title, JComponent content,
+            java.util.List<Runnable> exclusiveGroup) {
+        return createSectionInternal(title, content, false, exclusiveGroup);
+    } // --- Fin del metodo createSectionExclusive ---
+
+
+    private JPanel createSectionInternal(String title, JComponent content, boolean stretch,
+            java.util.List<Runnable> exclusiveGroup) {
         JPanel section = new JPanel(new BorderLayout());
         section.setBackground(bgTools);
 
@@ -923,6 +1127,11 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             @Override
             public void mouseClicked(MouseEvent e) {
                 boolean visible = !content.isVisible();
+                if (visible && exclusiveGroup != null) {
+                    for (Runnable collapse : exclusiveGroup) {
+                        collapse.run();
+                    }
+                }
                 content.setVisible(visible);
                 arrowLbl.setText(visible ? "\u25BC" : "\u25B6");
                 if (visible) {
@@ -944,16 +1153,20 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             }
         });
 
+        if (exclusiveGroup != null) {
+            exclusiveGroup.add(() -> {
+                content.setVisible(false);
+                arrowLbl.setText("\u25B6");
+                int h = header.getPreferredSize().height;
+                section.setMaximumSize(new Dimension(Integer.MAX_VALUE, h));
+            });
+        }
+
         return section;
-    } // --- Fin del metodo createSection (stretch) ---
+    } // --- Fin del metodo createSectionInternal ---
 
 
-    private JPanel createSectionFromDefs(String title, List<ToolbarComponentDefinition> defs, int columns) {
-        return createSectionFromDefs(title, defs, columns, null);
-    } // --- Fin del metodo createSectionFromDefs ---
-
-
-    private JPanel createSectionFromDefs(String title, List<ToolbarComponentDefinition> defs, int columns,
+    private JPanel createGridFromDefs(List<ToolbarComponentDefinition> defs, int columns,
             List<JButton> collectInto) {
         JPanel grid = new JPanel(new GridLayout(0, columns, 5, 5));
         grid.setBackground(bgTools);
@@ -967,8 +1180,8 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                 grid.add(wrapInCell(btn));
             }
         }
-        return createSection(title, grid, false);
-    } // --- Fin del metodo createSectionFromDefs (colector) ---
+        return grid;
+    } // --- Fin del metodo createGridFromDefs ---
 
 
     private JButton createButtonFromDef(ToolbarButtonDefinition def) {

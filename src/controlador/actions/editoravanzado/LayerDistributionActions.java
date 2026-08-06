@@ -17,8 +17,10 @@ import vista.panels.render.CanvasPanel;
  * Comparten la semántica decidida para los botones del panel Herramientas y
  * los combos de la barra superior:
  * <ul>
- * <li><strong>Alinear:</strong> respecto al bounding box de las capas
- * seleccionadas (unión); con una sola capa, respecto al lienzo.</li>
+ * <li><strong>Alinear:</strong> respecto a la referencia configurable
+ * (lienzo, unión de la selección o capa maestra) mediante
+ * {@link ReferenceMode}. La referencia se comparte estáticamente entre el
+ * panel y los combos.</li>
  * <li><strong>Distribuir:</strong> entre los bordes del bounding box de la
  * selección, repartiendo el rango a intervalos iguales.</li>
  * <li><strong>Espaciar:</strong> hueco uniforme entre capas adyacentes, sin
@@ -49,8 +51,64 @@ public final class LayerDistributionActions {
     public static final int DIST_CENTER_HORIZONTAL = 4;
     public static final int DIST_RIGHT_BORDER = 5;
 
+    /**
+     * Referencia usada por la alineación: qué rectángulo actúa como "capa
+     * virtual" sobre la que se alinean las capas objetivo.
+     */
+    public enum ReferenceMode {
+        /** El lienzo completo. */
+        LIENZO,
+        /** La unión de los bounds de las capas objetivo (selección). */
+        SELECCION,
+        /** Los bounds de una capa designada como maestra. */
+        CAPA_MAESTRA
+    }
+
+    /** Modo de referencia activo (en memoria, compartido por panel y barra). */
+    private static ReferenceMode referenceMode = ReferenceMode.SELECCION;
+
+    /** Id de la capa maestra (solo aplica con {@link ReferenceMode#CAPA_MAESTRA}). */
+    private static String masterLayerId;
+
     private LayerDistributionActions() {
     } // --- Fin del constructor LayerDistributionActions ---
+
+
+    /**
+     * @return el modo de referencia actual de la alineación
+     */
+    public static ReferenceMode getReferenceMode() {
+        return referenceMode;
+    } // --- Fin del metodo getReferenceMode ---
+
+
+    /**
+     * Establece el modo de referencia de la alineación (compartido por el
+     * panel Herramientas y los combos de la barra superior).
+     *
+     * @param mode nuevo modo (nunca {@code null})
+     */
+    public static void setReferenceMode(ReferenceMode mode) {
+        referenceMode = mode == null ? ReferenceMode.SELECCION : mode;
+    } // --- Fin del metodo setReferenceMode ---
+
+
+    /**
+     * @return el id de la capa maestra, o {@code null} si no hay ninguna
+     */
+    public static String getMasterLayerId() {
+        return masterLayerId;
+    } // --- Fin del metodo getMasterLayerId ---
+
+
+    /**
+     * Designa la capa maestra usada como referencia de alineación.
+     *
+     * @param layerId id de la capa, o {@code null} para quitarla
+     */
+    public static void setMasterLayerId(String layerId) {
+        masterLayerId = layerId;
+    } // --- Fin del metodo setMasterLayerId ---
 
 
     /**
@@ -67,7 +125,7 @@ public final class LayerDistributionActions {
         List<Layer> targets = getAlignTargets(layerModel);
         if (targets.isEmpty()) return;
 
-        Rectangle ref = computeReference(targets, layerModel, canvasModel);
+        Rectangle ref = computeReference(targets, layerModel, canvasModel, referenceMode);
 
         for (Layer layer : targets) {
             Rectangle b = layer.getBounds();
@@ -254,11 +312,28 @@ public final class LayerDistributionActions {
 
 
     /**
-     * Rectángulo de referencia: unión de las capas objetivo si hay selección
-     * múltiple; si no, el lienzo completo.
+     * Rectángulo de referencia de la alineación según el modo activo.
+     * <ul>
+     * <li>{@link ReferenceMode#LIENZO} → el lienzo completo.</li>
+     * <li>{@link ReferenceMode#SELECCION} → la unión de los bounds de las
+     * capas objetivo; con una sola capa cae al lienzo (comportamiento
+     * original).</li>
+     * <li>{@link ReferenceMode#CAPA_MAESTRA} → los bounds de la capa maestra
+     * (visible y no bloqueada); si no es válida, fallback a SELECCION.</li>
+     * </ul>
      */
-    private static Rectangle computeReference(List<Layer> targets, LayerModel layerModel, CanvasModel canvasModel) {
-        if (layerModel.getSelectedCount() > 1) {
+    private static Rectangle computeReference(List<Layer> targets, LayerModel layerModel, CanvasModel canvasModel,
+            ReferenceMode mode) {
+        if (mode == ReferenceMode.LIENZO) {
+            return canvasBounds(canvasModel);
+        }
+
+        if (mode == ReferenceMode.CAPA_MAESTRA) {
+            Rectangle master = masterLayerBounds(layerModel);
+            if (master != null) return master;
+        }
+
+        if (targets.size() > 1) {
             Rectangle ref = null;
             for (Layer layer : targets) {
                 Rectangle b = layer.getBounds();
@@ -267,8 +342,29 @@ public final class LayerDistributionActions {
             }
             if (ref != null) return ref;
         }
-        return new Rectangle(0, 0, canvasModel.getWidth(), canvasModel.getHeight());
+        return canvasBounds(canvasModel);
     } // --- Fin del metodo computeReference ---
+
+
+    /**
+     * Bounds de la capa maestra designada, si existe y es visible y no
+     * bloqueada; en caso contrario {@code null}.
+     */
+    private static Rectangle masterLayerBounds(LayerModel layerModel) {
+        if (layerModel == null || masterLayerId == null) return null;
+        for (Layer layer : layerModel.getLayers()) {
+            if (masterLayerId.equals(layer.getId())
+                    && layer.isVisible() && !layer.isLocked()) {
+                return layer.getBounds();
+            }
+        }
+        return null;
+    } // --- Fin del metodo masterLayerBounds ---
+
+
+    private static Rectangle canvasBounds(CanvasModel canvasModel) {
+        return new Rectangle(0, 0, canvasModel.getWidth(), canvasModel.getHeight());
+    } // --- Fin del metodo canvasBounds ---
 
 
     private static int valueOf(Rectangle b, int mode) {
