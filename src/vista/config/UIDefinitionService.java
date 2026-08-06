@@ -1838,11 +1838,11 @@ public class UIDefinitionService {
     public List<ToolbarComponentDefinition> getComponentesLayerDistribute() {
         return List.of(
                 new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_BOTTOM_BORDER,
-                        "70501-distribute-bottom-border.png", "Distribuir Bordes Superiores", "layerDistribute"),
+                        "70501-distribute-bottom-border.png", "Distribuir Bordes Inferiores", "layerDistribute"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_VERTICAL,
                         "70502-distribute-center-vertical.png", "Distribuir Centros Verticales", "layerDistribute"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_TOP_BORDER,
-                        "70503-distribute-top-border.png", "Distribuir Bordes Inferiores", "layerDistribute"),
+                        "70503-distribute-top-border.png", "Distribuir Bordes Superiores", "layerDistribute"),
                 new SeparatorDefinition(),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_LEFT_BORDER,
                         "70504-distribute-left-border.png", "Distribuir Bordes Izquierdos", "layerDistribute"),

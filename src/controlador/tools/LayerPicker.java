@@ -2,7 +2,9 @@ package controlador.tools;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import modelo.editor.Layer;
@@ -159,13 +161,74 @@ public class LayerPicker {
     } // --- Fin del metodo beginRotate ---
 
     /**
+     * Rectángulo unión de los bounds de varias capas (marco global de la
+     * selección múltiple). Devuelve {@code null} si la lista está vacía o
+     * ninguna capa tiene bounds.
+     */
+    public Rectangle unionBounds(List<Layer> layers) {
+        if (layers == null || layers.isEmpty()) return null;
+        Rectangle union = null;
+        for (Layer layer : layers) {
+            Rectangle b = layer.getBounds();
+            if (b == null) continue;
+            union = (union == null) ? new Rectangle(b) : union.union(b);
+        }
+        return union;
+    } // --- Fin del metodo unionBounds ---
+
+    /**
+     * Inicia un arrastre de tirador del gizmo sobre varias capas a la vez. El
+     * gizmo opera sobre la unión de sus bounds y cada capa se re-posiciona y
+     * re-escala proporcionalmente respecto al marco inicial.
+     *
+     * @param handle      tirador arrastrado (MOVE y ROTATE no aplican aquí)
+     * @param layers      capas seleccionadas a transformar juntas
+     * @param startUnion  unión de los bounds al iniciar el arrastre
+     * @return el drag activo, o null si no se puede iniciar
+     */
+    public MultiGizmoDrag beginMultiGizmo(Handle handle, List<Layer> layers, Rectangle startUnion) {
+        if (layers == null || layers.isEmpty() || handle == Handle.NONE || startUnion == null) return null;
+        TransformGizmo.Constraints c = new TransformGizmo.Constraints(isKeepAspect(), 0, 10);
+        ctx.gizmo().startDrag(handle, startUnion, c);
+        return new MultiGizmoDrag(ctx, handle, layers, startUnion);
+    } // --- Fin del metodo beginMultiGizmo ---
+
+    /**
+     * Inicia un arrastre de rotación no destructiva sobre varias capas: cada
+     * capa rota alrededor del centro de la unión de sus bounds (como un grupo).
+     *
+     * @param layers     capas a rotar juntas
+     * @param startUnion unión de los bounds al iniciar el arrastre
+     * @param start      punto del ratón en el que se inicia el arrastre
+     * @return el drag de rotación activo, o null si no se puede iniciar
+     */
+    public MultiRotateDrag beginMultiRotate(List<Layer> layers, Rectangle startUnion, Point start) {
+        if (layers == null || layers.isEmpty() || startUnion == null || start == null) return null;
+        return new MultiRotateDrag(layers, startUnion, new Point(start));
+    } // --- Fin del metodo beginMultiRotate ---
+
+    /**
      * Inicia un arrastre para mover la capa.
      *
      * @return el drag activo, o null si la capa no tiene bounds
      */
     public DragMove beginMove(Point p, Layer layer) {
-        if (layer == null || layer.getBounds() == null) return null;
-        return new DragMove(layer, new Point(p), new Rectangle(layer.getBounds()));
+        if (layer == null) return null;
+        return beginMove(p, List.of(layer));
+    } // --- Fin del metodo beginMove ---
+
+    /**
+     * Inicia un arrastre para mover varias capas a la vez (las que estén
+     * seleccionadas). Cada capa conserva sus bounds de partida para poder
+     * cancelar el arrastre.
+     *
+     * @param layers capas a mover juntas
+     * @param p      punto del ratón en el que se inicia el arrastre
+     * @return el drag activo, o null si la lista está vacía
+     */
+    public DragMove beginMove(Point p, List<Layer> layers) {
+        if (layers == null || layers.isEmpty()) return null;
+        return new DragMove(layers, new Point(p));
     } // --- Fin del metodo beginMove ---
 
     /**
@@ -259,18 +322,179 @@ public class LayerPicker {
     } // --- Fin de la clase RotateDrag ---
 
     /**
-     * Drag activo para mover una capa arrastrándola.
+     * Drag activo de tirador del gizmo sobre varias capas a la vez. El gizmo
+     * calcula el nuevo rectángulo de la unión y cada capa se re-coloca y
+     * re-escala proporcionalmente (mismas coordenadas relativas dentro del
+     * marco). También cubre MOVE: con escala 1:1 equivale a desplazar todas.
+     */
+    public static final class MultiGizmoDrag {
+
+        private final ToolContext ctx;
+        private final List<Layer> layers;
+        private final Rectangle startUnion;
+        private final Map<String, Rectangle> startBounds;
+
+        private MultiGizmoDrag(ToolContext ctx, Handle handle, List<Layer> layers, Rectangle startUnion) {
+            this.ctx = ctx;
+            this.layers = layers;
+            this.startUnion = new Rectangle(startUnion);
+            this.startBounds = new HashMap<>();
+            for (Layer layer : layers) {
+                if (layer.getBounds() != null) {
+                    startBounds.put(layer.getId(), new Rectangle(layer.getBounds()));
+                }
+            }
+        } // --- Fin del constructor MultiGizmoDrag ---
+
+        /**
+         * Aplica el desplazamiento acumulado al marco y a todas las capas.
+         *
+         * @return el nuevo rectángulo de la unión (tras la transformación)
+         */
+        public Rectangle drag(int dx, int dy) {
+            Rectangle newUnion = ctx.gizmo().drag(dx, dy);
+            if (newUnion == null) return startUnion;
+            for (Layer layer : layers) {
+                Rectangle b = startBounds.get(layer.getId());
+                if (b == null) continue;
+                double relX = startUnion.width > 0 ? (double) (b.x - startUnion.x) / startUnion.width : 0.0;
+                double relY = startUnion.height > 0 ? (double) (b.y - startUnion.y) / startUnion.height : 0.0;
+                double relW = startUnion.width > 0 ? (double) b.width / startUnion.width : 1.0;
+                double relH = startUnion.height > 0 ? (double) b.height / startUnion.height : 1.0;
+                int nx = (int) Math.round(newUnion.x + relX * newUnion.width);
+                int ny = (int) Math.round(newUnion.y + relY * newUnion.height);
+                int nw = Math.max(1, (int) Math.round(relW * newUnion.width));
+                int nh = Math.max(1, (int) Math.round(relH * newUnion.height));
+                layer.setBounds(new Rectangle(nx, ny, nw, nh));
+            }
+            return newUnion;
+        } // --- Fin del metodo drag ---
+
+        public void end() {
+            ctx.gizmo().endDrag();
+        } // --- Fin del metodo end ---
+
+        /**
+         * Cancela el arrastre restaurando los bounds iniciales de cada capa.
+         */
+        public void cancel() {
+            for (Layer layer : layers) {
+                Rectangle b = startBounds.get(layer.getId());
+                if (b != null) {
+                    layer.setBounds(b);
+                }
+            }
+            ctx.gizmo().endDrag();
+        } // --- Fin del metodo cancel ---
+
+    } // --- Fin de la clase MultiGizmoDrag ---
+
+    /**
+     * Drag activo de rotación no destructiva de varias capas como grupo: cada
+     * capa rota su centro alrededor del centro de la unión y añade el mismo
+     * incremento de ángulo a su propia rotación.
+     */
+    public static final class MultiRotateDrag {
+
+        private final List<Layer> layers;
+        private final Point start;
+        private final Rectangle startUnion;
+        private final Map<String, Rectangle> startBounds;
+        private final Map<String, Double> startRotations;
+
+        private MultiRotateDrag(List<Layer> layers, Rectangle startUnion, Point start) {
+            this.layers = layers;
+            this.startUnion = new Rectangle(startUnion);
+            this.start = start;
+            this.startBounds = new HashMap<>();
+            this.startRotations = new HashMap<>();
+            for (Layer layer : layers) {
+                if (layer.getBounds() != null) {
+                    startBounds.put(layer.getId(), new Rectangle(layer.getBounds()));
+                    startRotations.put(layer.getId(), layer.getRotation());
+                }
+            }
+        } // --- Fin del constructor MultiRotateDrag ---
+
+        /**
+         * Aplica la rotación de grupo según la posición actual del ratón.
+         *
+         * @param current   posición actual del ratón
+         * @param shiftSnap si true, ajusta el incremento a múltiplos de 15°
+         * @return el incremento de ángulo aplicado en grados
+         */
+        public double drag(Point current, boolean shiftSnap) {
+            double cx = startUnion.getCenterX();
+            double cy = startUnion.getCenterY();
+            double startAngle = Math.toDegrees(Math.atan2(start.y - cy, start.x - cx));
+            double currentAngle = Math.toDegrees(Math.atan2(current.y - cy, current.x - cx));
+            double delta = currentAngle - startAngle;
+            if (shiftSnap) {
+                delta = Math.round(delta / 15.0) * 15.0;
+            }
+            double rad = Math.toRadians(delta);
+            double cos = Math.cos(rad);
+            double sin = Math.sin(rad);
+            for (Layer layer : layers) {
+                Rectangle b = startBounds.get(layer.getId());
+                Double rot = startRotations.get(layer.getId());
+                if (b == null || rot == null) continue;
+                double lcx = b.getCenterX();
+                double lcy = b.getCenterY();
+                double dxc = lcx - cx;
+                double dyc = lcy - cy;
+                double ncx = cx + dxc * cos - dyc * sin;
+                double ncy = cy + dxc * sin + dyc * cos;
+                Rectangle nb = new Rectangle(
+                        (int) Math.round(ncx - b.width / 2.0),
+                        (int) Math.round(ncy - b.height / 2.0),
+                        b.width, b.height);
+                layer.setBounds(nb);
+                layer.setRotation(rot + delta);
+            }
+            return delta;
+        } // --- Fin del metodo drag ---
+
+        public void end() {
+            // sin estado interno que liberar
+        } // --- Fin del metodo end ---
+
+        /**
+         * Cancela la rotación restaurando posición y ángulo iniciales de cada capa.
+         */
+        public void cancel() {
+            for (Layer layer : layers) {
+                Rectangle b = startBounds.get(layer.getId());
+                Double rot = startRotations.get(layer.getId());
+                if (b != null) {
+                    layer.setBounds(b);
+                }
+                if (rot != null) {
+                    layer.setRotation(rot);
+                }
+            }
+        } // --- Fin del metodo cancel ---
+
+    } // --- Fin de la clase MultiRotateDrag ---
+
+    /**
+     * Drag activo para mover una o varias capas arrastrándolas juntas.
      */
     public static final class DragMove {
 
-        private final Layer layer;
+        private final List<Layer> layers;
         private final Point start;
-        private final Rectangle startBounds;
+        private final Map<String, Rectangle> startBounds;
 
-        private DragMove(Layer layer, Point start, Rectangle startBounds) {
-            this.layer = layer;
+        private DragMove(List<Layer> layers, Point start) {
+            this.layers = layers;
             this.start = start;
-            this.startBounds = startBounds;
+            this.startBounds = new HashMap<>();
+            for (Layer layer : layers) {
+                if (layer.getBounds() != null) {
+                    startBounds.put(layer.getId(), new Rectangle(layer.getBounds()));
+                }
+            }
         } // --- Fin del constructor DragMove ---
 
         public Point getStart() {
@@ -278,20 +502,31 @@ public class LayerPicker {
         } // --- Fin del metodo getStart ---
 
         /**
-         * Aplica el desplazamiento acumulado y devuelve los nuevos bounds.
+         * Aplica el desplazamiento acumulado a todas las capas y devuelve los
+         * nuevos bounds de la última de la lista.
          */
         public Rectangle move(int dx, int dy) {
-            Rectangle b = startBounds;
-            Rectangle nb = new Rectangle(b.x + dx, b.y + dy, b.width, b.height);
-            layer.setBounds(nb);
-            return nb;
+            Rectangle last = null;
+            for (Layer layer : layers) {
+                Rectangle b = startBounds.get(layer.getId());
+                if (b == null) continue;
+                Rectangle nb = new Rectangle(b.x + dx, b.y + dy, b.width, b.height);
+                layer.setBounds(nb);
+                last = nb;
+            }
+            return last;
         } // --- Fin del metodo move ---
 
         /**
-         * Cancela el movimiento restaurando los bounds iniciales.
+         * Cancela el movimiento restaurando los bounds iniciales de cada capa.
          */
         public void cancel() {
-            layer.setBounds(startBounds);
+            for (Layer layer : layers) {
+                Rectangle b = startBounds.get(layer.getId());
+                if (b != null) {
+                    layer.setBounds(b);
+                }
+            }
         } // --- Fin del metodo cancel ---
 
     } // --- Fin de la clase DragMove ---

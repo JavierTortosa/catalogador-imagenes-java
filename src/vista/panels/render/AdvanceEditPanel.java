@@ -20,6 +20,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -46,6 +47,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import controlador.actions.editoravanzado.AutoDistributeActions;
+import controlador.actions.editoravanzado.LayerDistributionActions;
 import controlador.actions.editoravanzado.EditorToolAction;
 import controlador.commands.AppActionCommands;
 import controlador.tools.CanvasController;
@@ -87,6 +89,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     private final JPanel mainContent;
     private final JSplitPane advanceEditSplit;
     private final EditorComponentBar componentBar;
+    private final List<JButton> distributeButtons = new ArrayList<>();
     private final JLabel toolsTitle;
     private boolean advanceEditToolsVisible;
     private boolean advanceEditActive;
@@ -481,8 +484,27 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             if (canvasPanel != null) {
                 canvasPanel.repaint();
             }
+            updateDistributeButtonsState();
+            componentBar.updateDistributeButtonState();
         });
+        updateDistributeButtonsState();
+        componentBar.updateDistributeButtonState();
     } // --- Fin del metodo setLayerModel ---
+
+
+    /**
+     * Habilita o deshabilita los botones del grupo Distribuir del panel
+     * Herramientas: con menos de 3 capas efectivas no hay nada que repartir,
+     * así que los botones quedan deshabilitados.
+     */
+    private void updateDistributeButtonsState() {
+        boolean enabled = editorLayerModel != null
+                && LayerDistributionActions.countDistributionTargets(editorLayerModel) >= 3;
+        for (JButton btn : distributeButtons) {
+            btn.setEnabled(enabled);
+        }
+    } // --- Fin del metodo updateDistributeButtonsState ---
+
 
     public void setCanvasModel(CanvasModel canvasModel) {
         canvasPanel.setCanvasModel(canvasModel);
@@ -601,6 +623,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     // Construcción del contenido del panel de herramientas (lado derecho)
     // -----------------------------------------------------------------------
     private void buildDefaultTools() {
+        distributeButtons.clear();
         JPanel tc = getToolsContent();
         tc.setLayout(new BorderLayout());
 
@@ -620,7 +643,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                     uiDefinitionService.getComponentesLayerAlign(), 3));
             container.add(Box.createVerticalStrut(2));
             container.add(createSectionFromDefs("Distribuir",
-                    uiDefinitionService.getComponentesLayerDistribute(), 3));
+                    uiDefinitionService.getComponentesLayerDistribute(), 3, distributeButtons));
             container.add(Box.createVerticalStrut(2));
             container.add(createSectionFromDefs("Espacio",
                     uiDefinitionService.getComponentesLayerDistributeSpace(), 2));
@@ -926,50 +949,31 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
 
     private JPanel createSectionFromDefs(String title, List<ToolbarComponentDefinition> defs, int columns) {
+        return createSectionFromDefs(title, defs, columns, null);
+    } // --- Fin del metodo createSectionFromDefs ---
+
+
+    private JPanel createSectionFromDefs(String title, List<ToolbarComponentDefinition> defs, int columns,
+            List<JButton> collectInto) {
         JPanel grid = new JPanel(new GridLayout(0, columns, 5, 5));
         grid.setBackground(bgTools);
         grid.setBorder(BorderFactory.createEmptyBorder(2, 8, 6, 8));
         for (ToolbarComponentDefinition def : defs) {
             if (def instanceof ToolbarButtonDefinition btnDef) {
-                grid.add(wrapInCell(createButtonFromDef(btnDef)));
+                JButton btn = createButtonFromDef(btnDef);
+                if (collectInto != null) {
+                    collectInto.add(btn);
+                }
+                grid.add(wrapInCell(btn));
             }
         }
         return createSection(title, grid, false);
-    } // --- Fin del metodo createSectionFromDefs ---
+    } // --- Fin del metodo createSectionFromDefs (colector) ---
 
 
     private JButton createButtonFromDef(ToolbarButtonDefinition def) {
         String cmd = def.comandoCanonico();
-        Action action;
-        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_FIXED.equals(cmd)) {
-            action = new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    AutoDistributeActions.distribucionFija(canvasPanel, editorLayerModel, canvasPanel.getCanvasModel());
-                }
-            };
-        } else if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_LAYER.equals(cmd)) {
-            action = new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    AutoDistributeActions.distribucionPorCapa(canvasPanel, editorLayerModel, canvasPanel.getCanvasModel());
-                }
-            };
-        } else if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_CANVAS.equals(cmd)) {
-            action = new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    AutoDistributeActions.escalarParaAjustar(canvasPanel, editorLayerModel, canvasPanel.getCanvasModel());
-                }
-            };
-        } else {
-            action = new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    // Stub — sin implementacion todavia
-                }
-            };
-        }
+        Action action = createActionFromCommand(cmd);
         action.putValue(Action.ACTION_COMMAND_KEY, cmd);
         action.putValue(Action.SHORT_DESCRIPTION, def.textoTooltip());
         if (iconUtils != null) {
@@ -989,6 +993,99 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
 
         return btn;
     } // --- Fin del metodo createButtonFromDef ---
+
+
+    /**
+     * Crea la {@link Action} para el comando de un botón del panel Herramientas.
+     * Resuelve los grupos Alinear, Distribuir, Espacio y Auto distribuir; para
+     * cualquier comando desconocido devuelve una acción vacía.
+     *
+     * @param cmd comando canónico del botón
+     * @return la acción del comando (nunca {@code null})
+     */
+    private Action createActionFromCommand(String cmd) {
+        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_FIXED.equals(cmd)) {
+            return simpleAction(() -> AutoDistributeActions.distribucionFija(
+                    canvasPanel, editorLayerModel, canvasPanel.getCanvasModel()));
+        }
+        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_LAYER.equals(cmd)) {
+            return simpleAction(() -> AutoDistributeActions.distribucionPorCapa(
+                    canvasPanel, editorLayerModel, canvasPanel.getCanvasModel()));
+        }
+        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_CANVAS.equals(cmd)) {
+            return simpleAction(() -> AutoDistributeActions.escalarParaAjustar(
+                    canvasPanel, editorLayerModel, canvasPanel.getCanvasModel()));
+        }
+
+        Integer hMode = null;
+        Integer vMode = null;
+        if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_INFERIOR.equals(cmd)) {
+            vMode = LayerDistributionActions.ALIGN_BOTTOM;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_CENTRO_VERTICAL.equals(cmd)) {
+            hMode = LayerDistributionActions.ALIGN_HCENTER;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_SUPERIOR.equals(cmd)) {
+            vMode = LayerDistributionActions.ALIGN_TOP;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_IZQUIERDO.equals(cmd)) {
+            hMode = LayerDistributionActions.ALIGN_LEFT;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_CENTRO_HORIZONTAL.equals(cmd)) {
+            vMode = LayerDistributionActions.ALIGN_VCENTER;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_DERECHO.equals(cmd)) {
+            hMode = LayerDistributionActions.ALIGN_RIGHT;
+        }
+        if (hMode != null || vMode != null) {
+            final int h = (hMode != null) ? hMode : LayerDistributionActions.ALIGN_NONE;
+            final int v = (vMode != null) ? vMode : LayerDistributionActions.ALIGN_NONE;
+            return simpleAction(() -> LayerDistributionActions.alinear(
+                    canvasPanel, editorLayerModel, canvasPanel.getCanvasModel(), h, v));
+        }
+
+        Integer distMode = null;
+        if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_BOTTOM_BORDER.equals(cmd)) {
+            distMode = LayerDistributionActions.DIST_BOTTOM_BORDER;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_VERTICAL.equals(cmd)) {
+            distMode = LayerDistributionActions.DIST_CENTER_HORIZONTAL;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_TOP_BORDER.equals(cmd)) {
+            distMode = LayerDistributionActions.DIST_TOP_BORDER;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_LEFT_BORDER.equals(cmd)) {
+            distMode = LayerDistributionActions.DIST_LEFT_BORDER;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_HORIZONTAL.equals(cmd)) {
+            distMode = LayerDistributionActions.DIST_CENTER_VERTICAL;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_RIGHT_BORDER.equals(cmd)) {
+            distMode = LayerDistributionActions.DIST_RIGHT_BORDER;
+        }
+        if (distMode != null) {
+            final int mode = distMode;
+            return simpleAction(() -> LayerDistributionActions.distribuir(
+                    canvasPanel, editorLayerModel, mode));
+        }
+
+        if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_HORIZONTAL_SPACE.equals(cmd)) {
+            return simpleAction(() -> LayerDistributionActions.espaciar(
+                    canvasPanel, editorLayerModel, true));
+        }
+        if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_VERTICAL_SPACE.equals(cmd)) {
+            return simpleAction(() -> LayerDistributionActions.espaciar(
+                    canvasPanel, editorLayerModel, false));
+        }
+
+        return simpleAction(() -> { });
+    } // --- Fin del metodo createActionFromCommand ---
+
+
+    /**
+     * Crea una {@link Action} que ejecuta {@code runnable}.
+     *
+     * @param runnable tarea a ejecutar al disparar la acción
+     * @return la acción
+     */
+    private Action simpleAction(Runnable runnable) {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                runnable.run();
+            }
+        };
+    } // --- Fin del metodo simpleAction ---
 
 
     private JButton createAddLayerButton(ToolbarButtonDefinition def) {
@@ -1522,6 +1619,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         JPanel tc = getToolsContent();
         tc.removeAll();
         buildDefaultTools();
+        updateDistributeButtonsState();
         buildLeftToolbar();
         tc.revalidate();
         tc.repaint();
@@ -1532,6 +1630,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         JPanel tc = getToolsContent();
         tc.removeAll();
         buildDefaultTools();
+        updateDistributeButtonsState();
         buildLeftToolbar();
         tc.revalidate();
         tc.repaint();

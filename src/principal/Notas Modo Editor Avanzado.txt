@@ -263,3 +263,151 @@ DATOS CLAVE DEL CÓDIGO (referencia)
 - Portapapeles imagen (ejemplo): CropDialog (130-136)
 - Imagen actual en modelo: VisorModel.getCurrentImage() (campo currentImage:58)
 - Capa de imagen (sin srcPath hoy): modelo/editor/ImageLayer.java
+
+PLAN - Botones del panel Herramientas (Alinear/Distribuir/Espacio/Auto distribuir)
+----------------------------------------------------------------------------------
+SEMANTICA DECIDIDA (usuario):
+- Alinear: respecto al bounding box de la seleccion (union de las capas
+  seleccionadas); con una sola capa activa, respecto al lienzo.
+- Distribuir: reparte el espacio entre los bordes del bounding box de la
+  seleccion (primera y ultima capa en los extremos del rango).
+- Espacio: hueco uniforme entre capas adyacentes, sin mover la primera ni la
+  ultima (estilo Photoshop "Distribute Spacing").
+- Unificar: los combos de Alinear/Distribuir de la barra superior
+  (EditorComponentBar) reutilizan la misma logica que los botones del panel.
+
+ESTADO ACTUAL:
+- AdvanceEditPanel.createButtonFromDef (941-979): solo AUTO_DISTRIBUTE (3)
+  tienen manejador; ALIGN (6), DISTRIBUTE (6) y ESPACIO (2) caen al stub.
+- EditorComponentBar.executeAlign (479) alinea solo la capa activa contra el
+  canvas; executeDistribute/distributeEvenly (506-567) son crudos. Espacio no
+  existe en ningun sitio.
+- AutoDistributeActions implementado (fija/porCapa/escalarParaAjustar).
+
+IMPLEMENTACION [HECHO]:
+1. Nueva clase controlador/actions/editoravanzado/LayerDistributionActions.java
+   con alinear(lm, cm, hMode, vMode), distribuir(lm, cm, mode) y
+   espaciar(lm, cm, horizontal). Capas objetivo = seleccionadas visibles y no
+   bloqueadas; si seleccion < 2 se usan todas las visibles/no bloqueadas.
+   - alinear: ref = union de capas objetivo si seleccion multiple, si no el
+     lienzo. x = ref.x + (ref.w - b.w)*k; y = ref.y + (ref.h - b.h)*k.
+   - distribuir: ordena por borde/centro, fija rango entre primer/ultimo punto
+     dentro del bounding box de la seleccion y reparte a intervalos iguales.
+   - espaciar: primera/ultima fijas; gap = (span - sumaTamanyos)/(n-1).
+   Tras cada operacion: canvas.repaint().
+2. AdvanceEditPanel.createButtonFromDef -> createActionFromCommand: dispatch
+   para los 14 comandos de ALIGN/DISTRIBUTE/ESPACIO (antes stub). Usa
+   editorLayerModel ya existente. Ayudante simpleAction(Runnable).
+3. EditorComponentBar: executeAlignFromCommand -> alinear;
+   executeDistributeFromCommand -> distribuir; eliminados los bodies crudos
+   executeAlign/executeDistribute/distributeEvenly. createIconComboButton OK.
+   Imports sin uso eliminados (ArrayList, List, CanvasModel, LayerModel).
+4.    JavaDoc + cierre de metodos segun reglas. Compila (mvn compile EXIT=0).
+   HTMLs: pendiente cuando lo pida el usuario.
+
+SELECCION MULTIPLE EN EL CANVAS [HECHO]
+- EditTool.mousePressed: seleccion estilo Photoshop directamente sobre el
+  lienzo (misma semantica que LayerCard):
+  - clic normal  -> setSingleSelection
+  - Ctrl+clic    -> toggleSelected (anade/quita de la seleccion)
+  - Shift+clic   -> selectRange (rango desde la capa activa)
+  - clic en vacio -> deselecciona (si auto-seleccion activa)
+  Se elimino el comportamiento anterior de Ctrl+clic "activar temporal y
+  restaurar al soltar" (campo ctrlRestoreLayer y sus usos).
+- LayerPicker: beginMove(p, List<Layer>) mueve varias capas juntas; DragMove
+  guarda los bounds de partida por capa (mapa por getId) para cancelar.
+  beginMove(p, Layer) delega en la version multiple.
+- EditTool.mousePressed paso 5: el arrastre mueve movableSelectedLayers()
+  (seleccionadas visibles y no bloqueadas; si no hay, la activa).
+- EditTool.keyPressed (flechas): mueve todas las seleccionadas.
+- Compila (mvn compile EXIT=0).
+
+FIX #2 - Alinear centros segun iconos [HECHO]
+- Los iconos indican la semantica real: 70402-align-centro-vertical.png =
+  centros en linea VERTICAL (mismo centerX) -> ALIGN_HCENTER;
+  70405-align-centro-horizontal.png = centros en linea HORIZONTAL (mismo
+  centerY) -> ALIGN_VCENTER.
+- AdvanceEditPanel.createActionFromCommand y
+  EditorComponentBar.executeAlignFromCommand corregidos: CMD_ALIGN_CENTRO_VERTICAL
+  -> ALIGN_HCENTER, CMD_ALIGN_CENTRO_HORIZONTAL -> ALIGN_VCENTER (estaban
+  intercambiados). Compila (mvn compile EXIT=0).
+
+FIX #1 - Marco global (union) del gizmo con seleccion multiple [HECHO]
+- Al marcar una segunda capa, el gizmo ya no se queda solo en la capa activa:
+  ahora dibuja y opera sobre la UNION de los bounds de las capas objetivo
+  (marco global estilo Photoshop) cuando hay seleccion multiple.
+- EditTool: helpers gizmoTargets() (= movableSelectedLayers()) y
+  gizmoBounds(List<Layer>) (union si >1, si no los bounds de la unica capa).
+  Se usan en mousePressed (hit-test), paintOverlay (dibujo), getCursor y
+  paso 5 (arrastre: mover dentro del marco mueve TODAS las seleccionadas).
+  La rotacion del marco se fuerza a 0 en modo multiple (la union es axis-aligned).
+- LayerPicker: unionBounds(List<Layer>); beginMultiGizmo -> MultiGizmoDrag
+  (recoloca/re-escala cada capa con coordenadas relativas al marco inicial;
+  con escala 1:1 equivale a mover); beginMultiRotate -> MultiRotateDrag (cada
+  capa rota su centro alrededor del centro de la union y suma el incremento de
+  angulo a su propia rotacion). Se conservan beginGizmo/beginRotate/GizmoDrag/
+  RotateDrag de capa unica (los usa TransformTool). EditTool ya no hace
+  active.setBounds(newBounds) tras el drag del gizmo: MultiGizmoDrag aplica
+  internamente.
+- EditTool.mousePressed paso 3: clic sobre una capa YA seleccionada mantiene
+  el conjunto (solo setActiveLayer) en vez de colapsar a seleccion simple,
+  permitiendo arrastrar el marco con todas las capas.
+- Compila (mvn compile EXIT=0).
+
+FIX DISTRIBUTIR - dispersion infinita [HECHO]
+- Bug: distribuir calculaba el rango con computeReference (union de los BORDES
+  de las capas) pero colocaba los CENTROS en esos extremos. Como la referencia
+  se recalcula en cada pulsacion y los centros quedaban mas alla de los bordes,
+  la union crecia en cada pulsacion y las capas se separaban hasta el infinito.
+- Fix: el rango ahora se calcula sobre la propia magnitud repartida (borde,
+  centro o borde opuesto segun el modo), tomando los valores extremos de la
+  primera y ultima capa. Asi la operacion es idempotente: primera/ultima se
+  quedan fijas y las intermedias se reparten a intervalos iguales entre ellas
+  (estilo Photoshop). Con 2 capas no cambia nada (ya estan en los extremos).
+- Se elimino el parametro canvasModel (sin uso) de distribuir y espaciar;
+  actualizados los llamadores (AdvanceEditPanel.createActionFromCommand y
+  EditorComponentBar.executeDistributeFromCommand). computeReference queda solo
+  para alinear. Compila (mvn compile EXIT=0).
+
+FIX #3 - Distribuir centros segun iconos [HECHO]
+- Mismo criterio que el FIX #2 de Alinear: los iconos indican la semantica real,
+  asi que CMD_DISTRIBUTE_CENTER_VERTICAL -> DIST_CENTER_HORIZONTAL y
+  CMD_DISTRIBUTE_CENTER_HORIZONTAL -> DIST_CENTER_VERTICAL.
+- Aplicado en AdvanceEditPanel.createActionFromCommand y en
+  EditorComponentBar.executeDistributeFromCommand (estaban intercambiados).
+- Tooltips corregidos en UIDefinitionService.getComponentesLayerDistribute:
+  70501-bottom-border -> "Distribuir Bordes Inferiores",
+  70503-top-border -> "Distribuir Bordes Superiores" (estaban al reves).
+- Compila (mvn compile EXIT=0).
+
+FIX #4 - Deshabilitar botones Distribuir con <3 capas [HECHO]
+- Con menos de 3 capas efectivas Distribuir no tiene efecto (primera/ultima
+  fijas), asi que los botones del grupo Distribuir del panel Herramientas y el
+  combo Distribuir de la barra superior se deshabilitan.
+- LayerDistributionActions.countDistributionTargets(layerModel): mismo criterio
+  que getDistributionTargets (seleccion si >=2, si no todas las visibles/no
+  bloqueadas) pero devuelve solo el conteo.
+- AdvanceEditPanel: lista distributeButtons recogida por createSectionFromDefs
+  (sobrecarga con colector); updateDistributeButtonsState() se invoca en
+  setLayerModel, en el changeListener del LayerModel y tras buildDefaultTools.
+- EditorComponentBar: campo distributeComboButton + updateDistributeButtonState()
+  (consulta el AdvanceEditPanel via findAdvanceEditPanel).
+- Compila (mvn compile EXIT=0).
+
+PANEO DEL CANVAS [HECHO]
+- Bug: el canvas del editor solo tenia zoom con la rueda del raton; no habia
+  ningun gesto de paneo (offsetX/offsetY existian pero nada los modificaba).
+- Fix (1a parte): arrastre con el BOTON CENTRAL del raton paneea el lienzo
+  (CanvasController.MouseHandler): mousePressed BUTTON2 inicia el paneo y no
+  delega a la herramienta, mouseDragged desplaza el offset del CanvasPanel y
+  mouseReleased lo termina. El cursor cambia a MOVE durante el paneo
+  (updateCursor) y el estado se limpia al cambiar de herramienta
+  (setActiveTool).
+- Fix (2a parte, "el canvas como fondo"): el clic IZQUIERDO sobre la zona
+  oscura FUERA del rectangulo visible del lienzo tambien inicia el paneo
+  (isOutsideCanvas: punto fuera de [offsetX, offsetY] + canvasW*zoom x
+  canvasH*zoom). Asi, pulsar sobre una capa mueve la capa (dentro del lienzo)
+  y pulsar sobre el fondo mueve el canvas. El boton central sigue panendo en
+  cualquier sitio (util si el lienzo cubre todo el panel).
+- No se uso Espacio+arrastre porque el GlobalInputManager (KeyEventDispatcher
+  global) consume VK_SPACE para CMD_PROYECTO_TOGGLE_MARCA. Compila EXIT=0.

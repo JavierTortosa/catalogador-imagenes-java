@@ -14,9 +14,7 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -47,14 +45,13 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 
+import controlador.actions.editoravanzado.LayerDistributionActions;
 import controlador.commands.AppActionCommands;
 import controlador.tools.CanvasController;
 import controlador.tools.ShapeTool;
 import controlador.tools.TextTool;
-import modelo.editor.CanvasModel;
 import modelo.editor.ImageLayer;
 import modelo.editor.Layer;
-import modelo.editor.LayerModel;
 import modelo.editor.TextLayer;
 import vista.config.SeparatorDefinition;
 import vista.config.ToolbarButtonDefinition;
@@ -89,6 +86,7 @@ public class EditorComponentBar extends JPanel {
     private IconUtils iconUtils;
     private UIDefinitionService uiDefinitionService;
     private Color fgToolbar = Color.WHITE;
+    private JButton distributeComboButton;
 
     // Home mode state
     private boolean homeActive;
@@ -472,123 +470,74 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
             }
             popup.show(btn, 0, btn.getHeight());
         });
+        if (!isAlign) {
+            distributeComboButton = btn;
+        }
         return btn;
     } // --- Fin del metodo createIconComboButton ---
 
 
-    private void executeAlign(int hPos, int vPos) {
-        AdvanceEditPanel aep = findAdvanceEditPanel();
-        if (aep == null) return;
-        CanvasPanel canvas = aep.getCanvas();
-        if (canvas == null) return;
-        CanvasModel cm = canvas.getCanvasModel();
-        if (cm == null) return;
-        LayerModel lm = canvas.getLayerModel();
-        if (lm == null) return;
-        int cw = cm.getWidth();
-        int ch = cm.getHeight();
-        Layer layer = lm.getActiveLayer();
-        if (layer == null) return;
-        Rectangle b = layer.getBounds();
-        int nx = b.x;
-        int ny = b.y;
-        if (hPos == 0) nx = 0;
-        else if (hPos == 1) nx = (cw - b.width) / 2;
-        else if (hPos == 2) nx = cw - b.width;
-        if (vPos == 0) ny = 0;
-        else if (vPos == 1) ny = (ch - b.height) / 2;
-        else if (vPos == 2) ny = ch - b.height;
-        layer.setBounds(new Rectangle(nx, ny, b.width, b.height));
-        canvas.repaint();
-    } // --- Fin del metodo executeAlign ---
-
-
-    private void executeDistribute(int hPos, int vPos) {
-        AdvanceEditPanel aep = findAdvanceEditPanel();
-        if (aep == null) return;
-        CanvasPanel canvas = aep.getCanvas();
-        if (canvas == null) return;
-        CanvasModel cm = canvas.getCanvasModel();
-        if (cm == null) return;
-        LayerModel lm = canvas.getLayerModel();
-        if (lm == null) return;
-        List<Layer> layers = new ArrayList<>();
-        for (Layer l : lm.getLayers()) {
-            if (l.isVisible() && !l.isLocked()) layers.add(l);
-        }
-        if (layers.size() < 2) return;
-        int cw = cm.getWidth();
-        int ch = cm.getHeight();
-        if (hPos == 1 || vPos == 1) {
-            // Center along the specified axis
-            int refX = hPos == 1 ? cw / 2 : 0;
-            int refY = vPos == 1 ? ch / 2 : 0;
-            for (Layer layer : layers) {
-                Rectangle b = layer.getBounds();
-                int nx = b.x;
-                int ny = b.y;
-                if (hPos == 1) nx = refX - b.width / 2;
-                if (vPos == 1) ny = refY - b.height / 2;
-                layer.setBounds(new Rectangle(nx, ny, b.width, b.height));
-            }
-        } else {
-            // Distribute evenly across canvas width/height
-            distributeEvenly(layers, cw, ch, hPos == 0, vPos == 0);
-        }
-        canvas.repaint();
-    } // --- Fin del metodo executeDistribute ---
-
-
-    private void distributeEvenly(List<Layer> layers, int cw, int ch, boolean hDist, boolean vDist) {
-        int n = layers.size();
-        if (n < 2) return;
-        if (hDist) {
-            layers.sort((a, b) -> Integer.compare(a.getBounds().x, b.getBounds().x));
-            int totalW = layers.stream().mapToInt(l -> l.getBounds().width).sum();
-            int gap = (cw - totalW) / (n - 1);
-            int cx = 0;
-            for (Layer layer : layers) {
-                Rectangle b = layer.getBounds();
-                layer.setBounds(new Rectangle(cx, b.y, b.width, b.height));
-                cx += b.width + gap;
-            }
-        }
-        if (vDist) {
-            layers.sort((a, b) -> Integer.compare(a.getBounds().y, b.getBounds().y));
-            int totalH = layers.stream().mapToInt(l -> l.getBounds().height).sum();
-            int gap = (ch - totalH) / (n - 1);
-            int cy = 0;
-            for (Layer layer : layers) {
-                Rectangle b = layer.getBounds();
-                layer.setBounds(new Rectangle(b.x, cy, b.width, b.height));
-                cy += b.height + gap;
-            }
-        }
-    } // --- Fin del metodo distributeEvenly ---
-
-
     private void executeAlignFromCommand(String cmd) {
-        int hPos = 1, vPos = 1; // default center
-        if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_SUPERIOR.equals(cmd))       { vPos = 0; hPos = 1; }
-        else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_CENTRO_VERTICAL.equals(cmd)) { vPos = 1; hPos = 1; }
-        else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_INFERIOR.equals(cmd))  { vPos = 2; hPos = 1; }
-        else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_IZQUIERDO.equals(cmd)) { hPos = 0; vPos = 1; }
-        else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_CENTRO_HORIZONTAL.equals(cmd)){ hPos = 1; vPos = 1; }
-        else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_DERECHO.equals(cmd))   { hPos = 2; vPos = 1; }
-        executeAlign(hPos, vPos);
+        AdvanceEditPanel aep = findAdvanceEditPanel();
+        if (aep == null) return;
+        CanvasPanel canvas = aep.getCanvas();
+        if (canvas == null) return;
+        int hMode = LayerDistributionActions.ALIGN_NONE;
+        int vMode = LayerDistributionActions.ALIGN_NONE;
+        if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_SUPERIOR.equals(cmd)) {
+            vMode = LayerDistributionActions.ALIGN_TOP;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_CENTRO_VERTICAL.equals(cmd)) {
+            hMode = LayerDistributionActions.ALIGN_HCENTER;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_INFERIOR.equals(cmd)) {
+            vMode = LayerDistributionActions.ALIGN_BOTTOM;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_IZQUIERDO.equals(cmd)) {
+            hMode = LayerDistributionActions.ALIGN_LEFT;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_CENTRO_HORIZONTAL.equals(cmd)) {
+            vMode = LayerDistributionActions.ALIGN_VCENTER;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_ALIGN_BORDE_DERECHO.equals(cmd)) {
+            hMode = LayerDistributionActions.ALIGN_RIGHT;
+        }
+        LayerDistributionActions.alinear(canvas, canvas.getLayerModel(), canvas.getCanvasModel(), hMode, vMode);
     } // --- Fin del metodo executeAlignFromCommand ---
 
 
     private void executeDistributeFromCommand(String cmd) {
-        int hPos = 1, vPos = 1;
-        if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_TOP_BORDER.equals(cmd))        { vPos = 0; hPos = 1; }
-        else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_VERTICAL.equals(cmd)) { vPos = 1; hPos = 1; }
-        else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_BOTTOM_BORDER.equals(cmd))   { vPos = 2; hPos = 1; }
-        else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_LEFT_BORDER.equals(cmd))     { hPos = 0; vPos = 1; }
-        else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_HORIZONTAL.equals(cmd)){ hPos = 1; vPos = 1; }
-        else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_RIGHT_BORDER.equals(cmd))    { hPos = 2; vPos = 1; }
-        executeDistribute(hPos, vPos);
+        AdvanceEditPanel aep = findAdvanceEditPanel();
+        if (aep == null) return;
+        CanvasPanel canvas = aep.getCanvas();
+        if (canvas == null) return;
+        int mode;
+        if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_TOP_BORDER.equals(cmd)) {
+            mode = LayerDistributionActions.DIST_TOP_BORDER;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_VERTICAL.equals(cmd)) {
+            mode = LayerDistributionActions.DIST_CENTER_HORIZONTAL;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_BOTTOM_BORDER.equals(cmd)) {
+            mode = LayerDistributionActions.DIST_BOTTOM_BORDER;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_LEFT_BORDER.equals(cmd)) {
+            mode = LayerDistributionActions.DIST_LEFT_BORDER;
+        } else if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_CENTER_HORIZONTAL.equals(cmd)) {
+            mode = LayerDistributionActions.DIST_CENTER_VERTICAL;
+        } else {
+            mode = LayerDistributionActions.DIST_RIGHT_BORDER;
+        }
+        LayerDistributionActions.distribuir(canvas, canvas.getLayerModel(), mode);
     } // --- Fin del metodo executeDistributeFromCommand ---
+
+
+    /**
+     * Habilita o deshabilita el combo Distribuir según haya 3 o más capas
+     * efectivas en el lienzo (con menos no hay nada que repartir).
+     */
+    public void updateDistributeButtonState() {
+        if (distributeComboButton == null) return;
+        boolean enabled = false;
+        AdvanceEditPanel aep = findAdvanceEditPanel();
+        if (aep != null && aep.getCanvas() != null && aep.getCanvas().getLayerModel() != null) {
+            enabled = LayerDistributionActions.countDistributionTargets(
+                    aep.getCanvas().getLayerModel()) >= 3;
+        }
+        distributeComboButton.setEnabled(enabled);
+    } // --- Fin del metodo updateDistributeButtonState ---
 
 
 

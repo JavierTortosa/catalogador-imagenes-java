@@ -49,6 +49,23 @@ public class VisorV2 {
     // TODO implementar guias de alineado 
     // TODO implementar el scanner -> 70009-scanner.png -> CMD_RENDER_PROCESAR_HUERFANOS 
     // FIXME que pasa si hay cambios pendiente de guardar en el editor y en proyecto?
+    // TODO implementar el historial con undo y redo
+    // TODO a la hora de copiar una imagen a ver si podemos copiar el contenido de una seleccion y luego pegarla
+    // TODO añadir el popupmenu al editor
+        
+    /* 
+     FIXME
+     	al alinear varias capas (por el centro por ej), photoshop alinea esas capas en el espacio que ocupan esas capas, como si las capas formaran una capa nueva y centra las capas seleccionadas en esa capa nueva... me explico? si la esquina superior izquierda de la capa 1 esta en el punto 100,100 y la parte inferior derecha de la capa 2 esta en 200,200 por ej, la seleccion es como si fuera una capa cuya esquina superior izquierda esta en 100,100 y la inferior derecha en 200,200... por lo tanto centra las 2 capas en el puto 150.... este sistema me gusta, pero el sistema de tener una capa maestra tambien me gusta.... podemos poner un groupbox para usar capa maestra, centrar en seleccion o lienzo?  
+		se me ocurre fusionar los paneles de alinear, distribuir, auto distribuir y espacio en un panel unico "disposicion" y añadir una pestaña mas para "opciones". 
+		las pestañas deberian ir una encima de la otra para economizar espacio si se puede y en la pestaña de opciones añadir de momento ese groupbox que te hablaba antes para usar capa maestra, lienzo o seleccion
+     */
+    
+    /* TODO implementar multiples fuentes de copiado:
+    	Si el portapapeles contiene texto → crear una TextLayer.
+		Si contiene una lista de archivos → crear una capa por imagen.
+		Si contiene una URL de una imagen → descargarla (opcional) y añadirla.
+     */
+    
     
     
     

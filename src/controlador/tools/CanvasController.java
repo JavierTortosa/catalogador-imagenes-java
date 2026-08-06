@@ -41,6 +41,9 @@ public class CanvasController {
     private BooleanSupplier fullscreenEscapeHandler;
     private Runnable contentChangeCallback;
     private Runnable pasteCallback;
+    private boolean panning;
+    private int lastPanX;
+    private int lastPanY;
 
     /**
      * @param canvasPanel   vista del canvas
@@ -91,6 +94,40 @@ public class CanvasController {
         int cy = (int) Math.round((sy - oy) / zoom);
         return new Point(cx, cy);
     } // --- Fin del metodo toCanvasCoords ---
+
+
+    /**
+     * Inicia una operación de paneo con el ratón en la posición dada.
+     *
+     * @param e evento de pulsación del ratón
+     */
+    private void startPan(MouseEvent e) {
+        panning = true;
+        lastPanX = e.getX();
+        lastPanY = e.getY();
+        updateCursor();
+    } // --- Fin del metodo startPan ---
+
+
+    /**
+     * Indica si el punto de pantalla cae fuera del rectángulo del lienzo
+     * (zona oscura de trabajo). Con el clic izquierdo en esa zona se paneea.
+     *
+     * @param sx coordenada X de pantalla (relativa al panel)
+     * @param sy coordenada Y de pantalla (relativa al panel)
+     * @return {@code true} si el punto está fuera del lienzo visible
+     */
+    private boolean isOutsideCanvas(int sx, int sy) {
+        CanvasModel cm = sharedContext.canvasModel();
+        if (cm == null) return true;
+        int cw = cm.getWidth();
+        int ch = cm.getHeight();
+        if (cw <= 0 || ch <= 0) return true;
+        double zoom = canvasPanel.getZoom();
+        double ox = canvasPanel.getOffsetX();
+        double oy = canvasPanel.getOffsetY();
+        return sx < ox || sy < oy || sx > ox + cw * zoom || sy > oy + ch * zoom;
+    } // --- Fin del metodo isOutsideCanvas ---
 
 
     /**
@@ -150,6 +187,9 @@ public class CanvasController {
      * @param commandKey identificador de la herramienta (null → ninguna)
      */
     public void setActiveTool(String commandKey) {
+        if (panning) {
+            panning = false;
+        }
         if (activeTool != null) {
             activeTool.onDeactivate();
         }
@@ -172,10 +212,16 @@ public class CanvasController {
 
     /**
      * Actualiza el cursor del CanvasPanel según la herramienta activa.
+     * Durante un paneo se muestra el cursor de mover.
      */
     public void updateCursor() {
-        Cursor cursor = activeTool != null ? activeTool.getCursor()
-                : Cursor.getDefaultCursor();
+        Cursor cursor;
+        if (panning) {
+            cursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
+        } else {
+            cursor = activeTool != null ? activeTool.getCursor()
+                    : Cursor.getDefaultCursor();
+        }
         canvasPanel.setCursor(cursor);
     } // --- Fin del metodo updateCursor ---
 
@@ -266,6 +312,13 @@ public class CanvasController {
 
         @Override
         public void mousePressed(MouseEvent e) {
+            // Paneo: con el botón central siempre; con el izquierdo solo si el
+            // clic cae fuera del lienzo (zona oscura, "el canvas como fondo").
+            if (e.getButton() == MouseEvent.BUTTON2
+                    || (e.getButton() == MouseEvent.BUTTON1 && isOutsideCanvas(e.getX(), e.getY()))) {
+                startPan(e);
+                return;
+            }
             if (activeTool == null) return;
             canvasPanel.requestFocusInWindow();
             Point cp = toCanvasCoords(e);
@@ -280,6 +333,15 @@ public class CanvasController {
 
         @Override
         public void mouseDragged(MouseEvent e) {
+            if (panning) {
+                int dx = e.getX() - lastPanX;
+                int dy = e.getY() - lastPanY;
+                lastPanX = e.getX();
+                lastPanY = e.getY();
+                canvasPanel.setPan(canvasPanel.getOffsetX() + dx,
+                        canvasPanel.getOffsetY() + dy);
+                return;
+            }
             if (activeTool == null) return;
             Point cp = toCanvasCoords(e);
             MouseEvent canvasEvent = new MouseEvent(
@@ -293,6 +355,12 @@ public class CanvasController {
 
         @Override
         public void mouseReleased(MouseEvent e) {
+            if (panning && (e.getButton() == MouseEvent.BUTTON1
+                    || e.getButton() == MouseEvent.BUTTON2)) {
+                panning = false;
+                updateCursor();
+                return;
+            }
             if (activeTool == null) return;
             Point cp = toCanvasCoords(e);
             MouseEvent canvasEvent = new MouseEvent(
