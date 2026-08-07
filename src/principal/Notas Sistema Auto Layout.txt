@@ -1,0 +1,139 @@
+SISTEMA AUTO LAYOUT - PLAN CONGELADO
+====================================
+
+OBJETIVO
+--------
+Sustituir el sistema "Auto distribuir" (3 botones, clase AutoDistributeActions) por
+un sistema Auto Layout modular: 13 herramientas, cada una una clase independiente
+que implementa una interface. Tres niveles separados:
+
+    Configuracion  ->  Motor  ->  Algoritmos
+
+NIVELES
+-------
+- Configuracion : AutoLayoutConfig (estado en memoria, singleton).
+- Motor         : AutoLayoutEngine - construye el AutoLayoutContext, invoca
+                  algoritmo.layout(ctx) y hace canvas.repaint(). Es un orquestador
+                  (por eso se llama Engine, no Actions).
+- Algoritmos    : 13 implementaciones puras de AutoLayoutAlgorithm.
+
+1. INVARIANTES GLOBALES (todas las operaciones)
+------------------------------------------------
+- No modificar rotacion, opacidad, modo de composicion, orden Z, nombre ni seleccion.
+- Una UNICA operacion de Undo/Redo.
+- Deterministas.
+- Mantener la proporcion salvo indicacion explicita de la herramienta.
+- Nunca coordenadas negativas salvo que la herramienta lo requiera explicitamente.
+- Operar solo sobre capas seleccionadas + visibles + no bloqueadas, en orden Z.
+  Sin seleccion -> no-op.
+
+2. REGLAS DE DISENO (algoritmos actuales y futuros)
+----------------------------------------------------
+Cualquier algoritmo Auto Layout debera:
+- Implementar AutoLayoutAlgorithm.
+- Ser determinista y respetar las invariantes globales.
+- Usar UNICAMENTE AutoLayoutContext (incluida la config via ctx.getConfig()):
+  no conocer singletons ni estaticos, no acceder directamente a clases del editor
+  ni a la interfaz grafica.
+- No realizar operaciones de Undo/Redo ni invocar repaint():
+  su unica responsabilidad es calcular la composicion.
+  Historial, repintado, configuracion e integracion con la UI pertenecen al motor.
+
+3. ESTRUCTURA - controlador.actions.editoravanzado.autolayout
+---------------------------------------------------------------
+autolayout/
++-- AutoLayoutAlgorithm.java    interface { void layout(AutoLayoutContext ctx); }
++-- AutoLayoutContext.java      CanvasPanel + LayerModel + CanvasModel + AutoLayoutConfig (via ctx.getConfig())
++-- AutoLayoutSupport.java      helpers: getTargets(ctx), apartarNoSeleccionadas(ctx), bboxDe(ctx) - solo usan ctx
++-- AutoLayoutConfig.java       singleton + enums PackMode / NoSeleccionadasMode
++-- AutoLayoutEngine.java       orquestador: construir contexto, algoritmo.layout(ctx), canvas.repaint()
++-- HeroLayout.java
++-- SpiralLayout.java
++-- grid/   GridUniformLayout, GridKeepSizeLayout, RowsLayout, ColumnsLayout, MosaicLayout
++-- pack/   PackLayout
++-- fit/    FitCanvasLayout, CenterHorizontalLayout, CenterVerticalLayout
++-- equal/  EqualHeightLayout, EqualWidthLayout
+
+- El motor inyecta AutoLayoutConfig.get() en el contexto en el momento de ejecutar,
+  asi los algoritmos jamas llaman AutoLayoutConfig.get().
+- AutoLayoutConfig defaults:
+    margin=24, spacing=20, fitMargin=24, heroScale=0.5, mosaicVariance=0.15,
+    packMode=SHELF, noSeleccionadas=SACAR_FUERA.
+- enum PackMode { SHELF, SKYLINE, GUILLOTINE }
+- enum NoSeleccionadasMode { SACAR_FUERA, IGNORAR }
+
+4. LAS 13 HERRAMIENTAS (solo setBounds, deterministas)
+-------------------------------------------------------
+1.  GridUniformLayout     cols=ceil(sqrt(n)), rows=ceil(n/cols); celdas = canvas/cols x canvas/rows;
+                          escala con proporcion (margen), centrada en celda.
+2.  GridKeepSizeLayout    SIN escalar; celda = max. ancho de columna / max. alto de fila;
+                          separacion = spacing; cuadricula desde (margin, margin);
+                          canvas crece SOLO hacia derecha/abajo, origen intacto.
+3.  PackLayout            Empaquetado determinista segun packMode: SHELF (estantes, por altura desc),
+                          SKYLINE (skyline bin-packing), GUILLOTINE. Sin solapes, centrado;
+                          escala uniforme solo si no cabe.
+4.  RowsLayout            Filas izq->der; reparto EQUILIBRADO (base+1 en primeras n%filas filas;
+                          12 capas -> 4/4/4, nunca 10/2); altura de fila automatica; escala de optimizacion.
+5.  ColumnsLayout         Idem vertical.
+6.  HeroLayout            Hero = capa activa si esta en la seleccion; si no, la de mayor area visible;
+                          ocupa heroScale del espacio; el resto alrededor.
+7.  SpiralLayout          Espiral de Arquimedes desde el centro, separacion angular = spacing,
+                          radio creciente; escala para caber.
+8.  MosaicLayout          Filas de distinto numero; NO varia el tamano mas alla de mosaicVariance.
+                          Reparto equilibrado.
+9.  FitCanvasLayout       Bbox de targets, escala uniforme con fitMargin, centrado;
+                          posiciones relativas intactas.
+10. CenterHorizontalLayout  Centra la composicion en H, sin redimensionar ni rotar.
+11. CenterVerticalLayout    Idem vertical.
+12. EqualHeightLayout     Altura = capa activa, si no primera seleccionada; ancho con proporcion;
+                          NO modifica rotacion ni posicion.
+13. EqualWidthLayout      Idem con anchura.
+
+5. AppActionCommands.java (lineas 271-274)
+-------------------------------------------
+Eliminar los 3 CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_*.
+Anadir 13 comandos CMD_PREVIEW_RENDER_AUTO_LAYOUT_*:
+    GRID_UNIFORM, GRID_KEEP_SIZE, PACK, ROWS, COLUMNS, FIT_CANVAS, HERO, SPIRAL,
+    MOSAIC, CENTER_HORIZONTAL, CENTER_VERTICAL, EQUAL_HEIGHT, EQUAL_WIDTH.
+
+6. UIDefinitionService.java (getComponentesLayerAutoDistribute, 1864-1917)
+----------------------------------------------------------------------------
+- Linea 1876: CMD_PREVIEW_RENDER_AUTO_LAYOUT_GRID -> CMD_PREVIEW_RENDER_AUTO_LAYOUT_GRID_UNIFORM.
+- Linea 1906: icono CENTER_VERTICAL "70710-centrar-composicion-vertical.png" -> "70711-centrar-composicion-vertical.png".
+
+7. AdvanceEditPanel.java
+-------------------------
+- Mapeo en createActionFromCommand (1247-1320): eliminar bloque viejo (1248-1262);
+  cada comando -> simpleAction(() -> ejecutarConHistorial("<Nombre>",
+      () -> AutoLayoutEngine.aplicar(canvasPanel, editorLayerModel, new XxxLayout())));
+  (historial = integracion de UI, en el panel; el motor solo layout + repaint).
+- Panel (linea 678): sustituir createGridFromDefs por builder de 3 FILAS
+  (reusa createButtonFromDef, separadores verticales entre grupos):
+    Fila 1: [Grid Uniforme, Grid Keep] | [Hero, Espiral, Mosaico]
+    Fila 2: [Compactar, Filas, Columnas, Ajustar al Canvas]
+    Fila 3: [Centrar H, Centrar V] | [Igualar Altura, Igualar Anchura]
+  Seccion renombrada a "Auto Layout".
+- Opciones (buildDisposicionOpciones, 952-1034): sub-bloque "Auto Layout"
+  conectado a AutoLayoutConfig.get() (se conserva la referencia de alineacion existente):
+    * Radios "Capas no seleccionadas": Sacar fuera del canvas / Ignorar.
+    * Spinners: Espaciado -> spacing, Margen -> margin, Margen ajustar -> fitMargin.
+    * Sliders:  Escala hero -> heroScale, Variacion mosaico -> mosaicVariance.
+    * Combo "Empaquetado": Estantes (altura) / Skyline / Guillotina -> packMode.
+
+8. LIMPIEZA Y CIERRE
+---------------------
+- Eliminar AutoDistributeActions.java.
+- Ayuda editor_avanzado.html + Notas Modo Editor Avanzado.txt: seccion Auto Layout,
+  invariantes, reglas de diseno, controles de Opciones.
+- Compilar: mvn compile -q.
+
+NOTAS / GOTCHAS
+-----------------
+- La compilacion esta ROTA hoy: UIDefinitionService ya referencia los comandos
+  inexistentes -> el paso 5 (comandos) es lo primero.
+- Fila 2 confirmada: Compactar, Filas, Columnas, Ajustar al Canvas (70703/04/05/09).
+- Layer.setBounds es silencioso (sin fireChanged); repaint a cargo del motor.
+- CanvasModel.setSize no repinta -> el motor repinta tras aplicar.
+- El modelo Layer no tiene modos de composicion: la invariante "no modificar modo
+  de composicion" se cumple por construccion, pero queda documentada.
+- Commit solo si se pide explicitamente. Warnings LF->CRLF son normales.

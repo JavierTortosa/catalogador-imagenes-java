@@ -268,10 +268,20 @@ public interface AppActionCommands {
     public static final String CMD_PREVIEW_RENDER_DISTRIBUTE_HORIZONTAL_SPACE = "cmd.preview.render.distribute.horizontal_space";
     public static final String CMD_PREVIEW_RENDER_DISTRIBUTE_VERTICAL_SPACE   = "cmd.preview.render.distribute.vertical_space";
 
-    // --- Auto-distribuir ---
-    public static final String CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_FIXED  = "cmd.preview.render.auto_distribute.fixed";
-    public static final String CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_LAYER  = "cmd.preview.render.auto_distribute.layer";
-    public static final String CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_CANVAS = "cmd.preview.render.auto_distribute.canvas";
+    // --- Auto Layout ---
+    public static final String CMD_PREVIEW_RENDER_AUTO_LAYOUT_GRID_UNIFORM = "cmd.preview.render.auto_layout.grid_uniform";
+    public static final String CMD_PREVIEW_RENDER_AUTO_LAYOUT_GRID_KEEP_SIZE = "cmd.preview.render.auto_layout.grid_keep_size";
+    public static final String CMD_PREVIEW_RENDER_AUTO_LAYOUT_PACK = "cmd.preview.render.auto_layout.pack";
+    public static final String CMD_PREVIEW_RENDER_AUTO_LAYOUT_ROWS = "cmd.preview.render.auto_layout.rows";
+    public static final String CMD_PREVIEW_RENDER_AUTO_LAYOUT_COLUMNS = "cmd.preview.render.auto_layout.columns";
+    public static final String CMD_PREVIEW_RENDER_AUTO_LAYOUT_FIT_CANVAS = "cmd.preview.render.auto_layout.fit_canvas";
+    public static final String CMD_PREVIEW_RENDER_AUTO_LAYOUT_HERO = "cmd.preview.render.auto_layout.hero";
+    public static final String CMD_PREVIEW_RENDER_AUTO_LAYOUT_SPIRAL = "cmd.preview.render.auto_layout.spiral";
+    public static final String CMD_PREVIEW_RENDER_AUTO_LAYOUT_MOSAIC = "cmd.preview.render.auto_layout.mosaic";
+    public static final String CMD_PREVIEW_RENDER_AUTO_LAYOUT_CENTER_HORIZONTAL = "cmd.preview.render.auto_layout.center_horizontal";
+    public static final String CMD_PREVIEW_RENDER_AUTO_LAYOUT_CENTER_VERTICAL = "cmd.preview.render.auto_layout.center_vertical";
+    public static final String CMD_PREVIEW_RENDER_AUTO_LAYOUT_EQUAL_HEIGHT = "cmd.preview.render.auto_layout.equal_height";
+    public static final String CMD_PREVIEW_RENDER_AUTO_LAYOUT_EQUAL_WIDTH = "cmd.preview.render.auto_layout.equal_width";
 
     // --- Editor Avanzado: herramientas principales ---
     public static final String CMD_ADVANCED_EDITOR_EDICION             = "cmd.advanced.editor.edicion";

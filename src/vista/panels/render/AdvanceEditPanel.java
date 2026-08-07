@@ -41,15 +41,33 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JSlider;
+import javax.swing.JSpinner;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
-import controlador.actions.editoravanzado.AutoDistributeActions;
 import controlador.actions.editoravanzado.LayerDistributionActions;
 import controlador.actions.editoravanzado.EditorToolAction;
+import controlador.actions.editoravanzado.autolayout.AutoLayoutAlgorithm;
+import controlador.actions.editoravanzado.autolayout.AutoLayoutConfig;
+import controlador.actions.editoravanzado.autolayout.AutoLayoutEngine;
+import controlador.actions.editoravanzado.autolayout.HeroLayout;
+import controlador.actions.editoravanzado.autolayout.SpiralLayout;
+import controlador.actions.editoravanzado.autolayout.equal.EqualHeightLayout;
+import controlador.actions.editoravanzado.autolayout.equal.EqualWidthLayout;
+import controlador.actions.editoravanzado.autolayout.fit.CenterHorizontalLayout;
+import controlador.actions.editoravanzado.autolayout.fit.CenterVerticalLayout;
+import controlador.actions.editoravanzado.autolayout.fit.FitCanvasLayout;
+import controlador.actions.editoravanzado.autolayout.grid.ColumnsLayout;
+import controlador.actions.editoravanzado.autolayout.grid.GridKeepSizeLayout;
+import controlador.actions.editoravanzado.autolayout.grid.GridUniformLayout;
+import controlador.actions.editoravanzado.autolayout.grid.MosaicLayout;
+import controlador.actions.editoravanzado.autolayout.grid.RowsLayout;
+import controlador.actions.editoravanzado.autolayout.pack.PackLayout;
 import controlador.commands.AppActionCommands;
 import controlador.tools.CanvasController;
 import controlador.tools.TextTool;
@@ -675,8 +693,8 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
                     createGridFromDefs(uiDefinitionService.getComponentesLayerDistributeSpace(), 2, null),
                     grupoDisposicion));
             disposicion.add(Box.createVerticalStrut(2));
-            disposicion.add(createSectionExclusive("Auto distribuir",
-                    createGridFromDefs(uiDefinitionService.getComponentesLayerAutoDistribute(), 2, null),
+            disposicion.add(createSectionExclusive("Auto Layout",
+                    buildAutoLayoutPanel(uiDefinitionService.getComponentesLayerAutoDistribute()),
                     grupoDisposicion));
             disposicion.add(Box.createVerticalStrut(2));
             disposicion.add(buildDisposicionOpciones(grupoDisposicion));
@@ -1028,6 +1046,71 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         rbSeleccion.addActionListener(onModeChange::accept);
         rbMaestra.addActionListener(onModeChange::accept);
 
+        // --- Parámetros del sistema Auto Layout ---
+        JPanel autoLayoutPanel = new JPanel(new GridLayout(0, 1, 0, 3));
+        autoLayoutPanel.setBackground(bgTools);
+        autoLayoutPanel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(borderColor),
+                "Auto Layout",
+                javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.TOP,
+                new Font("SansSerif", Font.BOLD, 10), fgSectionTitle));
+        AutoLayoutConfig autoLayoutConfig = AutoLayoutConfig.get();
+
+        JRadioButton rbNoSelFuera = styleOption("No seleccionadas: fuera");
+        JRadioButton rbNoSelIgnorar = styleOption("No seleccionadas: ignorar");
+        ButtonGroup noSelGroup = new ButtonGroup();
+        noSelGroup.add(rbNoSelFuera);
+        noSelGroup.add(rbNoSelIgnorar);
+        rbNoSelFuera.setSelected(autoLayoutConfig.getNoSeleccionadas()
+                == AutoLayoutConfig.NoSeleccionadasMode.SACAR_FUERA);
+        rbNoSelIgnorar.setSelected(autoLayoutConfig.getNoSeleccionadas()
+                == AutoLayoutConfig.NoSeleccionadasMode.IGNORAR);
+        java.util.function.Consumer<java.awt.event.ActionEvent> onNoSelChange = e -> autoLayoutConfig
+                .setNoSeleccionadas(rbNoSelIgnorar.isSelected()
+                        ? AutoLayoutConfig.NoSeleccionadasMode.IGNORAR
+                        : AutoLayoutConfig.NoSeleccionadasMode.SACAR_FUERA);
+        rbNoSelFuera.addActionListener(onNoSelChange::accept);
+        rbNoSelIgnorar.addActionListener(onNoSelChange::accept);
+        autoLayoutPanel.add(rbNoSelFuera);
+        autoLayoutPanel.add(rbNoSelIgnorar);
+
+        JSpinner spacingSpinner = new JSpinner(
+                new SpinnerNumberModel(autoLayoutConfig.getSpacing(), 0, 400, 1));
+        spacingSpinner.setPreferredSize(new Dimension(52, 22));
+        spacingSpinner.addChangeListener(e -> autoLayoutConfig.setSpacing((Integer) spacingSpinner.getValue()));
+        autoLayoutPanel.add(styleOptionRow(styleLabel("Espaciado"), spacingSpinner));
+
+        JSpinner marginSpinner = new JSpinner(
+                new SpinnerNumberModel(autoLayoutConfig.getMargin(), 0, 400, 1));
+        marginSpinner.setPreferredSize(new Dimension(52, 22));
+        marginSpinner.addChangeListener(e -> autoLayoutConfig.setMargin((Integer) marginSpinner.getValue()));
+        autoLayoutPanel.add(styleOptionRow(styleLabel("Margen"), marginSpinner));
+
+        JSpinner fitMarginSpinner = new JSpinner(
+                new SpinnerNumberModel(autoLayoutConfig.getFitMargin(), 0, 400, 1));
+        fitMarginSpinner.setPreferredSize(new Dimension(52, 22));
+        fitMarginSpinner.addChangeListener(e -> autoLayoutConfig.setFitMargin((Integer) fitMarginSpinner.getValue()));
+        autoLayoutPanel.add(styleOptionRow(styleLabel("Margen ajustar"), fitMarginSpinner));
+
+        JSlider heroSlider = new JSlider(20, 80, (int) Math.round(autoLayoutConfig.getHeroScale() * 100));
+        heroSlider.setPreferredSize(new Dimension(90, 18));
+        heroSlider.addChangeListener(e -> autoLayoutConfig.setHeroScale(heroSlider.getValue() / 100.0));
+        autoLayoutPanel.add(styleOptionRow(styleLabel("Escala hero"), heroSlider));
+
+        JSlider mosaicSlider = new JSlider(0, 50, (int) Math.round(autoLayoutConfig.getMosaicVariance() * 100));
+        mosaicSlider.setPreferredSize(new Dimension(90, 18));
+        mosaicSlider.addChangeListener(e -> autoLayoutConfig.setMosaicVariance(mosaicSlider.getValue() / 100.0));
+        autoLayoutPanel.add(styleOptionRow(styleLabel("Var. mosaico"), mosaicSlider));
+
+        JComboBox<String> packCombo = new JComboBox<>(
+                new String[] { "Estantes (altura)", "Skyline", "Guillotina" });
+        packCombo.setSelectedIndex(autoLayoutConfig.getPackMode().ordinal());
+        packCombo.addActionListener(e -> autoLayoutConfig
+                .setPackMode(AutoLayoutConfig.PackMode.values()[packCombo.getSelectedIndex()]));
+        autoLayoutPanel.add(styleOptionRow(styleLabel("Empaquetado"), packCombo));
+
+        options.add(autoLayoutPanel);
+
         refreshDisposicionMasterControls();
 
         return createSectionExclusive("Opciones", options, grupoDisposicion);
@@ -1095,6 +1178,24 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         btn.setBackground(bgTools);
         return btn;
     } // --- Fin del metodo styleSmallButton ---
+
+
+    private JLabel styleLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setForeground(fgToolbar);
+        label.setFont(label.getFont().deriveFont(10f));
+        return label;
+    } // --- Fin del metodo styleLabel ---
+
+
+    private JPanel styleOptionRow(javax.swing.JComponent... comps) {
+        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 2));
+        row.setBackground(bgTools);
+        for (javax.swing.JComponent comp : comps) {
+            row.add(comp);
+        }
+        return row;
+    } // --- Fin del metodo styleOptionRow ---
 
 
     private JPanel createSection(String title, JComponent content) {
@@ -1212,6 +1313,111 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     } // --- Fin del metodo createGridFromDefs ---
 
 
+    /**
+     * Construye el panel de Auto Layout con la disposición en tres filas
+     * definida por el usuario, agrupando los botones por bloques separados con
+     * un separador vertical:
+     * <pre>
+     *   Fila 1: [Grid Uniforme, Grid Keep] | [Hero, Espiral, Mosaico]
+     *   Fila 2: [Compactar, Filas, Columnas, Ajustar al Canvas]
+     *   Fila 3: [Centrar H, Centrar V] | [Igualar Altura, Igualar Anchura]
+     * </pre>
+     *
+     * @param defs definiciones de los 13 botones de Auto Layout
+     * @return panel con las tres filas de botones
+     */
+    private JPanel buildAutoLayoutPanel(List<ToolbarComponentDefinition> defs) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(bgTools);
+        panel.setBorder(BorderFactory.createEmptyBorder(2, 8, 6, 8));
+
+        panel.add(buildAutoLayoutRow(
+                buildAutoLayoutGroup(defs,
+                        AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_GRID_UNIFORM,
+                        AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_GRID_KEEP_SIZE),
+                buildAutoLayoutGroup(defs,
+                        AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_HERO,
+                        AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_SPIRAL,
+                        AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_MOSAIC)));
+        panel.add(buildAutoLayoutRow(
+                buildAutoLayoutGroup(defs,
+                        AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_PACK,
+                        AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_ROWS,
+                        AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_COLUMNS,
+                        AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_FIT_CANVAS)));
+        panel.add(buildAutoLayoutRow(
+                buildAutoLayoutGroup(defs,
+                        AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_CENTER_HORIZONTAL,
+                        AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_CENTER_VERTICAL),
+                buildAutoLayoutGroup(defs,
+                        AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_EQUAL_HEIGHT,
+                        AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_EQUAL_WIDTH)));
+        return panel;
+    } // --- Fin del metodo buildAutoLayoutPanel ---
+
+
+    /**
+     * Crea una fila de Auto Layout con los grupos dados, separados por un
+     * separador vertical con un pequeño respiro a ambos lados.
+     *
+     * @param parts grupos de botones de la fila
+     * @return fila centrada con los grupos y sus separadores
+     */
+    private JPanel buildAutoLayoutRow(JPanel... parts) {
+        JPanel row = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 2));
+        row.setBackground(bgTools);
+        for (int i = 0; i < parts.length; i++) {
+            if (i > 0) {
+                row.add(Box.createHorizontalStrut(3));
+                JSeparator sep = new JSeparator(JSeparator.VERTICAL);
+                sep.setPreferredSize(new Dimension(1, 22));
+                sep.setMaximumSize(new Dimension(1, 22));
+                row.add(sep);
+                row.add(Box.createHorizontalStrut(3));
+            }
+            row.add(parts[i]);
+        }
+        return row;
+    } // --- Fin del metodo buildAutoLayoutRow ---
+
+
+    /**
+     * Crea un grupo de botones de Auto Layout a partir de sus comandos.
+     *
+     * @param defs definiciones de los botones de Auto Layout
+     * @param cmds comandos de los botones del grupo
+     * @return grupo con los botones solicitados
+     */
+    private JPanel buildAutoLayoutGroup(List<ToolbarComponentDefinition> defs, String... cmds) {
+        JPanel group = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 2));
+        group.setBackground(bgTools);
+        for (String cmd : cmds) {
+            group.add(wrapInCell(createAutoLayoutButton(cmd, defs)));
+        }
+        return group;
+    } // --- Fin del metodo buildAutoLayoutGroup ---
+
+
+    /**
+     * Crea el botón de Auto Layout cuyo comando coincide con {@code cmd},
+     * reutilizando su definición para el icono y el tooltip.
+     *
+     * @param cmd  comando del botón
+     * @param defs definiciones de los botones de Auto Layout
+     * @return el botón, o un botón vacío si no se encuentra la definición
+     */
+    private JButton createAutoLayoutButton(String cmd, List<ToolbarComponentDefinition> defs) {
+        for (ToolbarComponentDefinition def : defs) {
+            if (def instanceof ToolbarButtonDefinition btnDef
+                    && cmd.equals(btnDef.comandoCanonico())) {
+                return createButtonFromDef(btnDef);
+            }
+        }
+        return new JButton();
+    } // --- Fin del metodo createAutoLayoutButton ---
+
+
     private JButton createButtonFromDef(ToolbarButtonDefinition def) {
         String cmd = def.comandoCanonico();
         Action action = createActionFromCommand(cmd);
@@ -1245,20 +1451,44 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
      * @return la acción del comando (nunca {@code null})
      */
     private Action createActionFromCommand(String cmd) {
-        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_FIXED.equals(cmd)) {
-            return simpleAction(() -> ejecutarConHistorial("Auto distribuir",
-                    () -> AutoDistributeActions.distribucionFija(
-                            canvasPanel, editorLayerModel, canvasPanel.getCanvasModel())));
+        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_GRID_UNIFORM.equals(cmd)) {
+            return autoLayoutAction("Grid uniforme", new GridUniformLayout());
         }
-        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_LAYER.equals(cmd)) {
-            return simpleAction(() -> ejecutarConHistorial("Auto distribuir",
-                    () -> AutoDistributeActions.distribucionPorCapa(
-                            canvasPanel, editorLayerModel, canvasPanel.getCanvasModel())));
+        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_GRID_KEEP_SIZE.equals(cmd)) {
+            return autoLayoutAction("Grid conservando tamaño", new GridKeepSizeLayout());
         }
-        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_CANVAS.equals(cmd)) {
-            return simpleAction(() -> ejecutarConHistorial("Auto distribuir",
-                    () -> AutoDistributeActions.escalarParaAjustar(
-                            canvasPanel, editorLayerModel, canvasPanel.getCanvasModel())));
+        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_PACK.equals(cmd)) {
+            return autoLayoutAction("Compactar", new PackLayout());
+        }
+        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_ROWS.equals(cmd)) {
+            return autoLayoutAction("Compactar por filas", new RowsLayout());
+        }
+        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_COLUMNS.equals(cmd)) {
+            return autoLayoutAction("Compactar por columnas", new ColumnsLayout());
+        }
+        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_HERO.equals(cmd)) {
+            return autoLayoutAction("Layout hero", new HeroLayout());
+        }
+        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_SPIRAL.equals(cmd)) {
+            return autoLayoutAction("Espiral", new SpiralLayout());
+        }
+        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_MOSAIC.equals(cmd)) {
+            return autoLayoutAction("Mosaico", new MosaicLayout());
+        }
+        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_FIT_CANVAS.equals(cmd)) {
+            return autoLayoutAction("Ajustar al canvas", new FitCanvasLayout());
+        }
+        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_CENTER_HORIZONTAL.equals(cmd)) {
+            return autoLayoutAction("Centrar horizontalmente", new CenterHorizontalLayout());
+        }
+        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_CENTER_VERTICAL.equals(cmd)) {
+            return autoLayoutAction("Centrar verticalmente", new CenterVerticalLayout());
+        }
+        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_EQUAL_HEIGHT.equals(cmd)) {
+            return autoLayoutAction("Igualar altura", new EqualHeightLayout());
+        }
+        if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_EQUAL_WIDTH.equals(cmd)) {
+            return autoLayoutAction("Igualar anchura", new EqualWidthLayout());
         }
 
         Integer hMode = null;
@@ -1334,6 +1564,20 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             }
         };
     } // --- Fin del metodo simpleAction ---
+
+
+    /**
+     * Crea una {@link Action} de Auto Layout que ejecuta el algoritmo indicado
+     * como una única operación de Undo/Redo.
+     *
+     * @param nombre   nombre descriptivo del paso
+     * @param algoritmo algoritmo Auto Layout a ejecutar
+     * @return la acción
+     */
+    private Action autoLayoutAction(String nombre, AutoLayoutAlgorithm algoritmo) {
+        return simpleAction(() -> ejecutarConHistorial(nombre,
+                () -> AutoLayoutEngine.aplicar(canvasPanel, editorLayerModel, algoritmo)));
+    } // --- Fin del metodo autoLayoutAction ---
 
 
     /**

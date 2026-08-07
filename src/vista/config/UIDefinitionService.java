@@ -1860,18 +1860,54 @@ public class UIDefinitionService {
                         "70602-distribute-vertical-space.png", "Distribuye Espacios Verticales", "layerdistributespace"));
     } // --- Fin del metodo getComponentesLayerDistributeSpace ---
 
+    
     public List<ToolbarComponentDefinition> getComponentesLayerAutoDistribute() {
+    	
         return List.of(
-                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_FIXED,
-                        "70701-auto-distribute-fixed.png", "Distribucion Fija por Posicion", "layerautodistribute"),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_LAYER,
-                        "70702-auto-distribute-layer.png", "Distribucion por Tamaño de la Capa", "layerautodistribute"),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_CANVAS,
-                        "70703-reducir-ajustar.png", "Escalado de las Capas para Ajustar", "layerautodistribute")
-	);
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_GRID_UNIFORM,
+                        "70701-auto-distribute-fixed.png", "Grid Uniforme", "layerautodistribute")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_GRID_KEEP_SIZE,
+                        "70702-auto-distribute-layer.png", "Grid Conservando Tamaño", "layerautodistribute")
+        		
+        		, new SeparatorDefinition()
+        		
+                , new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_PACK,
+                        "70703-compactar.png", "Compactar", "layerautodistribute")
+                , new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_ROWS,
+                        "70704-compactar-por-filas.png", "Compactar por Filas", "layerautodistribute")
+                , new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_COLUMNS,
+                        "70705-compactar-por-columnas.png", "Compactar por Columnas", "layerautodistribute")
+                , new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_FIT_CANVAS,
+                		"70709-ajustar-al-canvas.png", "Ajustar al Canvas", "layerautodistribute")
+                
+                , new SeparatorDefinition()
+                
+                , new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_HERO,
+                        "70706-layout-hero.png", "Layout Hero", "layerautodistribute")
+                , new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_SPIRAL,
+                        "70707-espiral-.png", "Espiral", "layerautodistribute")
+                , new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_MOSAIC,
+                        "70708-mosaico.png", "Mosaico", "layerautodistribute")
+                
+                , new SeparatorDefinition()
+                
+                , new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_CENTER_HORIZONTAL,
+                        "70710-centrar-composicion-horizontal.png", "Centrar Composición Horizontalmente", "layerautodistribute")
+                , new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_CENTER_VERTICAL,
+                		"70711-centrar-composicion-vertical.png", "Centrar Composición Verticalmente", "layerautodistribute")
+                
+                , new SeparatorDefinition()
+                
+                , new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_EQUAL_HEIGHT,
+                        "70712-igualar-altura.png", "Igualar Altura", "layerautodistribute")
+                , new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_AUTO_LAYOUT_EQUAL_WIDTH,
+                        "70713-igualar-anchura.png", "Igualar Anchura", "layerautodistribute")
+                        
+    		);
 
     } // --- Fin del metodo getComponentesLayerAutoDistribute ---
 
+    
     public List<ToolbarComponentDefinition> getComponentesLayerOrderPreviewRender() {
         return List.of(
                 new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_BRING_TO_FRONT,

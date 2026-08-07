@@ -266,7 +266,7 @@
     <p>
         <strong>¿Qué genera un paso?</strong> Los gestos de arrastre de herramienta se agrupan en un
         único paso (p. ej. mover, transformar o pintar de una sola vez). Las operaciones discretas
-        (alinear, distribuir, espaciar, auto distribuir, propiedades de texto/forma, pegar imagen,
+        (alinear, distribuir, espaciar, auto layout, propiedades de texto/forma, pegar imagen,
         nuevo/redimensionar lienzo, opacidad) se registran con su propio nombre. El historial se
         reinicia al crear, abrir o cargar un documento nuevo.
     </p>
@@ -500,11 +500,11 @@
             deshabilitan con menos de 3 capas efectivas.</li>
         <li><strong>Espacio:</strong> Iguala el hueco entre capas consecutivas sin mover la primera
             ni la última (estilo Photoshop "Distribute Spacing").</li>
-        <li><strong>Auto distribuir:</strong> Coloca automáticamente las capas visibles en una
-            cuadrícula sobre el lienzo (fija por posición, por tamaño de capa o escalando para
-            ajustar).</li>
-        <li><strong>Opciones:</strong> Configura la referencia de alineación (ver
-            <a href="#referencia">abajo</a>).</li>
+        <li><strong>Auto Layout:</strong> 13 herramientas de composición automática que actúan
+            <strong>solo sobre las capas seleccionadas</strong> (ver <a href="#autolayout">abajo</a>).
+            Las capas no seleccionadas se sacan del lienzo o se ignoran según la configuración.</li>
+        <li><strong>Opciones:</strong> Configura la referencia de alineación y los parámetros del
+            sistema Auto Layout (ver <a href="#referencia">abajo</a>).</li>
     </ul>
 
     <h3 id="referencia">Opciones — Referencia de Alineación</h3>
@@ -524,6 +524,60 @@
         El modo elegido también se aplica a los combos <em>Alinear</em> de la barra superior del
         editor, y se conserva mientras dure la sesión (no se guarda entre ejecuciones).
     </p>
+
+    <h3 id="autolayout">Opciones — Sistema Auto Layout</h3>
+    <p>
+        El sistema <strong>Auto Layout</strong> sustituye al antiguo "Auto distribuir". Todas las
+        herramientas actúan <strong>únicamente sobre las capas seleccionadas</strong> (visibles y no
+        bloqueadas). Si no hay selección, no hacen nada. El panel se organiza en tres filas:
+    </p>
+    <ul>
+        <li><strong>Fila 1:</strong> <em>Grid Uniforme</em>, <em>Grid Conservando Tamaño</em> |
+            <em>Layout Hero</em>, <em>Espiral</em>, <em>Mosaico</em>.</li>
+        <li><strong>Fila 2:</strong> <em>Compactar</em>, <em>Compactar por Filas</em>,
+            <em>Compactar por Columnas</em>, <em>Ajustar al Canvas</em>.</li>
+        <li><strong>Fila 3:</strong> <em>Centrar Composición Horizontal/Vertical</em> |
+            <em>Igualar Altura</em>, <em>Igualar Anchura</em>.</li>
+    </ul>
+    <p><strong>Herramientas:</strong></p>
+    <ul>
+        <li><strong>Grid Uniforme:</strong> cuadrícula de celdas iguales; cada capa se escala
+            (con proporción) para encajar en su celda.</li>
+        <li><strong>Grid Conservando Tamaño:</strong> cuadrícula que respeta el tamaño natural de las
+            capas; el lienzo solo crece hacia la derecha y hacia abajo, sin desplazar el origen.</li>
+        <li><strong>Compactar:</strong> empaqueta las capas sin solaparse minimizando los espacios
+            vacíos, según el modo de empaquetado elegido (Estantes, Skyline o Guillotina).</li>
+        <li><strong>Compactar por Filas / Columnas:</strong> distribuye las capas en filas o columnas
+            con reparto equilibrado (12 capas dan 4/4/4, nunca 10/2).</li>
+        <li><strong>Layout Hero:</strong> la capa activa (si está seleccionada; si no, la de mayor
+            área) ocupa la superficie principal y el resto se distribuye a su lado.</li>
+        <li><strong>Espiral:</strong> coloca las capas a lo largo de una espiral de Arquímedes desde
+            el centro del lienzo.</li>
+        <li><strong>Mosaico:</strong> cuadrícula con celdas de tamaño variable; ninguna capa modifica
+            su tamaño más allá de la <em>Variación mosaico</em> configurada.</li>
+        <li><strong>Ajustar al Canvas:</strong> escala la composición (uniforme) para que encaje en el
+            lienzo con el margen de ajuste, sin modificar las posiciones relativas.</li>
+        <li><strong>Centrar Composición:</strong> traslada la composición al centro horizontal o
+            vertical del lienzo, sin redimensionar.</li>
+        <li><strong>Igualar Altura / Anchura:</strong> ajusta el tamaño de las capas seleccionadas al
+            de la capa activa (o la primera seleccionada), manteniendo la proporción y sin modificar
+            la rotación ni la posición.</li>
+    </ul>
+    <p><strong>Reglas generales:</strong> ninguna operación modifica la rotación, la opacidad, el
+        orden Z, el nombre ni la selección. Cada operación es una única entrada de deshacer/rehacer,
+        es determinista y mantiene la proporción salvo que la herramienta indique lo contrario.
+        Nunca se generan coordenadas negativas salvo cuando se sacan capas fuera del lienzo.</p>
+    <p><strong>Parámetros configurables:</strong></p>
+    <ul>
+        <li><strong>No seleccionadas:</strong> <em>fuera</em> (las capas visibles no seleccionadas se
+            desplazan fuera del lienzo) o <em>ignorar</em> (se dejan como están).</li>
+        <li><strong>Espaciado:</strong> separación en píxeles entre celdas o capas.</li>
+        <li><strong>Margen:</strong> margen general de las composiciones.</li>
+        <li><strong>Margen ajustar:</strong> margen usado por <em>Ajustar al Canvas</em>.</li>
+        <li><strong>Escala hero:</strong> proporción de la superficie que ocupa la capa principal.</li>
+        <li><strong>Var. mosaico:</strong> variación máxima de tamaño permitida en el mosaico.</li>
+        <li><strong>Empaquetado:</strong> algoritmo de <em>Compactar</em> (Estantes, Skyline, Guillotina).</li>
+    </ul>
 
     <h2>Gizmo de Transformación</h2>
     <p>

@@ -520,3 +520,48 @@ ATAJO BORRAR CAPA (Supr / Retroceso) [HECHO]
   removeLayer + adjustIndicesAfterRemove mantienen validos los menores.
 - Ayuda: editor_avanzado.html tabla de atajos + fila "Borrar capa" del panel de
   capas. Compila (mvn compile EXIT=0).
+
+SISTEMA AUTO LAYOUT [HECHO]
+- Sustituye al antiguo "Auto distribuir" (AutoDistributeActions eliminado).
+  13 herramientas que actuan SOLO sobre capas seleccionadas+visibles+no
+  bloqueadas (sin seleccion -> no-op). Las no seleccionadas se sacan del lienzo
+  o se ignoran segun config.
+- Arquitectura (nuevo paquete
+  controlador/actions/editoravanzado/autolayout): Configuracion -> Motor ->
+  Algoritmos.
+  * AutoLayoutAlgorithm (interface) y AutoLayoutContext (CanvasPanel + LayerModel
+    + CanvasModel + AutoLayoutConfig via ctx.getConfig()). Los algoritmos solo
+    usan el contexto: nada de singletons, UI ni undo/repaint.
+  * AutoLayoutConfig (singleton): margin=24, spacing=20, fitMargin=24,
+    heroScale=0.5, mosaicVariance=0.15, packMode=SHELF,
+    noSeleccionadas=SACAR_FUERA. Enums PackMode{SHELF,SKYLINE,GUILLOTINE} y
+    NoSeleccionadasMode{SACAR_FUERA,IGNORAR}.
+  * AutoLayoutEngine.aplicar(canvas, lm, algoritmo): construye ctx, layout(),
+    canvas.repaint(). El historial lo envuelve AdvanceEditPanel (1 paso undo).
+  * AutoLayoutSupport: getTargets(ctx), apartarNoSeleccionadas(ctx), bboxDe(ctx).
+- Implementaciones: grid/{GridUniform, GridKeepSize, Rows, Columns, Mosaic},
+  pack/PackLayout (SHELF por altura desc, SKYLINE por area desc sobre perfil,
+  GUILLOTINE dividiendo rectangulos libres), HeroLayout (hero = activa si esta
+  en seleccion, si no la de mayor area), SpiralLayout (espiral de Arquimedes),
+  fit/{FitCanvas, CenterHorizontal, CenterVertical}, equal/{EqualHeight,
+  EqualWidth} (referencia = activa o primera seleccionada).
+- Comandos nuevos en AppActionCommands: CMD_PREVIEW_RENDER_AUTO_LAYOUT_* (13),
+  con GRID_UNIFORM (no GRID). Eliminados los 3 AUTO_DISTRIBUTE_*.
+- UIDefinitionService.getComponentesLayerAutoDistribute: actualizado a los
+  comandos nuevos; CENTER_VERTICAL usa icono 70711 (antes 70710 duplicado).
+- AdvanceEditPanel: createActionFromCommand mapea los 13 comandos via
+  autoLayoutAction(nombre, algoritmo) -> ejecutarConHistorial. Panel "Auto
+  Layout" con 3 filas (buildAutoLayoutPanel + buildAutoLayoutRow/Group +
+  createAutoLayoutButton): F1 [Grid, Grid Keep]|[Hero, Espiral, Mosaico],
+  F2 [Compactar, Filas, Columnas, Ajustar al Canvas],
+  F3 [Centrar H/V]|[Igualar Altura, Anchura].
+- Opciones: sub-bloque "Auto Layout" en buildDisposicionOpciones con radios de
+  capas no seleccionadas (fuera/ignorar), spinners Espaciado/Margen/Margen
+  ajustar, sliders Escala hero/Var. mosaico y combo Empaquetado, todos
+  conectados a AutoLayoutConfig.
+- Reglas generales: no toca rotacion/opacidad/orden Z/nombre/seleccion; una
+  operacion undo; determinista; mantiene proporcion; sin coordenadas negativas
+  salvo sacar fuera del lienzo. Plan congelado en "Notas Sistema Auto Layout.txt".
+- Ayuda: editor_avanzado.html nueva seccion "Opciones — Sistema Auto Layout".
+  Compila (mvn compile EXIT=0).
+
