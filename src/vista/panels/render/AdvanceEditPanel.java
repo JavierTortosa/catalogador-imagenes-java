@@ -41,19 +41,15 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JSlider;
-import javax.swing.JSpinner;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import controlador.actions.editoravanzado.LayerDistributionActions;
 import controlador.actions.editoravanzado.EditorToolAction;
 import controlador.actions.editoravanzado.autolayout.AutoLayoutAlgorithm;
-import controlador.actions.editoravanzado.autolayout.AutoLayoutConfig;
 import controlador.actions.editoravanzado.autolayout.AutoLayoutEngine;
 import controlador.actions.editoravanzado.autolayout.HeroLayout;
 import controlador.actions.editoravanzado.autolayout.SpiralLayout;
@@ -1045,71 +1041,6 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         rbLienzo.addActionListener(onModeChange::accept);
         rbSeleccion.addActionListener(onModeChange::accept);
         rbMaestra.addActionListener(onModeChange::accept);
-
-        // --- Parámetros del sistema Auto Layout ---
-        JPanel autoLayoutPanel = new JPanel(new GridLayout(0, 1, 0, 3));
-        autoLayoutPanel.setBackground(bgTools);
-        autoLayoutPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(borderColor),
-                "Auto Layout",
-                javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.TOP,
-                new Font("SansSerif", Font.BOLD, 10), fgSectionTitle));
-        AutoLayoutConfig autoLayoutConfig = AutoLayoutConfig.get();
-
-        JRadioButton rbNoSelFuera = styleOption("No seleccionadas: fuera");
-        JRadioButton rbNoSelIgnorar = styleOption("No seleccionadas: ignorar");
-        ButtonGroup noSelGroup = new ButtonGroup();
-        noSelGroup.add(rbNoSelFuera);
-        noSelGroup.add(rbNoSelIgnorar);
-        rbNoSelFuera.setSelected(autoLayoutConfig.getNoSeleccionadas()
-                == AutoLayoutConfig.NoSeleccionadasMode.SACAR_FUERA);
-        rbNoSelIgnorar.setSelected(autoLayoutConfig.getNoSeleccionadas()
-                == AutoLayoutConfig.NoSeleccionadasMode.IGNORAR);
-        java.util.function.Consumer<java.awt.event.ActionEvent> onNoSelChange = e -> autoLayoutConfig
-                .setNoSeleccionadas(rbNoSelIgnorar.isSelected()
-                        ? AutoLayoutConfig.NoSeleccionadasMode.IGNORAR
-                        : AutoLayoutConfig.NoSeleccionadasMode.SACAR_FUERA);
-        rbNoSelFuera.addActionListener(onNoSelChange::accept);
-        rbNoSelIgnorar.addActionListener(onNoSelChange::accept);
-        autoLayoutPanel.add(rbNoSelFuera);
-        autoLayoutPanel.add(rbNoSelIgnorar);
-
-        JSpinner spacingSpinner = new JSpinner(
-                new SpinnerNumberModel(autoLayoutConfig.getSpacing(), 0, 400, 1));
-        spacingSpinner.setPreferredSize(new Dimension(52, 22));
-        spacingSpinner.addChangeListener(e -> autoLayoutConfig.setSpacing((Integer) spacingSpinner.getValue()));
-        autoLayoutPanel.add(styleOptionRow(styleLabel("Espaciado"), spacingSpinner));
-
-        JSpinner marginSpinner = new JSpinner(
-                new SpinnerNumberModel(autoLayoutConfig.getMargin(), 0, 400, 1));
-        marginSpinner.setPreferredSize(new Dimension(52, 22));
-        marginSpinner.addChangeListener(e -> autoLayoutConfig.setMargin((Integer) marginSpinner.getValue()));
-        autoLayoutPanel.add(styleOptionRow(styleLabel("Margen"), marginSpinner));
-
-        JSpinner fitMarginSpinner = new JSpinner(
-                new SpinnerNumberModel(autoLayoutConfig.getFitMargin(), 0, 400, 1));
-        fitMarginSpinner.setPreferredSize(new Dimension(52, 22));
-        fitMarginSpinner.addChangeListener(e -> autoLayoutConfig.setFitMargin((Integer) fitMarginSpinner.getValue()));
-        autoLayoutPanel.add(styleOptionRow(styleLabel("Margen ajustar"), fitMarginSpinner));
-
-        JSlider heroSlider = new JSlider(20, 80, (int) Math.round(autoLayoutConfig.getHeroScale() * 100));
-        heroSlider.setPreferredSize(new Dimension(90, 18));
-        heroSlider.addChangeListener(e -> autoLayoutConfig.setHeroScale(heroSlider.getValue() / 100.0));
-        autoLayoutPanel.add(styleOptionRow(styleLabel("Escala hero"), heroSlider));
-
-        JSlider mosaicSlider = new JSlider(0, 50, (int) Math.round(autoLayoutConfig.getMosaicVariance() * 100));
-        mosaicSlider.setPreferredSize(new Dimension(90, 18));
-        mosaicSlider.addChangeListener(e -> autoLayoutConfig.setMosaicVariance(mosaicSlider.getValue() / 100.0));
-        autoLayoutPanel.add(styleOptionRow(styleLabel("Var. mosaico"), mosaicSlider));
-
-        JComboBox<String> packCombo = new JComboBox<>(
-                new String[] { "Estantes (altura)", "Skyline", "Guillotina" });
-        packCombo.setSelectedIndex(autoLayoutConfig.getPackMode().ordinal());
-        packCombo.addActionListener(e -> autoLayoutConfig
-                .setPackMode(AutoLayoutConfig.PackMode.values()[packCombo.getSelectedIndex()]));
-        autoLayoutPanel.add(styleOptionRow(styleLabel("Empaquetado"), packCombo));
-
-        options.add(autoLayoutPanel);
 
         refreshDisposicionMasterControls();
 

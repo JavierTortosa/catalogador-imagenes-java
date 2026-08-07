@@ -565,3 +565,38 @@ SISTEMA AUTO LAYOUT [HECHO]
 - Ayuda: editor_avanzado.html nueva seccion "Opciones — Sistema Auto Layout".
   Compila (mvn compile EXIT=0).
 
+SMART GUIDES + CONFIG AVANZADA EDITOR [HECHO]
+- Liberada la pestana "Opciones" del panel Disposicion: eliminado el sub-bloque
+  "Auto Layout" de buildDisposicionOpciones. Quedan "Referencia de alineacion"
+  (accion en tiempo real) y los controles de capa maestra.
+- Los parametros persistentes del editor se trasladan a Configuracion Avanzada
+  con nueva seccion "Editor" (vista/configuracion/panels/EditorPanel.java,
+  implementa ConfigurationPanel; nodo de arbol + registerPanel en
+  ConfigurationDialog). Contiene dos subsecciones:
+  * Smart Guides: activar, ajustar a lienzo, ajustar a capas, distancia de
+    ajuste (6), distancia de retencion (3), color (#FF00FF) via JColorChooser y
+    grosor de linea (1.0).
+  * Auto Layout: no seleccionadas (fuera/ignorar), espaciado (20), margen (24),
+    margen ajustar (24), escala hero (50%), var. mosaico (15%) y empaquetado.
+- Nuevas claves en ConfigKeys (seccion EDITOR): EDITOR_AUTOLAYOUT_* (7) y
+  EDITOR_SMART_GUIDES_* (7). EditorPanel.save() persiste solo lo cambiado y
+  sincroniza los singletons AutoLayoutConfig/SmartGuidesConfig;
+  ConfigApplicationManager.sincronizarConfigEditor() los recarga desde claves
+  en arranque/restaurar.
+- Smart Guides (nuevo paquete modelo/editor/smartguides):
+  * SmartGuidesEngine (motor puro, sesion por arrastre): begin(canvasRect,
+    staticBounds, movingStartBounds) cachea los bounds; update(dx,dy,cfg)
+    calcula el snap sobre la union movil contra bordes/centros de capas
+    estaticas (snapToLayers) y lienzo (snapToCanvas), con histuresis: guia
+    retenida se mantiene mientras |diff| <= stickyDistance. Devuelve
+    SnapResult(dx,dy,guides) con GuideLine(vertical,pos,start,end).
+  * Sin singletons ni UI: la config se inyecta en update().
+  * EditTool: beginSmartGuides() en mousePressed (branch mover y Alt+duplicar),
+    updateSmartGuides() en mouseDragged aplica dx/dy corregidos a move.move();
+    mantener CTRL durante el arrastre anula snap+guias (smartGuidesOverride);
+    endSmartGuides() en mouseReleased/cancel. paintOverlay dibuja las guias a
+    linea completa del lienzo con color/grosor configurados.
+- Ayuda: editor_avanzado.html seccion "Smart Guides" + referencias a
+  Configuracion Avanzada -> Editor; modo_editor.html apartado Smart Guides.
+  Compila (mvn compile EXIT=0).
+

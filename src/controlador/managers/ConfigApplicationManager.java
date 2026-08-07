@@ -20,10 +20,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.commands.AppActionCommands;
+import controlador.actions.editoravanzado.autolayout.AutoLayoutConfig;
 import controlador.factory.ActionFactory;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import modelo.VisorModel.DisplayMode;
+import modelo.editor.smartguides.SmartGuidesConfig;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import vista.theme.Tema;
@@ -239,9 +241,48 @@ public class ConfigApplicationManager {
         // Llama al nuevo método del modelo para establecer el estado inicial
         model.setInitialDisplayMode(ultimoDisplayMode);
         
+        sincronizarConfigEditor();
+        
         logger.debug("  -> Configuración del Modelo aplicada.");
     
     } // --- Fin del método aplicarConfiguracionAlModelo ---
+
+
+    /**
+     * Sincroniza los singletons de ejecución del editor (Smart Guides y Auto
+     * Layout) desde las claves persistentes. Se invoca en el arranque y al
+     * restaurar la configuración predeterminada.
+     */
+    private void sincronizarConfigEditor() {
+        AutoLayoutConfig autoLayout = AutoLayoutConfig.get();
+        SmartGuidesConfig guides = SmartGuidesConfig.get();
+
+        autoLayout.setMargin(config.getInt(ConfigKeys.EDITOR_AUTOLAYOUT_MARGIN, 24));
+        autoLayout.setSpacing(config.getInt(ConfigKeys.EDITOR_AUTOLAYOUT_SPACING, 20));
+        autoLayout.setFitMargin(config.getInt(ConfigKeys.EDITOR_AUTOLAYOUT_FIT_MARGIN, 24));
+        autoLayout.setHeroScale(config.getDouble(ConfigKeys.EDITOR_AUTOLAYOUT_HERO_SCALE, 0.5));
+        autoLayout.setMosaicVariance(config.getDouble(ConfigKeys.EDITOR_AUTOLAYOUT_MOSAIC_VARIANCE, 0.15));
+        try {
+            autoLayout.setPackMode(AutoLayoutConfig.PackMode
+                    .valueOf(config.getString(ConfigKeys.EDITOR_AUTOLAYOUT_PACK_MODE, "SHELF")));
+        } catch (IllegalArgumentException ex) {
+            autoLayout.setPackMode(AutoLayoutConfig.PackMode.SHELF);
+        }
+        try {
+            autoLayout.setNoSeleccionadas(AutoLayoutConfig.NoSeleccionadasMode
+                    .valueOf(config.getString(ConfigKeys.EDITOR_AUTOLAYOUT_NO_SELECCIONADAS, "SACAR_FUERA")));
+        } catch (IllegalArgumentException ex) {
+            autoLayout.setNoSeleccionadas(AutoLayoutConfig.NoSeleccionadasMode.SACAR_FUERA);
+        }
+
+        guides.setShowGuides(config.getBoolean(ConfigKeys.EDITOR_SMART_GUIDES_SHOW, true));
+        guides.setSnapToCanvas(config.getBoolean(ConfigKeys.EDITOR_SMART_GUIDES_SNAP_CANVAS, true));
+        guides.setSnapToLayers(config.getBoolean(ConfigKeys.EDITOR_SMART_GUIDES_SNAP_LAYERS, true));
+        guides.setSnapDistance(config.getInt(ConfigKeys.EDITOR_SMART_GUIDES_SNAP_DISTANCE, 6));
+        guides.setStickyDistance(config.getInt(ConfigKeys.EDITOR_SMART_GUIDES_STICKY_DISTANCE, 3));
+        guides.setGuideColor(config.getColor(ConfigKeys.EDITOR_SMART_GUIDES_COLOR, new Color(0xFF00FF)));
+        guides.setGuideStrokeWidth((float) config.getDouble(ConfigKeys.EDITOR_SMART_GUIDES_STROKE_WIDTH, 1.0));
+    } // --- Fin del método sincronizarConfigEditor ---
 
     
     private void aplicarConfiguracionAlaVista() {

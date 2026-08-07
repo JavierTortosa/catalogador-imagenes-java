@@ -299,4 +299,20 @@ public final class ConfigKeys {
     public static final String ZIP2PNG_RUTA_OPENSCAD = "zip2png.ruta_openscad";
     public static final String ZIP2PNG_RUTA_BLENDER = "zip2png.ruta_blender";
 
+    // --- SECCIÓN: EDITOR (Auto Layout + Smart Guides) ---
+    public static final String EDITOR_AUTOLAYOUT_MARGIN 						= "editor.autolayout.margin";
+    public static final String EDITOR_AUTOLAYOUT_SPACING 						= "editor.autolayout.spacing";
+    public static final String EDITOR_AUTOLAYOUT_FIT_MARGIN 					= "editor.autolayout.fit_margin";
+    public static final String EDITOR_AUTOLAYOUT_HERO_SCALE 					= "editor.autolayout.hero_scale";
+    public static final String EDITOR_AUTOLAYOUT_MOSAIC_VARIANCE 				= "editor.autolayout.mosaic_variance";
+    public static final String EDITOR_AUTOLAYOUT_PACK_MODE 						= "editor.autolayout.pack_mode";
+    public static final String EDITOR_AUTOLAYOUT_NO_SELECCIONADAS 				= "editor.autolayout.no_seleccionadas";
+    public static final String EDITOR_SMART_GUIDES_SHOW 						= "editor.smart_guides.show";
+    public static final String EDITOR_SMART_GUIDES_SNAP_CANVAS 				= "editor.smart_guides.snap_canvas";
+    public static final String EDITOR_SMART_GUIDES_SNAP_LAYERS 				= "editor.smart_guides.snap_layers";
+    public static final String EDITOR_SMART_GUIDES_SNAP_DISTANCE 				= "editor.smart_guides.snap_distance";
+    public static final String EDITOR_SMART_GUIDES_STICKY_DISTANCE 			= "editor.smart_guides.sticky_distance";
+    public static final String EDITOR_SMART_GUIDES_COLOR 						= "editor.smart_guides.color";
+    public static final String EDITOR_SMART_GUIDES_STROKE_WIDTH 				= "editor.smart_guides.stroke_width";
+
 } // --- FIN DE LA CLASE ConfigKeys ---

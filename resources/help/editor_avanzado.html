@@ -503,8 +503,9 @@
         <li><strong>Auto Layout:</strong> 13 herramientas de composición automática que actúan
             <strong>solo sobre las capas seleccionadas</strong> (ver <a href="#autolayout">abajo</a>).
             Las capas no seleccionadas se sacan del lienzo o se ignoran según la configuración.</li>
-        <li><strong>Opciones:</strong> Configura la referencia de alineación y los parámetros del
-            sistema Auto Layout (ver <a href="#referencia">abajo</a>).</li>
+        <li><strong>Opciones:</strong> Configura la referencia de alineación de las herramientas de
+            disposición (ver <a href="#referencia">abajo</a>). Los parámetros del sistema Auto Layout y
+            de Smart Guides se configuran desde <em>Configuración Avanzada → Editor</em>.</li>
     </ul>
 
     <h3 id="referencia">Opciones — Referencia de Alineación</h3>
@@ -525,7 +526,7 @@
         editor, y se conserva mientras dure la sesión (no se guarda entre ejecuciones).
     </p>
 
-    <h3 id="autolayout">Opciones — Sistema Auto Layout</h3>
+    <h3 id="autolayout">Sistema Auto Layout</h3>
     <p>
         El sistema <strong>Auto Layout</strong> sustituye al antiguo "Auto distribuir". Todas las
         herramientas actúan <strong>únicamente sobre las capas seleccionadas</strong> (visibles y no
@@ -567,7 +568,8 @@
         orden Z, el nombre ni la selección. Cada operación es una única entrada de deshacer/rehacer,
         es determinista y mantiene la proporción salvo que la herramienta indique lo contrario.
         Nunca se generan coordenadas negativas salvo cuando se sacan capas fuera del lienzo.</p>
-    <p><strong>Parámetros configurables:</strong></p>
+    <p><strong>Parámetros configurables:</strong> se gestionan en <em>Configuración Avanzada → Editor →
+        Auto Layout</em>:</p>
     <ul>
         <li><strong>No seleccionadas:</strong> <em>fuera</em> (las capas visibles no seleccionadas se
             desplazan fuera del lienzo) o <em>ignorar</em> (se dejan como están).</li>
@@ -578,6 +580,28 @@
         <li><strong>Var. mosaico:</strong> variación máxima de tamaño permitida en el mosaico.</li>
         <li><strong>Empaquetado:</strong> algoritmo de <em>Compactar</em> (Estantes, Skyline, Guillotina).</li>
     </ul>
+
+    <h2 id="smartguides">Smart Guides</h2>
+    <p>
+        Las <strong>Smart Guides</strong> asisten el arrastre de capas con la herramienta de edición
+        (Move Tool), estilo Photoshop: al mover una o varias capas, los bordes y centros se
+        <strong>ajustan</strong> a los bordes y centros de las demás capas visibles y del lienzo.
+    </p>
+    <ul>
+        <li><strong>Ajuste:</strong> cuando un borde o centro del rectángulo en movimiento queda a
+            menos de la <em>distancia de ajuste</em> (6 px por defecto) de un candidato, la capa se
+            alinea a ese candidato y se dibuja una <strong>guía de color</strong> a línea completa del
+            lienzo.</li>
+        <li><strong>Histéresis (pegajoso):</strong> una vez producido el ajuste, la guía se mantiene
+            mientras el cursor no se aleje más de la <em>distancia de retención</em> (3 px), evitando
+            que las guías parpadeen al mover el ratón.</li>
+        <li><strong>Anulación:</strong> mantener <strong>Ctrl</strong> durante el arrastre desactiva
+            temporalmente el ajuste y las guías.</li>
+    </ul>
+    <p>
+        Los parámetros (activación, ajuste a lienzo/capas, distancias, color y grosor) se configuran
+        en <em>Configuración Avanzada → Editor → Smart Guides</em>.
+    </p>
 
     <h2>Gizmo de Transformación</h2>
     <p>

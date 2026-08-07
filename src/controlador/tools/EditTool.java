@@ -1,5 +1,6 @@
 package controlador.tools;
 
+import java.awt.BasicStroke;
 import java.awt.Cursor;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -10,8 +11,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import controlador.commands.AppActionCommands;
+import modelo.editor.CanvasModel;
 import modelo.editor.Layer;
 import modelo.editor.LayerModel;
+import modelo.editor.smartguides.GuideLine;
+import modelo.editor.smartguides.SmartGuidesConfig;
+import modelo.editor.smartguides.SmartGuidesEngine;
+import modelo.editor.smartguides.SnapResult;
 import modelo.gizmo.TransformGizmo;
 import vista.panels.render.EditorComponentBar;
 
@@ -39,6 +45,9 @@ public class EditTool extends Tool {
     private LayerPicker.MultiGizmoDrag gizmoDrag;
     private LayerPicker.MultiRotateDrag rotateDrag;
     private LayerPicker.DragMove move;
+    private SmartGuidesEngine smartGuides;
+    private List<GuideLine> smartGuideLines = new ArrayList<>();
+    private boolean smartGuidesOverride;
 
     @Override
     public String getCommandKey() {
@@ -151,6 +160,9 @@ public class EditTool extends Tool {
         gizmoDrag = null;
         rotateDrag = null;
         move = null;
+        smartGuides = null;
+        smartGuideLines = new ArrayList<>();
+        smartGuidesOverride = false;
 
         boolean ctrl = (e.getModifiersEx() & MouseEvent.CTRL_DOWN_MASK) != 0;
         boolean shift = (e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) != 0;
@@ -223,6 +235,7 @@ public class EditTool extends Tool {
             dragging = true;
             dragStart = p;
             move = picker().beginMove(p, copy);
+            beginSmartGuides(List.of(copy));
             return;
         }
 
@@ -236,6 +249,7 @@ public class EditTool extends Tool {
             dragging = true;
             dragStart = p;
             move = picker().beginMove(p, targets);
+            beginSmartGuides(targets);
         } else if (!ctrl && !shift && picker().findLayerAt(p) == null) {
             picker().clearSelection();
         }
@@ -267,7 +281,8 @@ public class EditTool extends Tool {
         if (dragging && move != null && dragStart != null) {
             int dx = e.getX() - dragStart.x;
             int dy = e.getY() - dragStart.y;
-            Rectangle newBounds = move.move(dx, dy);
+            SnapResult snap = updateSmartGuides(dx, dy, e);
+            Rectangle newBounds = move.move(snap.dx(), snap.dy());
             if (newBounds != null) {
                 bar().updateEditLayerFields(active);
                 ctx.canvasPanel().repaint();
@@ -290,6 +305,7 @@ public class EditTool extends Tool {
         dragging = false;
         move = null;
         dragStart = null;
+        endSmartGuides();
 
         ctx.canvasPanel().repaint();
     } // --- Fin del metodo mouseReleased ---
@@ -317,6 +333,7 @@ public class EditTool extends Tool {
             dragging = false;
         }
         dragStart = null;
+        endSmartGuides();
         if (hadDrag) {
             bar().updateEditLayerFields(model().getActiveLayer());
             ctx.canvasPanel().repaint();
@@ -411,11 +428,105 @@ public class EditTool extends Tool {
     } // --- Fin del metodo keyPressed ---
 
 
+    // ======================== SMART GUIDES ========================
+
+
+    /**
+     * Inicia la sesión de Smart Guides cacheando el lienzo, las capas estáticas
+     * y los bounds de partida de las capas que se van a arrastrar.
+     *
+     * @param targets capas que se moverán en este arrastre
+     */
+    private void beginSmartGuides(List<Layer> targets) {
+        smartGuides = null;
+        smartGuideLines = new ArrayList<>();
+        smartGuidesOverride = false;
+        SmartGuidesConfig cfg = SmartGuidesConfig.get();
+        if (!cfg.isShowGuides() || targets == null || targets.isEmpty()) return;
+
+        CanvasModel canvas = ctx.canvasModel();
+        if (canvas == null) return;
+
+        List<Rectangle> moving = new ArrayList<>();
+        List<Rectangle> statics = new ArrayList<>();
+        for (Layer layer : model().getLayers()) {
+            Rectangle b = layer.getBounds();
+            if (b == null) continue;
+            if (targets.contains(layer)) {
+                moving.add(new Rectangle(b));
+            } else if (layer.isVisible() && !layer.isLocked()) {
+                statics.add(new Rectangle(b));
+            }
+        }
+        if (moving.isEmpty()) return;
+
+        smartGuides = new SmartGuidesEngine();
+        smartGuides.begin(new Rectangle(0, 0, canvas.getWidth(), canvas.getHeight()), statics, moving);
+    } // --- Fin del metodo beginSmartGuides ---
+
+
+    /**
+     * Calcula el desplazamiento corregido aplicando el snap. Mantener Ctrl
+     * durante el arrastre anula temporalmente el ajuste y las guías.
+     *
+     * @param dx desplazamiento X crudo acumulado
+     * @param dy desplazamiento Y crudo acumulado
+     * @param e evento de ratón actual
+     * @return desplazamientos corregidos y guías activas
+     */
+    private SnapResult updateSmartGuides(int dx, int dy, MouseEvent e) {
+        SmartGuidesConfig cfg = SmartGuidesConfig.get();
+        smartGuidesOverride = (e.getModifiersEx() & MouseEvent.CTRL_DOWN_MASK) != 0;
+        if (!cfg.isShowGuides() || smartGuidesOverride || smartGuides == null) {
+            smartGuideLines = List.of();
+            return new SnapResult(dx, dy, List.of());
+        }
+        SnapResult result = smartGuides.update(dx, dy, cfg);
+        smartGuideLines = result.guides();
+        return result;
+    } // --- Fin del metodo updateSmartGuides ---
+
+
+    /**
+     * Finaliza la sesión de Smart Guides y limpia las guías temporales.
+     */
+    private void endSmartGuides() {
+        if (smartGuides != null) {
+            smartGuides.end();
+            smartGuides = null;
+        }
+        smartGuideLines = new ArrayList<>();
+        smartGuidesOverride = false;
+    } // --- Fin del metodo endSmartGuides ---
+
+
+    /**
+     * Dibuja las guías de ajuste activas a línea completa del lienzo.
+     *
+     * @param g2 gráficos del overlay en coordenadas de canvas
+     */
+    private void drawSmartGuides(Graphics2D g2) {
+        if (smartGuidesOverride || smartGuideLines == null || smartGuideLines.isEmpty()) return;
+        SmartGuidesConfig cfg = SmartGuidesConfig.get();
+        if (!cfg.isShowGuides()) return;
+        g2.setColor(cfg.getGuideColor());
+        g2.setStroke(new BasicStroke(cfg.getGuideStrokeWidth()));
+        for (GuideLine line : smartGuideLines) {
+            if (line.vertical()) {
+                g2.drawLine(line.pos(), line.start(), line.pos(), line.end());
+            } else {
+                g2.drawLine(line.start(), line.pos(), line.end(), line.pos());
+            }
+        }
+    } // --- Fin del metodo drawSmartGuides ---
+
+
     // ======================== OVERLAY ========================
 
 
     @Override
     public void paintOverlay(Graphics2D g2) {
+        drawSmartGuides(g2);
         if (!isShowGizmo()) return;
         List<Layer> targets = gizmoTargets();
         Rectangle gb = gizmoBounds(targets);
