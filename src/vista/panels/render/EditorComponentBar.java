@@ -15,6 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -33,6 +34,7 @@ import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButton;
@@ -59,6 +61,7 @@ import vista.config.ToolbarComponentDefinition;
 import vista.config.ToolbarDefinition;
 import vista.config.UIDefinitionService;
 import vista.util.IconUtils;
+import servicios.editor.EditorHistory;
 
 public class EditorComponentBar extends JPanel {
 
@@ -87,6 +90,11 @@ public class EditorComponentBar extends JPanel {
     private UIDefinitionService uiDefinitionService;
     private Color fgToolbar = Color.WHITE;
     private JButton distributeComboButton;
+    private JButton btnUndo;
+    private JButton btnRedo;
+    private JButton btnHistorial;
+    private boolean chkListenersInstalados;
+    private EditorHistory editorHistory;
 
     // Home mode state
     private boolean homeActive;
@@ -292,6 +300,9 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
 
     public void setIconUtils(IconUtils iconUtils) {
         this.iconUtils = iconUtils;
+        if (uiDefinitionService != null) {
+            buildRow1RightSide();
+        }
         repaint();
     } // --- Fin del metodo setIconUtils ---
 
@@ -376,6 +387,18 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         row1Right.removeAll();
         if (uiDefinitionService == null) return;
         Color bg = getBackground();
+
+        // Botones de historial (Deshacer / Rehacer / Historial)
+        btnUndo = crearBotonHistorial("82101-undo.png", "Deshacer (Ctrl+Z)",
+                () -> { if (editorHistory != null) editorHistory.undo(); });
+        btnRedo = crearBotonHistorial("82102-redo.png", "Rehacer (Ctrl+Y / Ctrl+Shift+Z)",
+                () -> { if (editorHistory != null) editorHistory.redo(); });
+        btnHistorial = crearBotonHistorial("82100-historial.png", "Historial de pasos",
+                this::mostrarHistorial);
+        row1Right.add(btnUndo);
+        row1Right.add(btnRedo);
+        row1Right.add(btnHistorial);
+
         // Separador
         row1Right.add(new JSeparator(SwingConstants.VERTICAL));
         // Checkboxes
@@ -390,10 +413,13 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
             chk.setOpaque(false);
             row1Right.add(chk);
         }
-        chkShowGizmo.addItemListener(e -> {
-            AdvanceEditPanel aep2 = findAdvanceEditPanel();
-            if (aep2 != null && aep2.getCanvas() != null) aep2.getCanvas().repaint();
-        });
+        if (!chkListenersInstalados) {
+            chkShowGizmo.addItemListener(e -> {
+                AdvanceEditPanel aep2 = findAdvanceEditPanel();
+                if (aep2 != null && aep2.getCanvas() != null) aep2.getCanvas().repaint();
+            });
+            chkListenersInstalados = true;
+        }
         // Separador
         row1Right.add(new JSeparator(SwingConstants.VERTICAL));
         // Combo selector Alinear
@@ -402,9 +428,86 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         // Combo selector Distribuir
         JButton btnDistrib = createIconComboButton(bg, false);
         if (btnDistrib != null) row1Right.add(btnDistrib);
+        updateHistoryButtons();
         row1Right.revalidate();
         row1Right.repaint();
     } // --- Fin del metodo buildRow1RightSide ---
+
+
+    /**
+     * Crea un botón de la zona de historial con icono y tooltip.
+     */
+    private JButton crearBotonHistorial(String icono, String tooltip, Runnable accion) {
+        JButton btn = new JButton();
+        if (iconUtils != null) {
+            ImageIcon icon = iconUtils.getScaledIcon(icono, 16, 16);
+            if (icon != null) btn.setIcon(icon);
+        }
+        btn.setToolTipText(tooltip);
+        btn.setFocusPainted(false);
+        btn.setPreferredSize(new Dimension(24, 22));
+        btn.setBackground(getBackground());
+        btn.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
+        btn.addActionListener(e -> accion.run());
+        return btn;
+    } // --- Fin del metodo crearBotonHistorial ---
+
+
+    /**
+     * Asigna el historial de undo/redo del documento del editor y actualiza el
+     * estado de los botones.
+     *
+     * @param history el historial del documento, o {@code null}
+     */
+    public void setEditorHistory(EditorHistory history) {
+        this.editorHistory = history;
+        updateHistoryButtons();
+    } // --- Fin del metodo setEditorHistory ---
+
+
+    /**
+     * Actualiza el estado habilitado de los botones Deshacer/Rehacer/Historial
+     * según el estado del historial.
+     */
+    public void updateHistoryButtons() {
+        if (btnUndo != null) {
+            btnUndo.setEnabled(editorHistory != null && editorHistory.canUndo());
+        }
+        if (btnRedo != null) {
+            btnRedo.setEnabled(editorHistory != null && editorHistory.canRedo());
+        }
+        if (btnHistorial != null) {
+            btnHistorial.setEnabled(editorHistory != null && !editorHistory.listaPasos().isEmpty());
+        }
+    } // --- Fin del metodo updateHistoryButtons ---
+
+
+    /**
+     * Muestra un menú desplegable con la lista de pasos del historial para
+     * saltar a cualquiera de ellos.
+     */
+    private void mostrarHistorial() {
+        if (editorHistory == null) return;
+        List<String> pasos = editorHistory.listaPasos();
+        if (pasos.isEmpty()) return;
+        JPopupMenu popup = new JPopupMenu();
+        int actual = editorHistory.indiceEstadoActual();
+        for (int i = 0; i < pasos.size(); i++) {
+            String etiqueta = (i == actual) ? "▶ " + pasos.get(i) : pasos.get(i);
+            JMenuItem item = new JMenuItem(etiqueta);
+            if (i == actual) {
+                item.setFont(item.getFont().deriveFont(Font.BOLD));
+                item.setEnabled(false);
+            }
+            final int indice = i;
+            item.addActionListener(ev -> {
+                editorHistory.saltarAPaso(indice);
+                updateHistoryButtons();
+            });
+            popup.add(item);
+        }
+        popup.show(btnHistorial, 0, btnHistorial.getHeight());
+    } // --- Fin del metodo mostrarHistorial ---
 
 
     private JButton createIconComboButton(Color bg, boolean isAlign) {
@@ -883,21 +986,11 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
     public void applyTextProperty(Consumer<modelo.editor.TextLayer> action) {
         if (canvasController == null) return;
 
-        // 1. Sincronizar TextTool si es la herramienta activa
-        if (canvasController.getActiveTool() instanceof TextTool tt) {
-            tt.syncFromComponentBar();
-            tt.syncInlineStyle();
+        if (editorHistory != null) {
+            editorHistory.record("Propiedades de texto", () -> aplicarTexto(action));
+        } else {
+            aplicarTexto(action);
         }
-
-        // 2. Aplicar la propiedad directamente sobre la capa de texto activa si existe
-        var layerModel = canvasController.getContext().layerModel();
-        if (layerModel != null && layerModel.getActiveLayer() instanceof modelo.editor.TextLayer tl) {
-            action.accept(tl);
-            canvasController.getContext().canvasPanel().repaint();
-        }
-
-        // 3. Notificar al panel derecho para que se sincronice
-        if (onTextChange != null) onTextChange.run();
     } // --- Fin del metodo applyTextProperty ---
 
 
@@ -920,6 +1013,29 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
 
 
     /**
+     * Aplica el {@link Consumer} de texto sobre la capa de texto activa,
+     * sincronizando previamente la herramienta de texto.
+     */
+    private void aplicarTexto(Consumer<modelo.editor.TextLayer> action) {
+        // 1. Sincronizar TextTool si es la herramienta activa
+        if (canvasController.getActiveTool() instanceof TextTool tt) {
+            tt.syncFromComponentBar();
+            tt.syncInlineStyle();
+        }
+
+        // 2. Aplicar la propiedad directamente sobre la capa de texto activa si existe
+        var layerModel = canvasController.getContext().layerModel();
+        if (layerModel != null && layerModel.getActiveLayer() instanceof modelo.editor.TextLayer tl) {
+            action.accept(tl);
+            canvasController.getContext().canvasPanel().repaint();
+        }
+
+        // 3. Notificar al panel derecho para que se sincronice
+        if (onTextChange != null) onTextChange.run();
+    } // --- Fin del metodo aplicarTexto ---
+
+
+    /**
      * Re-renderiza la capa de forma activa con los parámetros actuales del panel
      * de formas (tipo, relleno, borde, grosor). No hace nada si la capa activa no
      * es una forma.
@@ -927,6 +1043,18 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
     public void applyShapeProperty() {
         if (canvasController == null) return;
 
+        if (editorHistory != null) {
+            editorHistory.record("Propiedades de forma", this::aplicarForma);
+        } else {
+            aplicarForma();
+        }
+    } // --- Fin del metodo applyShapeProperty ---
+
+
+    /**
+     * Re-renderiza la capa de forma activa con los parámetros del panel de formas.
+     */
+    private void aplicarForma() {
         var layerModel = canvasController.getContext().layerModel();
         if (layerModel != null && layerModel.getActiveLayer() instanceof ImageLayer il
                 && il.getType() == ImageLayer.LayerType.SHAPE) {
@@ -937,7 +1065,7 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         }
 
         if (onShapeChange != null) onShapeChange.run();
-    } // --- Fin del metodo applyShapeProperty ---
+    } // --- Fin del metodo aplicarForma ---
 
 
     /**
@@ -2334,81 +2462,102 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
 
 
     private void crearNuevoLienzo(int w, int h, Color bgColor) {
-        AdvanceEditPanel aep = findAdvanceEditPanel();
-        if (aep == null) return;
+        Runnable operacion = () -> {
+            AdvanceEditPanel aep = findAdvanceEditPanel();
+            if (aep == null) return;
 
-        var cm = aep.getCanvas().getCanvasModel();
-        if (cm == null) return;
+            var cm = aep.getCanvas().getCanvasModel();
+            if (cm == null) return;
 
-        // Limpiar capas existentes
-        var lm = aep.getCanvas().getLayerModel();
-        if (lm != null) {
-            lm.clear();
+            // Limpiar capas existentes
+            var lm = aep.getCanvas().getLayerModel();
+            if (lm != null) {
+                lm.clear();
+            }
+
+            cm.setSize(w, h);
+            cm.setBackgroundColor(bgColor);
+            cm.setTransparent(false);
+            aep.getCanvas().repaint();
+
+            cerrarHome();
+        };
+        if (editorHistory != null) {
+            editorHistory.record("Nuevo lienzo", operacion);
+        } else {
+            operacion.run();
         }
-
-        cm.setSize(w, h);
-        cm.setBackgroundColor(bgColor);
-        cm.setTransparent(false);
-        aep.getCanvas().repaint();
-
-        cerrarHome();
     } // --- Fin del metodo crearNuevoLienzo ---
 
 
     private void aplicarMedidasLienzo(int w, int h, Color bgColor) {
-        AdvanceEditPanel aep = findAdvanceEditPanel();
-        if (aep == null) return;
+        Runnable operacion = () -> {
+            AdvanceEditPanel aep = findAdvanceEditPanel();
+            if (aep == null) return;
 
-        var cm = aep.getCanvas().getCanvasModel();
-        if (cm == null) return;
+            var cm = aep.getCanvas().getCanvasModel();
+            if (cm == null) return;
 
-        cm.setSize(w, h);
-        cm.setBackgroundColor(bgColor);
-        aep.getCanvas().repaint();
+            cm.setSize(w, h);
+            cm.setBackgroundColor(bgColor);
+            aep.getCanvas().repaint();
 
-        cerrarHome();
+            cerrarHome();
+        };
+        if (editorHistory != null) {
+            editorHistory.record("Redimensionar lienzo", operacion);
+        } else {
+            operacion.run();
+        }
     } // --- Fin del metodo aplicarMedidasLienzo ---
 
 
     private void ajustarLienzoAlContenido() {
-        AdvanceEditPanel aep = findAdvanceEditPanel();
-        if (aep == null) return;
+        Runnable operacion = () -> {
+            AdvanceEditPanel aep = findAdvanceEditPanel();
+            if (aep == null) return;
 
-        var cm = aep.getCanvas().getCanvasModel();
-        var lm = aep.getCanvas().getLayerModel();
-        if (cm == null || lm == null) return;
+            var cm = aep.getCanvas().getCanvasModel();
+            var lm = aep.getCanvas().getLayerModel();
+            if (cm == null || lm == null) return;
 
-        int minX = Integer.MAX_VALUE;
-        int minY = Integer.MAX_VALUE;
-        int maxX = Integer.MIN_VALUE;
-        int maxY = Integer.MIN_VALUE;
-        boolean hayContenido = false;
+            int minX = Integer.MAX_VALUE;
+            int minY = Integer.MAX_VALUE;
+            int maxX = Integer.MIN_VALUE;
+            int maxY = Integer.MIN_VALUE;
+            boolean hayContenido = false;
 
-        for (Layer layer : lm.getLayers()) {
-            if (!layer.isVisible()) continue;
-            Rectangle b = layer.getBounds();
-            if (b == null) continue;
-            hayContenido = true;
-            minX = Math.min(minX, b.x);
-            minY = Math.min(minY, b.y);
-            maxX = Math.max(maxX, b.x + b.width);
-            maxY = Math.max(maxY, b.y + b.height);
+            for (Layer layer : lm.getLayers()) {
+                if (!layer.isVisible()) continue;
+                Rectangle b = layer.getBounds();
+                if (b == null) continue;
+                hayContenido = true;
+                minX = Math.min(minX, b.x);
+                minY = Math.min(minY, b.y);
+                maxX = Math.max(maxX, b.x + b.width);
+                maxY = Math.max(maxY, b.y + b.height);
+            }
+
+            if (!hayContenido) return;
+
+            // Trasladar el contenido al origen sin modificar sus tamaños
+            for (Layer layer : lm.getLayers()) {
+                if (!layer.isVisible()) continue;
+                Rectangle b = layer.getBounds();
+                if (b == null) continue;
+                layer.setBounds(new Rectangle(b.x - minX, b.y - minY, b.width, b.height));
+            }
+
+            cm.setSize(maxX - minX, maxY - minY);
+            aep.getCanvas().repaint();
+
+            cerrarHome();
+        };
+        if (editorHistory != null) {
+            editorHistory.record("Ajustar lienzo al contenido", operacion);
+        } else {
+            operacion.run();
         }
-
-        if (!hayContenido) return;
-
-        // Trasladar el contenido al origen sin modificar sus tamaños
-        for (Layer layer : lm.getLayers()) {
-            if (!layer.isVisible()) continue;
-            Rectangle b = layer.getBounds();
-            if (b == null) continue;
-            layer.setBounds(new Rectangle(b.x - minX, b.y - minY, b.width, b.height));
-        }
-
-        cm.setSize(maxX - minX, maxY - minY);
-        aep.getCanvas().repaint();
-
-        cerrarHome();
     } // --- Fin del metodo ajustarLienzoAlContenido ---
 
 

@@ -41,6 +41,10 @@ public class CanvasController {
     private BooleanSupplier fullscreenEscapeHandler;
     private Runnable contentChangeCallback;
     private Runnable pasteCallback;
+    private Runnable gestureStartCallback;
+    private Runnable undoCallback;
+    private Runnable redoCallback;
+    private Runnable deleteCallback;
     private boolean panning;
     private int lastPanX;
     private int lastPanY;
@@ -272,6 +276,49 @@ public class CanvasController {
 
 
     /**
+     * Registra el callback que se invoca al INICIO de un gesto de una
+     * herramienta que modifica contenido (antes de la primera mutación).
+     * Permite al historial de undo/redo abrir una transacción de gesto.
+     *
+     * @param gestureStartCallback callback de inicio de gesto, o null
+     */
+    public void setGestureStartCallback(Runnable gestureStartCallback) {
+        this.gestureStartCallback = gestureStartCallback;
+    } // --- Fin del metodo setGestureStartCallback ---
+
+
+    /**
+     * Registra el callback de deshacer (Ctrl+Z) del editor.
+     *
+     * @param undoCallback callback de deshacer, o null
+     */
+    public void setUndoCallback(Runnable undoCallback) {
+        this.undoCallback = undoCallback;
+    } // --- Fin del metodo setUndoCallback ---
+
+
+    /**
+     * Registra el callback de rehacer (Ctrl+Y / Ctrl+Shift+Z) del editor.
+     *
+     * @param redoCallback callback de rehacer, o null
+     */
+    public void setRedoCallback(Runnable redoCallback) {
+        this.redoCallback = redoCallback;
+    } // --- Fin del metodo setRedoCallback ---
+
+
+    /**
+     * Registra el callback de borrado de la capa seleccionada (Supr /
+     * Retroceso) del editor.
+     *
+     * @param deleteCallback callback de borrado, o null
+     */
+    public void setDeleteCallback(Runnable deleteCallback) {
+        this.deleteCallback = deleteCallback;
+    } // --- Fin del metodo setDeleteCallback ---
+
+
+    /**
      * Notifica al documento que el contenido ha cambiado (llamado por las
      * herramientas modificadoras al completar un gesto).
      */
@@ -312,15 +359,37 @@ public class CanvasController {
 
         @Override
         public void mousePressed(MouseEvent e) {
-            // Paneo: con el botón central siempre; con el izquierdo solo si el
-            // clic cae fuera del lienzo (zona oscura, "el canvas como fondo").
-            if (e.getButton() == MouseEvent.BUTTON2
-                    || (e.getButton() == MouseEvent.BUTTON1 && isOutsideCanvas(e.getX(), e.getY()))) {
-                startPan(e);
-                return;
+            // Paneo: botón central siempre; botón izquierdo solo si el clic cae
+            // fuera del lienzo Y no hay una capa bajo el cursor. Una capa puede
+            // sobresalir del lienzo, por lo que el clic sobre ella (dentro o
+            // fuera) debe llegar a la herramienta para seleccionarla/arrastrarla
+            // igual que si estuviera dentro.
+            boolean botonIzqFuera = e.getButton() == MouseEvent.BUTTON1
+                    && isOutsideCanvas(e.getX(), e.getY());
+            if (e.getButton() == MouseEvent.BUTTON2 || botonIzqFuera) {
+                boolean capaBajoCursor = false;
+                if (botonIzqFuera) {
+                    Point p = toCanvasCoords(e);
+                    capaBajoCursor = layerPicker.findLayerAt(p) != null;
+                }
+                if (!capaBajoCursor) {
+                    startPan(e);
+                    if (botonIzqFuera) {
+                        // Pulsar fuera del lienzo sobre zona vacía deselecciona
+                        // todas las capas
+                        if (sharedContext.selectionModel() != null) {
+                            sharedContext.selectionModel().clear();
+                        }
+                        layerPicker.clearSelection();
+                    }
+                    return;
+                }
             }
             if (activeTool == null) return;
             canvasPanel.requestFocusInWindow();
+            if (activeTool.modifiesContent() && gestureStartCallback != null) {
+                gestureStartCallback.run();
+            }
             Point cp = toCanvasCoords(e);
             MouseEvent canvasEvent = new MouseEvent(
                     (java.awt.Component) e.getSource(), e.getID(),
@@ -417,9 +486,37 @@ public class CanvasController {
                 return;
             }
             if ((modifiers & KeyEvent.CTRL_DOWN_MASK) != 0
+                    && e.getKeyCode() == KeyEvent.VK_Z) {
+                if ((modifiers & KeyEvent.SHIFT_DOWN_MASK) != 0) {
+                    if (redoCallback != null) {
+                        redoCallback.run();
+                    }
+                } else if (undoCallback != null) {
+                    undoCallback.run();
+                }
+                e.consume();
+                return;
+            }
+            if ((modifiers & KeyEvent.CTRL_DOWN_MASK) != 0
+                    && e.getKeyCode() == KeyEvent.VK_Y) {
+                if (redoCallback != null) {
+                    redoCallback.run();
+                }
+                e.consume();
+                return;
+            }
+            if ((modifiers & KeyEvent.CTRL_DOWN_MASK) != 0
                     && e.getKeyCode() == KeyEvent.VK_V) {
                 if (pasteCallback != null) {
                     pasteCallback.run();
+                }
+                e.consume();
+                return;
+            }
+            if (clean && (e.getKeyCode() == KeyEvent.VK_DELETE
+                    || e.getKeyCode() == KeyEvent.VK_BACK_SPACE)) {
+                if (deleteCallback != null) {
+                    deleteCallback.run();
                 }
                 e.consume();
                 return;

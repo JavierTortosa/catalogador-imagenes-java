@@ -148,14 +148,15 @@
             panear cuando el lienzo cubre todo el panel.</li>
         <li><strong>Paneo con el botón izquierdo (el lienzo como capa de fondo):</strong> el área
             oscura que rodea al lienzo actúa como el fondo de la composición. Si pulsas y arrastras
-            con el <strong>botón izquierdo</strong> sobre esa <strong>zona oscura (fuera del lienzo)</strong>,
-            se mueve el lienzo. Si el clic cae <strong>dentro del lienzo</strong>, el comportamiento
-            es el normal: sobre una capa la selecciona y la mueve, y sobre el fondo del lienzo opera
-            la herramienta activa.</li>
+            con el <strong>botón izquierdo</strong> sobre esa <strong>zona oscura (fuera del lienzo)</strong>
+            y <strong>no hay ninguna capa bajo el cursor</strong>, se mueve el lienzo y además se
+            deseleccionan todas las capas. Una capa puede sobresalir del lienzo: si el clic (dentro
+            o fuera del lienzo) cae sobre una capa, se selecciona y se arrastra como es normal.</li>
     </ul>
     <p>
         Durante el paneo el cursor cambia al modo <em>mover</em>. Las herramientas solo actúan
-        dentro del lienzo; la zona oscura siempre paneea.
+        dentro del lienzo; la zona oscura paneea (salvo cuando hay una capa bajo el cursor, que se
+        selecciona).
     </p>
 
     <h2>Controles de Color</h2>
@@ -202,6 +203,9 @@
         <tr><td><strong>Z</strong></td><td>Zoom</td></tr>
         <tr><td><strong>F</strong></td><td>Pantalla completa (activar / desactivar)</td></tr>
         <tr><td><strong>Ctrl+V</strong></td><td>Pegar imagen del portapapeles como nueva capa</td></tr>
+        <tr><td><strong>Ctrl+Z</strong></td><td>Deshacer el último paso del historial</td></tr>
+        <tr><td><strong>Ctrl+Y</strong> / <strong>Ctrl+Shift+Z</strong></td><td>Rehacer el siguiente paso del historial</td></tr>
+        <tr><td><strong>Supr</strong> / <strong>Retroceso</strong></td><td>Eliminar la capa o capas seleccionadas</td></tr>
         <tr><td><strong>Esc</strong></td><td>Cancelar: edición de texto inline, arrastre en curso o
             deseleccionar la capa activa (no sale de pantalla completa)</td></tr>
     </table>
@@ -239,6 +243,33 @@
         <tr><td><strong>Texto</strong></td><td><em>Ver <a href="#texto">sección específica</a>.</em></td></tr>
         <tr><td>Formas</td><td>Relleno (color), borde (color) y grosor de borde.</td></tr>
     </table>
+
+    <h2 id="historial">Historial de Pasos (Undo / Redo)</h2>
+    <p>
+        El editor mantiene un <strong>historial de hasta 50 pasos</strong> por documento. Cada paso
+        guarda una copia completa del lienzo (tamaño, color de fondo, transparencia) y de todas las
+        capas (imagen clonada en profundidad), de modo que deshacer restaura el estado exacto,
+        incluidos los cambios de píxeles como el bote de pintura o el degradado.
+    </p>
+    <ul>
+        <li><strong>Deshacer</strong> (<strong>Ctrl+Z</strong>) — deshace el último paso.</li>
+        <li><strong>Rehacer</strong> (<strong>Ctrl+Y</strong> o <strong>Ctrl+Shift+Z</strong>) — rehace el paso anulado.</li>
+        <li><strong>Historial</strong> — el botón central abre un menú con la lista de pasos; el paso
+            actual se marca con <strong>▶</strong> y negrita. Pulsa cualquier paso para saltar a él
+            (deshaciendo o rehaciendo automáticamente los necesarios).</li>
+    </ul>
+    <p>
+        Los tres botones viven en la fila superior de la <em>Barra de Opciones Superior</em>, a la
+        izquierda de los checkboxes y de los combos de alineación. Se habilitan/deshabilitan según
+        haya pasos que deshacer o rehacer.
+    </p>
+    <p>
+        <strong>¿Qué genera un paso?</strong> Los gestos de arrastre de herramienta se agrupan en un
+        único paso (p. ej. mover, transformar o pintar de una sola vez). Las operaciones discretas
+        (alinear, distribuir, espaciar, auto distribuir, propiedades de texto/forma, pegar imagen,
+        nuevo/redimensionar lienzo, opacidad) se registran con su propio nombre. El historial se
+        reinicia al crear, abrir o cargar un documento nuevo.
+    </p>
 
     <h2 id="texto">Herramienta Texto</h2>
     <p>
@@ -615,7 +646,8 @@
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_70303-delete-layer.png"></td>
-            <td><strong>Borrar capa:</strong> Elimina la capa actualmente seleccionada.</td>
+            <td><strong>Borrar capa:</strong> Elimina la capa actualmente seleccionada. Atajo:
+                <strong>Supr</strong> o <strong>Retroceso</strong>.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_70201-bring-to-front.png"></td>

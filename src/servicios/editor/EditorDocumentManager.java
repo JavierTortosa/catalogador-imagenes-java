@@ -68,6 +68,9 @@ public class EditorDocumentManager {
     /** Listener fijo que marca el documento como sucio ante cambios del modelo de capas. */
     private final Runnable capasChangeListener = () -> notificarModificacion();
 
+    /** Historial de undo/redo del documento (creado al asignar modelos). */
+    private EditorHistory history;
+
     /** Nombre original del documento capturado al abrir una sesi\u00F3n de recuperaci\u00F3n. */
     private String nombreRecuperado;
 
@@ -119,8 +122,24 @@ public class EditorDocumentManager {
         this.layerModel = layerModel;
         if (layerModel != null) {
             layerModel.addChangeListener(capasChangeListener);
+            if (history == null) {
+                history = new EditorHistory(layerModel, canvasModel);
+            } else {
+                history.rebind(layerModel, canvasModel);
+            }
         }
     } // --- Fin del metodo setDocument ---
+
+
+    /**
+     * Devuelve el historial de undo/redo del documento, o {@code null} si aún
+     * no se han asignado modelos.
+     *
+     * @return el historial del documento, o {@code null}
+     */
+    public EditorHistory getHistory() {
+        return history;
+    } // --- Fin del metodo getHistory ---
 
 
     public void setDirtyNotifier(Runnable dirtyNotifier) {
@@ -140,9 +159,13 @@ public class EditorDocumentManager {
 
 
     /**
-     * Marca el documento como modificado (sucio).
+     * Marca el documento como modificado (sucio) y notifica al historial de
+     * undo/redo (cierre de gesto o captura automática).
      */
     public void notificarModificacion() {
+        if (history != null) {
+            history.onNotified();
+        }
         if (!this.dirty) {
             this.dirty = true;
             notifyDirty();
@@ -284,6 +307,9 @@ public class EditorDocumentManager {
         this.archivoActivo = null;
         this.nombreDocumento = NOMBRE_SIN_TITULO;
         this.dirty = false;
+        if (history != null) {
+            history.clear();
+        }
         notifyDirty();
         logger.info("[EditorDocumentManager] Nuevo documento creado.");
     } // --- Fin del metodo nuevoDocumento ---
@@ -325,6 +351,9 @@ public class EditorDocumentManager {
         try (Reader reader = new FileReader(rutaArchivo.toFile())) {
             EditorDoc doc = gson.fromJson(reader, EditorDoc.class);
             aplicarDocumento(doc, rutaArchivo.toAbsolutePath().getParent());
+            if (history != null) {
+                history.clear();
+            }
             this.nombreRecuperado = (doc != null) ? doc.nombreDocumento : null;
             this.archivoActivo = rutaArchivo;
             this.nombreDocumento = nombreDesdeRuta(rutaArchivo);

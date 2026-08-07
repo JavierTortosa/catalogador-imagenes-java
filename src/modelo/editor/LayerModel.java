@@ -177,6 +177,29 @@ public class LayerModel {
     } // --- Fin del metodo clear ---
 
 
+    /**
+     * Reemplaza por completo el contenido del modelo (capas, selección y capa
+     * activa) con el estado dado. Lo usa únicamente el historial de undo/redo
+     * para restaurar un snapshot. Dispara {@code fireChanged()} una sola vez.
+     *
+     * @param nuevasCapas capas en el orden de apilado (z) que se adoptan tal cual
+     * @param seleccion   índices seleccionados (puede ser {@code null})
+     * @param activa      índice de la capa activa
+     */
+    public void restaurarEstado(List<Layer> nuevasCapas, Set<Integer> seleccion, int activa) {
+        layers.clear();
+        if (nuevasCapas != null) {
+            layers.addAll(nuevasCapas);
+        }
+        selectedIndices.clear();
+        if (seleccion != null) {
+            selectedIndices.addAll(seleccion);
+        }
+        this.activeIndex = activa;
+        fireChanged();
+    } // --- Fin del metodo restaurarEstado ---
+
+
     // ==================== MULTISELECCIÓN ====================
 
 
@@ -228,6 +251,22 @@ public class LayerModel {
         selectedIndices.clear();
         fireChanged();
     } // --- Fin del metodo clearSelection ---
+
+
+    /**
+     * Deselecciona todo: limpia la selección múltiple y deja sin capa activa,
+     * disparando {@code fireChanged()} una sola vez. Es la operación completa
+     * de "deseleccionar todas las capas" (a diferencia de {@link #clearSelection}
+     * y {@link #setActiveLayer(int)} que solo limpian una de las dos cosas).
+     */
+    public void clearAllSelection() {
+        boolean huboCambios = !selectedIndices.isEmpty() || activeIndex >= 0;
+        selectedIndices.clear();
+        activeIndex = -1;
+        if (huboCambios) {
+            fireChanged();
+        }
+    } // --- Fin del metodo clearAllSelection ---
 
 
     public boolean isSelected(int index) {

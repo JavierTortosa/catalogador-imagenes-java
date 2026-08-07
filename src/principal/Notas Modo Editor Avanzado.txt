@@ -409,6 +409,13 @@ PANEO DEL CANVAS [HECHO]
   canvasH*zoom). Asi, pulsar sobre una capa mueve la capa (dentro del lienzo)
   y pulsar sobre el fondo mueve el canvas. El boton central sigue panendo en
   cualquier sitio (util si el lienzo cubre todo el panel).
+- Fix (3a parte, capas que sobresalen del lienzo): una capa puede estar mitad
+  dentro y mitad fuera del canvas. Ahora el clic izquierdo fuera del lienzo NO
+  panea si hay una capa bajo el cursor (layerPicker.findLayerAt en coordenadas
+  del canvas): el clic llega a la herramienta y selecciona/arrastra la capa
+  igual que dentro del lienzo. Si el clic fuera del lienzo cae sobre zona
+  vacia (sin capa), panea Y deselecciona todas las capas (clearAllSelection +
+  selectionModel.clear), que es lo que espera el usuario al pulsar fuera.
 - No se uso Espacio+arrastre porque el GlobalInputManager (KeyEventDispatcher
   global) consume VK_SPACE para CMD_PROYECTO_TOGGLE_MARCA. Compila EXIT=0.
 
@@ -440,3 +447,76 @@ PANEL "DISPOSICION" + REFERENCIA DE ALINEACION [HECHO]
   Photoshop): 100,100 + 200,200 -> centro 150. Confirmado. Distribuir y
   Espaciar conservan su semantica de extremos (primera/ultima fijas);
   AutoDistributeActions sigue usando el lienzo. Compila (mvn compile EXIT=0).
+
+HISTORIAL UNDO/REDO [HECHO]
+- Todo original en src/principal/VisorV2.java:52 (bloque EDITOR AVANZADO).
+- Alcance: SOLO el documento del Modo Editor (slot EDITOR). El slot RENDER
+  queda fuera: los callbacks de gesto/undo/redo llevan el guard
+  editorDocumentoCargadoEnPanel.
+- Arquitectura: servicios/editor/EditorHistory.java -> historial con snapshots
+  inmutables del documento (lienzo w/h/fondo/transparente + capas clonadas en
+  profundidad + seleccion + capa activa). MAX_PASOS=50. Se suscribe a los
+  cambios estructurales del LayerModel (auto-commit por comparacion
+  mismoContenido, que IGNORA la seleccion) y recibe onNotified() desde
+  EditorDocumentManager.notificarModificacion().
+- Clonado profundo SIEMPRE (decision): Layer.copiaParaHistorial() +
+  Layer.mismoEstado(Layer) anadidos a la interfaz; ImageLayer (clona el
+  BufferedImage via Graphics2D.drawImage, conserva id/nombre/srcPath) y
+  TextLayer (copia fields rich text). ImageLayer.copy()/TextLayer.copy() NO se
+  usan (generan UUID nuevo y sufijo " (copia)").
+- Gestos: CanvasController.mousePressed dispara gestureStartCallback (si la
+  herramienta modifica contenido) -> RenderController.iniciarGestoEditor ->
+  beginGesture(nombreHerramienta, esPixeles). La transaccion agrupa las
+  mutaciones del arrastre; al soltar, notifyContentChanged ->
+  notificarModificacion -> onNotified cierra la transaccion y empuja el paso.
+  El bote de pintura (PaintBucketTool) marca esPixeles=true: muta pixeles
+  in-place y no es detectable por comparacion, asi que el paso se fuerza.
+- Operaciones discretas con nombre: record(nombre, op) en
+  AdvanceEditPanel.ejecutarConHistorial (Alinear/Distribuir/Espacio/Auto
+  distribuir), EditorComponentBar.applyTextProperty/applyShapeProperty
+  (Propiedades de texto/forma), crearNuevoLienzo/aplicarMedidasLienzo/
+  ajustarLienzoAlContenido (Nuevo lienzo/Redimensionar lienzo/Ajustar lienzo),
+  RenderController.pegarImagenEditor (Pegar imagen). El slider de opacidad usa
+  beginGesture/endGesture con MouseListener -> 1 paso por arrastre ("Opacidad").
+- EditorDocumentManager.setDocument crea o rebindea el historial (rebind
+  resuscribe el listener del LayerModel y hace clear). nuevoDocumento y
+  abrirDocumento hacen clear tras aplicar. notificarModificacion delega primero
+  en history.onNotified() y despues en la logica de dirty.
+- Capas del documento actual: restaurarEstado(List<Layer>, Set<Integer>, int)
+  en LayerModel (un solo fireChanged). Flag aplicando en EditorHistory evita
+  re-entradas (el fireChanged de restaurarEstado dispararia autoCommit).
+- UI: EditorComponentBar.buildRow1RightSide ahora prepone 3 botones antes de
+  los checkboxes/combos: Deshacer (82101-undo.png, Ctrl+Z), Rehacer
+  (82102-redo.png, Ctrl+Y / Ctrl+Shift+Z) e Historial (82100-historial.png,
+  abre JPopupMenu con listaPasos, paso actual con ">" + negrita, clic salta).
+  setEditorHistory conecta el historial y updateHistoryButtons refresca
+  enabled. El cambio de estado del historial llega por setCambioCallback
+  conectado desde RenderController.conectarHistorialConBarra.
+- Atajos: CanvasController.KeyHandler maneja Ctrl+Z (undo), Ctrl+Y y
+  Ctrl+Shift+Z (redo) cuando el documento del editor esta cargado.
+- Icons aportados por el usuario en resources/iconos/{black,white}/:
+  82100-historial.png, 82101-undo.png, 82102-redo.png.
+- LayerModel solo notifica cambios estructurales (los setBounds/propiedades
+  son silenciosos); por eso las propiedades de texto/forma/opacidad van
+  envueltas en record/gesto.
+- Pendiente si se quiere pulir: cambios de visibilidad/nombre/bloqueo desde
+  LayerCardPanel son silenciosos y viajan en el siguiente paso estructural
+  (autoCommit). Compila (mvn compile EXIT=0).
+
+ATAJO BORRAR CAPA (Supr / Retroceso) [HECHO]
+- Supr o Retroceso en el canvas (con el documento del EDITOR cargado) elimina
+  la capa activa o, si hay seleccion multiple, todas las capas seleccionadas.
+  La operacion se registra en el historial como paso "Eliminar capa" (undo/redo
+  cubre el borrado).
+- CanvasController: nuevo callback deleteCallback + setDeleteCallback; el
+  KeyHandler lo dispara con clean && (VK_DELETE || VK_BACK_SPACE) y consume el
+  evento (se excluye con Ctrl/Alt/Meta para no interferir con otros atajos).
+- RenderController: setDeleteCallback(this::borrarCapaEditor) en la
+  inicializacion del canvas; borrarCapaEditor() guarda editorDocumentoCargadoEn
+  Panel, obtiene los indices de la seleccion (o la activa si no hay), los
+  ordena descendente y ejecuta lm.removeLayer(idx) dentro de
+  history.record("Eliminar capa", ...). Despues refresca barra y canvas.
+- Borrar en orden descendente de indices originales: correcto porque
+  removeLayer + adjustIndicesAfterRemove mantienen validos los menores.
+- Ayuda: editor_avanzado.html tabla de atajos + fila "Borrar capa" del panel de
+  capas. Compila (mvn compile EXIT=0).

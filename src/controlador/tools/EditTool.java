@@ -227,7 +227,8 @@ public class EditTool extends Tool {
         }
 
         // 5. Iniciar arrastre para mover las capas seleccionadas, o
-        //    deseleccionar si se pulsa en vac\u00EDo
+        //    deseleccionar si se pulsa en vacío (fuera de toda capa, tanto si la
+        //    auto-selección está activa como si no)
         active = model().getActiveLayer();
         List<Layer> targets = gizmoTargets();
         Rectangle gb = gizmoBounds(targets);
@@ -235,7 +236,7 @@ public class EditTool extends Tool {
             dragging = true;
             dragStart = p;
             move = picker().beginMove(p, targets);
-        } else if (isAutoSelect() && !ctrl && !shift) {
+        } else if (!ctrl && !shift && picker().findLayerAt(p) == null) {
             picker().clearSelection();
         }
     } // --- Fin del metodo mousePressed ---

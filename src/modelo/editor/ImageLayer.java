@@ -39,7 +39,12 @@ public class ImageLayer implements Layer {
     private String srcPath;
 
     public ImageLayer(String name, BufferedImage image, Rectangle bounds) {
-        this.id = UUID.randomUUID().toString();
+        this(UUID.randomUUID().toString(), name, image, bounds);
+    } // --- Fin del constructor ImageLayer ---
+
+
+    private ImageLayer(String id, String name, BufferedImage image, Rectangle bounds) {
+        this.id = id;
         this.name = Objects.requireNonNull(name);
         this.image = image;
         this.bounds = bounds;
@@ -47,7 +52,7 @@ public class ImageLayer implements Layer {
         this.locked = false;
         this.opacity = 1.0f;
         this.type = LayerType.IMAGE;
-    } // --- Fin del constructor ImageLayer ---
+    } // --- Fin del constructor privado ImageLayer ---
 
     public String getId() {
         return id;
@@ -225,5 +230,63 @@ public class ImageLayer implements Layer {
         clone.rotation = this.rotation;
         return clone;
     } // --- Fin del metodo copy ---
+
+
+    @Override
+    public ImageLayer copiaParaHistorial() {
+        ImageLayer clone = new ImageLayer(this.id, this.name, clonarImagen(this.image),
+                this.bounds != null ? new Rectangle(this.bounds) : null);
+        clone.visible = this.visible;
+        clone.locked = this.locked;
+        clone.opacity = this.opacity;
+        clone.type = this.type;
+        clone.shapeType = this.shapeType;
+        clone.shapeFill = this.shapeFill;
+        clone.shapeStroke = this.shapeStroke;
+        clone.shapeStrokeWidth = this.shapeStrokeWidth;
+        clone.shapeRenderW = this.shapeRenderW;
+        clone.shapeRenderH = this.shapeRenderH;
+        clone.rotation = this.rotation;
+        clone.srcPath = this.srcPath;
+        return clone;
+    } // --- Fin del metodo copiaParaHistorial ---
+
+
+    @Override
+    public boolean mismoEstado(Layer otra) {
+        if (!(otra instanceof ImageLayer o)) return false;
+        if (this.bounds == null || o.bounds == null) return this.bounds == o.bounds;
+        return Objects.equals(this.name, o.name)
+                && this.bounds.equals(o.bounds)
+                && Double.compare(this.rotation, o.rotation) == 0
+                && this.visible == o.visible
+                && this.locked == o.locked
+                && Float.compare(this.opacity, o.opacity) == 0
+                && this.type == o.type
+                && Objects.equals(this.shapeType, o.shapeType)
+                && Objects.equals(this.shapeFill, o.shapeFill)
+                && Objects.equals(this.shapeStroke, o.shapeStroke)
+                && Float.compare(this.shapeStrokeWidth, o.shapeStrokeWidth) == 0
+                && this.shapeRenderW == o.shapeRenderW
+                && this.shapeRenderH == o.shapeRenderH
+                && Objects.equals(this.srcPath, o.srcPath);
+    } // --- Fin del metodo mismoEstado ---
+
+
+    private static BufferedImage clonarImagen(BufferedImage img) {
+        if (img == null) return null;
+        int tipo = img.getType();
+        if (tipo == BufferedImage.TYPE_CUSTOM || tipo == BufferedImage.TYPE_BYTE_BINARY) {
+            tipo = BufferedImage.TYPE_INT_ARGB;
+        }
+        BufferedImage copia = new BufferedImage(img.getWidth(), img.getHeight(), tipo);
+        Graphics2D g = copia.createGraphics();
+        try {
+            g.drawImage(img, 0, 0, null);
+        } finally {
+            g.dispose();
+        }
+        return copia;
+    } // --- Fin del metodo clonarImagen ---
 
 } // --- Fin de la clase ImageLayer ---

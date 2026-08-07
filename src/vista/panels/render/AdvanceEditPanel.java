@@ -100,6 +100,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     private boolean homeActive;
     private LayerCardPanel layerCardPanel;
     private modelo.editor.LayerModel editorLayerModel;
+    private servicios.editor.EditorHistory editorHistory;
     private IconUtils iconUtils;
     private UIDefinitionService uiDefinitionService;
     private ThemeManager themeManager;
@@ -588,6 +589,18 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
     } // --- Fin del metodo setActiveTool ---
 
 
+    /**
+     * Asigna el historial de undo/redo del documento del editor para registrar
+     * las operaciones de disposición (alinear, distribuir, espaciar y auto
+     * distribuir).
+     *
+     * @param history el historial del documento, o {@code null}
+     */
+    public void setEditorHistory(servicios.editor.EditorHistory history) {
+        this.editorHistory = history;
+    } // --- Fin del metodo setEditorHistory ---
+
+
     public void setCanvasController(CanvasController cc) {
         this.canvasController = cc;
         componentBar.setCanvasController(cc);
@@ -848,6 +861,21 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         JLabel opVal = new JLabel("100%");
         opVal.setForeground(fgToolbar);
         opVal.setFont(opVal.getFont().deriveFont(10f));
+        opSlider.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (editorHistory != null) {
+                    editorHistory.beginGesture("Opacidad", false);
+                }
+            } // --- Fin del metodo mousePressed ---
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (editorHistory != null) {
+                    editorHistory.endGesture();
+                }
+            } // --- Fin del metodo mouseReleased ---
+        });
         opSlider.addChangeListener(e -> {
             int v = opSlider.getValue();
             opVal.setText(v + "%");
@@ -1218,16 +1246,19 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
      */
     private Action createActionFromCommand(String cmd) {
         if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_FIXED.equals(cmd)) {
-            return simpleAction(() -> AutoDistributeActions.distribucionFija(
-                    canvasPanel, editorLayerModel, canvasPanel.getCanvasModel()));
+            return simpleAction(() -> ejecutarConHistorial("Auto distribuir",
+                    () -> AutoDistributeActions.distribucionFija(
+                            canvasPanel, editorLayerModel, canvasPanel.getCanvasModel())));
         }
         if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_LAYER.equals(cmd)) {
-            return simpleAction(() -> AutoDistributeActions.distribucionPorCapa(
-                    canvasPanel, editorLayerModel, canvasPanel.getCanvasModel()));
+            return simpleAction(() -> ejecutarConHistorial("Auto distribuir",
+                    () -> AutoDistributeActions.distribucionPorCapa(
+                            canvasPanel, editorLayerModel, canvasPanel.getCanvasModel())));
         }
         if (AppActionCommands.CMD_PREVIEW_RENDER_AUTO_DISTRIBUTE_CANVAS.equals(cmd)) {
-            return simpleAction(() -> AutoDistributeActions.escalarParaAjustar(
-                    canvasPanel, editorLayerModel, canvasPanel.getCanvasModel()));
+            return simpleAction(() -> ejecutarConHistorial("Auto distribuir",
+                    () -> AutoDistributeActions.escalarParaAjustar(
+                            canvasPanel, editorLayerModel, canvasPanel.getCanvasModel())));
         }
 
         Integer hMode = null;
@@ -1248,8 +1279,9 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         if (hMode != null || vMode != null) {
             final int h = (hMode != null) ? hMode : LayerDistributionActions.ALIGN_NONE;
             final int v = (vMode != null) ? vMode : LayerDistributionActions.ALIGN_NONE;
-            return simpleAction(() -> LayerDistributionActions.alinear(
-                    canvasPanel, editorLayerModel, canvasPanel.getCanvasModel(), h, v));
+            return simpleAction(() -> ejecutarConHistorial("Alinear",
+                    () -> LayerDistributionActions.alinear(
+                            canvasPanel, editorLayerModel, canvasPanel.getCanvasModel(), h, v)));
         }
 
         Integer distMode = null;
@@ -1268,17 +1300,20 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         }
         if (distMode != null) {
             final int mode = distMode;
-            return simpleAction(() -> LayerDistributionActions.distribuir(
-                    canvasPanel, editorLayerModel, mode));
+            return simpleAction(() -> ejecutarConHistorial("Distribuir",
+                    () -> LayerDistributionActions.distribuir(
+                            canvasPanel, editorLayerModel, mode)));
         }
 
         if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_HORIZONTAL_SPACE.equals(cmd)) {
-            return simpleAction(() -> LayerDistributionActions.espaciar(
-                    canvasPanel, editorLayerModel, true));
+            return simpleAction(() -> ejecutarConHistorial("Espacio",
+                    () -> LayerDistributionActions.espaciar(
+                            canvasPanel, editorLayerModel, true)));
         }
         if (AppActionCommands.CMD_PREVIEW_RENDER_DISTRIBUTE_VERTICAL_SPACE.equals(cmd)) {
-            return simpleAction(() -> LayerDistributionActions.espaciar(
-                    canvasPanel, editorLayerModel, false));
+            return simpleAction(() -> ejecutarConHistorial("Espacio",
+                    () -> LayerDistributionActions.espaciar(
+                            canvasPanel, editorLayerModel, false)));
         }
 
         return simpleAction(() -> { });
@@ -1299,6 +1334,22 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             }
         };
     } // --- Fin del metodo simpleAction ---
+
+
+    /**
+     * Ejecuta una operación discreta registrándola en el historial de undo/redo
+     * del documento del editor cuando este está disponible.
+     *
+     * @param nombre nombre descriptivo del paso
+     * @param operacion operación a ejecutar
+     */
+    private void ejecutarConHistorial(String nombre, Runnable operacion) {
+        if (editorHistory != null) {
+            editorHistory.record(nombre, operacion);
+        } else {
+            operacion.run();
+        }
+    } // --- Fin del metodo ejecutarConHistorial ---
 
 
     private JButton createAddLayerButton(ToolbarButtonDefinition def) {

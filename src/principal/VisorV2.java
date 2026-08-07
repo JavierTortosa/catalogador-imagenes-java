@@ -49,7 +49,6 @@ public class VisorV2 {
     // TODO implementar guias de alineado 
     // TODO implementar el scanner -> 70009-scanner.png -> CMD_RENDER_PROCESAR_HUERFANOS 
     // FIXME que pasa si hay cambios pendiente de guardar en el editor y en proyecto?
-    // TODO implementar el historial con undo y redo
     // TODO a la hora de copiar una imagen a ver si podemos copiar el contenido de una seleccion y luego pegarla
     // TODO añadir el popupmenu al editor
         

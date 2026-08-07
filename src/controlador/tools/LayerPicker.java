@@ -116,11 +116,12 @@ public class LayerPicker {
     } // --- Fin del metodo activateLayerAt ---
 
     /**
-     * Deselecciona la capa activa y limpia la barra de opciones.
+     * Deselecciona todas las capas (activa y selección múltiple) y limpia la
+     * barra de opciones.
      */
     public void clearSelection() {
         if (ctx.layerModel() == null) return;
-        ctx.layerModel().setActiveLayer(-1);
+        ctx.layerModel().clearAllSelection();
         if (ctx.componentBar() != null) {
             ctx.componentBar().updateEditLayerFields(null);
         }

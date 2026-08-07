@@ -1825,6 +1825,10 @@ public class RenderController {
             canvasController.setActiveTool(AppActionCommands.CMD_ADVANCED_EDITOR_EDICION);
             canvasController.setContentChangeCallback(this::notificarModificacionDocumentoActivo);
             canvasController.setPasteCallback(this::pegarImagenEditor);
+            canvasController.setGestureStartCallback(this::iniciarGestoEditor);
+            canvasController.setUndoCallback(this::deshacerEditor);
+            canvasController.setRedoCallback(this::rehacerEditor);
+            canvasController.setDeleteCallback(this::borrarCapaEditor);
         }
         editorDocumentoCargadoEnPanel = false;
     } // --- Fin del metodo inicializarCanvasEditor ---
@@ -1869,6 +1873,7 @@ public class RenderController {
             // setLayerModel reinstala el listener de la vista (limpia los demás),
             // así que se re-engancha el de suciedad del documento del editor.
             editorDocumentManager.setDocument(cm, lm);
+            conectarHistorialConBarra();
         }
         if (canvasController != null) {
             canvasController.setContext(cm, lm, aep.getCanvas().getSelectionModel(), transformGizmo);
@@ -1888,6 +1893,147 @@ public class RenderController {
             editorDocumentManager.notificarModificacion();
         }
     } // --- Fin del metodo notificarModificacionDocumentoActivo ---
+
+
+    /**
+     * Conecta el historial de undo/redo del documento del editor con la barra
+     * de opciones (botones Deshacer/Rehacer/Historial) y los callbacks de
+     * notificación.
+     */
+    private void conectarHistorialConBarra() {
+        if (editorDocumentManager == null) return;
+        var history = editorDocumentManager.getHistory();
+        if (history == null) return;
+        var aep = panel.getAdvanceEditPanel();
+        if (aep == null) return;
+        aep.setEditorHistory(history);
+        var bar = aep.getComponentBar();
+        if (bar != null) {
+            bar.setEditorHistory(history);
+        }
+        history.setCambioCallback(() -> {
+            if (aep.getComponentBar() != null) {
+                aep.getComponentBar().updateHistoryButtons();
+            }
+        });
+        if (bar != null) {
+            bar.updateHistoryButtons();
+        }
+    } // --- Fin del metodo conectarHistorialConBarra ---
+
+
+    /**
+     * Abre una transacción de undo/redo al inicio de un gesto de herramienta
+     * que modifica contenido, etiquetándola con el nombre de la herramienta.
+     */
+    private void iniciarGestoEditor() {
+        if (!editorDocumentoCargadoEnPanel) return;
+        var history = getOrCreateEditorDocumentManager().getHistory();
+        if (history == null) return;
+        String nombre = servicios.editor.EditorHistory.NOMBRE_PASO_GENERICO;
+        boolean esPixeles = false;
+        if (canvasController != null && canvasController.getActiveTool() != null) {
+            var tool = canvasController.getActiveTool();
+            esPixeles = tool instanceof controlador.tools.PaintBucketTool;
+            nombre = nombreHerramienta(tool.getCommandKey());
+        }
+        // Cierra una transacción pendiente que haya podido quedar abierta
+        // (p. ej. un clic de selección en una herramienta marcada como modificadora)
+        history.endGesture();
+        history.beginGesture(nombre, esPixeles);
+    } // --- Fin del metodo iniciarGestoEditor ---
+
+
+    /**
+     * Deshace el último paso del historial del documento del editor (Ctrl+Z).
+     */
+    private void deshacerEditor() {
+        if (!editorDocumentoCargadoEnPanel) return;
+        var history = getOrCreateEditorDocumentManager().getHistory();
+        if (history != null) {
+            history.undo();
+        }
+    } // --- Fin del metodo deshacerEditor ---
+
+
+    /**
+     * Rehace el siguiente paso del historial del documento del editor
+     * (Ctrl+Y / Ctrl+Shift+Z).
+     */
+    private void rehacerEditor() {
+        if (!editorDocumentoCargadoEnPanel) return;
+        var history = getOrCreateEditorDocumentManager().getHistory();
+        if (history != null) {
+            history.redo();
+        }
+    } // --- Fin del metodo rehacerEditor ---
+
+
+    /**
+     * Elimina las capas seleccionadas del documento del editor (Supr /
+     * Retroceso). Si no hay selección múltiple, elimina la capa activa. La
+     * operación se registra en el historial como "Eliminar capa".
+     */
+    private void borrarCapaEditor() {
+        if (!editorDocumentoCargadoEnPanel) return;
+        var aep = panel.getAdvanceEditPanel();
+        if (aep == null) return;
+        var lm = aep.getCanvas().getLayerModel();
+        if (lm == null || lm.size() == 0) return;
+
+        List<Integer> indices = new ArrayList<>(lm.getSelectedIndices());
+        if (indices.isEmpty()) {
+            int activa = lm.getActiveIndex();
+            if (activa >= 0) {
+                indices.add(activa);
+            }
+        }
+        if (indices.isEmpty()) return;
+        indices.sort((a, b) -> Integer.compare(b, a));
+
+        var history = getOrCreateEditorDocumentManager().getHistory();
+        Runnable operacion = () -> {
+            for (int idx : indices) {
+                lm.removeLayer(idx);
+            }
+        };
+        if (history != null) {
+            history.record("Eliminar capa", operacion);
+        } else {
+            operacion.run();
+        }
+
+        var bar = aep.getComponentBar();
+        if (bar != null) {
+            bar.updateEditLayerFields(lm.getActiveLayer());
+        }
+        aep.getCanvas().repaint();
+    } // --- Fin del metodo borrarCapaEditor ---
+
+
+    /**
+     * Traduce el comando canónico de una herramienta a un nombre legible para
+     * el paso de historial.
+     *
+     * @param cmd comando canónico de la herramienta
+     * @return nombre legible del paso
+     */
+    private String nombreHerramienta(String cmd) {
+        if (cmd == null) return servicios.editor.EditorHistory.NOMBRE_PASO_GENERICO;
+        return switch (cmd) {
+            case AppActionCommands.CMD_ADVANCED_EDITOR_EDICION -> "Edición";
+            case AppActionCommands.CMD_ADVANCED_EDITOR_TRANSFORMAR -> "Transformar";
+            case AppActionCommands.CMD_ADVANCED_EDITOR_SELECCION_MARCO -> "Selección marco";
+            case AppActionCommands.CMD_ADVANCED_EDITOR_SELECCION_CAPA -> "Selección de capa";
+            case AppActionCommands.CMD_ADVANCED_EDITOR_VARITA -> "Varita mágica";
+            case AppActionCommands.CMD_ADVANCED_EDITOR_RECORTAR -> "Recortar";
+            case AppActionCommands.CMD_ADVANCED_EDITOR_BOTE_PINTURA -> "Bote de pintura";
+            case AppActionCommands.CMD_ADVANCED_EDITOR_DEGRADADO -> "Degradado";
+            case AppActionCommands.CMD_ADVANCED_EDITOR_TEXTO -> "Texto";
+            case AppActionCommands.CMD_ADVANCED_EDITOR_FORMAS -> "Formas";
+            default -> servicios.editor.EditorHistory.NOMBRE_PASO_GENERICO;
+        };
+    } // --- Fin del metodo nombreHerramienta ---
 
 
     private void refrescarTituloEditor() {
@@ -1953,24 +2099,34 @@ public class RenderController {
             return;
         }
 
-        if (img.getWidth() > cm.getWidth() || img.getHeight() > cm.getHeight()) {
-            int w = Math.max(1, Math.min(img.getWidth(), cm.getWidth()));
-            int h = Math.max(1, Math.min(img.getHeight(), cm.getHeight()));
-            BufferedImage scaled = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g = scaled.createGraphics();
-            g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
-                    java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-            g.drawImage(img, 0, 0, w, h, null);
-            g.dispose();
-            img = scaled;
-        }
+        var history = editorDocumentoCargadoEnPanel && editorDocumentManager != null
+                ? editorDocumentManager.getHistory() : null;
+        Runnable operacion = () -> {
+            BufferedImage finalImg = img;
+            if (finalImg.getWidth() > cm.getWidth() || finalImg.getHeight() > cm.getHeight()) {
+                int w = Math.max(1, Math.min(finalImg.getWidth(), cm.getWidth()));
+                int h = Math.max(1, Math.min(finalImg.getHeight(), cm.getHeight()));
+                BufferedImage scaled = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g = scaled.createGraphics();
+                g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
+                        java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                g.drawImage(finalImg, 0, 0, w, h, null);
+                g.dispose();
+                finalImg = scaled;
+            }
 
-        int x = (cm.getWidth() - img.getWidth()) / 2;
-        int y = (cm.getHeight() - img.getHeight()) / 2;
-        modelo.editor.ImageLayer layer = new modelo.editor.ImageLayer("Imagen pegada",
-                img, new java.awt.Rectangle(x, y, img.getWidth(), img.getHeight()));
-        lm.addLayer(layer);
-        lm.setActiveLayer(layer);
+            int x = (cm.getWidth() - finalImg.getWidth()) / 2;
+            int y = (cm.getHeight() - finalImg.getHeight()) / 2;
+            modelo.editor.ImageLayer layer = new modelo.editor.ImageLayer("Imagen pegada",
+                    finalImg, new java.awt.Rectangle(x, y, finalImg.getWidth(), finalImg.getHeight()));
+            lm.addLayer(layer);
+            lm.setActiveLayer(layer);
+        };
+        if (history != null) {
+            history.record("Pegar imagen", operacion);
+        } else {
+            operacion.run();
+        }
         notificarModificacionDocumentoActivo();
         refrescarUiEditor();
         logger.info("[RenderController] Imagen pegada como nueva capa en el editor.");

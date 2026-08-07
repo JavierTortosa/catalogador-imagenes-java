@@ -48,4 +48,23 @@ public interface Layer {
      */
     Layer copy();
 
+    /**
+     * Crea una copia profunda preservando {@code id} y {@code name}, con la
+     * imagen clonada en las capas raster. La usa el historial de undo/redo
+     * para construir snapshots inmutables del documento.
+     *
+     * @return copia profunda con el mismo identificador y nombre
+     */
+    Layer copiaParaHistorial();
+
+    /**
+     * Compara el estado editable de esta capa con otra (propiedades, bounds,
+     * rotación, visibilidad, bloqueo, opacidad y campos específicos del tipo).
+     * No compara el contenido de píxeles de las imágenes.
+     *
+     * @param otra la capa con la que comparar
+     * @return {@code true} si ambas capas son equivalentes
+     */
+    boolean mismoEstado(Layer otra);
+
 } // --- Fin de la interfaz Layer ---

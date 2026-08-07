@@ -663,4 +663,41 @@ public class TextLayer implements Layer {
                 rotation);
     } // --- Fin del metodo copy ---
 
+
+    @Override
+    public Layer copiaParaHistorial() {
+        return new TextLayer(
+                id, name,
+                text, font, color,
+                alignment, vertical, underline, strikethrough, flowColumns, lineSpacing,
+                bounds != null ? new Rectangle(bounds) : null,
+                opacity, visible, locked, autoSize,
+                runs != null ? new ArrayList<>(runs) : null,
+                rotation);
+    } // --- Fin del metodo copiaParaHistorial ---
+
+
+    @Override
+    public boolean mismoEstado(Layer otra) {
+        if (!(otra instanceof TextLayer o)) return false;
+        if (this.bounds == null || o.bounds == null) return this.bounds == o.bounds;
+        return Objects.equals(this.name, o.name)
+                && Objects.equals(this.text, o.text)
+                && Objects.equals(this.font, o.font)
+                && Objects.equals(this.color, o.color)
+                && this.alignment == o.alignment
+                && this.vertical == o.vertical
+                && this.underline == o.underline
+                && this.strikethrough == o.strikethrough
+                && this.flowColumns == o.flowColumns
+                && Float.compare(this.lineSpacing, o.lineSpacing) == 0
+                && this.autoSize == o.autoSize
+                && this.visible == o.visible
+                && this.locked == o.locked
+                && Float.compare(this.opacity, o.opacity) == 0
+                && Double.compare(this.rotation, o.rotation) == 0
+                && this.bounds.equals(o.bounds)
+                && Objects.equals(this.runs, o.runs);
+    } // --- Fin del metodo mismoEstado ---
+
 } // --- Fin de la clase TextLayer ---
