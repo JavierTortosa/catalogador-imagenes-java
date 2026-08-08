@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.69.20";
+        version = "V2.69.30";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -44,7 +44,6 @@ public class VisorV2 {
 
     // EDITOR AVANZADO
     
-    // TODO implementar el invertir seleccion en las herramientas de seleccion-> 80015-invertir-seleccion.png
     // TODO implementar el scanner -> 70009-scanner.png -> CMD_RENDER_PROCESAR_HUERFANOS 
     // TODO añadir el popupmenu al editor
         
@@ -70,6 +69,7 @@ public class VisorV2 {
     // TODO revision de los botones. Hay botones que no deberian estar en algunos modos y otros que deberian estar disabled
     // TODO revision de popupmenu. que popup se abre donde. hay popups que faltan y otros que no tienen las opciones como toca
     // TODO revisar que las ayudas esten completas y contienen toda la informacion de los SRS
+    // TODO revisar la ayuda, sobre todo la parte de configuracion avanzada
     
     
     // VISUALIZADOR

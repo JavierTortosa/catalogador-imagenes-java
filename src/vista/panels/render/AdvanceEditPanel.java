@@ -621,6 +621,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         componentBar.setOnTextChange(this::syncToolsFromBar);
         componentBar.setOnShapeChange(this::syncToolsFromBar);
         componentBar.setOnInvertSelection(this::invertirSeleccion);
+        componentBar.setOnInvertPixelSelection(this::invertirSeleccionPixeles);
         canvasController.setFullscreenToggle(this::toggleFullscreen);
         canvasController.setFullscreenEscapeHandler(() -> false);
         layerCardPanel.setOnDoubleClick(textLayer -> {
@@ -648,6 +649,21 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             canvasPanel.repaint();
         }
     } // --- Fin del metodo invertirSeleccion ---
+
+
+    /**
+     * Invierte la selección de píxeles respecto a todo el lienzo. Si no había
+     * selección, pasa a estar todo seleccionado; si ya lo estaba, queda vacía.
+     */
+    public void invertirSeleccionPixeles() {
+        if (canvasPanel == null || canvasPanel.getSelectionModel() == null) return;
+        modelo.editor.SelectionModel sm = canvasPanel.getSelectionModel();
+        int w = (canvasPanel.getCanvasModel() != null) ? canvasPanel.getCanvasModel().getWidth() : 0;
+        int h = (canvasPanel.getCanvasModel() != null) ? canvasPanel.getCanvasModel().getHeight() : 0;
+        if (w <= 0 || h <= 0) return;
+        sm.invert(new Rectangle(0, 0, w, h));
+        canvasPanel.repaint();
+    } // --- Fin del metodo invertirSeleccionPixeles ---
 
 
     private void selectToolButton(String commandKey) {

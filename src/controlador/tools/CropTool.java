@@ -36,7 +36,8 @@ public class CropTool extends Tool {
         boolean keepOriginal = ctx.componentBar().isCropKeepOriginal();
         boolean eliminar = "eliminar".equals(ctx.componentBar().getCropMode());
 
-        Rectangle sel = ctx.selectionModel().getBounds();
+        var sm = ctx.selectionModel();
+        Rectangle sel = sm.getBounds();
         BufferedImage img = layer.getImage();
         if (img == null) return;
 
@@ -55,19 +56,52 @@ public class CropTool extends Tool {
         int ih = Math.min(rh, img.getHeight() - iy);
         if (iw <= 0 || ih <= 0) return;
 
+        int imgW = img.getWidth();
+        int imgH = img.getHeight();
+
         if (eliminar) {
-            // Modo eliminar: borra el contenido seleccionado (transparencia)
-            Graphics2D clearG = img.createGraphics();
-            clearG.setComposite(java.awt.AlphaComposite.Clear);
-            clearG.fillRect(ix, iy, iw, ih);
-            clearG.dispose();
+            // Modo eliminar: borra el contenido seleccionado (transparencia).
+            // Con máscara se borra solo la forma irregular; sin ella, el rect.
+            if (sm.hasMask()) {
+                java.util.BitSet maskImg = new java.util.BitSet(imgW * imgH);
+                for (int y = iy; y < iy + ih; y++) {
+                    for (int x = ix; x < ix + iw; x++) {
+                        int cx = lx + (int) ((long) x * layer.getBounds().width / imgW);
+                        int cy = ly + (int) ((long) y * layer.getBounds().height / imgH);
+                        if (sm.contains(cx, cy)) {
+                            maskImg.set(y * imgW + x);
+                        }
+                    }
+                }
+                layer.clearMask(maskImg);
+            } else {
+                Graphics2D clearG = img.createGraphics();
+                clearG.setComposite(java.awt.AlphaComposite.Clear);
+                clearG.fillRect(ix, iy, iw, ih);
+                clearG.dispose();
+            }
         } else {
-            // Modo nueva capa: extrae el contenido a una capa nueva
-            BufferedImage sub = img.getSubimage(ix, iy, iw, ih);
+            // Modo nueva capa: extrae el contenido a una capa nueva. Con
+            // máscara, el fondo queda transparente (recorte de la forma real).
             BufferedImage copy = new BufferedImage(iw, ih, BufferedImage.TYPE_INT_ARGB);
-            Graphics2D g2 = copy.createGraphics();
-            g2.drawImage(sub, 0, 0, null);
-            g2.dispose();
+            if (sm.hasMask()) {
+                for (int y = 0; y < ih; y++) {
+                    for (int x = 0; x < iw; x++) {
+                        int sx = ix + x;
+                        int sy = iy + y;
+                        int cx = lx + (int) ((long) sx * layer.getBounds().width / imgW);
+                        int cy = ly + (int) ((long) sy * layer.getBounds().height / imgH);
+                        if (sm.contains(cx, cy)) {
+                            copy.setRGB(x, y, img.getRGB(sx, sy));
+                        }
+                    }
+                }
+            } else {
+                BufferedImage sub = img.getSubimage(ix, iy, iw, ih);
+                Graphics2D g2 = copy.createGraphics();
+                g2.drawImage(sub, 0, 0, null);
+                g2.dispose();
+            }
 
             Rectangle newBounds = new Rectangle(lx + ix, ly + iy, iw, ih);
             ImageLayer newLayer = new ImageLayer(

@@ -68,23 +68,15 @@ public class MarqueeSelectionTool extends Tool {
         var sm = ctx.selectionModel();
 
         if (currentRect != null && currentRect.width > 2 && currentRect.height > 2 && sm != null) {
-            Rectangle previo = sm.isActive() ? sm.getBounds() : null;
-
             if (shift && alt) {
-                // Intersección: nuevo marco ∩ selección anterior
-                Rectangle inter = (previo != null) ? previo.intersection(currentRect) : currentRect;
-                if (inter.width > 0 && inter.height > 0) {
-                    sm.setBounds(inter);
-                } else {
-                    sm.clear();
-                }
+                // Intersección: nueva selección ∩ anterior
+                sm.intersect(currentRect);
             } else if (shift) {
                 // Añadir: unión de la selección anterior con el nuevo marco
-                Rectangle union = (previo != null) ? previo.union(currentRect) : currentRect;
-                sm.setBounds(union);
+                sm.union(currentRect);
             } else if (alt) {
-                // Resta: no representable con el modelo rectangular (se excluye)
-                // Sin acción: la selección anterior permanece intacta.
+                // Resta: quitar de la selección la zona del nuevo marco
+                sm.subtract(currentRect);
             } else {
                 sm.setBounds(currentRect);
             }
@@ -98,6 +90,7 @@ public class MarqueeSelectionTool extends Tool {
         dragging = false;
         startPoint = null;
         currentRect = null;
+        ctx.canvasPanel().repaint();
     } // --- Fin del metodo mouseReleased ---
 
 

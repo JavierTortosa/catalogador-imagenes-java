@@ -142,6 +142,11 @@ public class EditorComponentBar extends JPanel {
 
     public void setOnInvertSelection(Runnable r) { this.invertSelectionCallback = r; }
 
+    // Se dispara al pulsar el botón de invertir selección de píxeles
+    private Runnable invertPixelSelectionCallback;
+
+    public void setOnInvertPixelSelection(Runnable r) { this.invertPixelSelectionCallback = r; }
+
     // --- Retención de componentes del panel de texto ---
     private JComboBox<String> textFontCombo;
     private JComboBox<Integer> textSizeCombo;
@@ -406,6 +411,9 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         // Botón de invertir selección (a la derecha de la toolbar de historial)
         row1Right.add(crearBotonHistorial("80015-invertir-seleccion.png", "Invertir selección (Ctrl+Shift+I)",
                 () -> { if (invertSelectionCallback != null) invertSelectionCallback.run(); }));
+        // Botón de invertir selección de píxeles (para eliminar fondos)
+        row1Right.add(crearBotonHistorial("80015-invertir-seleccion.png", "Invertir selección de píxeles",
+                () -> { if (invertPixelSelectionCallback != null) invertPixelSelectionCallback.run(); }));
 
         // Separador
         row1Right.add(new JSeparator(SwingConstants.VERTICAL));

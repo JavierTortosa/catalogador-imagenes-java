@@ -61,30 +61,31 @@ public class PaintBucketTool extends Tool {
         int h = img.getHeight();
 
         // Si hay una selección de píxeles activa, el relleno se limita a ella
-        Rectangle limitImg = selectionLimitInImage(b, w, h);
-        if (limitImg != null && !limitImg.contains(mx, my)) return;
+        BitSet limitMask = selectionLimitInImage(b, w, h);
+        if (limitMask != null && !limitMask.get(my * w + mx)) return;
 
         if (contiguous) {
-            floodFill(img, w, h, mx, my, targetRgb, tolerance, fillRgb, limitImg);
+            floodFill(img, w, h, mx, my, targetRgb, tolerance, fillRgb, limitMask);
         } else {
-            fillAllMatching(img, w, h, targetRgb, tolerance, fillRgb, limitImg);
+            fillAllMatching(img, w, h, targetRgb, tolerance, fillRgb, limitMask);
         }
 
         ctx.canvasPanel().repaint();
     } // --- Fin del metodo mousePressed ---
 
     /**
-     * Convierte el rectángulo de la {@code SelectionModel} (coordenadas de
-     * canvas) al espacio de píxeles de la capa, considerando la escala entre el
-     * bounds y el tamaño real de la imagen.
+     * Convierte la {@code SelectionModel} (coordenadas de canvas) a una
+     * <strong>máscara de píxeles</strong> de la capa, considerando la escala
+     * entre el bounds y el tamaño real de la imagen. Cada bit a 1 indica un
+     * píxel de imagen dentro de la selección (forma irregular incluida).
      *
      * @param b bounds de la capa en el canvas
      * @param w ancho de la imagen
      * @param h alto de la imagen
-     * @return rectángulo de imagen que limita la operación, o null si no hay
+     * @return máscara de imagen que limita la operación, o null si no hay
      *         selección activa o la selección no cruza la capa
      */
-    private Rectangle selectionLimitInImage(Rectangle b, int w, int h) {
+    private BitSet selectionLimitInImage(Rectangle b, int w, int h) {
         if (ctx.selectionModel() == null || !ctx.selectionModel().isActive()) return null;
         Rectangle sel = ctx.selectionModel().getBounds();
 
@@ -94,7 +95,18 @@ public class PaintBucketTool extends Tool {
         int hiY = Math.min(h - 1, (int) ((long) (sel.y + sel.height - b.y) * h / b.height));
 
         if (hiX < loX || hiY < loY) return null;
-        return new Rectangle(loX, loY, hiX - loX + 1, hiY - loY + 1);
+
+        BitSet mask = new BitSet(w * h);
+        for (int y = loY; y <= hiY; y++) {
+            for (int x = loX; x <= hiX; x++) {
+                int cx = b.x + (int) ((long) x * b.width / w);
+                int cy = b.y + (int) ((long) y * b.height / h);
+                if (ctx.selectionModel().contains(cx, cy)) {
+                    mask.set(y * w + x);
+                }
+            }
+        }
+        return mask;
     } // --- Fin del metodo selectionLimitInImage ---
 
     /**
@@ -128,7 +140,7 @@ public class PaintBucketTool extends Tool {
 
     private void floodFill(BufferedImage img, int w, int h,
             int sx, int sy, int targetRgb, int tolerance, int fillRgb,
-            Rectangle limitImg) {
+            BitSet limitMask) {
         BitSet visited = new BitSet(w * h);
         Deque<Integer> queue = new ArrayDeque<>();
         int startIdx = sy * w + sx;
@@ -141,24 +153,28 @@ public class PaintBucketTool extends Tool {
             int py = idx / w;
             img.setRGB(px, py, fillRgb);
 
-            checkNeighbor(img, w, h, px - 1, py, targetRgb, tolerance, visited, queue, limitImg);
-            checkNeighbor(img, w, h, px + 1, py, targetRgb, tolerance, visited, queue, limitImg);
-            checkNeighbor(img, w, h, px, py - 1, targetRgb, tolerance, visited, queue, limitImg);
-            checkNeighbor(img, w, h, px, py + 1, targetRgb, tolerance, visited, queue, limitImg);
+            checkNeighbor(img, w, h, px - 1, py, targetRgb, tolerance, visited, queue, limitMask);
+            checkNeighbor(img, w, h, px + 1, py, targetRgb, tolerance, visited, queue, limitMask);
+            checkNeighbor(img, w, h, px, py - 1, targetRgb, tolerance, visited, queue, limitMask);
+            checkNeighbor(img, w, h, px, py + 1, targetRgb, tolerance, visited, queue, limitMask);
         }
     } // --- Fin del metodo floodFill ---
 
     private void fillAllMatching(BufferedImage img, int w, int h,
-            int targetRgb, int tolerance, int fillRgb, Rectangle limitImg) {
+            int targetRgb, int tolerance, int fillRgb, BitSet limitMask) {
         int x0 = 0, y0 = 0, x1 = w - 1, y1 = h - 1;
-        if (limitImg != null) {
-            x0 = limitImg.x;
-            y0 = limitImg.y;
-            x1 = limitImg.x + limitImg.width - 1;
-            y1 = limitImg.y + limitImg.height - 1;
+        if (limitMask != null) {
+            int first = limitMask.nextSetBit(0);
+            int last = limitMask.previousSetBit(w * h - 1);
+            if (first < 0) return;
+            x0 = first % w;
+            y0 = first / w;
+            x1 = last % w;
+            y1 = last / w;
         }
         for (int y = y0; y <= y1; y++) {
             for (int x = x0; x <= x1; x++) {
+                if (limitMask != null && !limitMask.get(y * w + x)) continue;
                 if (colorDistance(img.getRGB(x, y), targetRgb) <= tolerance) {
                     img.setRGB(x, y, fillRgb);
                 }
@@ -168,10 +184,10 @@ public class PaintBucketTool extends Tool {
 
     private void checkNeighbor(BufferedImage img, int w, int h,
             int x, int y, int targetRgb, int tolerance,
-            BitSet visited, Deque<Integer> queue, Rectangle limitImg) {
+            BitSet visited, Deque<Integer> queue, BitSet limitMask) {
         if (x < 0 || x >= w || y < 0 || y >= h) return;
-        if (limitImg != null && !limitImg.contains(x, y)) return;
         int idx = y * w + x;
+        if (limitMask != null && !limitMask.get(idx)) return;
         if (visited.get(idx)) return;
         visited.set(idx);
 

@@ -96,6 +96,27 @@ public class ImageLayer implements Layer {
         }
     } // --- Fin del metodo clearRegion ---
 
+    /**
+     * Hace transparentes los píxeles de la imagen marcados en la máscara
+     * (forma irregular de una selección). No modifica los bounds de la capa.
+     *
+     * @param maskImg máscara de píxeles a borrar en coordenadas de imagen
+     *                (orden row-major, tamaño {@code w*h}); puede exceder el
+     *                tamaño real, los índices fuera de rango se ignoran
+     */
+    public void clearMask(java.util.BitSet maskImg) {
+        if (image == null || maskImg == null) return;
+        int w = image.getWidth();
+        int h = image.getHeight();
+        int limit = w * h;
+        for (int i = maskImg.nextSetBit(0); i >= 0; i = maskImg.nextSetBit(i + 1)) {
+            if (i >= limit) break;
+            int x = i % w;
+            int y = i / w;
+            image.setRGB(x, y, 0x00000000);
+        }
+    } // --- Fin del metodo clearMask ---
+
     public Rectangle getBounds() {
         return bounds;
     } // --- Fin del metodo getBounds ---

@@ -11,14 +11,15 @@ import java.util.Deque;
 import controlador.commands.AppActionCommands;
 import modelo.editor.ImageLayer;
 import modelo.editor.Layer;
+import modelo.editor.SelectionModel;
 
 /**
  * Herramienta varita mágica.
  * <p>
  * Selecciona píxeles de color similar partiendo del punto pulsado, usando BFS
- * con tolerancia. El resultado se representa como un rectángulo delimitador
- * sobre el {@code SelectionModel}. Lee tolerancia y modo contiguo desde la
- * barra de opciones (Parte B).
+ * con tolerancia. El resultado se representa como una <strong>máscara de
+ * píxeles</strong> (la forma real de la zona) sobre el {@code SelectionModel}.
+ * Lee tolerancia y modo contiguo desde la barra de opciones (Parte B).
  * <p>
  * Operación estilo Photoshop: la varita actúa sobre la capa bajo el cursor
  * (activándola si la auto-selección está marcada); si no hay capa bajo el
@@ -51,6 +52,8 @@ public class MagicWandTool extends Tool {
         boolean contiguous = ctx.componentBar().isWandContiguous();
         int targetRgb = img.getRGB(mx, my) & 0x00FFFFFF;
 
+        // Zona seleccionada en espacio de imagen (forma real de la varita)
+        BitSet imgMask = new BitSet(imgW * imgH);
         int minX = mx, maxX = mx, minY = my, maxY = my;
 
         if (contiguous) {
@@ -59,6 +62,7 @@ public class MagicWandTool extends Tool {
             int startIdx = my * imgW + mx;
             queue.add(startIdx);
             visited.set(startIdx);
+            imgMask.set(startIdx);
 
             while (!queue.isEmpty()) {
                 int idx = queue.poll();
@@ -70,16 +74,17 @@ public class MagicWandTool extends Tool {
                 if (py < minY) minY = py;
                 if (py > maxY) maxY = py;
 
-                checkNeighbor(img, imgW, imgH, px - 1, py, targetRgb, tolerance, visited, queue);
-                checkNeighbor(img, imgW, imgH, px + 1, py, targetRgb, tolerance, visited, queue);
-                checkNeighbor(img, imgW, imgH, px, py - 1, targetRgb, tolerance, visited, queue);
-                checkNeighbor(img, imgW, imgH, px, py + 1, targetRgb, tolerance, visited, queue);
+                checkNeighbor(img, imgW, imgH, px - 1, py, targetRgb, tolerance, visited, queue, imgMask);
+                checkNeighbor(img, imgW, imgH, px + 1, py, targetRgb, tolerance, visited, queue, imgMask);
+                checkNeighbor(img, imgW, imgH, px, py - 1, targetRgb, tolerance, visited, queue, imgMask);
+                checkNeighbor(img, imgW, imgH, px, py + 1, targetRgb, tolerance, visited, queue, imgMask);
             }
         } else {
             for (int y = 0; y < imgH; y++) {
                 for (int x = 0; x < imgW; x++) {
                     int pixel = img.getRGB(x, y) & 0x00FFFFFF;
                     if (colorDistance(pixel, targetRgb) <= tolerance) {
+                        imgMask.set(y * imgW + x);
                         if (x < minX) minX = x;
                         if (x > maxX) maxX = x;
                         if (y < minY) minY = y;
@@ -96,8 +101,26 @@ public class MagicWandTool extends Tool {
         int fh = Math.max(1, (int) ((long) (maxY - minY + 1) * b.height / imgH));
 
         if (ctx.selectionModel() != null) {
-            ctx.selectionModel().setBounds(new Rectangle(fx, fy, fw, fh));
-            ctx.selectionModel().setFeather(ctx.componentBar().getFeatherAmount());
+            boolean shift = (e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) != 0;
+            var sm = ctx.selectionModel();
+            // Construir la nueva zona como selección independiente
+            SelectionModel zona = new SelectionModel();
+            zona.setBounds(new Rectangle(fx, fy, fw, fh));
+            zona.setFeather(ctx.componentBar().getFeatherAmount());
+            zona.setMaskFromPredicate((cx, cy) -> {
+                int ix = (int) ((long) (cx - b.x) * imgW / b.width);
+                int iy = (int) ((long) (cy - b.y) * imgH / b.height);
+                if (ix < 0 || iy < 0 || ix >= imgW || iy >= imgH) return false;
+                return imgMask.get(iy * imgW + ix);
+            });
+            if (shift && sm.isActive()) {
+                // Shift: añadir a la selección ya existente
+                sm.unionMask(zona.getMask(), zona.getBounds());
+            } else {
+                sm.setBounds(zona.getBounds());
+                sm.setMask(zona.getMask());
+            }
+            sm.setFeather(ctx.componentBar().getFeatherAmount());
         }
         ctx.canvasPanel().repaint();
     } // --- Fin del metodo mousePressed ---
@@ -130,7 +153,7 @@ public class MagicWandTool extends Tool {
 
     private void checkNeighbor(BufferedImage img, int w, int h,
             int x, int y, int targetRgb, int tolerance,
-            BitSet visited, Deque<Integer> queue) {
+            BitSet visited, Deque<Integer> queue, BitSet imgMask) {
         if (x < 0 || x >= w || y < 0 || y >= h) return;
         int idx = y * w + x;
         if (visited.get(idx)) return;
@@ -140,6 +163,7 @@ public class MagicWandTool extends Tool {
         if (isTransparent(rgb)) return;
         if (colorDistance(rgb & 0x00FFFFFF, targetRgb) <= tolerance) {
             queue.add(idx);
+            imgMask.set(idx);
         }
     } // --- Fin del metodo checkNeighbor ---
 

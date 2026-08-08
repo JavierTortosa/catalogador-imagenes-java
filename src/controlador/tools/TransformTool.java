@@ -185,7 +185,7 @@ public class TransformTool extends Tool {
         if (newBounds == null) return;
         if (targetMarco()) {
             if (ctx.selectionModel() != null) {
-                ctx.selectionModel().setBounds(newBounds);
+                ctx.selectionModel().transformBounds(newBounds);
             }
         } else if (targets.size() == 1) {
             targets.get(0).setBounds(newBounds);

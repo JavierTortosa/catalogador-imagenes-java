@@ -9,6 +9,7 @@ import java.awt.RenderingHints;
 import java.awt.Stroke;
 
 import javax.swing.JPanel;
+import javax.swing.Timer;
 
 import controlador.tools.CanvasController;
 import controlador.tools.Tool;
@@ -35,9 +36,19 @@ public class CanvasPanel extends JPanel {
     private double offsetX = 0;
     private double offsetY = 0;
 
+    // Hormigueo de la selección (marching ants)
+    private static final float[] DASH_PATTERN = new float[]{4f, 4f};
+    private static final float DASH_LEN = 4f;
+    private Timer antsTimer;
+    private int antsPhase;
+
     public CanvasPanel() {
         setOpaque(true);
         setBackground(new Color(0x33, 0x33, 0x33));
+        antsTimer = new Timer(120, e -> {
+            antsPhase++;
+            repaint();
+        });
         addMouseWheelListener(e -> {
             double oldZoom = zoom;
             double factor = e.getWheelRotation() < 0 ? 1.15 : 0.87;
@@ -110,11 +121,27 @@ public class CanvasPanel extends JPanel {
     } // --- Fin del metodo setPan ---
 
     @Override
+    public void removeNotify() {
+        if (antsTimer != null) {
+            antsTimer.stop();
+        }
+        super.removeNotify();
+    } // --- Fin del metodo removeNotify ---
+
+    @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        // Sincronizar el hormigueo: activo solo mientras haya selección
+        boolean haySeleccion = selectionModel != null && selectionModel.isActive();
+        if (haySeleccion && !antsTimer.isRunning()) {
+            antsTimer.start();
+        } else if (!haySeleccion && antsTimer.isRunning()) {
+            antsTimer.stop();
+        }
 
         int panelW = getWidth();
         int panelH = getHeight();
@@ -178,15 +205,23 @@ public class CanvasPanel extends JPanel {
 
         // Draw selection overlay
         if (selectionModel != null && selectionModel.isActive()) {
-            Rectangle sel = selectionModel.getBounds();
-            g2.setColor(new Color(0, 120, 215, 60));
-            g2.fill(sel);
-            Stroke origSel = g2.getStroke();
-            g2.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_BUTT,
-                    BasicStroke.JOIN_BEVEL, 0, new float[]{4f, 4f}, 0));
-            g2.setColor(new Color(0, 120, 215));
-            g2.draw(sel);
-            g2.setStroke(origSel);
+            if (selectionModel.hasMask()) {
+                drawMaskSelectionOverlay(g2, selectionModel);
+            } else {
+                Rectangle sel = selectionModel.getBounds();
+                g2.setColor(new Color(0, 120, 215, 60));
+                g2.fill(sel);
+                Stroke origSel = g2.getStroke();
+                g2.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_BUTT,
+                        BasicStroke.JOIN_BEVEL, 0, DASH_PATTERN, antsPhase));
+                g2.setColor(Color.BLACK);
+                g2.draw(sel);
+                g2.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_BUTT,
+                        BasicStroke.JOIN_BEVEL, 0, DASH_PATTERN, antsPhase + DASH_LEN));
+                g2.setColor(Color.WHITE);
+                g2.draw(sel);
+                g2.setStroke(origSel);
+            }
         }
 
         // Draw tool overlay (gizmo, selection preview, etc.)
@@ -211,5 +246,53 @@ public class CanvasPanel extends JPanel {
             }
         }
     } // --- Fin del metodo drawCheckerboard ---
+
+    /**
+     * Dibuja la selección con forma irregular (máscara de píxeles): relleno
+     * semitransparente de la zona real más un contorno punteado que sigue su
+     * borde.
+     *
+     * @param g2 gráficos del overlay en coordenadas de canvas
+     * @param sm selección con máscara activa
+     */
+    private void drawMaskSelectionOverlay(Graphics2D g2, SelectionModel sm) {
+        Rectangle sel = sm.getBounds();
+        java.util.BitSet mask = sm.getMask();
+        int w = sel.width;
+        int h = sel.height;
+        if (mask == null || w <= 0 || h <= 0) return;
+
+        // Relleno: pintar píxel a píxel los bits seleccionados (bordes también)
+        g2.setColor(new Color(0, 120, 215, 60));
+        for (int i = mask.nextSetBit(0); i >= 0; i = mask.nextSetBit(i + 1)) {
+            if (i >= w * h) break;
+            int px = sel.x + (i % w);
+            int py = sel.y + (i / w);
+            g2.fillRect(px, py, 1, 1);
+        }
+
+        // Contorno: píxeles seleccionados con algún vecino no seleccionado.
+        // Se dibujan como dashes marchando (hormigueo): trazo de DASH_LEN px con
+        // hueco de DASH_LEN px, alternando blanco y negro por segmento, según la
+        // fase que avanza con el timer.
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int idx = y * w + x;
+                if (!mask.get(idx)) continue;
+                boolean edge = x == 0 || !mask.get(idx - 1)
+                        || x == w - 1 || !mask.get(idx + 1)
+                        || y == 0 || !mask.get(idx - w)
+                        || y == h - 1 || !mask.get(idx + w);
+                if (!edge) continue;
+                int ciclo = (int) (DASH_LEN * 2);
+                int t = x + y + antsPhase;
+                int seg = t % ciclo;
+                if (seg >= (int) DASH_LEN) continue;
+                boolean claro = ((t / ciclo) & 1) == 1;
+                g2.setColor(claro ? Color.WHITE : Color.BLACK);
+                g2.fillRect(sel.x + x, sel.y + y, 1, 1);
+            }
+        }
+    } // --- Fin del metodo drawMaskSelectionOverlay ---
 
 } // --- Fin de la clase CanvasPanel ---

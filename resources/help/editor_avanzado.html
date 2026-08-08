@@ -88,20 +88,26 @@
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_80002-seleccion-marco.png"></td>
             <td><strong>Selección por marco:</strong> Define una selección rectangular arrastrando
                 sobre el lienzo. <strong>Shift</strong> añade la nueva selección a la actual (unión),
-                <strong>Shift+Alt</strong> la interseca, y <strong>Alt</strong> no modifica la
-                selección existente. La selección se muestra con un desvanecido (feather) configurable.
-                Un clic simple sin modificadores la deselecciona. Atajos: <strong>Ctrl+A</strong>
-                selecciona todo el lienzo y <strong>Ctrl+D</strong> deselecciona.</td>
+                <strong>Shift+Alt</strong> la interseca, y <strong>Alt</strong> resta (quita de la
+                selección la zona del nuevo marco). La selección se muestra con un desvanecido
+                (feather) configurable. Un clic simple sin modificadores la deselecciona.
+                Atajos: <strong>Ctrl+A</strong> selecciona todo el lienzo y <strong>Ctrl+D</strong>
+                deselecciona.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_80003-seleccion-layer.png"></td>
-            <td><strong>Selección por capa:</strong> Crea una selección rectangular que se ajusta
-                automáticamente a los bordes de la capa activa.</td>
+            <td><strong>Selección por capa:</strong> Crea una selección que se ajusta a la forma real
+                del contenido de la capa (los píxeles no transparentes), no solo a su rectángulo.
+                <strong>Shift</strong> añade a la selección ya existente.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_80004-varita.png"></td>
-            <td><strong>Varita mágica:</strong> Selecciona áreas de color similar con un clic.
-                La tolerancia (0-255) se ajusta desde el panel de opciones.</td>
+            <td><strong>Varita mágica:</strong> Selecciona la forma real del área de color similar
+                con un clic (máscara de píxeles irregular). La tolerancia (0-255) se ajusta desde el
+                panel de opciones. <strong>Shift+clic</strong> añade la nueva zona a la selección ya
+                existente. Es la herramienta ideal para <strong>eliminar fondos</strong>:
+                marca el fondo con la varita y pulsa <em>Supr</em>, o invierte la selección
+                (botón <em>Invertir selección de píxeles</em>) para quedarte con el objeto.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_80005.-recortar.png"></td>
@@ -117,8 +123,8 @@
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_80007-bote-pintura.png"></td>
             <td><strong>Bote de pintura:</strong> Rellena el área de color similar con el color
                 frontal, con tolerancia configurable. Si hay una <strong>selección de píxeles
-                activa</strong>, el relleno queda limitado a su interior (un clic fuera de la
-                selección no hace nada); sin selección rellena toda la zona conectada.</td>
+                activa</strong>, el relleno queda limitado a su forma real (incluida la máscara
+                irregular); un clic fuera de la selección no hace nada.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_80008-degradado.png"></td>
@@ -240,8 +246,9 @@
         <li><strong>Parte A (Fila 1):</strong> Combobox para seleccionar la herramienta activa,
             más spinners para coordenadas (X, Y), ancho (W), alto (H) y ángulo de rotación de la
             selección o capa.
-            A la derecha: la toolbar de historial (Deshacer, Rehacer, Historial), el botón
-            <strong>Invertir selección</strong> y, a continuación, los checkboxes de opciones
+            A la derecha: la toolbar de historial (Deshacer, Rehacer, Historial), los botones
+            <strong>Invertir selección de capas</strong> y <strong>Invertir selección de píxeles</strong>
+            y, a continuación, los checkboxes de opciones
             (auto-selección, tiradores, proporción, auto-zoom) y los selectores Alinear/Distribuir.</li>
         <li><strong>Parte B (Fila 2):</strong> Panel contextual que cambia según la herramienta
             activa, mostrando opciones específicas (tolerancia, desvanecido, fuentes, colores, etc.).</li>
@@ -254,7 +261,7 @@
             "Tiradores" (mostrar el gizmo) y "Mantener proporción". Al seleccionar una capa muestra
             spinners de posición (X, Y), tamaño (W, H) y <strong>ángulo de rotación</strong>.</td></tr>
         <tr><td>Transformar</td><td>Botones de sub-herramienta (mover, escalar, rotar) + checkbox "Mantener proporción".</td></tr>        <tr><td>Selección (marco/capa)</td><td>Deslizador de desvanecido (feather, 0-50 px) con indicador numérico.
-            La selección por marco soporta booleanas: Shift añade (unión), Shift+Alt intersecta.</td></tr>
+            La selección por marco soporta booleanas: Shift añade (unión), Shift+Alt intersecta, Alt resta.</td></tr>
         <tr><td>Varita mágica</td><td>Tolerancia (0-255) y checkbox "Contiguo" (solo áreas conectadas).</td></tr>
         <tr><td>Recortar</td><td>Botones "Recortar eliminando selección" y "Recortar a nueva capa" + checkbox "Mantener original".</td></tr>
         <tr><td>Cuentagotas</td><td>Muestra el color capturado como muestra de color.</td></tr>
@@ -504,6 +511,50 @@
         <li>La capa creada se añade automáticamente al modelo y aparece en el panel de capas
             gracias al sistema de notificación (<code>LayerModel.setChangeListener()</code>).</li>
     </ul>
+
+    <h2 id="eliminar-fondos">Eliminar Fondos (Selección por Píxeles)</h2>
+    <p>
+        Las herramientas de selección de píxeles (<em>varita mágica</em>, <em>selección por capa</em>
+        y <em>selección por marco</em>) generan una <strong>máscara</strong>: la forma real e
+        irregular de la zona seleccionada, no un simple rectángulo. Esto permite
+        <strong>recortar objetos y eliminar fondos</strong> sin borrar parte del contenido:
+    </p>
+    <ul>
+        <li>La <strong>varita mágica</strong> marca la forma exacta del área de color similar
+            (fondo incluido) con un clic. <strong>Shift+clic</strong> añade más zonas a la selección.</li>
+        <li>La <strong>selección por capa</strong> marca la forma real del contenido no transparente
+            de una capa.</li>
+        <li>La <strong>selección por marco</strong> sigue siendo rectangular, pero sus booleanas
+            (<strong>Shift</strong> unión, <strong>Shift+Alt</strong> intersección,
+            <strong>Alt</strong> resta) también funcionan combinadas con las formas irregulares.</li>
+        <li><strong>Supr / Retroceso</strong> con la selección activa borra <strong>solo</strong> los
+            píxeles seleccionados de la capa activa de imagen, dejando el resto intacto.</li>
+        <li>El botón <strong>Invertir selección de píxeles</strong> (barra de opciones superior)
+            invierte la máscara respecto a todo el lienzo: lo seleccionado pasa a no estarlo y
+            viceversa.</li>
+        <li>El <strong>recorte</strong> (CropTool) respeta la forma irregular: "Recortar a nueva
+            capa" extrae solo el objeto y "Recortar eliminando selección" borra solo la zona
+            seleccionada.</li>
+    </ul>
+    <p><strong>Flujo típico para quitar el fondo de una imagen:</strong></p>
+    <ol>
+        <li>Selecciona la capa con la imagen.</li>
+        <li>Pulsa con la <strong>varita</strong> sobre el fondo; usa <strong>Shift+clic</strong>
+            para añadir todas las zonas del fondo.</li>
+        <li>Pulsa <strong>Supr</strong> para borrar el fondo (dejando transparente), o pulsa el botón
+            <strong>Invertir selección de píxeles</strong> y luego <em>Recortar a nueva capa</em> para
+            extraer solo el objeto.</li>
+    </ol>
+    <p>
+        El <strong>gizmo con target "marco"</strong> (herramienta Transformar) mueve y escala la
+        máscara junto con su forma, re-muestreando los píxeles seleccionados.
+    </p>
+    <p>
+        El contorno de la selección se muestra con <strong>hormigueo</strong> (dashes blancos y
+        negros alternados que marchan, estilo Photoshop), de modo que el borde sea visible tanto
+        sobre fondos claros como oscuros. El relleno azul semitransparente indica la zona
+        seleccionada.
+    </p>
 
     <h2 id="transformar">Herramienta Transformar</h2>
     <p>

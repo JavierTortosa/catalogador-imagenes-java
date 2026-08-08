@@ -1989,7 +1989,7 @@ public class RenderController {
         if (sm != null && sm.isActive()) {
             var activa = lm.getActiveLayer();
             if (activa instanceof modelo.editor.ImageLayer imgLayer && !activa.isLocked()) {
-                if (borrarContenidoSeleccionado(imgLayer, sm.getBounds())) {
+                if (borrarContenidoSeleccionado(imgLayer, sm)) {
                     var bar = aep.getComponentBar();
                     if (bar != null) {
                         bar.updateEditLayerFields(lm.getActiveLayer());
@@ -2031,20 +2031,22 @@ public class RenderController {
 
 
     /**
-     * Borra los píxeles de la capa de imagen dentro del rectángulo de selección
-     * (coordenadas de canvas), mapeado al espacio de la imagen por escala. La
-     * operación se registra en el historial como paso de píxeles para que el
-     * undo/redo capture el contenido borrado.
+     * Borra los píxeles de la capa de imagen dentro de la selección activa
+     * (coordenadas de canvas), mapeado al espacio de la imagen por escala. Si
+     * la selección tiene máscara, se borra solo la forma irregular; si no, se
+     * borra el rectángulo completo. La operación se registra en el historial
+     * como paso de píxeles para que el undo/redo capture el contenido borrado.
      *
      * @param layer capa de imagen sobre la que borrar
-     * @param sel   rectángulo de selección en coordenadas de canvas
+     * @param sm    selección de píxeles activa
      * @return {@code true} si la selección cruza la imagen y se borró algo
      */
-    private boolean borrarContenidoSeleccionado(modelo.editor.ImageLayer layer, Rectangle sel) {
+    private boolean borrarContenidoSeleccionado(modelo.editor.ImageLayer layer, modelo.editor.SelectionModel sm) {
         Rectangle bounds = layer.getBounds();
         BufferedImage img = layer.getImage();
-        if (bounds == null || img == null) return false;
+        if (bounds == null || img == null || sm == null || !sm.isActive()) return false;
 
+        Rectangle sel = sm.getBounds();
         int w = img.getWidth();
         int h = img.getHeight();
         int x0 = Math.max(0, (int) ((long) (sel.x - bounds.x) * w / bounds.width));
@@ -2054,7 +2056,23 @@ public class RenderController {
         if (x1 < x0 || y1 < y0) return false;
 
         var history = getOrCreateEditorDocumentManager().getHistory();
-        Runnable operacion = () -> layer.clearRegion(new Rectangle(x0, y0, x1 - x0 + 1, y1 - y0 + 1));
+        Runnable operacion;
+        if (sm.hasMask()) {
+            // Máscara irregular: borrar solo los píxeles seleccionados
+            java.util.BitSet maskImg = new java.util.BitSet(w * h);
+            for (int y = y0; y <= y1; y++) {
+                for (int x = x0; x <= x1; x++) {
+                    int cx = bounds.x + (int) ((long) x * bounds.width / w);
+                    int cy = bounds.y + (int) ((long) y * bounds.height / h);
+                    if (sm.contains(cx, cy)) {
+                        maskImg.set(y * w + x);
+                    }
+                }
+            }
+            operacion = () -> layer.clearMask(maskImg);
+        } else {
+            operacion = () -> layer.clearRegion(new Rectangle(x0, y0, x1 - x0 + 1, y1 - y0 + 1));
+        }
         if (history != null) {
             // Operación de píxeles: se fuerza el paso porque la mutación
             // in-place no es detectable por comparación de snapshots.

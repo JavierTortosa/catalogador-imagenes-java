@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage;
 import controlador.commands.AppActionCommands;
 import modelo.editor.ImageLayer;
 import modelo.editor.Layer;
+import modelo.editor.SelectionModel;
 
 /**
  * Herramienta de selección por capa.
@@ -50,8 +51,35 @@ public class LayerSelectionTool extends Tool {
             return;
         }
 
-        ctx.selectionModel().setBounds(contenidoOpaco(layer, b));
-        ctx.selectionModel().setFeather(ctx.componentBar().getFeatherAmount());
+        BufferedImage img = layer.getImage();
+        var sm = ctx.selectionModel();
+        boolean shift = (e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) != 0;
+        if (img == null) {
+            if (shift && sm.isActive()) {
+                sm.union(b);
+            } else {
+                sm.setBounds(contenidoOpaco(layer, b));
+            }
+        } else {
+            int imgW = img.getWidth();
+            int imgH = img.getHeight();
+            // Construir la zona de contenido opaco como selección independiente
+            SelectionModel zona = new SelectionModel();
+            zona.setBounds(contenidoOpaco(layer, b));
+            zona.setMaskFromPredicate((cx, cy) -> {
+                int ix = (int) ((long) (cx - b.x) * imgW / b.width);
+                int iy = (int) ((long) (cy - b.y) * imgH / b.height);
+                if (ix < 0 || iy < 0 || ix >= imgW || iy >= imgH) return false;
+                return ((img.getRGB(ix, iy) >>> 24) & 0xFF) > 0;
+            });
+            if (shift && sm.isActive()) {
+                sm.unionMask(zona.getMask(), zona.getBounds());
+            } else {
+                sm.setBounds(zona.getBounds());
+                sm.setMask(zona.getMask());
+            }
+        }
+        sm.setFeather(ctx.componentBar().getFeatherAmount());
         ctx.canvasPanel().repaint();
     } // --- Fin del metodo mousePressed ---
 
