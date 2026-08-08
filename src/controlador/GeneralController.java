@@ -1438,18 +1438,10 @@ public class GeneralController
                 }
             };
 
-            if (model.getCurrentWorkMode() == WorkMode.VISUALIZADOR || model.getCurrentWorkMode() == WorkMode.CARROUSEL) {
-                logger.info("  -> Alternancia de subcarpetas en modo Visor/Carrusel. Iniciando sincronización con disco...");
-                this.sincronizarTodaLaUIConElModelo();
-                boolean syncIniciada = this.imageListManager.sincronizarCarpetaConBD();
-                if (!syncIniciada) {
-                    this.imageListManager.cargarListaImagenes(claveAntesDelCambio, accionPostCarga);
-                } else {
-                    isChangingSubfolderMode = false;
-                }
-            } else {
-                this.imageListManager.cargarListaImagenes(claveAntesDelCambio, accionPostCarga);
-            }
+            // El toggle "Mostrar subcarpetas" es un FILTRO VISUAL: el disco ya
+            // está indexado recursivamente, así que alternar solo recarga la
+            // lista desde la BD aplicando el filtro (sin re-escaneo de disco).
+            this.imageListManager.cargarListaImagenes(claveAntesDelCambio, accionPostCarga);
 
         } catch (Exception e) {
             logger.error("ERROR INESPERADO en solicitarToggleModoCargaSubcarpetas: " + e.getMessage());

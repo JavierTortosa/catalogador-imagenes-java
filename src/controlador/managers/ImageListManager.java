@@ -255,8 +255,9 @@ public class ImageListManager {
             return false;
         }
         
-        final boolean mostrarSoloCarpeta = model.isMostrarSoloCarpetaActual();
-        final int depth = mostrarSoloCarpeta ? 1 : Integer.MAX_VALUE;
+        // El escaneo SIEMPRE es recursivo (profundidad completa). El toggle
+        // "Mostrar subcarpetas" solo filtra la presentación, no el barrido.
+        final int depth = Integer.MAX_VALUE;
 
         final TaskProgressDialog dialogoBusqueda = new TaskProgressDialog(view, "Sincronizando Carpeta", "Paso 1/2: Buscando archivos en disco...");
         final BuscadorArchivosWorker buscador = new BuscadorArchivosWorker(pathDeInicio, depth, pathDeInicio, this::esArchivoImagenSoportado, dialogoBusqueda);
@@ -638,18 +639,7 @@ public class ImageListManager {
          List<ImagenInfo> imagenesEnBD = imagenDAO.getImagenesInFolder(carpetaRaiz);
          int borrados = 0;
 
-         Path normalizedRaiz = carpetaRaiz.toAbsolutePath().normalize();
          for (ImagenInfo img : imagenesEnBD) {
-             Path parent = img.getRutaCompletaAsPath().getParent();
-             if (parent != null) {
-                 Path normalizedParent = parent.toAbsolutePath().normalize();
-                 if (model.isMostrarSoloCarpetaActual() && !normalizedParent.equals(normalizedRaiz)) {
-                     // Si el modelo indica mostrar solo la carpeta actual, no borramos registros
-                     // de imágenes en subcarpetas porque simplemente no han sido escaneadas.
-                     continue;
-                 }
-             }
-
              String rutaBD = img.getRutaCompletaAsPath().toAbsolutePath().normalize().toString();
              if (!rutasEnDisco.contains(rutaBD)) {
                  logger.debug("  -> Eliminando registro huérfano (no existe en disco): {}", img.getRutaCompleta());

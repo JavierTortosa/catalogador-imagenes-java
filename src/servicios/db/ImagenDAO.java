@@ -137,17 +137,22 @@ public class ImagenDAO {
 
     /**
      * Obtiene todas las imágenes que están dentro de una carpeta específica y sus subcarpetas.
+     * Usa una consulta de rango con separador para evitar que carpetas hermanas cuyo
+     * nombre comparte prefijo (ej. "Chibi" vs "Chibi viejos") se incluyan por error.
      * @param carpetaRaiz La carpeta a escanear.
      * @return Una lista de ImagenInfo.
      */
     public List<ImagenInfo> getImagenesInFolder(Path carpetaRaiz) {
         List<ImagenInfo> imagenes = new ArrayList<>();
-        // El operador LIKE con '%' al final buscará todas las rutas que COMIENCEN
-        // con la ruta de la carpeta raíz.
-        String sql = "SELECT * FROM imagenes WHERE ruta_completa LIKE ?";
-        
+        // Límite inferior: la propia carpeta con el separador al final.
+        // Límite superior: ese prefijo más un carácter máximo, lo que excluye
+        // cualquier ruta que no continúe por un separador inmediatamente después.
+        String prefijo = carpetaRaiz.toString() + carpetaRaiz.getFileSystem().getSeparator();
+        String sql = "SELECT * FROM imagenes WHERE ruta_completa >= ? AND ruta_completa < ?";
+
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, carpetaRaiz.toString() + "%");
+            pstmt.setString(1, prefijo);
+            pstmt.setString(2, prefijo + "\uffff");
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
                 imagenes.add(mapResultSetToImagenInfo(rs));
@@ -162,13 +167,16 @@ public class ImagenDAO {
     /**
      * Comprueba de forma rápida si una carpeta ya ha sido indexada
      * (si existe al menos una imagen en la BD cuya ruta comience por esa carpeta).
+     * Usa el mismo criterio de rango con separador que {@link #getImagenesInFolder(Path)}.
      * @param carpetaRaiz La carpeta a comprobar.
      * @return true si hay al menos una imagen indexada, false en caso contrario.
      */
     public boolean isFolderIndexed(Path carpetaRaiz) {
-        String sql = "SELECT 1 FROM imagenes WHERE ruta_completa LIKE ? LIMIT 1";
+        String prefijo = carpetaRaiz.toString() + carpetaRaiz.getFileSystem().getSeparator();
+        String sql = "SELECT 1 FROM imagenes WHERE ruta_completa >= ? AND ruta_completa < ? LIMIT 1";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, carpetaRaiz.toString() + "%");
+            pstmt.setString(1, prefijo);
+            pstmt.setString(2, prefijo + "\uffff");
             ResultSet rs = pstmt.executeQuery();
             return rs.next();
         } catch (SQLException e) {
