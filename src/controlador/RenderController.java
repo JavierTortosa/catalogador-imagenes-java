@@ -10,6 +10,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -1982,6 +1983,23 @@ public class RenderController {
         var lm = aep.getCanvas().getLayerModel();
         if (lm == null || lm.size() == 0) return;
 
+        // Con selección de píxeles activa, Supr borra el contenido seleccionado
+        // de la capa activa de imagen (como Photoshop) en lugar de la capa entera.
+        var sm = aep.getCanvas().getSelectionModel();
+        if (sm != null && sm.isActive()) {
+            var activa = lm.getActiveLayer();
+            if (activa instanceof modelo.editor.ImageLayer imgLayer && !activa.isLocked()) {
+                if (borrarContenidoSeleccionado(imgLayer, sm.getBounds())) {
+                    var bar = aep.getComponentBar();
+                    if (bar != null) {
+                        bar.updateEditLayerFields(lm.getActiveLayer());
+                    }
+                    aep.getCanvas().repaint();
+                    return;
+                }
+            }
+        }
+
         List<Integer> indices = new ArrayList<>(lm.getSelectedIndices());
         if (indices.isEmpty()) {
             int activa = lm.getActiveIndex();
@@ -2010,6 +2028,46 @@ public class RenderController {
         }
         aep.getCanvas().repaint();
     } // --- Fin del metodo borrarCapaEditor ---
+
+
+    /**
+     * Borra los píxeles de la capa de imagen dentro del rectángulo de selección
+     * (coordenadas de canvas), mapeado al espacio de la imagen por escala. La
+     * operación se registra en el historial como paso de píxeles para que el
+     * undo/redo capture el contenido borrado.
+     *
+     * @param layer capa de imagen sobre la que borrar
+     * @param sel   rectángulo de selección en coordenadas de canvas
+     * @return {@code true} si la selección cruza la imagen y se borró algo
+     */
+    private boolean borrarContenidoSeleccionado(modelo.editor.ImageLayer layer, Rectangle sel) {
+        Rectangle bounds = layer.getBounds();
+        BufferedImage img = layer.getImage();
+        if (bounds == null || img == null) return false;
+
+        int w = img.getWidth();
+        int h = img.getHeight();
+        int x0 = Math.max(0, (int) ((long) (sel.x - bounds.x) * w / bounds.width));
+        int y0 = Math.max(0, (int) ((long) (sel.y - bounds.y) * h / bounds.height));
+        int x1 = Math.min(w - 1, (int) ((long) (sel.x + sel.width - bounds.x) * w / bounds.width));
+        int y1 = Math.min(h - 1, (int) ((long) (sel.y + sel.height - bounds.y) * h / bounds.height));
+        if (x1 < x0 || y1 < y0) return false;
+
+        var history = getOrCreateEditorDocumentManager().getHistory();
+        Runnable operacion = () -> layer.clearRegion(new Rectangle(x0, y0, x1 - x0 + 1, y1 - y0 + 1));
+        if (history != null) {
+            // Operación de píxeles: se fuerza el paso porque la mutación
+            // in-place no es detectable por comparación de snapshots.
+            history.endGesture();
+            history.beginGesture("Borrar selección", true);
+            operacion.run();
+            history.endGesture();
+        } else {
+            operacion.run();
+        }
+        notificarModificacionDocumentoActivo();
+        return true;
+    } // --- Fin del metodo borrarContenidoSeleccionado ---
 
 
     /**

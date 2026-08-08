@@ -1,14 +1,18 @@
 package controlador.tools;
 
 import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import controlador.commands.AppActionCommands;
 import modelo.editor.CanvasModel;
@@ -27,7 +31,8 @@ import vista.panels.render.EditorComponentBar;
  *   <li>1 clic sobre capa -> selección simple (si la auto-selección está activa)
  *   <li>Ctrl+clic -> añade/quita la capa de la selección múltiple
  *   <li>Shift+clic -> selecciona el rango desde la capa activa
- *   <li>1 clic fuera -> deselecciona
+ *   <li>arrastre en vacío -> marco que selecciona las capas atrapadas (Shift añade)
+ *   <li>1 clic simple fuera -> deselecciona
  *   <li>arrastre -> mueve las capas seleccionadas (Alt = duplicar y mover la copia)
  *   <li>tiradores opcionales con {@link TransformGizmo}
  *   <li>flechas del teclado -> mueven las capas seleccionadas 1 px (Shift = 10 px)
@@ -48,6 +53,15 @@ public class EditTool extends Tool {
     private SmartGuidesEngine smartGuides;
     private List<GuideLine> smartGuideLines = new ArrayList<>();
     private boolean smartGuidesOverride;
+
+    // Marco de selección de capas en zona vacía
+    private boolean marqueeSelecting;
+    private Point marqueeStart;
+    private Rectangle marqueeRect;
+
+    private static final Color MARQUEE_FILL = new Color(0, 120, 215, 40);
+    private static final Color MARQUEE_BORDER = new Color(0, 120, 215);
+    private static final float MARQUEE_DASH[] = { 4f, 4f };
 
     @Override
     public String getCommandKey() {
@@ -145,6 +159,9 @@ public class EditTool extends Tool {
     @Override
     public void onDeactivate() {
         enableSpinners(false);
+        marqueeSelecting = false;
+        marqueeStart = null;
+        marqueeRect = null;
     } // --- Fin del metodo onDeactivate ---
 
 
@@ -239,9 +256,9 @@ public class EditTool extends Tool {
             return;
         }
 
-        // 5. Iniciar arrastre para mover las capas seleccionadas, o
-        //    deseleccionar si se pulsa en vacío (fuera de toda capa, tanto si la
-        //    auto-selección está activa como si no)
+        // 5. Iniciar arrastre para mover las capas seleccionadas, o si se pulsa
+        //    en vacío (fuera de toda capa, tanto si la auto-selección está
+        //    activa como si no) iniciar un marco de selección de capas
         active = model().getActiveLayer();
         List<Layer> targets = gizmoTargets();
         Rectangle gb = gizmoBounds(targets);
@@ -250,14 +267,27 @@ public class EditTool extends Tool {
             dragStart = p;
             move = picker().beginMove(p, targets);
             beginSmartGuides(targets);
-        } else if (!ctrl && !shift && picker().findLayerAt(p) == null) {
-            picker().clearSelection();
+        } else if (!ctrl && picker().findLayerAt(p) == null) {
+            marqueeSelecting = true;
+            marqueeStart = p;
+            marqueeRect = new Rectangle(p.x, p.y, 0, 0);
         }
     } // --- Fin del metodo mousePressed ---
 
 
     @Override
     public void mouseDragged(MouseEvent e) {
+        // Marco de selección de capas: actualizar el rectángulo en curso
+        if (marqueeSelecting && marqueeStart != null) {
+            int x = Math.min(marqueeStart.x, e.getX());
+            int y = Math.min(marqueeStart.y, e.getY());
+            int w = Math.abs(e.getX() - marqueeStart.x);
+            int h = Math.abs(e.getY() - marqueeStart.y);
+            marqueeRect = new Rectangle(x, y, w, h);
+            ctx.canvasPanel().repaint();
+            return;
+        }
+
         Layer active = model().getActiveLayer();
         if (active != null && active.isLocked()) return;
 
@@ -293,6 +323,36 @@ public class EditTool extends Tool {
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        // Marco de selección de capas: cerrar y aplicar las capas atrapadas
+        if (marqueeSelecting) {
+            marqueeSelecting = false;
+            marqueeStart = null;
+            Rectangle rect = marqueeRect;
+            marqueeRect = null;
+            if (rect != null) {
+                List<Layer> atrapadas = picker().findLayersIn(rect);
+                if (!atrapadas.isEmpty()) {
+                    List<Integer> indices = new ArrayList<>();
+                    for (Layer l : atrapadas) {
+                        indices.add(model().getLayers().indexOf(l));
+                    }
+                    boolean shift = (e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) != 0;
+                    if (shift) {
+                        Set<Integer> union = new LinkedHashSet<>(model().getSelectedIndices());
+                        union.addAll(indices);
+                        model().setSelectedIndices(union);
+                    } else {
+                        model().setSelectedIndices(indices);
+                    }
+                    bar().updateEditLayerFields(model().getActiveLayer());
+                } else if ((e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) == 0) {
+                    picker().clearSelection();
+                }
+            }
+            ctx.canvasPanel().repaint();
+            return;
+        }
+
         if (gizmoDragging && gizmoDrag != null) {
             gizmoDrag.end();
         }
@@ -313,6 +373,13 @@ public class EditTool extends Tool {
 
     @Override
     public boolean cancel() {
+        if (marqueeSelecting) {
+            marqueeSelecting = false;
+            marqueeStart = null;
+            marqueeRect = null;
+            ctx.canvasPanel().repaint();
+            return true;
+        }
         boolean hadDrag = gizmoDragging || dragging;
         if (gizmoDragging) {
             if (gizmoDrag != null) {
@@ -526,6 +593,18 @@ public class EditTool extends Tool {
 
     @Override
     public void paintOverlay(Graphics2D g2) {
+        // Marco de selección de capas en curso
+        if (marqueeSelecting && marqueeRect != null) {
+            g2.setColor(MARQUEE_FILL);
+            g2.fill(marqueeRect);
+            Stroke original = g2.getStroke();
+            g2.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_BUTT,
+                    BasicStroke.JOIN_BEVEL, 0, MARQUEE_DASH, 0));
+            g2.setColor(MARQUEE_BORDER);
+            g2.draw(marqueeRect);
+            g2.setStroke(original);
+            return;
+        }
         drawSmartGuides(g2);
         if (!isShowGizmo()) return;
         List<Layer> targets = gizmoTargets();

@@ -71,19 +71,27 @@
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_80000-edicion.png"></td>
             <td><strong>Edición:</strong> Herramienta por defecto. Selecciona, mueve y transforma
                 capas. 1 clic sobre una capa la activa (si la auto-selección está activa), 1 clic
-                en vacío deselecciona, y el arrastre mueve la capa activa. Si el checkbox
-                "Tiradores" está activo se muestra el gizmo para redimensionar.
-                Ver <a href="#edicion">sección Edición</a>.</td>
+                simple en vacío deselecciona, arrastrar en zona vacía dibuja un <strong>marco</strong>
+                que selecciona todas las capas que toque (Shift añade), y el arrastre mueve las capas
+                seleccionadas. Si el checkbox "Tiradores" está activo se muestra el gizmo para
+                redimensionar. Ver <a href="#edicion">sección Edición</a>.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_80001-transform.png"></td>
-            <td><strong>Transformar:</strong> Muestra el gizmo de transformación sobre la capa activa
-                (manejadores en esquinas y puntos medios). Permite mover, escalar y rotar la capa.</td>
+            <td><strong>Transformar:</strong> Muestra el gizmo de transformación (mover, escalar,
+                rotar). Según dónde se pulse: en zona vacía abre un <strong>marco de selección</strong>
+                de capas (Shift añade); sobre una capa la selecciona (Ctrl alterna, Shift añade); sobre
+                un tirador del gizmo transforma todas las capas seleccionadas juntas. Ver
+                <a href="#transformar">sección Transformar</a>.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_80002-seleccion-marco.png"></td>
             <td><strong>Selección por marco:</strong> Define una selección rectangular arrastrando
-                sobre el lienzo. La selección se muestra con un desvanecido (feather) configurable.</td>
+                sobre el lienzo. <strong>Shift</strong> añade la nueva selección a la actual (unión),
+                <strong>Shift+Alt</strong> la interseca, y <strong>Alt</strong> no modifica la
+                selección existente. La selección se muestra con un desvanecido (feather) configurable.
+                Un clic simple sin modificadores la deselecciona. Atajos: <strong>Ctrl+A</strong>
+                selecciona todo el lienzo y <strong>Ctrl+D</strong> deselecciona.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_80003-seleccion-layer.png"></td>
@@ -108,7 +116,9 @@
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_80007-bote-pintura.png"></td>
             <td><strong>Bote de pintura:</strong> Rellena el área de color similar con el color
-                frontal, con tolerancia configurable.</td>
+                frontal, con tolerancia configurable. Si hay una <strong>selección de píxeles
+                activa</strong>, el relleno queda limitado a su interior (un clic fuera de la
+                selección no hace nada); sin selección rellena toda la zona conectada.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_80008-degradado.png"></td>
@@ -203,11 +213,16 @@
         <tr><td><strong>Z</strong></td><td>Zoom</td></tr>
         <tr><td><strong>F</strong></td><td>Pantalla completa (activar / desactivar)</td></tr>
         <tr><td><strong>Ctrl+V</strong></td><td>Pegar imagen del portapapeles como nueva capa</td></tr>
+        <tr><td><strong>Ctrl+A</strong></td><td>Seleccionar todo el lienzo (selección de píxeles completa)</td></tr>
+        <tr><td><strong>Ctrl+D</strong></td><td>Deseleccionar (anular la selección de píxeles actual)</td></tr>
         <tr><td><strong>Ctrl+Shift+I</strong></td><td>Invertir la selección de capas (selecciona las no
             seleccionadas y viceversa)</td></tr>
         <tr><td><strong>Ctrl+Z</strong></td><td>Deshacer el último paso del historial</td></tr>
         <tr><td><strong>Ctrl+Y</strong> / <strong>Ctrl+Shift+Z</strong></td><td>Rehacer el siguiente paso del historial</td></tr>
-        <tr><td><strong>Supr</strong> / <strong>Retroceso</strong></td><td>Eliminar la capa o capas seleccionadas</td></tr>
+        <tr><td><strong>Supr</strong> / <strong>Retroceso</strong></td><td>Con selección de píxeles activa:
+            borra solo el contenido seleccionado de la capa activa de imagen. Sin selección: elimina
+            la capa o capas seleccionadas (si la capa activa no es de imagen, se elimina la capa).</td></tr>
+        <tr><td><strong>Flechas</strong></td><td>Mueven la capa o capas seleccionadas 1 px (Shift = 10 px)</td></tr>
         <tr><td><strong>Esc</strong></td><td>Cancelar: edición de texto inline, arrastre en curso o
             deseleccionar la capa activa (no sale de pantalla completa)</td></tr>
     </table>
@@ -238,7 +253,8 @@
         <tr><td>Edición</td><td>Checkboxes "Auto-selección" (activar la capa bajo el cursor),
             "Tiradores" (mostrar el gizmo) y "Mantener proporción". Al seleccionar una capa muestra
             spinners de posición (X, Y), tamaño (W, H) y <strong>ángulo de rotación</strong>.</td></tr>
-        <tr><td>Transformar</td><td>Botones de sub-herramienta (mover, escalar, rotar) + checkbox "Mantener proporción".</td></tr>        <tr><td>Selección (marco/capa)</td><td>Deslizador de desvanecido (feather, 0-50 px) con indicador numérico.</td></tr>
+        <tr><td>Transformar</td><td>Botones de sub-herramienta (mover, escalar, rotar) + checkbox "Mantener proporción".</td></tr>        <tr><td>Selección (marco/capa)</td><td>Deslizador de desvanecido (feather, 0-50 px) con indicador numérico.
+            La selección por marco soporta booleanas: Shift añade (unión), Shift+Alt intersecta.</td></tr>
         <tr><td>Varita mágica</td><td>Tolerancia (0-255) y checkbox "Contiguo" (solo áreas conectadas).</td></tr>
         <tr><td>Recortar</td><td>Botones "Recortar eliminando selección" y "Recortar a nueva capa" + checkbox "Mantener original".</td></tr>
         <tr><td>Cuentagotas</td><td>Muestra el color capturado como muestra de color.</td></tr>
@@ -456,14 +472,19 @@
     </p>
     <ul>
         <li><strong>1 clic</strong> sobre una capa → la activa (si la auto-selección está activa).
-            Un clic en vacío deselecciona.</li>
-        <li><strong>Arrastre</strong> → mueve la capa activa. El cursor cambia a modo mover sobre
-            su área.</li>
+            Un clic simple en vacío deselecciona.</li>
+        <li><strong>Arrastre en zona vacía</strong> → dibuja un <strong>marco de selección</strong>
+            que marca todas las capas que toque al soltar (estilo Photoshop). Mantén <strong>Shift</strong>
+            durante el arrastre para <strong>añadir</strong> las capas atrapadas a la selección ya
+            existente; sin modificadores, la selección se reemplaza.</li>
+        <li><strong>Arrastre</strong> → mueve las capas seleccionadas juntas. El cursor cambia a modo
+            mover sobre su área.</li>
         <li><strong>Alt+arrastre</strong> → duplica la capa activa y mueve la copia en el mismo
             gesto.</li>
         <li><strong>Ctrl+clic</strong> sobre una capa → la activa temporalmente (sin cambiar la
             selección permanente); al soltar, se restaura la capa activa previa.</li>
-        <li><strong>Flechas del teclado</strong> → mueven la capa activa 1 px (Shift = 10 px).</li>
+        <li><strong>Flechas del teclado</strong> → mueven la capa o capas seleccionadas 1 px
+            (Shift = 10 px).</li>
         <li><strong>Doble clic</strong> sobre una <code>TextLayer</code> o una capa de forma →
             edita su contenido (atajo). Abre la edición inline de texto o el panel de formas,
             según el tipo de capa.</li>
@@ -483,6 +504,28 @@
         <li>La capa creada se añade automáticamente al modelo y aparece en el panel de capas
             gracias al sistema de notificación (<code>LayerModel.setChangeListener()</code>).</li>
     </ul>
+
+    <h2 id="transformar">Herramienta Transformar</h2>
+    <p>
+        La herramienta <strong>Transformar</strong> agrupa mover, escalar y rotar. Su
+        comportamiento depende de dónde se pulse, estilo Photoshop:
+    </p>
+    <ul>
+        <li><strong>Zona vacía:</strong> arrastrar dibuja un <strong>marco de selección</strong> que
+            marca las capas que toque al soltar. <strong>Shift</strong> añade las capas atrapadas a la
+            selección ya existente; sin modificadores la reemplaza. Un clic simple en vacío deselecciona.</li>
+        <li><strong>Sobre una capa:</strong> el clic la selecciona. <strong>Ctrl</strong> la añade o
+            quita de la selección múltiple y <strong>Shift</strong> la añade sin quitar las demás.</li>
+        <li><strong>Sobre un tirador del gizmo:</strong> transforma <strong>todas las capas
+            seleccionadas juntas</strong> (mover, escalar con proporción opcional, o rotar con
+            Shift = múltiplos de 15°). Si no hay selección, actúa sobre la capa activa.</li>
+    </ul>
+    <p>
+        El modo activo (mover/escalar/rotar) se elige en la barra de opciones; el gizmo solo dibuja
+        los tiradores aplicables a ese modo. Con target <em>marco</em>, el gizmo opera sobre los
+        bounds de la <strong>selección de píxeles</strong> en lugar de sobre capas (la rotación no
+        aplica).
+    </p>
 
     <h2 id="disposicion">Panel de Disposición</h2>
     <p>
@@ -729,7 +772,11 @@
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_70303-delete-layer.png"></td>
             <td><strong>Borrar capa:</strong> Elimina la capa actualmente seleccionada. Atajo:
-                <strong>Supr</strong> o <strong>Retroceso</strong>.</td>
+                <strong>Supr</strong> o <strong>Retroceso</strong>. Si hay una <strong>selección de
+                píxeles activa</strong> y la capa activa es de imagen, la tecla <em>Supr</em> borra
+                solo el contenido seleccionado (la deja transparente en esa zona) en lugar de eliminar
+                la capa. Si la capa activa no es de imagen, la tecla <em>Supr</em> elimina la capa.
+                El botón de la barra siempre elimina la capa completa.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_70201-bring-to-front.png"></td>

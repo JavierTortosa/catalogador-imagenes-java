@@ -63,15 +63,36 @@ public class MarqueeSelectionTool extends Tool {
     public void mouseReleased(MouseEvent e) {
         if (!dragging) return;
 
-        if (currentRect != null && currentRect.width > 2 && currentRect.height > 2) {
-            if (ctx.selectionModel() != null) {
-                ctx.selectionModel().setBounds(currentRect);
-                ctx.selectionModel().setFeather(ctx.componentBar().getFeatherAmount());
+        boolean shift = (e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) != 0;
+        boolean alt = (e.getModifiersEx() & MouseEvent.ALT_DOWN_MASK) != 0;
+        var sm = ctx.selectionModel();
+
+        if (currentRect != null && currentRect.width > 2 && currentRect.height > 2 && sm != null) {
+            Rectangle previo = sm.isActive() ? sm.getBounds() : null;
+
+            if (shift && alt) {
+                // Intersección: nuevo marco ∩ selección anterior
+                Rectangle inter = (previo != null) ? previo.intersection(currentRect) : currentRect;
+                if (inter.width > 0 && inter.height > 0) {
+                    sm.setBounds(inter);
+                } else {
+                    sm.clear();
+                }
+            } else if (shift) {
+                // Añadir: unión de la selección anterior con el nuevo marco
+                Rectangle union = (previo != null) ? previo.union(currentRect) : currentRect;
+                sm.setBounds(union);
+            } else if (alt) {
+                // Resta: no representable con el modelo rectangular (se excluye)
+                // Sin acción: la selección anterior permanece intacta.
+            } else {
+                sm.setBounds(currentRect);
             }
-        } else {
-            if (ctx.selectionModel() != null) {
-                ctx.selectionModel().clear();
+            if (sm.isActive()) {
+                sm.setFeather(ctx.componentBar().getFeatherAmount());
             }
+        } else if (sm != null && !shift && !alt) {
+            sm.clear();
         }
 
         dragging = false;

@@ -74,6 +74,28 @@ public class ImageLayer implements Layer {
         this.image = image;
     } // --- Fin del metodo setImage ---
 
+    /**
+     * Hace transparentes los píxeles de la imagen que caen dentro del
+     * rectángulo dado (en coordenadas de imagen), recortándolo al tamaño real.
+     * No modifica los bounds de la capa.
+     *
+     * @param rectImg rectángulo de píxeles a borrar (coordenadas de imagen)
+     */
+    public void clearRegion(Rectangle rectImg) {
+        if (image == null || rectImg == null) return;
+        int w = image.getWidth();
+        int h = image.getHeight();
+        int x0 = Math.max(0, rectImg.x);
+        int y0 = Math.max(0, rectImg.y);
+        int x1 = Math.min(w - 1, rectImg.x + rectImg.width - 1);
+        int y1 = Math.min(h - 1, rectImg.y + rectImg.height - 1);
+        for (int y = y0; y <= y1; y++) {
+            for (int x = x0; x <= x1; x++) {
+                image.setRGB(x, y, 0x00000000);
+            }
+        }
+    } // --- Fin del metodo clearRegion ---
+
     public Rectangle getBounds() {
         return bounds;
     } // --- Fin del metodo getBounds ---

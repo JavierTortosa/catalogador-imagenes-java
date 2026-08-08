@@ -527,6 +527,26 @@ public class CanvasController {
                 return;
             }
             if ((modifiers & KeyEvent.CTRL_DOWN_MASK) != 0
+                    && e.getKeyCode() == KeyEvent.VK_D) {
+                if (sharedContext.selectionModel() != null) {
+                    sharedContext.selectionModel().clear();
+                }
+                canvasPanel.repaint();
+                e.consume();
+                return;
+            }
+            if ((modifiers & KeyEvent.CTRL_DOWN_MASK) != 0
+                    && e.getKeyCode() == KeyEvent.VK_A) {
+                if (sharedContext.selectionModel() != null && sharedContext.canvasModel() != null) {
+                    sharedContext.selectionModel().setBounds(0, 0,
+                            sharedContext.canvasModel().getWidth(),
+                            sharedContext.canvasModel().getHeight());
+                }
+                canvasPanel.repaint();
+                e.consume();
+                return;
+            }
+            if ((modifiers & KeyEvent.CTRL_DOWN_MASK) != 0
                     && e.getKeyCode() == KeyEvent.VK_V) {
                 if (pasteCallback != null) {
                     pasteCallback.run();

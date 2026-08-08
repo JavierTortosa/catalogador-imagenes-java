@@ -1922,6 +1922,13 @@ public class VisorController implements IModoController, ThemeChangeListener {
 	        {"Z", "Zoom"},
 	        {"F", "Pantalla completa (activar / desactivar)"},
 	        {"Ctrl + V", "Pegar imagen del portapapeles como nueva capa"},
+	        {"Ctrl + Z", "Deshacer"},
+	        {"Ctrl + Y / Ctrl+Shift+Z", "Rehacer"},
+	        {"Ctrl + Shift + I", "Invertir selección de capas"},
+	        {"Ctrl + A", "Seleccionar todo el lienzo (píxeles)"},
+	        {"Ctrl + D", "Deseleccionar (píxeles)"},
+	        {"Supr / Retroceso", "Borrar contenido seleccionado o la capa"},
+	        {"Flechas", "Mover capa seleccionada 1 px (Shift = 10)"},
 	        {"Esc", "Cancelar herramienta (no sale de pantalla completa)"}
 	    }));
 
