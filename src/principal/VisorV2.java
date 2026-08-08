@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.69.10";
+        version = "V2.69.20";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -45,11 +45,7 @@ public class VisorV2 {
     // EDITOR AVANZADO
     
     // TODO implementar el invertir seleccion en las herramientas de seleccion-> 80015-invertir-seleccion.png
-    // TODO implementar el guardado de la composicion actual
-    // TODO implementar guias de alineado 
     // TODO implementar el scanner -> 70009-scanner.png -> CMD_RENDER_PROCESAR_HUERFANOS 
-    // FIXME que pasa si hay cambios pendiente de guardar en el editor y en proyecto?
-    // TODO a la hora de copiar una imagen a ver si podemos copiar el contenido de una seleccion y luego pegarla
     // TODO añadir el popupmenu al editor
         
     
@@ -64,7 +60,6 @@ public class VisorV2 {
     
     // GENERAL
     
-    // TODO implementar el plan para el modo editor -> 8006-edit-mode.png -> CMD_MODO_EDIT
     // TODO implementar en la statusbar inferior una etiqueta de cambios sin guardar y que muestre donde (para ahorrar espacio podemos poner el boton de los modos editor y proyecto y pulsando que nos lleve a donde estan los cambios sin guardar
     // TODO añadir F1 para que muestre el panel de informacion
     // TODO añadir ctrl + 1-7 para activar el modo visor, proyecto, cliente, datos, carrousel, render, editor

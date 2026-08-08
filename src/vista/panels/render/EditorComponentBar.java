@@ -137,6 +137,11 @@ public class EditorComponentBar extends JPanel {
 
     public void setOnTextChange(Runnable r) { this.onTextChange = r; }
 
+    // Se dispara al pulsar el botón de invertir selección
+    private Runnable invertSelectionCallback;
+
+    public void setOnInvertSelection(Runnable r) { this.invertSelectionCallback = r; }
+
     // --- Retención de componentes del panel de texto ---
     private JComboBox<String> textFontCombo;
     private JComboBox<Integer> textSizeCombo;
@@ -398,6 +403,9 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
         row1Right.add(btnUndo);
         row1Right.add(btnRedo);
         row1Right.add(btnHistorial);
+        // Botón de invertir selección (a la derecha de la toolbar de historial)
+        row1Right.add(crearBotonHistorial("80015-invertir-seleccion.png", "Invertir selección (Ctrl+Shift+I)",
+                () -> { if (invertSelectionCallback != null) invertSelectionCallback.run(); }));
 
         // Separador
         row1Right.add(new JSeparator(SwingConstants.VERTICAL));

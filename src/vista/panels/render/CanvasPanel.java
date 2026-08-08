@@ -23,7 +23,7 @@ public class CanvasPanel extends JPanel {
 
     private LayerModel layerModel;
     private CanvasModel canvasModel;
-    private SelectionModel selectionModel;
+    private SelectionModel selectionModel = new SelectionModel();
     private CanvasController canvasController;
 
     // Checkerboard colors for transparency
@@ -181,8 +181,12 @@ public class CanvasPanel extends JPanel {
             Rectangle sel = selectionModel.getBounds();
             g2.setColor(new Color(0, 120, 215, 60));
             g2.fill(sel);
+            Stroke origSel = g2.getStroke();
+            g2.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_BUTT,
+                    BasicStroke.JOIN_BEVEL, 0, new float[]{4f, 4f}, 0));
             g2.setColor(new Color(0, 120, 215));
             g2.draw(sel);
+            g2.setStroke(origSel);
         }
 
         // Draw tool overlay (gizmo, selection preview, etc.)

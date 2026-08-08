@@ -600,3 +600,28 @@ SMART GUIDES + CONFIG AVANZADA EDITOR [HECHO]
   Configuracion Avanzada -> Editor; modo_editor.html apartado Smart Guides.
   Compila (mvn compile EXIT=0).
 
+INVERTIR SELECCION (boton + Ctrl+Shift+I) [HECHO]
+- Boton "Invertir seleccion" en la fila 1 del component container del editor,
+  a la derecha de la toolbar de historial (Deshacer/Rehacer/Historial), icono
+  80015-invertir-seleccion.png. Tambien via atajo Ctrl+Shift+I en el canvas.
+- Semantica: quedan seleccionadas las capas no seleccionadas y viceversa; la
+  capa seleccionada de mayor indice (la superior del panel) pasa a ser la
+  activa si la anterior dejo de estarlo; si queda vacio, activa = -1.
+- No se registra en el historial (seleccion transitoria, como el resto).
+- LayerModel.invertSelection(): invierte selectedIndices (LinkedHashSet) sobre
+  todos los indices, recalcula activeIndex y dispara fireChanged().
+- EditorComponentBar: campo invertSelectionCallback + setOnInvertSelection;
+  en buildRow1RightSide se anade crearBotonHistorial("80015-invertir-seleccion.png",
+  "Invertir seleccion (Ctrl+Shift+I)", callback) justo tras btnHistorial.
+- AdvanceEditPanel: invertirSeleccion() (invertSelection + updateEditLayerFields
+  con la nueva capa activa + repaint); callback registrado en setCanvasController.
+- CanvasController: campo invertSelectionCallback + setInvertSelectionCallback;
+  KeyHandler rama Ctrl+Shift+I antes del check de teclas de herramienta
+  (clean/noShift), consume el evento.
+- RenderController: setInvertSelectionCallback(this::invertirSeleccionEditor)
+  en inicializarCanvasEditor; invertirSeleccionEditor() con guard
+  editorDocumentoCargadoEnPanel.
+- Ayuda: editor_avanzado.html (tabla de atajos + fila 1 Parte A) y
+  modo_editor.html (seccion "Invertir Seleccion"). Compila (mvn compile EXIT=0).
+
+

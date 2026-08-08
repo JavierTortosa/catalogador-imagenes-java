@@ -1829,6 +1829,7 @@ public class RenderController {
             canvasController.setUndoCallback(this::deshacerEditor);
             canvasController.setRedoCallback(this::rehacerEditor);
             canvasController.setDeleteCallback(this::borrarCapaEditor);
+            canvasController.setInvertSelectionCallback(this::invertirSeleccionEditor);
         }
         editorDocumentoCargadoEnPanel = false;
     } // --- Fin del metodo inicializarCanvasEditor ---
@@ -2009,6 +2010,17 @@ public class RenderController {
         }
         aep.getCanvas().repaint();
     } // --- Fin del metodo borrarCapaEditor ---
+
+
+    /**
+     * Invierte la selección de capas del documento cargado en el panel (RENDER
+     * o EDITOR), de modo que el atajo Ctrl+Shift+I funcione en ambos modos.
+     */
+    private void invertirSeleccionEditor() {
+        var aep = panel.getAdvanceEditPanel();
+        if (aep == null) return;
+        aep.invertirSeleccion();
+    } // --- Fin del metodo invertirSeleccionEditor ---
 
 
     /**

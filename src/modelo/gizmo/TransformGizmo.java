@@ -9,6 +9,7 @@ import java.awt.Rectangle;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
+import java.util.function.Predicate;
 
 /**
  * Gizmo de transformación reutilizable (mover, escalar, rotar).
@@ -71,6 +72,20 @@ public class TransformGizmo {
      * @param bounds rectángulo delimitador del elemento transformado
      */
     public void draw(Graphics2D g2, Rectangle bounds) {
+        draw(g2, bounds, null);
+    } // --- Fin del metodo draw ---
+
+    /**
+     * Dibuja el gizmo filtrando los tiradores según el predicado. Permite que
+     * cada herramienta muestre solo los controles aplicables (p.ej. solo el asa
+     * de rotación o solo los tiradores de escalado).
+     *
+     * @param g2     contexto gráfico
+     * @param bounds rectángulo delimitador del elemento transformado
+     * @param filter predicado que decide qué {@link Handle} se dibuja (si es
+     *               null, se dibujan todos como en {@link #draw(Graphics2D, Rectangle)})
+     */
+    public void draw(Graphics2D g2, Rectangle bounds, Predicate<Handle> filter) {
         if (bounds == null || bounds.isEmpty()) return;
 
         Graphics2D g = (Graphics2D) g2.create();
@@ -79,12 +94,26 @@ public class TransformGizmo {
                 g.rotate(Math.toRadians(rotation), bounds.getCenterX(), bounds.getCenterY());
             }
             drawFrame(g, bounds);
-            drawHandles(g, bounds);
-            drawRotationHandle(g, bounds);
+            if (filter == null || anyResizeHandle(filter)) {
+                drawHandles(g, bounds);
+            }
+            if (filter == null || filter.test(Handle.ROTATE)) {
+                drawRotationHandle(g, bounds);
+            }
         } finally {
             g.dispose();
         }
     } // --- Fin del metodo draw ---
+
+    /**
+     * @return true si el predicado acepta al menos uno de los 8 tiradores de
+     *         esquina/punto medio
+     */
+    private boolean anyResizeHandle(Predicate<Handle> filter) {
+        return filter.test(Handle.NW) || filter.test(Handle.N) || filter.test(Handle.NE)
+                || filter.test(Handle.W) || filter.test(Handle.E)
+                || filter.test(Handle.SW) || filter.test(Handle.S) || filter.test(Handle.SE);
+    } // --- Fin del metodo anyResizeHandle ---
 
 
     private void drawFrame(Graphics2D g2, Rectangle bounds) {

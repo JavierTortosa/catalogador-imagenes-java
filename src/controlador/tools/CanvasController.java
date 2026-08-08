@@ -45,6 +45,7 @@ public class CanvasController {
     private Runnable undoCallback;
     private Runnable redoCallback;
     private Runnable deleteCallback;
+    private Runnable invertSelectionCallback;
     private boolean panning;
     private int lastPanX;
     private int lastPanY;
@@ -319,6 +320,17 @@ public class CanvasController {
 
 
     /**
+     * Registra el callback de inversión de selección de capas (Ctrl+Shift+I)
+     * del editor.
+     *
+     * @param invertSelectionCallback callback de inversión, o null
+     */
+    public void setInvertSelectionCallback(Runnable invertSelectionCallback) {
+        this.invertSelectionCallback = invertSelectionCallback;
+    } // --- Fin del metodo setInvertSelectionCallback ---
+
+
+    /**
      * Notifica al documento que el contenido ha cambiado (llamado por las
      * herramientas modificadoras al completar un gesto).
      */
@@ -501,6 +513,15 @@ public class CanvasController {
                     && e.getKeyCode() == KeyEvent.VK_Y) {
                 if (redoCallback != null) {
                     redoCallback.run();
+                }
+                e.consume();
+                return;
+            }
+            if ((modifiers & KeyEvent.CTRL_DOWN_MASK) != 0
+                    && (modifiers & KeyEvent.SHIFT_DOWN_MASK) != 0
+                    && e.getKeyCode() == KeyEvent.VK_I) {
+                if (invertSelectionCallback != null) {
+                    invertSelectionCallback.run();
                 }
                 e.consume();
                 return;

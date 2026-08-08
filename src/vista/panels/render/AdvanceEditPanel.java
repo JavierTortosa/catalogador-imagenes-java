@@ -620,6 +620,7 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
         componentBar.setCanvasController(cc);
         componentBar.setOnTextChange(this::syncToolsFromBar);
         componentBar.setOnShapeChange(this::syncToolsFromBar);
+        componentBar.setOnInvertSelection(this::invertirSeleccion);
         canvasController.setFullscreenToggle(this::toggleFullscreen);
         canvasController.setFullscreenEscapeHandler(() -> false);
         layerCardPanel.setOnDoubleClick(textLayer -> {
@@ -632,6 +633,21 @@ public class AdvanceEditPanel extends JPanel implements ThemeChangeListener {
             }
         });
     } // --- Fin del metodo setCanvasController ---
+
+
+    /**
+     * Invierte la selección de capas y refresca los campos de edición con la
+     * nueva capa activa (la seleccionada de mayor índice si cambió).
+     */
+    public void invertirSeleccion() {
+        if (editorLayerModel == null) return;
+        editorLayerModel.invertSelection();
+        modelo.editor.Layer activa = editorLayerModel.getActiveLayer();
+        componentBar.updateEditLayerFields(activa);
+        if (canvasPanel != null) {
+            canvasPanel.repaint();
+        }
+    } // --- Fin del metodo invertirSeleccion ---
 
 
     private void selectToolButton(String commandKey) {

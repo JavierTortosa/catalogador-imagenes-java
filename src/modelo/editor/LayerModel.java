@@ -4,6 +4,7 @@ import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -229,6 +230,59 @@ public class LayerModel {
 
 
     /**
+     * Añade la capa a la selección múltiple sin quitar las ya seleccionadas y
+     * la deja como activa. Es el comportamiento de Shift+clic de Photoshop.
+     *
+     * @param index índice de la capa a añadir
+     */
+    public void addSelection(int index) {
+        if (index < 0 || index >= layers.size()) return;
+        selectedIndices.add(index);
+        activeIndex = index;
+        fireChanged();
+    } // --- Fin del metodo addSelection ---
+
+
+    /**
+     * Añade la capa a la selección múltiple sin quitar las ya seleccionadas y
+     * la deja como activa.
+     *
+     * @param layer capa a añadir
+     */
+    public void addSelection(Layer layer) {
+        if (layer == null) return;
+        int idx = layers.indexOf(layer);
+        if (idx >= 0) {
+            addSelection(idx);
+        }
+    } // --- Fin del metodo addSelection ---
+
+
+    /**
+     * Reemplaza la selección múltiple por el conjunto de índices dado (como el
+     * marco de selección de la herramienta de transformación). La capa activa
+     * pasa a ser la seleccionada de mayor índice (la superior del panel). Si el
+     * conjunto es null o vacío, se deja sin selección.
+     *
+     * @param indices índices a seleccionar
+     */
+    public void setSelectedIndices(Collection<Integer> indices) {
+        selectedIndices.clear();
+        if (indices != null) {
+            for (int idx : indices) {
+                if (idx >= 0 && idx < layers.size()) {
+                    selectedIndices.add(idx);
+                }
+            }
+        }
+        activeIndex = selectedIndices.isEmpty()
+                ? -1
+                : Collections.max(selectedIndices);
+        fireChanged();
+    } // --- Fin del metodo setSelectedIndices ---
+
+
+    /**
      * Selecciona el rango contiguo entre la capa activa (ancla) y la indicada,
      * como el Shift+clic de Photoshop. La capa pulsada pasa a ser la activa.
      */
@@ -251,6 +305,29 @@ public class LayerModel {
         selectedIndices.clear();
         fireChanged();
     } // --- Fin del metodo clearSelection ---
+
+
+    /**
+     * Invierte la selección: quedan seleccionadas todas las capas que no lo
+     * estaban y viceversa. Si la capa activa deja de estar seleccionada, pasa a
+     * ser activa la capa seleccionada de mayor índice (la superior del panel).
+     */
+    public void invertSelection() {
+        if (layers.isEmpty()) return;
+        Set<Integer> prev = new LinkedHashSet<>(selectedIndices);
+        selectedIndices.clear();
+        for (int i = 0; i < layers.size(); i++) {
+            if (!prev.contains(i)) {
+                selectedIndices.add(i);
+            }
+        }
+        if (!selectedIndices.contains(activeIndex)) {
+            activeIndex = selectedIndices.isEmpty()
+                    ? -1
+                    : Collections.max(selectedIndices);
+        }
+        fireChanged();
+    } // --- Fin del metodo invertSelection ---
 
 
     /**

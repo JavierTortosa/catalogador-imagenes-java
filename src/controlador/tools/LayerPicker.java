@@ -2,6 +2,7 @@ package controlador.tools;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +71,27 @@ public class LayerPicker {
         }
         return null;
     } // --- Fin del metodo findLayerAt ---
+
+    /**
+     * Busca todas las capas visibles y no bloqueadas cuyos bounds se crucen con
+     * el rectángulo dado, en orden de apilado (fondo primero).
+     *
+     * @param rect rectángulo en coordenadas de canvas
+     * @return lista de capas atrapadas (puede estar vacía)
+     */
+    public List<Layer> findLayersIn(Rectangle rect) {
+        List<Layer> result = new ArrayList<>();
+        if (rect == null) return result;
+        List<Layer> layers = ctx.layerModel().getLayers();
+        for (Layer l : layers) {
+            if (!l.isVisible() || l.isLocked()) continue;
+            Rectangle b = l.getBounds();
+            if (b != null && b.intersects(rect)) {
+                result.add(l);
+            }
+        }
+        return result;
+    } // --- Fin del metodo findLayersIn ---
 
     public boolean isAutoSelect() {
         return ctx.componentBar() != null && ctx.componentBar().isAutoSelect();

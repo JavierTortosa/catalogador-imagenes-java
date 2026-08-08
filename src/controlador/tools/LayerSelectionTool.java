@@ -1,31 +1,26 @@
 package controlador.tools;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Stroke;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 
 import controlador.commands.AppActionCommands;
 import modelo.editor.ImageLayer;
+import modelo.editor.Layer;
 
 /**
  * Herramienta de selección por capa.
  * <p>
- * Crea una selección rectangular limitada a los bounds de la capa activa. El
- * arrastre fuera de la capa no genera selección.
+ * Al pulsar dentro de la capa activa, selecciona el contenido opaco de esa capa
+ * (el área delimitada por sus píxeles no transparentes), como la selección de
+ * capa de Photoshop. Un clic fuera de la capa activa limpia la selección.
+ * <p>
+ * Resolución de capa estilo Photoshop: si la auto-selección está activada o no
+ * hay capa activa, se busca la capa visible más frontal bajo el cursor y se
+ * activa antes de calcular el contenido opaco.
  */
 public class LayerSelectionTool extends Tool {
-
-    private Point startPoint;
-    private Rectangle currentRect;
-    private boolean dragging;
-
-    private static final Color FILL_COLOR = new Color(0, 180, 80, 40);
-    private static final Color BORDER_COLOR = new Color(0, 180, 80);
-    private static final float DASH[] = { 4f, 4f };
 
     @Override
     public String getCommandKey() {
@@ -39,76 +34,85 @@ public class LayerSelectionTool extends Tool {
 
     @Override
     public void mousePressed(MouseEvent e) {
-        ImageLayer layer = getActiveLayer();
-        if (layer == null || layer.getBounds() == null) return;
-        if (!layer.getBounds().contains(e.getPoint())) return;
+        if (ctx.selectionModel() == null) return;
 
-        startPoint = e.getPoint();
-        currentRect = new Rectangle(startPoint.x, startPoint.y, 0, 0);
-        dragging = true;
+        ImageLayer layer = findTargetLayer(e.getPoint());
+        if (layer == null || layer.getBounds() == null) {
+            ctx.selectionModel().clear();
+            ctx.canvasPanel().repaint();
+            return;
+        }
+
+        Rectangle b = layer.getBounds();
+        if (!b.contains(e.getPoint())) {
+            ctx.selectionModel().clear();
+            ctx.canvasPanel().repaint();
+            return;
+        }
+
+        ctx.selectionModel().setBounds(contenidoOpaco(layer, b));
+        ctx.selectionModel().setFeather(ctx.componentBar().getFeatherAmount());
+        ctx.canvasPanel().repaint();
     } // --- Fin del metodo mousePressed ---
 
-    @Override
-    public void mouseDragged(MouseEvent e) {
-        if (!dragging || startPoint == null) return;
-        ImageLayer layer = getActiveLayer();
-        if (layer == null || layer.getBounds() == null) return;
-
-        Rectangle lb = layer.getBounds();
-        int x = Math.max(lb.x, Math.min(startPoint.x, e.getX()));
-        int y = Math.max(lb.y, Math.min(startPoint.y, e.getY()));
-        int ex = Math.min(lb.x + lb.width, Math.max(startPoint.x, e.getX()));
-        int ey = Math.min(lb.y + lb.height, Math.max(startPoint.y, e.getY()));
-        int w = ex - x;
-        int h = ey - y;
-
-        currentRect = new Rectangle(x, y, w, h);
-    } // --- Fin del metodo mouseDragged ---
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-        if (!dragging) return;
-
-        if (currentRect != null && currentRect.width > 2 && currentRect.height > 2) {
-            if (ctx.selectionModel() != null) {
-                ctx.selectionModel().setBounds(currentRect);
-                ctx.selectionModel().setFeather(ctx.componentBar().getFeatherAmount());
+    /**
+     * Capa sobre la que actúa la herramienta. Si la auto-selección está
+     * activada o no hay capa activa, busca la capa visible más frontal bajo el
+     * cursor y la activa. Si no hay ninguna capa en ese punto, devuelve null.
+     *
+     * @param p coordenadas de canvas del punto pulsado
+     * @return la capa de imagen a usar, o null si no hay ninguna
+     */
+    private ImageLayer findTargetLayer(Point p) {
+        boolean autoSelect = ctx.componentBar() != null && ctx.componentBar().isAutoSelect();
+        boolean sinActiva = getActiveLayer() == null;
+        if (autoSelect || sinActiva) {
+            if (ctx.layerPicker() != null) {
+                Layer hit = ctx.layerPicker().findLayerAt(p);
+                if (hit instanceof ImageLayer il && il.getImage() != null) {
+                    ctx.layerPicker().activateLayer(il);
+                    return il;
+                }
             }
-        } else {
-            if (ctx.selectionModel() != null) {
-                ctx.selectionModel().clear();
+            return null;
+        }
+        return getActiveLayer();
+    } // --- Fin del metodo findTargetLayer ---
+
+    /**
+     * Calcula el rectángulo delimitador de los píxeles opacos de la capa, en
+     * coordenadas canvas, escalando al tamaño en pantalla del bounds cuando este
+     * no coincide con el tamaño real de la imagen. Si la capa no tiene contenido
+     * visible, usa sus bounds.
+     */
+    private Rectangle contenidoOpaco(ImageLayer layer, Rectangle b) {
+        BufferedImage img = layer.getImage();
+        if (img == null) return b;
+
+        int imgW = img.getWidth();
+        int imgH = img.getHeight();
+        int minX = imgW;
+        int minY = imgH;
+        int maxX = -1;
+        int maxY = -1;
+
+        for (int y = 0; y < imgH; y++) {
+            for (int x = 0; x < imgW; x++) {
+                int a = (img.getRGB(x, y) >>> 24) & 0xFF;
+                if (a <= 0) continue;
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
             }
         }
 
-        dragging = false;
-        startPoint = null;
-        currentRect = null;
-    } // --- Fin del metodo mouseReleased ---
-
-
-    @Override
-    public boolean cancel() {
-        if (!dragging) return false;
-        dragging = false;
-        startPoint = null;
-        currentRect = null;
-        ctx.canvasPanel().repaint();
-        return true;
-    } // --- Fin del metodo cancel ---
-
-    @Override
-    public void paintOverlay(Graphics2D g2) {
-        if (!dragging || currentRect == null) return;
-
-        g2.setColor(FILL_COLOR);
-        g2.fill(currentRect);
-
-        Stroke original = g2.getStroke();
-        g2.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_BUTT,
-                BasicStroke.JOIN_BEVEL, 0, DASH, 0));
-        g2.setColor(BORDER_COLOR);
-        g2.draw(currentRect);
-        g2.setStroke(original);
-    } // --- Fin del metodo paintOverlay ---
+        if (maxX < 0) return b;
+        int fx = b.x + (int) ((long) minX * b.width / imgW);
+        int fy = b.y + (int) ((long) minY * b.height / imgH);
+        int fw = Math.max(1, (int) ((long) (maxX - minX + 1) * b.width / imgW));
+        int fh = Math.max(1, (int) ((long) (maxY - minY + 1) * b.height / imgH));
+        return new Rectangle(fx, fy, fw, fh);
+    } // --- Fin del metodo contenidoOpaco ---
 
 } // --- Fin de la clase LayerSelectionTool ---
