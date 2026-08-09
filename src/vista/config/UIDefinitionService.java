@@ -799,19 +799,19 @@ public class UIDefinitionService {
         // --- BARRA DE BOTONES modos ---
         List<ToolbarButtonDefinition> botonesModo = List.of(
                 new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR,
-                        "8001-modo_visualizador_48x48.png", "Modo Visualizador", "modo", ButtonType.TOGGLE)
+                        "8001-modo_visualizador_48x48.png", "Modo Visualizador (Ctrl+1)", "modo", ButtonType.TOGGLE)
                 , new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR,
-                        "8002-mostrar_favoritos_48x48.png", "Modo Proyecto", "modo", ButtonType.TOGGLE)
+                        "8002-mostrar_favoritos_48x48.png", "Modo Proyecto (Ctrl+2)", "modo", ButtonType.TOGGLE)
                 , new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_CLIENTE, 
-                		"21016-Ar-Environment.png", "Modo Cliente", "modo", ButtonType.TOGGLE)
+                		"21016-Ar-Environment.png", "Modo Cliente (Ctrl+3)", "modo", ButtonType.TOGGLE)
                 , new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_DATOS, 
-                		"8003-datos_48x48.png", "Modo Datos", "modo", ButtonType.TOGGLE)
+                		"8003-datos_48x48.png", "Modo Datos (Ctrl+4)", "modo", ButtonType.TOGGLE)
                 , new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_CAROUSEL, 
-                		"4005-carrousel_48x48.png", "Vista Carrusel", "modo", ButtonType.TOGGLE)
+                		"4005-carrousel_48x48.png", "Vista Carrusel (Ctrl+5)", "modo", ButtonType.TOGGLE)
                 , new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_RENDER, 
-                		"8005-render mode.png", "Modo Render", "modo", ButtonType.TOGGLE)
+                		"8005-render mode.png", "Modo Render (Ctrl+6)", "modo", ButtonType.TOGGLE)
                 , new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_EDITOR, 
-                		"8006-edit-mode.png", "Modo Editor", "modo", ButtonType.TOGGLE)
+                		"8006-edit-mode.png", "Modo Editor (Ctrl+7)", "modo", ButtonType.TOGGLE)
         );
 
         List<ToolbarButtonDefinition> botonesModoBottom = List.of(

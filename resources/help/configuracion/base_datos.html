@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Configuración: Base de Datos</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+    <h1>Base de Datos</h1>
+    <p>Ruta de la base de datos SQLite y operaciones de mantenimiento.</p>
+
+    <h2>Configuración</h2>
+    <table class="help-table">
+        <tr><th>Parámetro</th><th>Descripción</th></tr>
+        <tr>
+            <td><strong>Ruta base de datos</strong></td>
+            <td>Ubicación de la base de datos SQLite. Vacío = ubicación por defecto en la carpeta de la aplicación.</td>
+        </tr>
+        <tr>
+            <td><strong>Reconstruir índices</strong></td>
+            <td>Ejecuta REINDEX + VACUUM para reparar y compactar la base de datos.</td>
+        </tr>
+    </table>
+
+    <h2>Mantenimiento</h2>
+    <p>Cuatro operaciones en pestañas:</p>
+    <table class="help-table">
+        <tr><th>Operación</th><th>Descripción</th></tr>
+        <tr>
+            <td><strong>Imágenes Huérfanas</strong></td>
+            <td>Busca imágenes registradas en la base de datos cuyos archivos ya no existen en disco y ofrece eliminarlas.</td>
+        </tr>
+        <tr>
+            <td><strong>Etiquetas Sin Uso</strong></td>
+            <td>Busca etiquetas sin ninguna imagen asociada ni hijas y las elimina (las de sistema se omiten).</td>
+        </tr>
+        <tr>
+            <td><strong>Ramas Vacías</strong></td>
+            <td>Busca ramas completas de etiquetas sin imágenes asociadas y las elimina (las de sistema se omiten).</td>
+        </tr>
+        <tr>
+            <td><strong>Fusionar Etiquetas</strong></td>
+            <td>Transfiere todas las imágenes de una etiqueta origen a una etiqueta destino y elimina la origen.</td>
+        </tr>
+    </table>
+
+</body>
+</html>

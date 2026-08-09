@@ -53,6 +53,8 @@ Queda **fuera del alcance** de este documento:
 - El modo CLIENTE (revisión, catálogos HTML/web y presupuesto PDF, importación de respuesta),
   especificado en `SRS-ModoCliente.md`.
 - El modo RENDER (generación de previews 3D), especificado en `SRS-ModoRender.md`.
+- El modo EDITOR (edición de composiciones por capas y documentos `.edoc`), especificado en
+  `SRS-ModoEditor.md`.
 - La gestión de etiquetas en sí (modo DATOS), especificada en `SRS-ModoDatos.md`; en este
   documento solo se documenta su integración con el visor.
 
@@ -85,6 +87,7 @@ Queda **fuera del alcance** de este documento:
 - `docs/SRS-ModoDatos.md` — Especificación del Modo Datos.
 - `docs/SRS-ModoProyecto.md` — Especificación del Modo Proyecto.
 - `docs/SRS-ModoCliente.md` — Especificación del Modo Cliente.
+- `docs/SRS-ModoEditor.md` — Especificación del Modo Editor y el Editor Avanzado.
 
 ### 1.5 Resumen
 
@@ -101,7 +104,7 @@ describe el modelo de datos; y la sección 7 incluye apéndices con trazabilidad
 
 El Modo Visor es el modo de trabajo **por defecto** (`VisorModel` arranca en
 `VISUALIZADOR`). El acceso se realiza desde la barra de modos principal o directamente al
-iniciar la aplicación. El resto de modos son PROYECTO, CLIENTE, DATOS, CARRUSEL y RENDER.
+iniciar la aplicación. El resto de modos son PROYECTO, CLIENTE, DATOS, CARRUSEL, RENDER y EDITOR.
 
 El modo se integra con el resto del sistema mediante:
 
@@ -193,7 +196,7 @@ clase entre paréntesis permiten la trazabilidad al código fuente (apéndice A)
 | **RF-006** | El sistema debe mantener un **historial de navegación** por modo (`NavigationState`: carpeta padre + clave de imagen seleccionada) con capacidad de volver atrás y restaurar el estado. |
 | **RF-007** | La acción **Subir nivel** debe ir a la carpeta padre (priorizando el historial cuando exista). |
 | **RF-008** | La acción **Volver a la raíz** debe restaurar el primer estado del historial (raíz de la sesión) y vaciarlo. |
-| **RF-009** | La opción **mostrar solo carpeta actual** debe limitar el listado a las imágenes cuyo padre coincide exactamente con la raíz; desactivada, el escaneo debe ser recursivo. |
+| **RF-009** | El **escaneo de disco debe ser siempre recursivo** (profundidad completa): la opción **"Mostrar subcarpetas"** es un **filtro visual** de presentación. Con "mostrar solo carpeta actual" el listado se limita a las imágenes cuyo padre coincide exactamente con la raíz; desactivada, se muestran las de toda la jerarquía. Alternar el toggle solo recarga la lista desde la BD aplicando el filtro, **sin re-escaneo de disco**. |
 | **RF-010** | La carga de una nueva carpeta debe resetear los filtros (permanentes y en vivo), actualizar la raíz, sincronizar el árbol y disparar la recarga desde disco y base de datos. |
 | **RF-011** | Al sincronizar con disco, el sistema debe detectar imágenes nuevas, actualizar la BD y **eliminar huérfanos** (archivos que ya no existen). |
 | **RF-012** | El escaneo de disco debe omitir directorios no deseados (p. ej. `__MACOSX`). |
@@ -504,7 +507,7 @@ clase entre paréntesis permiten la trazabilidad al código fuente (apéndice A)
 | Clase | Campos principales | Descripción |
 |-------|--------------------|-------------|
 | `VisorModel` | `workMode`, `displayMode`, `sortDirection`, `navegacionCircular`, `saltoDeBloque`, `carouselDelay`, 4 `ListContext`, 4 `ZoomContext` | Modelo central del estado de la aplicación. |
-| `WorkMode` | `VISUALIZADOR, PROYECTO, DATOS, CLIENTE, CARROUSEL, RENDER` | Modos de trabajo. |
+| `WorkMode` | `VISUALIZADOR, PROYECTO, DATOS, CLIENTE, CARROUSEL, RENDER, EDITOR` | Modos de trabajo. |
 | `DisplayMode` | `SINGLE_IMAGE, GRID, POLAROID` | Modos de vista del área central. |
 | `SortDirection` | `NONE, ASCENDING, DESCENDING` | Direcciones de ordenación. |
 | `ListContext` | `modeloLista`, `carpetaRaizContexto`, `rutaCompletaMap`, `selectedImageKey`, `mostrarSoloCarpetaActual`, `displayMode`, `historialNavegacion`, `seleccionListKey`, `descartesListKey`, `datosSelectedTag` | Estado de lista por modo de trabajo. |
@@ -530,7 +533,7 @@ clase entre paréntesis permiten la trazabilidad al código fuente (apéndice A)
 | `comportamiento.zoom.manual_inicial` | `false` | Zoom manual inicial. |
 | `comportamiento.zoom.porcentaje_personalizado` | *(valor)* | Porcentaje de zoom personalizado. |
 | `comportamiento.navegacion_circular` | `false` | Navegación circular. |
-| `comportamiento.cargar_subcarpetas` | *(valor)* | Carga con subcarpetas. |
+| `comportamiento.cargar_subcarpetas` | *(valor)* | Estado del toggle **Mostrar subcarpetas** (filtro visual de presentación). |
 | `comportamiento.zoom_al_cursor_activado` | `false` | Zoom al cursor. |
 | `comportamiento.navegacion_salto_bloque` | `10` | Salto de bloque de navegación. |
 | `carousel.delay_ms` | `3000` | Intervalo del carrusel (signo = dirección). |

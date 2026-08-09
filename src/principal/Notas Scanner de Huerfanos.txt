@@ -1,0 +1,122 @@
+===============================================================================
+  SCANNER DE HUÉRFANOS — Buscar archivos 3D sin representación (modo RENDER)
+===============================================================================
+
+OBJETIVO
+--------
+Dado el botón "Escanear Archivos Sin Representacion" (icono 70009-scanner.png,
+ya existente en la toolbar toolbarRenderCenter pero inactivo, atado a
+CMD_FUNCIONALIDAD_PENDIENTE), implementar un escaneo disco-vs-disco que
+localice archivos 3D/comprimidos (STL, OBJ, 3MF, ZIP, RAR, 7z) sin imagen
+asociada, para poder generarlos después con el pipeline ZIP2PNG.
+
+  HUÉRFANO = archivo 3D o comprimido para el que no existe una representación
+             gráfica externa con el mismo nombre base en su misma carpeta.
+
+FLUJO DE USUARIO
+----------------
+  RENDER
+    │
+    ├── Escanear archivos sin representación
+    │     ├── elegir carpeta(s) inicial(es) (CarpetasSelectionDialog)
+    │     ├── incluir subcarpetas (estado propio renderScanIncludeSubfolders)
+    │     └── escanear (disco-vs-disco, sin tocar BD ni selectedImageKey)
+    │
+    └── resultado
+          ├── SIN RENDERIZAR (no tiene imagen externa ni interna)
+          └── CON IMAGEN (tiene imagen externa o interna dentro del comprimido)
+                    │
+                    ▼
+              usuario decide
+                    │
+                    ▼
+              generar renders (CMD_RENDER_PROCESAR_SELECCIONADOS / _ARCHIVO)
+
+  CASO MULTIBOARD/SKADIS: se resuelve por SELECCIÓN EXPLÍCITA de carpetas en
+  el diálogo. No se analiza todo lo que existe, sino aquello que necesitamos.
+
+DECISIONES DE DISEÑO
+--------------------
+  1. Estado propio del Scanner: renderScanIncludeSubfolders (independiente del
+     VISUALIZADOR). NO se usa isMostrarSoloCarpetaActual() como profundidad.
+  2. Semántica única de recorrido en Zip2PngScanner vía includeSubfolders:
+        includeSubfolders = false → depth 1
+        includeSubfolders = true  → depth MAX_VALUE
+     - scanFolder(folder, cb) / scanFolder(folder) delegan en TRUE (recursivo).
+     - onScan existente se UNIFICA a scanFolder(folder, true, cb).
+     ⚠ CAMBIO FUNCIONAL DELIBERADO: onScan pasa de Files.walk(folder, 2) a
+       recursivo completo. NO es un efecto colateral del refactor.
+  3. FASE 1 / FASE 2 separadas:
+     FASE 1 → scanFolder(): detectar ausencia de representación externa.
+     FASE 2 → detectarImagenesEnArchivos(): inspeccionar imágenes DENTRO de
+              los comprimidos (más cara; solo para la pestaña Con imagen).
+  4. Bug de matching corregido: se pasa de Set<String> (solo nombreBase) a
+     clave compuesta "carpetaRelativa/nombreBase" (normalizada a /). Así
+     A/modelo.zip ya no desaparece de candidatos por existir B/modelo.png.
+     Las imágenes y los archivos 3D/comprimidos calculan la clave EXACTAMENTE
+     igual, incluso con varias raíces en el mismo escaneo.
+  5. No se persiste el resultado del Scanner en esta fase. La evolución futura
+     (Scanner incremental/persistente con SQLite) no cambia esta UX: el scanner
+     consultará su índice antes de recorrer.
+
+IMPLEMENTACIÓN
+--------------
+  1. controlador/commands/AppActionCommands.java
+       CMD_RENDER_ESCANEAR_HUERFANOS = "cmd.render.escanear_huerfanos"
+       (sustituye la referencia pendiente CMD_RENDER_PROCESAR_HUERFANOS de
+        VisorV2.java:47)
+
+  2. servicios/renderer/Zip2PngScanner.java
+       - Nueva firma scanFolder(Path, boolean includeSubfolders, Consumer)
+       - Files.walk(folderPath, 2) → Files.walk(folderPath, depth)
+       - Fix matching ruta+base (clave carpetaRelativa/nombreBase)
+       - Se conservan: nombreBase() (modelo.v2.zip ↔ modelo.v2.png ya ok),
+         agrupación multivolumen, detectarImagenesEnArchivos()
+
+  3. controlador/RenderController.java
+       - Campos: VisorModel model (+setModel), boolean renderScanIncludeSubfolders=true
+       - ejecutarEscanearHuerfanos(ActionEvent):
+           1. Raíz = model.getCarpetaRaizActual() (fallback lastScanFolder)
+           2. CarpetasSelectionDialog (raíz + estado renderScanIncludeSubfolders)
+           3. Aceptar → List<Path> rootsToScan (solo raíces efectivas) + flag
+           4. SwingWorker + TaskProgressDialog:
+              FASE 1 scanFolder(root, renderScanIncludeSubfolders, cb) por raíz
+              FASE 2 detectarImagenesEnArchivos(candidates)
+           5. Repartir en getListModelSinImagen()/getListModelConImagen()
+              vía método compartido extraído de onScan (poblarPestanyasConCandidates)
+       - onScan refactorizado: scanFolder(folder, true, cb) + método compartido
+
+  4. Nuevo vista/dialogos/CarpetasSelectionDialog.java
+       - JDialog modal con JTree + nodos JCheckBox (patrón TagSelectionDialog)
+       - Herencia de selección padre→hijos; desmarcar padre desmarca hijos
+       - List<Path> getRootsToScan() (solo raíces marcadas sin ancestro marcado)
+       - Checkbox "Incluir subcarpetas" (estado renderScanIncludeSubfolders)
+       - Botones Aceptar/Cancelar
+
+  5. controlador/factory/ActionFactory.java
+       - createRenderEscanearHuerfanosAction() (patrón createRenderEscanearCarpetaAction)
+       - Registro en el mapa de acciones render
+
+  6. vista/config/UIDefinitionService.java (línea 1229)
+       - Sustituir CMD_FUNCIONALIDAD_PENDIENTE por CMD_RENDER_ESCANEAR_HUERFANOS
+
+  7. controlador/AppInitializer.java
+       - Añadir rc.setModel(this.model) en el bloque del RenderController
+
+NO SE TOCA
+----------
+  - ImageListManager, BuscadorArchivosWorker, indexación SQLite (pipeline visor)
+  - AppModeService / GeneralController.solicitarToggleModoCargaSubcarpetas
+  - Ayudas HTML del visor
+
+VERIFICACIÓN
+------------
+  mvn compile -q
+
+NOTAS DE LA CONVERSACIÓN (revisión cruzada con otra IA)
+--------------------------------------------------------
+  - La otra IA validó el diseño v4. Punto único: el cambio de onScan a
+    recursivo completo es un cambio funcional DELIBERADO, no un refactor.
+  - Comprobación durante implementación: A/modelo.zip + A/modelo.png y
+    B/modelo.zip + B/modelo.png deben producir A/modelo → encontrada y
+    B/modelo → encontrada, sin mezclar A con B.

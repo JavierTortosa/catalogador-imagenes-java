@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Editor Avanzado: Herramienta Texto</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+    <h1><img src="ICON_PLACEHOLDER_80009-text.png" class="header-icon">Herramienta Texto</h1>
+
+    <p>
+        La herramienta de texto crea <strong>capas de texto editables</strong>
+        (<code>TextLayer</code>), que almacenan el contenido textual, la fuente, el color y los
+        estilos como propiedades, en lugar de rasterizar el texto a una imagen.
+        Soporta <strong>formato por carácter</strong> (rich text): distintos fragmentos del mismo
+        texto pueden tener fuente, tamaño, negrita, cursiva, color, subrayado y tachado diferentes.
+    </p>
+
+    <h2>Creación y Edición</h2>
+    <ul>
+        <li><strong>Arrastrar</strong> sobre el lienzo vacío → define el rectángulo de texto y
+            aparece un <code>JTextPane</code> superpuesto para escribir directamente sobre el canvas.
+            La capa conserva las dimensiones del arrastre y permite múltiples líneas con formato rico.</li>
+        <li><strong>Single click</strong> sobre el lienzo vacío → modo auto-ajuste. Las dimensiones
+            de la capa se calculan automáticamente según el contenido del texto. También usa
+            <code>JTextPane</code>, con el mismo soporte de formato rico.</li>
+        <li><strong>Enter</strong> o <strong>Ctrl+Enter</strong> → confirma el texto y crea la
+            <code>TextLayer</code> con el nombre = primeros 30 caracteres del contenido.</li>
+        <li><strong>Un clic</strong> sobre una <code>TextLayer</code> existente → re-edita el
+            texto inline directamente (tipo Photoshop), restaurando el formato rico previo
+            (<code>TextRun</code>) en el <code>JTextPane</code>.</li>
+        <li><strong>Focus lost</strong> → también confirma automáticamente (excepto si el foco va
+            a un control de la barra de opciones).</li>
+        <li><strong>Cambiar de herramienta</strong> durante la edición inline → confirma el texto
+            automáticamente (la capa se crea o actualiza antes de desactivar la herramienta).</li>
+    </ul>
+
+    <h2>Formato por Carácter</h2>
+    <p>
+        El texto se almacena internamente como una lista de <code>TextRun</code>, donde cada
+        <code>TextRun</code> contiene: fuente, color, subrayado, tachado y el texto del fragmento.
+        Esto permite que cada carácter o grupo de caracteres tenga su propio formato.
+    </p>
+    <ul>
+        <li><strong>Seleccionar</strong> parte del texto con el ratón y cambiar cualquier
+            propiedad (fuente, tamaño, negrita, color, subrayado, etc.) → el cambio se aplica
+            solo a la selección.</li>
+        <li>Si <strong>no hay selección</strong>, los cambios de estilo se aplican como atributos
+            de entrada por defecto para el texto que se escriba a continuación.</li>
+        <li>Al <strong>confirmar</strong> (Enter/focus lost), los runs se extraen del
+            <code>StyledDocument</code> del <code>JTextPane</code> y se almacenan en la capa.</li>
+        <li>Al <strong>re-editar</strong> (doble clic), los runs se restauran en el
+            <code>JTextPane</code>.</li>
+        <li>El <strong>pintado</strong> recorre los runs y dibuja cada fragmento con su fuente,
+            color, subrayado y tachado, con soporte de múltiples líneas mediante <code>\n</code>.</li>
+    </ul>
+
+    <h2>Alineación en Modo Auto-Ajuste</h2>
+    <p>
+        En el modo auto-ajuste (single click), los botones de alineado usan el ancho de la
+        <strong>primera línea</strong> como referencia:
+    </p>
+    <ul>
+        <li><strong>Izquierda:</strong> el texto crece hacia la derecha desde el punto de clic.</li>
+        <li><strong>Centro:</strong> la primera línea se centra en el punto de clic; las líneas
+            siguientes se alinean respecto a ese centro.</li>
+        <li><strong>Derecha:</strong> la primera línea termina en el punto de clic; las líneas
+            siguientes se alinean a ese borde derecho.</li>
+    </ul>
+
+    <h2>Panel de Opciones de Texto (Parte B)</h2>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80900-search-font.png"></td>
+            <td><strong>Fuente:</strong> JComboBox con todas las fuentes del sistema.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80901-bold-text.png"></td>
+            <td><strong>Negrita:</strong> Alterna el estilo bold de la fuente.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80902-italic-text.png"></td>
+            <td><strong>Cursiva:</strong> Alterna el estilo italic de la fuente.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80905-font-size.png"></td>
+            <td><strong>Tamaño:</strong> JComboBox con tamaños predefinidos (8–72).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80906-align-left.png"></td>
+            <td><strong>Alinear izquierda:</strong> Alinea el texto al borde izquierdo del rectángulo
+                (o al punto de clic en auto-ajuste).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80907-align-center.png"></td>
+            <td><strong>Alinear centro:</strong> Centra el texto horizontalmente (respecto al
+                rectángulo o a la primera línea en auto-ajuste).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80908-align-right.png"></td>
+            <td><strong>Alinear derecha:</strong> Alinea el texto al borde derecho del rectángulo
+                (o al punto de clic en auto-ajuste).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80913-vertical-text.png"></td>
+            <td><strong>Vertical:</strong> Dibuja el texto en orientación vertical (caracteres apilados).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_color-swatch.png"></td>
+            <td><strong>Color:</strong> Selector de color para el texto. Al cambiarlo, se aplica
+                en tiempo real a la capa activa o a la selección actual en el editor inline.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80103-rotate.png"></td>
+            <td><strong>Ángulo:</strong> Spinner de grados (-360° a 360°) que rota la capa de texto
+                de forma no destructiva. Se sincroniza con el asa de rotación del gizmo y se
+                conserva al re-editar el texto.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80903-underline-text.png"></td>
+            <td><strong>Subrayado:</strong> Alterna el subrayado del texto. Si hay selección, se
+                aplica solo a la selección; si no, se aplica como atributo de entrada.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80904-tachado.png"></td>
+            <td><strong>Tachado:</strong> Alterna el tachado del texto. Mismo comportamiento que
+                subrayado (selección o atributo de entrada).</td>
+        </tr>
+    </table>
+    <p>
+        Los cambios en el panel se aplican <strong>en tiempo real</strong> tanto a la capa activa
+        como al campo de edición inline. Si hay texto seleccionado en el <code>JTextPane</code>,
+        los cambios afectan solo a la selección; si no, afectan al texto que se escriba a
+        continuación.
+    </p>
+
+    <h2>Sincronización Barra ↔ Selección</h2>
+    <p>
+        Al mover el cursor o seleccionar texto en el editor inline, la barra de opciones se
+        actualiza automáticamente para reflejar el formato del texto en la posición del cursor:
+    </p>
+    <ul>
+        <li>Si todo el texto seleccionado tiene <strong>atributos uniformes</strong>, los
+            controles de la barra (fuente, tamaño, negrita, cursiva, subrayado, tachado) se
+            actualizan para mostrar esos valores.</li>
+        <li>Si el texto seleccionado tiene <strong>atributos mixtos</strong> (ej. parte en negrita
+            y parte no), los controles se dejan en blanco/indeterminado.</li>
+        <li>La <strong>alineación</strong> del párrafo se actualiza según el párrafo donde esté
+            el cursor.</li>
+        <li>Esto permite saber en todo momento qué formato tiene el texto, especialmente útil al
+            editar capas con formato rico preexistente.</li>
+    </ul>
+
+    <h2>Panel Derecho de Texto (sincronizado)</h2>
+    <p>
+        El panel derecho del editor (<strong>Herramientas → sección Texto</strong>) ofrece
+        controles duplicados de formato de texto en dos pestañas:
+    </p>
+    <ul>
+        <li><strong>Alineamiento:</strong> botones de alineación (izquierda, centro, derecha,
+            justificado), flujo (línea/columna) y orientación (horizontal/vertical).</li>
+        <li><strong>Fuentes:</strong> selector de familia tipográfica, tamaño (8–72) y estilos
+            (negrita, cursiva, subrayado, tachado).</li>
+    </ul>
+    <p>
+        Estos controles están <strong>completamente sincronizados</strong> con la barra superior
+        (Parte B) y con la herramienta Texto:
+    </p>
+    <ul>
+        <li>Al cambiar cualquier propiedad desde el panel derecho, se aplica en tiempo real al
+            texto seleccionado y se actualiza la barra superior.</li>
+        <li>Al cambiar desde la barra superior, el panel derecho se actualiza al instante.</li>
+        <li>Al mover el cursor por un texto con formato rico, ambos paneles reflejan el formato
+            de la posición actual.</li>
+    </ul>
+    <p>
+        Internamente, los controles del panel derecho reutilizan la lógica de
+        <code>EditorComponentBar.applyTextProperty()</code>, de modo que los dos paneles se
+        comportan como si fueran el mismo conjunto de controles.
+    </p>
+
+</body>
+</html>

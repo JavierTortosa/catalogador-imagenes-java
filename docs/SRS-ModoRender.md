@@ -40,7 +40,8 @@ El alcance cubre:
 - Ajustes de imagen y fondo del renderizado.
 - Asignación de previews a los archivos de origen.
 - Exportación/descarga de previews.
-- **Editor avanzado** de composición por capas.
+- **Editor avanzado** de composición por capas (integración desde el Modo Render; la
+  especificación completa del editor vive en `SRS-ModoEditor.md`).
 - Configuración del subsistema de renderizado.
 
 Queda **fuera del alcance** de este documento:
@@ -80,6 +81,7 @@ Queda **fuera del alcance** de este documento:
 - `docs/SRS-ModoDatos.md` — Especificación del Modo Datos.
 - `docs/SRS-ModoProyecto.md` — Especificación del Modo Proyecto.
 - `docs/SRS-ModoCliente.md` — Especificación del Modo Cliente.
+- `docs/SRS-ModoEditor.md` — Especificación del Modo Editor y el Editor Avanzado.
 
 ### 1.5 Resumen
 
@@ -95,8 +97,9 @@ describe el modelo de datos; y la sección 7 incluye apéndices con trazabilidad
 ### 2.1 Perspectiva del producto
 
 El Modo Render es uno de los modos de trabajo del Visor de Imágenes V2. El resto de modos son
-VISUALIZADOR, PROYECTO, CLIENTE, DATOS y CARRUSEL. El acceso se realiza desde la barra de modos
-principal (botón **Render**). Internamente el modo se identifica como `WorkMode.RENDER`.
+VISUALIZADOR, PROYECTO, CLIENTE, DATOS, CARRUSEL y EDITOR. El acceso se realiza desde la barra de
+modos principal (botón **Render**, atajo **Ctrl+6**). Internamente el modo se identifica como
+`WorkMode.RENDER`.
 
 El modo se integra con el resto del sistema mediante:
 
@@ -282,24 +285,20 @@ clase entre paréntesis permiten la trazabilidad al código fuente (apéndice A)
 | **RF-067** | El sistema debe poder **limpiar** el directorio temporal de renders. |
 | **RF-068** | El usuario debe poder **borrar la previsualización** actual. |
 
-### 3.9 Módulo I — Editor avanzado (`AdvanceEditPanel`, `CanvasPanel`, `LayerCardPanel`)
+### 3.9 Módulo I — Integración del Editor Avanzado en el Modo Render (`AdvanceEditPanel`, `RenderController`)
 
 | ID | Requisito |
 |----|-----------|
-| **RF-069** | El modo debe permitir activar y desactivar el **modo edición avanzada** (collage de capas). |
-| **RF-070** | El editor debe presentar un **canvas** central donde se apilan las capas de imagen. |
-| **RF-071** | El editor debe presentar un **panel de herramientas** a la izquierda con las herramientas activas y su barra de opciones. |
-| **RF-072** | El editor debe presentar una **barra de componentes** (texto, formas, etc.) para añadir elementos al canvas. |
-| **RF-073** | El editor debe presentar un **panel de capas** que permita añadir, eliminar y reordenar capas (al frente, subir, bajar, al fondo). |
-| **RF-074** | El usuario debe poder añadir una nueva capa a partir del preview actual o de una imagen cargada. |
-| **RF-075** | El editor debe admitir capas de **texto** con tipografía, tamaño, negrita, cursiva, subrayado y tachado configurables. |
-| **RF-076** | El texto debe admitir **alineación** (izquierda, centro, derecha, justificada) y **orientación** (horizontal, vertical, filas o columnas). |
-| **RF-077** | El usuario debe poder configurar **color frontal** y **color de fondo** de los elementos. |
-| **RF-078** | El editor debe admitir un modo **Inicio/Home** que restablece la configuración por defecto de herramientas. |
-| **RF-079** | El editor debe poder entrar en **pantalla completa** y volver al modo normal. |
-| **RF-080** | La tecla **Escape** debe salir del editor o restablecer la herramienta activa según el contexto. |
-| **RF-081** | Las capas deben gestionarse a través de un modelo de capas (`LayerModel`) con capas de imagen (`ImageLayer`). |
-| **RF-082** | El editor debe poder cambiar el **tamaño de los iconos** de la barra de herramientas para adaptarse a la densidad de la interfaz. |
+| **RF-069** | El modo debe permitir activar y desactivar el **modo edición avanzada** (collage de capas) desde el botón **Editor Avanzado** de la barra de previsualización. |
+| **RF-070** | El botón **Editor Avanzado** debe ser un toggle **independiente** de Grid 3D y Grid 2D (que sí son excluyentes entre sí); al activarlo sustituye al modo Collage. |
+| **RF-071** | El editor embebido del Modo Render debe trabajar sobre el **documento RENDER** (lienzo en memoria, sin archivo asociado); la composición debe conservarse al salir y volver a este contexto. |
+| **RF-072** | La activación del editor avanzado dentro del Modo Render **no** debe desactivar ni tocar el documento del Modo Editor (`editorDocumentoCargadoEnPanel`). |
+
+> **Nota:** la especificación completa del Editor Avanzado (canvas, herramientas, selección de
+> píxeles, texto, transformación y gizmo, panel de capas, disposición y Auto Layout, Smart Guides
+> e historial) y del Modo Editor (documento `.edoc`, guardado y recuperación) se detalla en
+> `SRS-ModoEditor.md`. El detalle que este SRS contenía en RF-070 a RF-082 queda absorbido por
+> dicho documento, que lo trata como requisitos propios del editor.
 
 ### 3.10 Módulo J — Configuración (`Zip2PngConfigPanel`, `ConfigKeys`)
 
@@ -497,7 +496,8 @@ clase entre paréntesis permiten la trazabilidad al código fuente (apéndice A)
 | Renderizado software | `servicios/renderer/AwtModelRenderer.java`, `servicios/renderer/ModelRenderer.java` |
 | Visor 3D | `vista/panels/render/PreviewPanel3DFX.java`, `modelo/renderer/StlMeshBuilder.java` |
 | Panel de trabajo | `vista/panels/render/RenderPanel.java`, `vista/panels/render/RenderListCellRenderer.java` |
-| Editor avanzado | `vista/panels/render/AdvanceEditPanel.java`, `CanvasPanel.java`, `EditorComponentBar.java`, `LayerCardPanel.java`, `LayerCard.java` |
+| Editor avanzado (integración) | `vista/panels/render/AdvanceEditPanel.java`, `CanvasPanel.java`, `EditorComponentBar.java`, `LayerCardPanel.java`, `LayerCard.java` |
+| Editor avanzado (especificación completa) | `SRS-ModoEditor.md` (modelos en `modelo/editor`, documento en `servicios/editor`, herramientas en `controlador/tools`) |
 | Worker de procesado | `controlador/worker/Zip2PngWorker.java` |
 | Controlador | `controlador/RenderController.java` |
 | Configuración | `vista/configuracion/panels/Zip2PngConfigPanel.java`, `servicios/ConfigKeys.java` |

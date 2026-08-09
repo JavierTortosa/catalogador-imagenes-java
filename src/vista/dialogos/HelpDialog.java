@@ -99,13 +99,36 @@ public class HelpDialog extends JDialog {
         
         DefaultMutableTreeNode renderFolder = new DefaultMutableTreeNode(new HelpPageInfo("Modo Render", "render.html"));
         renderFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Herramientas", "herramientas.html")));
-        renderFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Editor Avanzado", "editor_avanzado.html")));
         top.add(renderFolder);
 
-        top.add(new DefaultMutableTreeNode(new HelpPageInfo("Modo Editor", "modo_editor.html")));
+        DefaultMutableTreeNode editorFolder = new DefaultMutableTreeNode(new HelpPageInfo("Modo Editor", "modo_editor.html"));
+        DefaultMutableTreeNode editorAvanzadoFolder = new DefaultMutableTreeNode(new HelpPageInfo("Editor Avanzado", "editor/vision_general.html"));
+        editorAvanzadoFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Herramientas", "editor/herramientas.html")));
+        editorAvanzadoFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Selección de Píxeles", "editor/seleccion.html")));
+        editorAvanzadoFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Texto", "editor/texto.html")));
+        editorAvanzadoFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Edición, Transformar y Gizmo", "editor/edicion_transformar.html")));
+        editorAvanzadoFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Disposición y Auto Layout", "editor/disposicion.html")));
+        editorAvanzadoFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Smart Guides", "editor/smartguides.html")));
+        editorAvanzadoFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Panel de Capas", "editor/capas.html")));
+        editorFolder.add(editorAvanzadoFolder);
+        top.add(editorFolder);
 
-        DefaultMutableTreeNode configFolder = new DefaultMutableTreeNode(new HelpPageInfo("Configuración", "configuracion.html"));
-        configFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Configuración Avanzada", "configuracion.html")));
+        DefaultMutableTreeNode configFolder = new DefaultMutableTreeNode(new HelpPageInfo("Configuración", "configuracion_intro.html"));
+        DefaultMutableTreeNode configAvanzadaFolder = new DefaultMutableTreeNode(new HelpPageInfo("Configuración Avanzada", "configuracion.html"));
+        configAvanzadaFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("General", "configuracion/general.html")));
+        configAvanzadaFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Rutas", "configuracion/rutas.html")));
+        configAvanzadaFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Navegación", "configuracion/navegacion.html")));
+        configAvanzadaFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Zoom y Visualización", "configuracion/zoom.html")));
+        configAvanzadaFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Miniaturas", "configuracion/miniaturas.html")));
+        configAvanzadaFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Apariencia", "configuracion/apariencia.html")));
+        configAvanzadaFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Barras de Herramientas", "configuracion/barras_herramientas.html")));
+        configAvanzadaFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Paneles de Información", "configuracion/paneles_informacion.html")));
+        configAvanzadaFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Grid", "configuracion/grid.html")));
+        configAvanzadaFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Proyecto", "configuracion/proyecto.html")));
+        configAvanzadaFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Editor", "configuracion/editor.html")));
+        configAvanzadaFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Base de Datos", "configuracion/base_datos.html")));
+        configAvanzadaFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Renderizado", "configuracion/renderizado.html")));
+        configFolder.add(configAvanzadaFolder);
         configFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Personalizar Tema", "personalizar_tema.html")));
         top.add(configFolder);
 

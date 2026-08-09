@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Editor Avanzado: Selección de Píxeles</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+    <h1><img src="ICON_PLACEHOLDER_8005-render mode.png" class="header-icon">Selección de Píxeles</h1>
+
+    <p>
+        Las herramientas de selección de píxeles (<em>varita mágica</em>, <em>selección por capa</em>
+        y <em>selección por marco</em>) generan una <strong>máscara</strong>: la forma real e
+        irregular de la zona seleccionada, no un simple rectángulo. Esto permite
+        <strong>recortar objetos y eliminar fondos</strong> sin borrar parte del contenido.
+    </p>
+
+    <h2>Herramientas de Selección</h2>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80002-seleccion-marco.png"></td>
+            <td><strong>Selección por marco:</strong> Define una selección rectangular arrastrando
+                sobre el lienzo. <strong>Shift</strong> añade la nueva selección a la actual (unión),
+                <strong>Shift+Alt</strong> la interseca, y <strong>Alt</strong> resta (quita de la
+                selección la zona del nuevo marco). La selección se muestra con un desvanecido
+                (feather) configurable. Un clic simple sin modificadores la deselecciona.
+                Atajos: <strong>Ctrl+A</strong> selecciona todo el lienzo y <strong>Ctrl+D</strong>
+                deselecciona.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80003-seleccion-layer.png"></td>
+            <td><strong>Selección por capa:</strong> Crea una selección que se ajusta a la forma real
+                del contenido de la capa (los píxeles no transparentes), no solo a su rectángulo.
+                <strong>Shift</strong> añade a la selección ya existente.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80004-varita.png"></td>
+            <td><strong>Varita mágica:</strong> Selecciona la forma real del área de color similar
+                con un clic (máscara de píxeles irregular). La tolerancia (0-255) se ajusta desde el
+                panel de opciones, junto con la opción <strong>Contiguo</strong> (solo áreas
+                conectadas). <strong>Shift+clic</strong> añade la nueva zona a la selección ya
+                existente.</td>
+        </tr>
+    </table>
+
+    <h2>Booleanas de Selección</h2>
+    <p>Las selecciones se combinan con los modificadores (estilo Photoshop):</p>
+    <ul>
+        <li><strong>Shift</strong> → unión: añade la nueva zona a la selección actual.</li>
+        <li><strong>Shift+Alt</strong> → intersección: conserva solo la zona común.</li>
+        <li><strong>Alt</strong> → resta: quita de la selección la zona del nuevo gesto.</li>
+    </ul>
+    <p>
+        Las booleanas funcionan incluso combinando formas irregulares (p. ej. una selección por
+        capa con una por marco).
+    </p>
+
+    <h2>Eliminar Fondos (Selección por Píxeles)</h2>
+    <ul>
+        <li>La <strong>varita mágica</strong> marca la forma exacta del área de color similar
+            (fondo incluido) con un clic. <strong>Shift+clic</strong> añade más zonas a la selección.</li>
+        <li>La <strong>selección por capa</strong> marca la forma real del contenido no transparente
+            de una capa.</li>
+        <li><strong>Supr / Retroceso</strong> con la selección activa borra <strong>solo</strong> los
+            píxeles seleccionados de la capa activa de imagen, dejando el resto intacto.</li>
+        <li>El botón <strong>Invertir selección de píxeles</strong> (barra de opciones superior)
+            invierte la máscara respecto a todo el lienzo: lo seleccionado pasa a no estarlo y
+            viceversa.</li>
+        <li>El <strong>recorte</strong> (CropTool) respeta la forma irregular: "Recortar a nueva
+            capa" extrae solo el objeto y "Recortar eliminando selección" borra solo la zona
+            seleccionada.</li>
+    </ul>
+    <p><strong>Flujo típico para quitar el fondo de una imagen:</strong></p>
+    <ol>
+        <li>Selecciona la capa con la imagen.</li>
+        <li>Pulsa con la <strong>varita</strong> sobre el fondo; usa <strong>Shift+clic</strong>
+            para añadir todas las zonas del fondo.</li>
+        <li>Pulsa <strong>Supr</strong> para borrar el fondo (dejando transparente), o pulsa el botón
+            <strong>Invertir selección de píxeles</strong> y luego <em>Recortar a nueva capa</em> para
+            extraer solo el objeto.</li>
+    </ol>
+
+    <h2>Visualización de la Selección</h2>
+    <p>
+        El contorno de la selección se muestra con <strong>hormigueo</strong> (dashes blancos y
+        negros alternados que marchan, estilo Photoshop), de modo que el borde sea visible tanto
+        sobre fondos claros como oscuros. El relleno azul semitransparente indica la zona
+        seleccionada.
+    </p>
+    <p>
+        El <strong>gizmo con target "marco"</strong> (herramienta Transformar) mueve y escala la
+        máscara junto con su forma, re-muestreando los píxeles seleccionados.
+    </p>
+
+</body>
+</html>

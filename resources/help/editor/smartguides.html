@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Editor Avanzado: Smart Guides</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+    <h1><img src="ICON_PLACEHOLDER_8005-render mode.png" class="header-icon">Smart Guides</h1>
+
+    <p>
+        Las <strong>Smart Guides</strong> asisten el arrastre de capas con la herramienta de edición
+        (Move Tool), estilo Photoshop: al mover una o varias capas, los bordes y centros se
+        <strong>ajustan</strong> a los bordes y centros de las demás capas visibles y del lienzo.
+    </p>
+
+    <ul>
+        <li><strong>Ajuste:</strong> cuando un borde o centro del rectángulo en movimiento queda a
+            menos de la <em>distancia de ajuste</em> (6 px por defecto) de un candidato, la capa se
+            alinea a ese candidato y se dibuja una <strong>guía de color</strong> a línea completa del
+            lienzo.</li>
+        <li><strong>Histéresis (pegajoso):</strong> una vez producido el ajuste, la guía se mantiene
+            mientras el cursor no se aleje más de la <em>distancia de retención</em> (3 px), evitando
+            que las guías parpadeen al mover el ratón.</li>
+        <li><strong>Anulación:</strong> mantener <strong>Ctrl</strong> durante el arrastre desactiva
+            temporalmente el ajuste y las guías.</li>
+    </ul>
+
+    <h2>Parámetros configurables</h2>
+    <p>
+        Los parámetros (activación, ajuste a lienzo/capas, distancias, color y grosor) se configuran
+        en <em>Configuración Avanzada → Editor → Smart Guides</em>:
+    </p>
+    <table class="help-table">
+        <tr><th>Parámetro</th><th>Descripción</th></tr>
+        <tr>
+            <td><strong>Activar Smart Guides</strong></td>
+            <td>Habilita las guías inteligentes que aparecen al mover o escalar capas.</td>
+        </tr>
+        <tr>
+            <td><strong>Ajustar al lienzo</strong></td>
+            <td>Las capas se alinean con los bordes y centro del lienzo.</td>
+        </tr>
+        <tr>
+            <td><strong>Ajustar a otras capas</strong></td>
+            <td>Las capas se alinean con los bordes y centros de otras capas.</td>
+        </tr>
+        <tr>
+            <td><strong>Distancia de ajuste (px)</strong></td>
+            <td>Radio dentro del cual una capa "salta" a la posición de la guía.</td>
+        </tr>
+        <tr>
+            <td><strong>Distancia de retención (px)</strong></td>
+            <td>Distancia en la que la guía "se pega" y mantiene la alineación durante el arrastre (histéresis).</td>
+        </tr>
+        <tr>
+            <td><strong>Color de guías</strong></td>
+            <td>Color con el que se dibujan las guías inteligentes.</td>
+        </tr>
+        <tr>
+            <td><strong>Grosor de línea</strong></td>
+            <td>Grosor en píxeles de las líneas de las guías.</td>
+        </tr>
+    </table>
+
+</body>
+</html>

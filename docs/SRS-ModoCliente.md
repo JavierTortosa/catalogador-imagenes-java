@@ -77,6 +77,7 @@ Queda **fuera del alcance** de este documento:
 - `AGENTS.md` — Guía general del proyecto.
 - `docs/SRS-ModoProyecto.md`, `docs/SRS-ModoVisor.md`, `docs/SRS-ModoDatos.md` y
   `docs/SRS-ModoRender.md` — Especificaciones de otros modos.
+- `docs/SRS-ModoEditor.md` — Especificación del Modo Editor y el Editor Avanzado.
 
 ### 1.5 Resumen
 
@@ -93,7 +94,7 @@ modelo de datos; y la sección 7 incluye apéndices con trazabilidad al código 
 
 El Modo Cliente es uno de los modos de trabajo del Visor de Imágenes V2. El acceso se realiza desde
 la barra de modos principal (botón **Cliente**). El resto de modos son VISUALIZADOR, PROYECTO,
-DATOS, CARRUSEL y RENDER.
+DATOS, CARRUSEL, RENDER y EDITOR.
 
 El modo se integra con el resto del sistema mediante:
 

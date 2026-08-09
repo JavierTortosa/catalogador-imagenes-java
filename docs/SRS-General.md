@@ -45,6 +45,7 @@ Los **requisitos funcionales detallados de cada modo** se especifican en los SRS
 - `SRS-ModoDatos.md` — DATOS (etiquetas y catalogación).
 - `SRS-ModoProyecto.md` — PROYECTO (selección, integridad y exportación).
 - `SRS-ModoCliente.md` — CLIENTE (revisión, catálogos y sincronización).
+- `SRS-ModoEditor.md` — EDITOR (documento `.edoc` y Editor Avanzado por capas).
 
 Este documento **no** incluye la especificación detallada de dichos modos; solo su visión general
 y la integración transversal que los une.
@@ -55,7 +56,7 @@ y la integración transversal que los une.
 |---------|-----------|
 | **DAM** | *Digital Asset Management*; gestión de activos digitales. |
 | **Activo** | Imagen de renderizado de un modelo 3D y su archivo comprimido asociado (STL/ZIP/RAR/7Z). |
-| **Modo de trabajo** | Entorno operativo de la aplicación (`WorkMode`): VISUALIZADOR, PROYECTO, CLIENTE, DATOS, CARRUSEL, RENDER. |
+| **Modo de trabajo** | Entorno operativo de la aplicación (`WorkMode`): VISUALIZADOR, PROYECTO, CLIENTE, DATOS, CARRUSEL, RENDER, EDITOR. |
 | **DisplayMode** | Modo de visualización del área central: `SINGLE_IMAGE`, `GRID`, `POLAROID`. |
 | **Contexto de lista** | Estado por modo (`ListContext`): lista maestra, selección, mapa clave→ruta e historial. |
 | **Lista maestra** | Lista completa de imágenes cargada para el modo activo; sobre ella se aplican filtros. |
@@ -75,6 +76,7 @@ y la integración transversal que los une.
 - `docs/SRS-ModoDatos.md` — Especificación del Modo Datos.
 - `docs/SRS-ModoProyecto.md` — Especificación del Modo Proyecto.
 - `docs/SRS-ModoCliente.md` — Especificación del Modo Cliente.
+- `docs/SRS-ModoEditor.md` — Especificación del Modo Editor y el Editor Avanzado.
 - `resources/help/*.html` — Ayudas en línea por modo.
 
 ### 1.5 Resumen
@@ -122,7 +124,8 @@ El sistema se ejecuta en **Windows** sobre **Java 21**, con interfaz **Swing + F
 3. **Catalogar** los activos con etiquetas y discos (DATOS).
 4. **Seleccionar** y verificar la integridad de los activos de un proyecto (PROYECTO).
 5. **Compartir** catálogos con el cliente e importar su respuesta (CLIENTE).
-6. **Configurar** la aplicación (temas, zoom, toolbars, atajos).
+6. **Editar** composiciones por capas y documentos `.edoc` (EDITOR).
+7. **Configurar** la aplicación (temas, zoom, toolbars, atajos).
 
 ---
 
@@ -132,12 +135,13 @@ El sistema se ejecuta en **Windows** sobre **Java 21**, con interfaz **Swing + F
 
 | Modo | Rol | Entrada (barra de modos) | SRS |
 |------|-----|--------------------------|-----|
-| **VISUALIZADOR** | Exploración, búsqueda, navegación y visualización; núcleo de la app. | Por defecto al arrancar | `SRS-ModoVisor.md` |
-| **CARRUSEL** | Presentación automática de la colección. | Barra de modos | `SRS-ModoVisor.md` |
-| **RENDER** | Escaneo y renderizado de modelos 3D a previews. | Barra de modos | `SRS-ModoRender.md` |
-| **DATOS** | Etiquetas, discos y catalogación. | Barra de modos | `SRS-ModoDatos.md` |
-| **PROYECTO** | Selección, integridad y exportación de archivos. | Barra de modos | `SRS-ModoProyecto.md` |
-| **CLIENTE** | Revisión, catálogos HTML/PDF y sincronización. | Barra de modos | `SRS-ModoCliente.md` |
+| **VISUALIZADOR** | Exploración, búsqueda, navegación y visualización; núcleo de la app. | Por defecto al arrancar · Ctrl+1 | `SRS-ModoVisor.md` |
+| **CARRUSEL** | Presentación automática de la colección. | Barra de modos · Ctrl+5 | `SRS-ModoVisor.md` |
+| **RENDER** | Escaneo y renderizado de modelos 3D a previews. | Barra de modos · Ctrl+6 | `SRS-ModoRender.md` |
+| **DATOS** | Etiquetas, discos y catalogación. | Barra de modos · Ctrl+4 | `SRS-ModoDatos.md` |
+| **PROYECTO** | Selección, integridad y exportación de archivos. | Barra de modos · Ctrl+2 | `SRS-ModoProyecto.md` |
+| **CLIENTE** | Revisión, catálogos HTML/PDF y sincronización. | Barra de modos · Ctrl+3 | `SRS-ModoCliente.md` |
+| **EDITOR** | Edición de composiciones por capas y documentos `.edoc`. | Barra de modos · Ctrl+7 | `SRS-ModoEditor.md` |
 
 ### 3.2 Orquestación de modos (`AppModeService`, `GeneralController`)
 
@@ -152,7 +156,14 @@ El sistema se ejecuta en **Windows** sobre **Java 21**, con interfaz **Swing + F
   usan su propia estructura.
 - Cada tarjeta del `CardLayout` maestro (`container.workmodes`) aloja la vista raíz de cada modo
   (`VISTA_VISUALIZADOR`, `VISTA_PROYECTOS`, `VISTA_DATOS`, `VISTA_CLIENTE`, `VISTA_CARROUSEL`,
-  `VISTA_RENDER`).
+  `VISTA_RENDER`). Los modos **RENDER y EDITOR comparten** la tarjeta `VISTA_RENDER`: al entrar
+  en EDITOR, `RenderController.activarModoEditor()` carga el documento del editor en el panel y
+  activa su fullscreen.
+- **Atajos de cambio de modo:** `Ctrl+1..7` (en el orden de la barra de modos: 1=Visualizador,
+  2=Proyecto, 3=Cliente, 4=Datos, 5=Carrusel, 6=Render, 7=Editor) se registran como bindings
+  globales (`WHEN_IN_FOCUSED_WINDOW`) en `KeyboardShortcutManager` sobre las mismas acciones de
+  la barra. Los modos Proyecto y Cliente conservan su flujo de recuperación al entrar por atajo.
+- Los tooltips de la barra de modos muestran el atajo (`(Ctrl+N)`) asociado a cada modo.
 
 ---
 
@@ -187,6 +198,7 @@ principal/    → entrypoint (VisorV2)
 | `ConfigKeys` | Constantes de claves de configuración. |
 | Managers (`controlador.managers`) | Estado y sub-sistemas (zoom, filtros, carrusel, toolbars, atajos, etc.). |
 | Services (`controlador.services`) | Servicios auxiliares (navegación, filtro, ciclo de proyecto). |
+| `EditorDocumentManager` (`servicios.editor`) | Ciclo de vida del documento `.edoc` del Modo Editor (espejo de `ProjectManager`). |
 | Workers (`controlador.worker`) | Tareas en segundo plano (`SwingWorker`). |
 
 ### 4.3 Inyección de dependencias (`ComponentRegistry`)
@@ -263,6 +275,8 @@ Cada `ListContext` guarda:
    (CLIENTE; CU del `SRS-ModoCliente.md`).
 8. **Importar respuesta** — se carga el JSON del cliente y se sincroniza la selección
    (CLIENTE).
+9. **Editar composiciones** (opcional) — se crean o retocan composiciones por capas en
+   documentos `.edoc` (EDITOR; CU del `SRS-ModoEditor.md`).
 
 Este flujo puede repetirse en **iteraciones**: cada envío al cliente incrementa la iteración y los
 comentarios del cliente se incorporan al modelo.
@@ -343,6 +357,7 @@ comentarios del cliente se incorporan al modelo.
 | Datos | `controlador/DataController`, `controlador/managers/DataManager`, `servicios/db/*` | `SRS-ModoDatos.md` |
 | Proyecto | `controlador/ProjectController`, `servicios/ProjectManager`, `controlador/services/proyecto/*` | `SRS-ModoProyecto.md` |
 | Cliente | `controlador/ClientController`, `servicios/cliente/*`, `vista/builders/ClientBuilder` | `SRS-ModoCliente.md` |
+| Editor | `controlador/RenderController` (modo editor), `servicios/editor/EditorDocumentManager`, `vista/panels/render/AdvanceEditPanel`, `controlador/tools/*` | `SRS-ModoEditor.md` |
 | Global | `principal/VisorV2`, `controlador/AppInitializer`, `controlador/services/AppModeService`, `controlador/GeneralController`, `modelo/VisorModel`, `modelo/ListContext`, `controlador/utils/ComponentRegistry`, `controlador/factory/ActionFactory`, `controlador/commands/AppActionCommands`, `servicios/ConfigurationManager`, `servicios/ConfigKeys` | **Este documento** |
 
 ---
@@ -357,7 +372,9 @@ comentarios del cliente se incorporan al modelo.
   utilidades (services).
 - **Comando (`CMD_*`):** identificador canónico de una acción.
 - **`.prj` / `.prjcl`:** proyecto persistente / copia compartida con el cliente.
-- **Recuperación de sesión:** restauración del proyecto temporal tras un cierre sin guardar.
+- **`.edoc`:** documento del Modo Editor (JSON con lienzo y capas).
+- **Recuperación de sesión:** restauración del proyecto temporal o del documento del editor tras
+  un cierre sin guardar.
 
 ---
 

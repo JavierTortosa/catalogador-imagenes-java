@@ -88,6 +88,7 @@ Queda **fuera del alcance** de este documento:
 - `docs/SRS-ModoRender.md` — Especificación del Modo Render.
 - `docs/SRS-ModoProyecto.md` — Especificación del Modo Proyecto.
 - `docs/SRS-ModoCliente.md` — Especificación del Modo Cliente.
+- `docs/SRS-ModoEditor.md` — Especificación del Modo Editor y el Editor Avanzado.
 
 ### 1.5 Resumen
 
@@ -104,7 +105,7 @@ describe el modelo de datos; y la sección 7 incluye apéndices con trazabilidad
 
 El Modo Datos es uno de los modos de trabajo del Visor de Imágenes V2. El acceso se realiza desde
 la barra de modos principal (botón **Datos**). El resto de modos son VISUALIZADOR, PROYECTO,
-CLIENTE, CARRUSEL y RENDER.
+CLIENTE, CARRUSEL, RENDER y EDITOR.
 
 El modo se integra con el resto del sistema mediante:
 

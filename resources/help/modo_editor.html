@@ -11,17 +11,25 @@
 
     <p>
         El <strong>Modo Editor</strong> es un modo de trabajo dedicado (como Modo Proyecto, Modo
-        Datos o Modo Render) que abre el <a href="editor_avanzado.html">Editor Avanzado</a> a
-        pantalla completa para editar imágenes con capas y guardar el trabajo en documentos
-        propios con extensión <code>.edoc</code>.
+        Datos o Modo Render) que abre el <strong>Editor Avanzado</strong> a pantalla completa para
+        editar imágenes con capas y guardar el trabajo en documentos propios con extensión
+        <code>.edoc</code>.
     </p>
     <p>
         Se activa desde el botón <strong>Modo Editor</strong> de la barra de modos
-        (<img src="ICON_PLACEHOLDER_8006-edit-mode.png" class="inline-icon">). Al entrar se ocultan
+        (<img src="ICON_PLACEHOLDER_8006-edit-mode.png" class="inline-icon">, atajo
+        <strong>Ctrl+7</strong>). Al entrar se ocultan
         los paneles laterales del Modo Render (previsión 3D y archivos) para que el lienzo ocupe
         toda la zona de trabajo, y al salir se restauran. Es el mismo editor que se usa dentro del
         Modo Render, pero con su <strong>documento propio e independiente</strong>: lo que edites
         aquí no afecta a la composición del editor del Modo Render, y viceversa.
+    </p>
+    <p>
+        Esta página explica únicamente las opciones <strong>exclusivas del documento del Modo
+        Editor</strong>, que no existen en el editor embebido del Modo Render. Las herramientas de
+        dibujo, la selección, el texto, las capas, la transformación, la disposición y las Smart
+        Guides son comunes a ambos editores y se explican en la subpágina
+        <strong>Editor Avanzado</strong> de este mismo apartado.
     </p>
 
     <h2>Documento del Editor (.edoc)</h2>
@@ -144,45 +152,12 @@
             activa y lista para mover o redimensionar.</li>
     </ul>
 
-    <h2>Panel de Disposición y Auto Layout</h2>
+    <h2>El Editor Avanzado</h2>
     <p>
-        En la columna derecha del editor, la sección <strong>Disposición</strong> agrupa las
-        operaciones de composición de capas: <strong>Alinear</strong>, <strong>Distribuir</strong>,
-        <strong>Espacio</strong> y el sistema <strong>Auto Layout</strong> (13 herramientas que
-        componen automáticamente las capas seleccionadas: Grid Uniforme, Grid Conservando Tamaño,
-        Compactar, Filas/Columnas, Layout Hero, Espiral, Mosaico, Ajustar al Canvas, Centrar e
-        Igualar). La pestaña <strong>Opciones</strong> permite configurar la referencia de
-        alineación; los parámetros de Auto Layout (espaciado, márgenes, escala hero, variación de
-        mosaico y algoritmo de empaquetado) y de Smart Guides se configuran desde
-        <em>Configuración Avanzada → Editor</em>.
-    </p>
-
-    <h2>Smart Guides</h2>
-    <p>
-        Al arrastrar capas con la herramienta de edición, los bordes y centros se ajustan a otras
-        capas y al lienzo mostrando guías de color (estilo Photoshop). Mantén <strong>Ctrl</strong>
-        durante el arrastre para anular temporalmente el ajuste. Parámetros en
-        <em>Configuración Avanzada → Editor → Smart Guides</em>.
-    </p>
-
-    <h2>Invertir Selección</h2>
-    <p>
-        Con el botón <strong>Invertir selección de capas</strong> de la barra de opciones (o el atajo
-        <strong>Ctrl+Shift+I</strong>) quedan seleccionadas todas las capas que no lo estaban y se
-        deseleccionan las actuales; la capa seleccionada de mayor índice pasa a ser la activa. Es
-        especialmente útil para componer fondos o aplicar Auto Layout a las capas restantes.
-    </p>
-    <p>
-        El botón vecino <strong>Invertir selección de píxeles</strong> invierte la máscara de la
-        selección de píxeles respecto a todo el lienzo: lo seleccionado pasa a no estarlo y viceversa.
-        Combinado con la varita permite <strong>eliminar fondos</strong>: marca el fondo, invierte y
-        borra (ver <a href="editor_avanzado.html#eliminar-fondos">Eliminar Fondos</a>).
-    </p>
-
-    <p>
-        Para el detalle de las herramientas, el panel de capas, el gizmo de transformación, la
-        edición de texto y el sistema Auto Layout, consulta la guía del
-        <a href="editor_avanzado.html">Editor Avanzado</a>.
+        El detalle de las herramientas (edición, transformación, selección, texto, formas...), el
+        panel de capas, el gizmo de transformación, la disposición con Auto Layout, las Smart
+        Guides y la inversión de selecciones se encuentra en la subpágina
+        <strong>Editor Avanzado</strong> de este apartado <strong>Modo Editor</strong>.
     </p>
 
 </body>

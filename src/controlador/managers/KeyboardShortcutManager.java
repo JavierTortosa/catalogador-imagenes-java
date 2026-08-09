@@ -89,6 +89,28 @@ public class KeyboardShortcutManager {
         inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_O, shortcutKeyMask), AppActionCommands.CMD_PROYECTO_ABRIR);
         actionMapGlobal.put(AppActionCommands.CMD_PROYECTO_ABRIR, actionMap.get(AppActionCommands.CMD_PROYECTO_ABRIR));
 
+        // --- Atajos de Modo (Ctrl+1..7, en el orden de la barra de modos) ---
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_1, shortcutKeyMask), AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR);
+        actionMapGlobal.put(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR, actionMap.get(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR));
+
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_2, shortcutKeyMask), AppActionCommands.CMD_PROYECTO_GESTIONAR);
+        actionMapGlobal.put(AppActionCommands.CMD_PROYECTO_GESTIONAR, actionMap.get(AppActionCommands.CMD_PROYECTO_GESTIONAR));
+
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_3, shortcutKeyMask), AppActionCommands.CMD_MODO_CLIENTE);
+        actionMapGlobal.put(AppActionCommands.CMD_MODO_CLIENTE, actionMap.get(AppActionCommands.CMD_MODO_CLIENTE));
+
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_4, shortcutKeyMask), AppActionCommands.CMD_MODO_DATOS);
+        actionMapGlobal.put(AppActionCommands.CMD_MODO_DATOS, actionMap.get(AppActionCommands.CMD_MODO_DATOS));
+
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_5, shortcutKeyMask), AppActionCommands.CMD_VISTA_CAROUSEL);
+        actionMapGlobal.put(AppActionCommands.CMD_VISTA_CAROUSEL, actionMap.get(AppActionCommands.CMD_VISTA_CAROUSEL));
+
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_6, shortcutKeyMask), AppActionCommands.CMD_MODO_RENDER);
+        actionMapGlobal.put(AppActionCommands.CMD_MODO_RENDER, actionMap.get(AppActionCommands.CMD_MODO_RENDER));
+
+        inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_7, shortcutKeyMask), AppActionCommands.CMD_MODO_EDITOR);
+        actionMapGlobal.put(AppActionCommands.CMD_MODO_EDITOR, actionMap.get(AppActionCommands.CMD_MODO_EDITOR));
+
         logger.debug("  -> Atajos de teclado globales configurados.");
     }
 

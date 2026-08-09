@@ -88,6 +88,7 @@ Queda **fuera del alcance** de este documento:
 - `docs/SRS-ModoDatos.md` — Especificación del Modo Datos.
 - `docs/SRS-ModoRender.md` — Especificación del Modo Render.
 - `docs/SRS-ModoCliente.md` — Especificación del Modo Cliente (salida de la compartición).
+- `docs/SRS-ModoEditor.md` — Especificación del Modo Editor y el Editor Avanzado.
 
 ### 1.5 Resumen
 
@@ -104,7 +105,7 @@ describe el modelo de datos; y la sección 7 incluye apéndices con trazabilidad
 
 El Modo Proyecto es uno de los modos de trabajo del Visor de Imágenes V2. El acceso se realiza
 desde la barra de modos principal (botón **Proyecto**). El resto de modos son VISUALIZADOR,
-CLIENTE, DATOS, CARRUSEL y RENDER.
+CLIENTE, DATOS, CARRUSEL, RENDER y EDITOR.
 
 El modo se integra con el resto del sistema mediante:
 

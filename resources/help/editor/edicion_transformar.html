@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Editor Avanzado: Edición, Transformar y Gizmo</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+    <h1><img src="ICON_PLACEHOLDER_80001-transform.png" class="header-icon">Edición, Transformar y Gizmo</h1>
+
+    <h2>Herramienta Edición</h2>
+    <p>
+        La herramienta <strong>Edición</strong> es la herramienta universal de selección y
+        manipulación. Además de la navegación básica, ofrece los siguientes comportamientos:
+    </p>
+    <ul>
+        <li><strong>1 clic</strong> sobre una capa → la activa (si la auto-selección está activa).
+            Un clic simple en vacío deselecciona.</li>
+        <li><strong>Arrastre en zona vacía</strong> → dibuja un <strong>marco de selección</strong>
+            que marca todas las capas que toque al soltar (estilo Photoshop). Mantén <strong>Shift</strong>
+            durante el arrastre para <strong>añadir</strong> las capas atrapadas a la selección ya
+            existente; sin modificadores, la selección se reemplaza.</li>
+        <li><strong>Arrastre</strong> → mueve las capas seleccionadas juntas. El cursor cambia a modo
+            mover sobre su área.</li>
+        <li><strong>Alt+arrastre</strong> → duplica la capa activa y mueve la copia en el mismo
+            gesto.</li>
+        <li><strong>Ctrl+clic</strong> sobre una capa → la activa temporalmente (sin cambiar la
+            selección permanente); al soltar, se restaura la capa activa previa.</li>
+        <li><strong>Flechas del teclado</strong> → mueven la capa o capas seleccionadas 1 px
+            (Shift = 10 px).</li>
+        <li><strong>Doble clic</strong> sobre una <code>TextLayer</code> o una capa de forma →
+            edita su contenido (atajo). Abre la edición inline de texto o el panel de formas,
+            según el tipo de capa.</li>
+        <li><strong>Tiradores (gizmo):</strong> si el checkbox "Tiradores" está activo, se dibuja
+            el <code>TransformGizmo</code> alrededor de la capa activa, permitiendo
+            redimensionarla arrastrando sus manejadores y <strong>rotarla</strong> arrastrando el
+            asa circular del borde superior (Shift = múltiplos de 15°).</li>
+    </ul>
+
+    <h3>Sincronización Bidireccional</h3>
+    <ul>
+        <li>Al hacer clic en una <code>TextLayer</code>, el panel de opciones (barra superior)
+            y el panel derecho se actualizan con sus propiedades (fuente, tamaño, color,
+            alineación, vertical).</li>
+        <li>Al cambiar una propiedad en cualquiera de los dos paneles, se aplica inmediatamente
+            a la capa seleccionada y se refleja en el otro panel.</li>
+        <li>La capa creada se añade automáticamente al modelo y aparece en el panel de capas
+            gracias al sistema de notificación (<code>LayerModel.setChangeListener()</code>).</li>
+    </ul>
+
+    <h2>Herramienta Transformar</h2>
+    <p>
+        La herramienta <strong>Transformar</strong> agrupa mover, escalar y rotar. Su
+        comportamiento depende de dónde se pulse, estilo Photoshop:
+    </p>
+    <ul>
+        <li><strong>Zona vacía:</strong> arrastrar dibuja un <strong>marco de selección</strong> que
+            marca las capas que toque al soltar. <strong>Shift</strong> añade las capas atrapadas a la
+            selección ya existente; sin modificadores la reemplaza. Un clic simple en vacío deselecciona.</li>
+        <li><strong>Sobre una capa:</strong> el clic la selecciona. <strong>Ctrl</strong> la añade o
+            quita de la selección múltiple y <strong>Shift</strong> la añade sin quitar las demás.</li>
+        <li><strong>Sobre un tirador del gizmo:</strong> transforma <strong>todas las capas
+            seleccionadas juntas</strong> (mover, escalar con proporción opcional, o rotar con
+            Shift = múltiplos de 15°). Si no hay selección, actúa sobre la capa activa.</li>
+    </ul>
+    <p>
+        El modo activo (mover/escalar/rotar) se elige en la barra de opciones; el gizmo solo dibuja
+        los tiradores aplicables a ese modo. Con target <em>marco</em>, el gizmo opera sobre los
+        bounds de la <strong>selección de píxeles</strong> en lugar de sobre capas (la rotación no
+        aplica).
+    </p>
+
+    <h2>Gizmo de Transformación</h2>
+    <p>
+        El <strong>TransformGizmo</strong> es un conjunto de tiradores visuales que se dibujan
+        alrededor del rectángulo de una capa. Está disponible en la herramienta Transformar
+        (para cualquier capa) y en la herramienta Edición cuando el checkbox "Tiradores" está
+        activo.
+    </p>
+    <p>Sus componentes son:</p>
+    <ul>
+        <li><strong>Marco:</strong> Línea delgada azul alrededor de los bounds de la capa.</li>
+        <li><strong>8 tiradores:</strong> Cuadrados en las esquinas (NW, NE, SW, SE) y puntos
+            medios (N, S, E, W). Arrástralos para redimensionar. Al redimensionar desde una
+            <strong>esquina</strong>, la esquina opuesta queda <strong>fija</strong> (la imagen
+            crece/encoge hacia el ratón sin desplazarse); si "Mantener proporción" está activo,
+            las esquinas mantienen la relación ancho/alto y los tiradores laterales redimensionan
+            libremente.</li>
+        <li><strong>Asa de rotación:</strong> Círculo sobre el borde superior. Arrástralo para
+            rotar la capa de forma <strong>no destructiva</strong> (guardando el ángulo, sin
+            rasterizar). Mantén <em>Shift</em> mientras arrastras para ajustar a múltiplos de 15°.</li>
+        <li><strong>Cursor contextual:</strong> Cambia según el tirador activo.</li>
+    </ul>
+    <p>
+        El gizmo respeta las restricciones de tamaño mínimo (4 px) y proporción si está activo.
+        Cuando la capa está rotada, el marco y los tiradores se dibujan también rotados.
+    </p>
+
+    <h3>Rotación No Destructiva</h3>
+    <p>
+        La rotación de capas es <strong>no destructiva</strong>: el editor guarda el ángulo de la
+        capa como propiedad y lo aplica al pintar, de modo que la imagen o el texto originales no
+        se modifican (estilo Photoshop). Consecuencias prácticas:
+    </p>
+    <ul>
+        <li><strong>Imágenes:</strong> girar y volver a girar no acumula pérdida de calidad por
+            redondeo.</li>
+        <li><strong>Texto:</strong> un texto rotado sigue siendo completamente editable. Al hacer
+            doble clic se abre la edición inline conservando su rotación, y los cambios de fuente,
+            tamaño o contenido se aplican sin perder el ángulo.</li>
+        <li><strong>Formas:</strong> también se rotan sin rasterizar.</li>
+        <li><strong>Spinner de grados:</strong> en la barra de opciones aparece el campo
+            <strong>Ángulo</strong> (de -360° a 360°), tanto en el panel de Edición para capas de
+            imagen como en el panel de Texto para capas de texto. Escribir un valor o usar las
+            flechas rota la capa al instante.</li>
+    </ul>
+
+</body>
+</html>

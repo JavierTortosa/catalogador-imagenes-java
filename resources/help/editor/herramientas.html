@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Editor Avanzado: Herramientas</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+    <h1><img src="ICON_PLACEHOLDER_8005-render mode.png" class="header-icon">Herramientas del Editor</h1>
+
+    <h2>Barra de Herramientas Izquierda</h2>
+    <p>
+        Columna vertical con <strong>JToggleButton</strong> agrupados (solo uno activo a la vez).
+        Cada herramienta cambia el comportamiento del ratón sobre el lienzo y muestra su propio
+        panel de opciones en la barra inferior:
+    </p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80000-edicion.png"></td>
+            <td><strong>Edición:</strong> Herramienta por defecto. Selecciona, mueve y transforma
+                capas. 1 clic sobre una capa la activa (si la auto-selección está activa), 1 clic
+                simple en vacío deselecciona, arrastrar en zona vacía dibuja un <strong>marco</strong>
+                que selecciona todas las capas que toque (Shift añade), y el arrastre mueve las capas
+                seleccionadas. Si el checkbox "Tiradores" está activo se muestra el gizmo para
+                redimensionar. Ver página <em>Edición, Transformar y Gizmo</em>.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80001-transform.png"></td>
+            <td><strong>Transformar:</strong> Muestra el gizmo de transformación (mover, escalar,
+                rotar). Según dónde se pulse: en zona vacía abre un <strong>marco de selección</strong>
+                de capas (Shift añade); sobre una capa la selecciona (Ctrl alterna, Shift añade); sobre
+                un tirador del gizmo transforma todas las capas seleccionadas juntas. Ver página
+                <em>Edición, Transformar y Gizmo</em>.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80002-seleccion-marco.png"></td>
+            <td><strong>Selección por marco:</strong> Define una selección rectangular arrastrando
+                sobre el lienzo. <strong>Shift</strong> añade la nueva selección a la actual (unión),
+                <strong>Shift+Alt</strong> la interseca, y <strong>Alt</strong> resta (quita de la
+                selección la zona del nuevo marco). La selección se muestra con un desvanecido
+                (feather) configurable. Un clic simple sin modificadores la deselecciona.
+                Atajos: <strong>Ctrl+A</strong> selecciona todo el lienzo y <strong>Ctrl+D</strong>
+                deselecciona.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80003-seleccion-layer.png"></td>
+            <td><strong>Selección por capa:</strong> Crea una selección que se ajusta a la forma real
+                del contenido de la capa (los píxeles no transparentes), no solo a su rectángulo.
+                <strong>Shift</strong> añade a la selección ya existente.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80004-varita.png"></td>
+            <td><strong>Varita mágica:</strong> Selecciona la forma real del área de color similar
+                con un clic (máscara de píxeles irregular). La tolerancia (0-255) se ajusta desde el
+                panel de opciones. <strong>Shift+clic</strong> añade la nueva zona a la selección ya
+                existente. Es la herramienta ideal para <strong>eliminar fondos</strong>:
+                marca el fondo con la varita y pulsa <em>Supr</em>, o invierte la selección
+                (botón <em>Invertir selección de píxeles</em>) para quedarte con el objeto.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80005.-recortar.png"></td>
+            <td><strong>Recortar:</strong> Arrastra para definir el área a conservar. Al soltar,
+                una nueva capa se crea con el recorte. Opcionalmente mantiene la capa original.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80006-cuentagotas.png"></td>
+            <td><strong>Cuentagotas:</strong> Captura el color bajo el cursor y lo almacena como
+                color frontal (foreground). El color capturado se muestra en el panel de opciones.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80007-bote-pintura.png"></td>
+            <td><strong>Bote de pintura:</strong> Rellena el área de color similar con el color
+                frontal, con tolerancia configurable. Si hay una <strong>selección de píxeles
+                activa</strong>, el relleno queda limitado a su forma real (incluida la máscara
+                irregular); un clic fuera de la selección no hace nada.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80008-degradado.png"></td>
+            <td><strong>Degradado:</strong> Arrastra para definir la dirección de un degradado
+                lineal entre dos colores (inicio y fin). Se crea una nueva capa con el degradado.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80009-text.png"></td>
+            <td><strong>Texto:</strong> Crea y edita capas de texto (<code>TextLayer</code>).
+                Arrastra para definir el rectángulo, o haz clic para auto-ajuste. Escribe directamente
+                sobre el canvas. Ver página <em>Herramienta Texto</em>.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80010-formas.png"></td>
+            <td><strong>Formas:</strong> Crea formas básicas (rectángulo, elipse, triángulo,
+                línea, flecha) como nuevas capas de imagen. Configura relleno, borde y grosor
+                desde el panel de opciones.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_80012-pantalla_completa_48x48.png"></td>
+            <td><strong>Pantalla completa:</strong> Expande el editor ocupando toda la ventana,
+                ocultando el resto de la interfaz. Pulsa el mismo botón (o <em>F</em>) para salir.
+                <em>Esc</em> nunca sale de pantalla completa: solo cancela la herramienta activa.</td>
+        </tr>
+    </table>
+
+    <h2>Controles de Color</h2>
+    <p>
+        En la parte inferior de la barra izquierda, justo encima del botón de pantalla completa,
+        se encuentran los controles de color estilo Photoshop:
+    </p>
+    <ul>
+        <li><strong>Color frontal:</strong> Es el color de primer plano. Se usa como color de
+            pintura en el <em>bote de pintura</em>, como relleno de las <em>formas</em>, como
+            color del <em>texto</em> y como color inicial del <em>degradado</em>.</li>
+        <li><strong>Color de fondo:</strong> Es el color de segundo plano. Se usa como color final
+            del <em>degradado</em>.</li>
+        <li><strong>Intercambiar colores</strong> (<img src="ICON_PLACEHOLDER_80014-invert-colors.png" class="inline-icon">):
+            Intercambia el color frontal y el de fondo.</li>
+        <li><strong>Restablecer colores</strong> (<img src="ICON_PLACEHOLDER_80013-reset-colors.png" class="inline-icon">):
+            Vuelve a los valores por defecto (frontal blanco, fondo negro).</li>
+    </ul>
+    <p>
+        Haz clic en el cuadrado pequeño (frontal) para elegir su color, y clic derecho en él para
+        elegir el color de fondo (o clic en el cuadrado grande de detrás). El color capturado con el
+        <em>cuentagotas</em> se asigna automáticamente al color frontal.
+    </p>
+
+    <h2>Barra de Opciones Superior (EditorComponentBar)</h2>
+    <p>
+        La barra superior del editor se divide en dos filas:
+    </p>
+    <ul>
+        <li><strong>Parte A (Fila 1):</strong> Combobox para seleccionar la herramienta activa,
+            más spinners para coordenadas (X, Y), ancho (W), alto (H) y ángulo de rotación de la
+            selección o capa.
+            A la derecha: la toolbar de historial (Deshacer, Rehacer, Historial), los botones
+            <strong>Invertir selección de capas</strong> y <strong>Invertir selección de píxeles</strong>
+            y, a continuación, los checkboxes de opciones
+            (auto-selección, tiradores, proporción, auto-zoom) y los selectores Alinear/Distribuir.</li>
+        <li><strong>Parte B (Fila 2):</strong> Panel contextual que cambia según la herramienta
+            activa, mostrando opciones específicas (tolerancia, desvanecido, fuentes, colores, etc.).</li>
+    </ul>
+
+    <h3>Parte B — Paneles por Herramienta</h3>
+    <table class="help-table">
+        <tr><th>Herramienta</th><th>Opciones</th></tr>
+        <tr><td>Edición</td><td>Checkboxes "Auto-selección" (activar la capa bajo el cursor),
+            "Tiradores" (mostrar el gizmo) y "Mantener proporción". Al seleccionar una capa muestra
+            spinners de posición (X, Y), tamaño (W, H) y <strong>ángulo de rotación</strong>.</td></tr>
+        <tr><td>Transformar</td><td>Botones de sub-herramienta (mover, escalar, rotar) + checkbox "Mantener proporción".</td></tr>
+        <tr><td>Selección (marco/capa)</td><td>Deslizador de desvanecido (feather, 0-50 px) con indicador numérico.
+            La selección por marco soporta booleanas: Shift añade (unión), Shift+Alt intersecta, Alt resta.</td></tr>
+        <tr><td>Varita mágica</td><td>Tolerancia (0-255) y checkbox "Contiguo" (solo áreas conectadas).</td></tr>
+        <tr><td>Recortar</td><td>Botones "Recortar eliminando selección" y "Recortar a nueva capa" + checkbox "Mantener original".</td></tr>
+        <tr><td>Cuentagotas</td><td>Muestra el color capturado como muestra de color.</td></tr>
+        <tr><td>Bote de pintura</td><td>Tolerancia + color frontal.</td></tr>
+        <tr><td>Degradado</td><td>Selector de color inicio, selector de color fin, tipo de degradado y opacidad.</td></tr>
+        <tr><td><strong>Texto</strong></td><td><em>Ver página <em>Herramienta Texto</em>.</em></td></tr>
+        <tr><td>Formas</td><td>Relleno (color), borde (color) y grosor de borde.</td></tr>
+    </table>
+
+    <h2>Atajos de Teclado</h2>
+    <p>
+        Cada herramienta tiene una letra de acceso rápido (estilo Photoshop). La letra se muestra
+        en un chivato sobre el icono de la barra izquierda. Pulsa la tecla con el cursor sobre el
+        lienzo (o cualquier parte del editor) para cambiar de herramienta al instante:
+    </p>
+    <table class="help-table">
+        <tr><th>Tecla</th><th>Herramienta</th></tr>
+        <tr><td><strong>E</strong></td><td>Edición</td></tr>
+        <tr><td><strong>V</strong></td><td>Transformar</td></tr>
+        <tr><td><strong>M</strong></td><td>Selección por marco</td></tr>
+        <tr><td><strong>L</strong></td><td>Selección por capa</td></tr>
+        <tr><td><strong>W</strong></td><td>Varita mágica</td></tr>
+        <tr><td><strong>C</strong></td><td>Recortar</td></tr>
+        <tr><td><strong>I</strong></td><td>Cuentagotas</td></tr>
+        <tr><td><strong>G</strong></td><td>Bote de pintura</td></tr>
+        <tr><td><strong>D</strong></td><td>Degradado</td></tr>
+        <tr><td><strong>T</strong></td><td>Texto</td></tr>
+        <tr><td><strong>U</strong></td><td>Formas</td></tr>
+        <tr><td><strong>Z</strong></td><td>Zoom</td></tr>
+        <tr><td><strong>F</strong></td><td>Pantalla completa (activar / desactivar)</td></tr>
+        <tr><td><strong>Ctrl+V</strong></td><td>Pegar imagen del portapapeles como nueva capa</td></tr>
+        <tr><td><strong>Ctrl+A</strong></td><td>Seleccionar todo el lienzo (selección de píxeles completa)</td></tr>
+        <tr><td><strong>Ctrl+D</strong></td><td>Deseleccionar (anular la selección de píxeles actual)</td></tr>
+        <tr><td><strong>Ctrl+Shift+I</strong></td><td>Invertir la selección de capas (selecciona las no
+            seleccionadas y viceversa)</td></tr>
+        <tr><td><strong>Ctrl+Z</strong></td><td>Deshacer el último paso del historial</td></tr>
+        <tr><td><strong>Ctrl+Y</strong> / <strong>Ctrl+Shift+Z</strong></td><td>Rehacer el siguiente paso del historial</td></tr>
+        <tr><td><strong>Supr</strong> / <strong>Retroceso</strong></td><td>Con selección de píxeles activa:
+            borra solo el contenido seleccionado de la capa activa de imagen. Sin selección: elimina
+            la capa o capas seleccionadas (si la capa activa no es de imagen, se elimina la capa).</td></tr>
+        <tr><td><strong>Flechas</strong></td><td>Mueven la capa o capas seleccionadas 1 px (Shift = 10 px)</td></tr>
+        <tr><td><strong>Esc</strong></td><td>Cancelar: edición de texto inline, arrastre en curso o
+            deseleccionar la capa activa (no sale de pantalla completa)</td></tr>
+    </table>
+    <p>
+        Las teclas de herramienta se ignoran mientras se está escribiendo texto inline (el campo
+        de edición captura el teclado). Durante la edición de texto, <em>Esc</em> cancela la
+        edición y descarta los cambios.
+    </p>
+
+</body>
+</html>

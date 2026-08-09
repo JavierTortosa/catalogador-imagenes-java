@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Editor Avanzado: Panel de Capas</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+    <h1><img src="ICON_PLACEHOLDER_70304-nueva-capa.png" class="header-icon">Panel de Capas</h1>
+
+    <h2>Las Tarjetas de Capa</h2>
+    <p>
+        La pestaña <strong>"Capas"</strong> en el panel derecho muestra todas las capas como
+        tarjetas visuales apiladas verticalmente (<code>LayerCardPanel</code>), con la capa superior
+        arriba (estilo Photoshop). El panel dispone de una <strong>barra de scroll vertical</strong>
+        (estrecha, 8px) que aparece automáticamente cuando las tarjetas no caben. Cada tarjeta
+        incluye, de izquierda a derecha:
+    </p>
+    <ul>
+        <li><strong>Ojo de visibilidad:</strong> Toggle que muestra/oculta la capa en el lienzo.</li>
+        <li><strong>Candado de bloqueo:</strong> Toggle que impide modificar la capa. Las capas
+            bloqueadas no se pueden mover, duplicar ni combinar, pero siguen siendo visibles. Este
+            toggle se coloca antes del nombre para que nunca quede tapado por el scroll.</li>
+        <li><strong>Miniatura:</strong> 40×40 generada por <code>layer.renderThumbnail(40)</code>.
+            En <code>TextLayer</code> muestra el texto truncado con la fuente escalada.</li>
+        <li><strong>Nombre editable:</strong> Campo de texto para renombrar la capa. En
+            <code>TextLayer</code> se asigna automáticamente con el contenido del texto. Es el
+            elemento flexible de la tarjeta: se encoge antes que los toggles si el panel es
+            estrecho.</li>
+    </ul>
+
+    <h2>Selección de Capas</h2>
+    <ul>
+        <li><strong>Clic</strong> en una tarjeta → la convierte en la única capa activa (resaltado
+            azul claro).</li>
+        <li><strong>Ctrl+clic</strong> → añade o quita la capa de la selección múltiple.</li>
+        <li><strong>Mayúsculas+clic</strong> → selecciona un rango continuo desde la capa activa.</li>
+        <li>La capa activa de la multiselección se distingue visualmente (fondo más claro) de las
+            demás capas seleccionadas.</li>
+        <li>El clic funciona en cualquier parte de la tarjeta: miniatura, nombre o toggles.</li>
+    </ul>
+
+    <h2>Invertir Selección de Capas</h2>
+    <p>
+        Con el botón <img src="ICON_PLACEHOLDER_80015-invertir-seleccion.png" style="width:20px;height:20px;vertical-align:middle;">
+        <strong>Invertir selección de capas</strong> de la barra de opciones (o el atajo
+        <strong>Ctrl+Shift+I</strong>) quedan seleccionadas todas las capas que no lo estaban y se
+        deseleccionan las actuales; la capa seleccionada de mayor índice pasa a ser la activa. Es
+        especialmente útil para componer fondos o aplicar Auto Layout a las capas restantes.
+    </p>
+
+    <h2>Reordenación por Arrastre</h2>
+    <p>
+        Puedes <strong>arrastrar</strong> una tarjeta con el ratón para reordenarla dentro de la
+        pila. Durante el arrastre aparece una <strong>línea azul</strong> que indica la posición de
+        destino; al soltar, la capa se mueve a esa posición. Pulsa <em>Esc</em> para cancelar el
+        arrastre en curso. Las capas bloqueadas no se pueden arrastrar.
+    </p>
+
+    <h2>Refresco Automático</h2>
+    <p>
+        El modelo de capas (<code>LayerModel</code>) incorpora un sistema de notificación
+        (<code>Runnable changeListener</code>) que se dispara en cada mutación (añadir, eliminar,
+        duplicar, mover, cambiar selección). El panel de capas y el canvas se refrescan
+        automáticamente sin necesidad de intervención manual.
+    </p>
+
+    <h2>Gestión de Capas</h2>
+    <p>Desde la barra vertical EAST (visible en el editor avanzado):</p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70304-nueva-capa.png"></td>
+            <td><strong>Añade capa nueva:</strong> Crea una capa vacía (transparente) del tamaño del lienzo.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70306-combine-layer.png"></td>
+            <td><strong>Combina Capas:</strong> Fusiona las capas seleccionadas en una única capa de
+                imagen, cuyo área es la unión de los bounds de las capas fusionadas. Reglas:
+                <ul>
+                    <li>Se fusionan solo las capas seleccionadas <strong>visibles y no bloqueadas</strong>
+                        (requiere al menos dos).</li>
+                    <li>Las seleccionadas <strong>ocultas</strong> se descartan (como Photoshop).</li>
+                    <li>Las <strong>bloqueadas</strong> no se fusionan ni se descartan: permanecen
+                        intactas en su posición.</li>
+                    <li>El resultado se coloca donde estaba la selección más alta, adopta el nombre de
+                        la capa superior y queda con opacidad completa, visible y sin bloqueo.</li>
+                </ul>
+                Tras combinar, la selección se limpia y la nueva capa queda activa.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70305-duplicate-layer.png"></td>
+            <td><strong>Duplicar Capa:</strong> Crea una copia de la capa activa (o de cada capa
+                seleccionada) justo encima de la original, con el mismo contenido, tamaño y
+                propiedades. Las capas bloqueadas no se duplican.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70303-delete-layer.png"></td>
+            <td><strong>Borrar capa:</strong> Elimina la capa actualmente seleccionada. Atajo:
+                <strong>Supr</strong> o <strong>Retroceso</strong>. Si hay una <strong>selección de
+                píxeles activa</strong> y la capa activa es de imagen, la tecla <em>Supr</em> borra
+                solo el contenido seleccionado (la deja transparente en esa zona) en lugar de eliminar
+                la capa. Si la capa activa no es de imagen, la tecla <em>Supr</em> elimina la capa.
+                El botón de la barra siempre elimina la capa completa.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70201-bring-to-front.png"></td>
+            <td><strong>Traer al frente:</strong> Mueve la capa seleccionada a la posición más alta.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70202-bring-forward.png"></td>
+            <td><strong>Subir un nivel:</strong> Desplaza la capa una posición hacia arriba.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70203-send-backward.png"></td>
+            <td><strong>Bajar un nivel:</strong> Desplaza la capa una posición hacia abajo.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_70204-send-to-back.png"></td>
+            <td><strong>Enviar al fondo:</strong> Mueve la capa a la posición más baja.</td>
+        </tr>
+    </table>
+    <p>
+        El slider de opacidad situado bajo las tarjetas modifica la opacidad de la capa activa
+        (funciona con cualquier tipo de capa, incluyendo <code>TextLayer</code>).
+    </p>
+
+</body>
+</html>

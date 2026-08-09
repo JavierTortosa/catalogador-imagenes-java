@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Editor Avanzado: Visión General</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+
+    <h1><img src="ICON_PLACEHOLDER_8005-render mode.png" class="header-icon">Editor Avanzado</h1>
+
+    <p>
+        El <strong>Editor Avanzado</strong> es un editor de imágenes completo con soporte de capas,
+        herramientas de selección, pintura, texto y transformación. Se activa desde el botón
+        <strong>Editor Avanzado</strong> en la barra de herramientas de previsualización
+        (Modo Render), sustituyendo al modo Collage. También es el editor que usa el
+        <strong>Modo Editor</strong> (modo de trabajo dedicado con documentos
+        <code>.edoc</code>, guardado y recuperación).
+    </p>
+
+    <h2>Documento, Guardado y Portapapeles</h2>
+    <p>
+        El editor se usa en dos contextos con <strong>documentos independientes</strong>:
+    </p>
+    <ul>
+        <li><strong>Dentro del Modo Render:</strong> al activar el <em>Editor Avanzado</em> se
+            trabaja sobre un lienzo en memoria (sin archivo). Al volver a este contexto se
+            conserva la composición.</li>
+        <li><strong>Modo Editor</strong> (documento dedicado): el trabajo se gestiona como un
+            documento <code>.edoc</code> con nombre, cambios pendientes (<code>*</code> en el
+            título), guardado temporal al cambiar de modo y <strong>recuperación automática</strong>
+            si se cierra la aplicación sin guardar.</li>
+    </ul>
+    <p>
+        Al cambiar entre el Modo Render y el Modo Editor, cada contexto <strong>conserva su propio
+        documento</strong>; para mover contenido entre ellos se usa el portapapeles. Desde
+        cualquier contexto puedes <strong>copiar la imagen actual</strong> (clic derecho →
+        <em>Copiar imagen</em>) y <strong>pegarla en el editor</strong> con <strong>Ctrl+V</strong>
+        o el botón Pegar de la barra de documento, creando una capa nueva centrada en el lienzo.
+    </p>
+
+    <h2>Modo Home (Pantalla Inicial)</h2>
+    <p>
+        Al abrir el editor por primera vez se muestra el <strong>Modo Home</strong>, con dos
+        pestañas excluyentes en la barra superior:
+    </p>
+    <table class="help-table">
+        <tr><th>Pestaña</th><th>Descripción</th></tr>
+        <tr>
+            <td><strong>Lienzo</strong></td>
+            <td>Crea un nuevo lienzo en blanco. Permite configurar ancho, alto, color de fondo
+                y modo transparente antes de generarlo. Una vez creado, se activa el editor
+                con un lienzo vacío.</td>
+        </tr>
+        <tr>
+            <td><strong>Imagen</strong></td>
+            <td>Carga la imagen actualmente seleccionada en el visor principal como capa
+                base del editor. Mantiene las dimensiones originales.</td>
+        </tr>
+    </table>
+    <p>Si ninguna pestaña está seleccionada, se muestra un panel vacío (<em>home_empty</em>).</p>
+
+    <h2>Navegación del Lienzo (Zoom y Paneo)</h2>
+    <p>
+        El lienzo admite <strong>zoom</strong> y <strong>paneo</strong> para trabajar cómodamente
+        a distintas escalas:
+    </p>
+    <ul>
+        <li><strong>Zoom:</strong> la <strong>rueda del ratón</strong> sobre el lienzo amplía o
+            reduce la vista, centrando el zoom en la posición del cursor.</li>
+        <li><strong>Paneo con el botón central:</strong> arrastrar con el <strong>botón central</strong>
+            del ratón mueve el lienzo desde cualquier punto del área de trabajo. Es la forma de
+            panear cuando el lienzo cubre todo el panel.</li>
+        <li><strong>Paneo con el botón izquierdo (el lienzo como capa de fondo):</strong> el área
+            oscura que rodea al lienzo actúa como el fondo de la composición. Si pulsas y arrastras
+            con el <strong>botón izquierdo</strong> sobre esa <strong>zona oscura (fuera del lienzo)</strong>
+            y <strong>no hay ninguna capa bajo el cursor</strong>, se mueve el lienzo y además se
+            deseleccionan todas las capas. Una capa puede sobresalir del lienzo: si el clic (dentro
+            o fuera del lienzo) cae sobre una capa, se selecciona y se arrastra como es normal.</li>
+    </ul>
+    <p>
+        Durante el paneo el cursor cambia al modo <em>mover</em>. Las herramientas solo actúan
+        dentro del lienzo; la zona oscura paneea (salvo cuando hay una capa bajo el cursor, que se
+        selecciona).
+    </p>
+
+    <h2>Historial de Pasos (Undo / Redo)</h2>
+    <p>
+        El editor mantiene un <strong>historial de hasta 50 pasos</strong> por documento. Cada paso
+        guarda una copia completa del lienzo (tamaño, color de fondo, transparencia) y de todas las
+        capas (imagen clonada en profundidad), de modo que deshacer restaura el estado exacto,
+        incluidos los cambios de píxeles como el bote de pintura o el degradado.
+    </p>
+    <ul>
+        <li><strong>Deshacer</strong> (<strong>Ctrl+Z</strong>) — deshace el último paso.</li>
+        <li><strong>Rehacer</strong> (<strong>Ctrl+Y</strong> o <strong>Ctrl+Shift+Z</strong>) — rehace el paso anulado.</li>
+        <li><strong>Historial</strong> — el botón central abre un menú con la lista de pasos; el paso
+            actual se marca con <strong>▶</strong> y negrita. Pulsa cualquier paso para saltar a él
+            (deshaciendo o rehaciendo automáticamente los necesarios).</li>
+    </ul>
+    <p>
+        Los tres botones viven en la fila superior de la <em>Barra de Opciones Superior</em>, a la
+        izquierda de los checkboxes y de los combos de alineación. Se habilitan/deshabilitan según
+        haya pasos que deshacer o rehacer.
+    </p>
+    <p>
+        <strong>¿Qué genera un paso?</strong> Los gestos de arrastre de herramienta se agrupan en un
+        único paso (p. ej. mover, transformar o pintar de una sola vez). Las operaciones discretas
+        (alinear, distribuir, espaciar, auto layout, propiedades de texto/forma, pegar imagen,
+        nuevo/redimensionar lienzo, opacidad) se registran con su propio nombre. El historial se
+        reinicia al crear, abrir o cargar un documento nuevo.
+    </p>
+
+    <h2>Más información</h2>
+    <p>
+        En el árbol de navegación de esta ayuda, el Editor Avanzado tiene páginas dedicadas a
+        cada área:
+    </p>
+    <ul>
+        <li><strong>Herramientas:</strong> la barra de herramientas izquierda, los controles de color,
+            la barra de opciones y los atajos de teclado.</li>
+        <li><strong>Selección de Píxeles:</strong> selección por marco, capa y varita, máscaras y
+            eliminación de fondos.</li>
+        <li><strong>Herramienta Texto:</strong> capas de texto editables y formato por carácter.</li>
+        <li><strong>Edición, Transformar y Gizmo:</strong> la herramienta universal de selección y el
+            gizmo de transformación.</li>
+        <li><strong>Disposición y Auto Layout:</strong> alinear, distribuir, espaciar y las 13
+            herramientas de composición automática.</li>
+        <li><strong>Smart Guides:</strong> guías inteligentes de ajuste al arrastrar capas.</li>
+        <li><strong>Panel de Capas:</strong> gestión de capas, reordenación y operaciones.</li>
+    </ul>
+
+</body>
+</html>
