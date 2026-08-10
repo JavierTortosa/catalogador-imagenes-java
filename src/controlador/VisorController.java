@@ -1698,7 +1698,19 @@ public class VisorController implements IModoController, ThemeChangeListener {
      */
 	public void restaurarUiVisualizador() {
         logger.debug("    -> Restaurando UI para el modo VISUALIZADOR...");
-        
+
+        // --- VALIDACIÓN DE CARPETA RAÍZ: si no hay una carpeta válida (disco
+        // apagado, carpeta borrada o nunca establecida), se muestra la pantalla
+        // de bienvenida en lugar de restaurar una lista vacía. ---
+        Path carpetaRaizVisor = model.getCarpetaRaizDelVisualizador();
+        if (carpetaRaizVisor == null || !Files.isDirectory(carpetaRaizVisor)) {
+            logger.warn("  -> No hay carpeta raíz válida ({}). Mostrando bienvenida.", carpetaRaizVisor);
+            if (viewManager != null) {
+                viewManager.limpiarUI();
+            }
+            return;
+        }
+
         JList<String> listaNombres = registry.get("list.nombresArchivo");
         DefaultListModel<String> modeloVisualizador = model.getModeloLista(); // Este es el ListModel del visualizadorListContext
 

@@ -928,6 +928,15 @@ public class AppInitializer {
         String imagenInicialKey = restaurarUltimaImagen
                 ? configuration.getString(ConfigKeys.INICIO_IMAGEN, null) : null;
 
+        Path carpetaRaizInicial = this.model.getCarpetaRaizActual();
+        boolean carpetaRaizValida = carpetaRaizInicial != null && java.nio.file.Files.isDirectory(carpetaRaizInicial);
+        if (!carpetaRaizValida) {
+            // La carpeta inicial no existe o no es un directorio (disco apagado,
+            // carpeta borrada...). Forzamos bienvenida aunque el contexto la conserve.
+            logger.debug("  -> Carpeta raíz inicial no válida ({}). Se mostrará el estado de bienvenida.", carpetaRaizInicial);
+            this.model.setCarpetaRaizActual(null);
+        }
+
         if (this.model.getCarpetaRaizActual() != null) {
             boolean mostrarBienvenida = configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_MOSTRAR_BIENVENIDA, true);
             if (mostrarBienvenida) {

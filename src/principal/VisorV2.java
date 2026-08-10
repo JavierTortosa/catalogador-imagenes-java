@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.69.45";
+        version = "V2.69.50";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -61,7 +61,6 @@ public class VisorV2 {
     
     // TODO implementar en la statusbar inferior una etiqueta de cambios sin guardar y que muestre donde (para ahorrar espacio podemos poner el boton de los modos editor y proyecto y pulsando que nos lleve a donde estan los cambios sin guardar
     // TODO añadir F1 para que muestre el panel de informacion
-    // TODO Implementar un sistema de busqueda de archivos sin representacion
     
     	// REVISIONES PENDIENTES
     // TODO revision de los menus. hay menus que deberian estar disabled en ciertos modos, opciones que faltan y otras que sobran
