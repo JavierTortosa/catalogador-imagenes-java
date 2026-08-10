@@ -17,8 +17,8 @@ import modelo.renderer.Triangle;
 
 public class AwtModelRenderer implements ModelRenderer {
 
-    private static final int SIZE = 512;
-    private static final int MARGIN = 24;
+    public static final int SIZE = 512;
+    public static final int MARGIN = 24;
 
     private int superSample = 2;
 
@@ -58,17 +58,22 @@ public class AwtModelRenderer implements ModelRenderer {
 
 
     /**
-     * Renderiza con ajustes completos: rotación, brillo, contraste, AA, fondo
-     * y wireframe opcional. Se renderiza a resolución aumentada
-     * (supersampling) y se reduce a {@link #SIZE} con interpolación bilineal
-     * para suavizar facetas y bordes.
+     * Renderiza con ajustes completos: rotación, brillo, contraste, AA, fondo,
+     * wireframe opcional y encuadre (pan/zoom). Se renderiza a resolución
+     * aumentada (supersampling) y se reduce a {@link #SIZE} con interpolación
+     * bilineal para suavizar facetas y bordes.
+     *
+     * @param panX    desplazamiento horizontal en píxeles del render
+     * @param panY    desplazamiento vertical en píxeles del render
+     * @param zoomScale factor de zoom multiplicativo sobre la escala de encaje
      */
     public BufferedImage renderizarConAjustes(List<Triangle> triangles,
             double rotX, double rotY, boolean antiAlias,
             int brightness, int contrast,
             String bgMode, Color solidColor,
             Color gradientStart, Color gradientEnd,
-            BufferedImage bgImage, double bgImageScale, boolean wireframe) {
+            BufferedImage bgImage, double bgImageScale, boolean wireframe,
+            double panX, double panY, double zoomScale) {
         boolean transparent = "transparent".equals(bgMode);
         int renderSize = SIZE * superSample;
         BufferedImage hiRes = new BufferedImage(renderSize, renderSize,
@@ -89,7 +94,8 @@ public class AwtModelRenderer implements ModelRenderer {
                 float ambientLevel = 0.20f + (brightness + 100f) / 200f * 0.60f;
                 float contrastScale = 0.30f + (contrast + 100f) / 200f * 0.70f;
 
-                List<Triangle> transformed = transformTriangles(triangles, rotX, rotY, renderSize);
+                List<Triangle> transformed = transformTriangles(triangles, rotX, rotY, renderSize,
+                        panX, panY, zoomScale);
                 transformed.sort(Comparator.comparingDouble(
                         t -> -(t.v0[2] + t.v1[2] + t.v2[2]) / 3f));
 
@@ -206,7 +212,7 @@ public class AwtModelRenderer implements ModelRenderer {
                 return img;
             }
 
-            List<Triangle> transformed = transformTriangles(triangles, rotX, rotY, SIZE);
+            List<Triangle> transformed = transformTriangles(triangles, rotX, rotY, SIZE, 0, 0, 1.0);
 
             transformed.sort(Comparator.comparingDouble(
                     t -> -(t.v0[2] + t.v1[2] + t.v2[2]) / 3f));
@@ -253,7 +259,8 @@ public class AwtModelRenderer implements ModelRenderer {
         return img;
     }
 
-    private List<Triangle> transformTriangles(List<Triangle> triangles, double rotX, double rotY, int renderSize) {
+    private List<Triangle> transformTriangles(List<Triangle> triangles, double rotX, double rotY,
+            int renderSize, double panX, double panY, double zoomScale) {
         float minX = Float.MAX_VALUE, maxX = Float.MIN_VALUE;
         float minY = Float.MAX_VALUE, maxY = Float.MIN_VALUE;
         float minZ = Float.MAX_VALUE, maxZ = Float.MIN_VALUE;
@@ -272,24 +279,28 @@ public class AwtModelRenderer implements ModelRenderer {
         float sizeZ = maxZ - minZ;
         float maxDim = Math.max(sizeX, Math.max(sizeY, sizeZ));
         float scale = (maxDim > 0.001f) ? (renderSize - 2f * MARGIN) / maxDim : 1f;
+        scale *= (float) zoomScale;
 
         double ax = Math.toRadians(rotX);
         double ay = Math.toRadians(rotY);
         double cxA = Math.cos(ax), sxA = Math.sin(ax);
         double cyA = Math.cos(ay), syA = Math.sin(ay);
 
+        float offsetX = (float) (renderSize / 2f + panX);
+        float offsetY = (float) (renderSize / 2f + panY);
+
         List<Triangle> result = new ArrayList<>(triangles.size());
         for (Triangle t : triangles) {
-            float[] tv0 = xform(t.v0, cx, cy, cz, scale, cxA, sxA, cyA, syA, renderSize);
-            float[] tv1 = xform(t.v1, cx, cy, cz, scale, cxA, sxA, cyA, syA, renderSize);
-            float[] tv2 = xform(t.v2, cx, cy, cz, scale, cxA, sxA, cyA, syA, renderSize);
+            float[] tv0 = xform(t.v0, cx, cy, cz, scale, cxA, sxA, cyA, syA, offsetX, offsetY);
+            float[] tv1 = xform(t.v1, cx, cy, cz, scale, cxA, sxA, cyA, syA, offsetX, offsetY);
+            float[] tv2 = xform(t.v2, cx, cy, cz, scale, cxA, sxA, cyA, syA, offsetX, offsetY);
             result.add(new Triangle(tv0, tv1, tv2, t.nx, t.ny, t.nz));
         }
         return result;
     }
 
     private float[] xform(float[] v, float cx, float cy, float cz, float s,
-            double cxA, double sxA, double cyA, double syA, int renderSize) {
+            double cxA, double sxA, double cyA, double syA, float offsetX, float offsetY) {
         float x = (v[0] - cx) * s;
         float y = (v[1] - cy) * s;
         float z = (v[2] - cz) * s;
@@ -297,7 +308,7 @@ public class AwtModelRenderer implements ModelRenderer {
         float z1 = (float) (y * sxA + z * cxA);
         float x2 = (float) (x * cyA + z1 * syA);
         float z2 = (float) (-x * syA + z1 * cyA);
-        return new float[]{ x2 + renderSize / 2f, y1 + renderSize / 2f, z2 };
+        return new float[]{ x2 + offsetX, y1 + offsetY, z2 };
     }
 
 

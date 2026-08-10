@@ -72,7 +72,8 @@ public class PreviewPanel3DFX extends JFXPanel {
     private double pressX, pressY;
     private SceneAntialiasing currentAA;
     private double pressRotX, pressRotY;
-    private double pressPanX, pressPanY;
+    private double pressCamX, pressCamY;
+    private double fitZoom = 500;
     private MouseButton dragButton;
 
     private boolean checkerboard;
@@ -572,9 +573,12 @@ public class PreviewPanel3DFX extends JFXPanel {
      */
     public void resetView() {
         zoom = 500;
+        fitZoom = 500;
         rotateX.setAngle(0);
         rotateY.setAngle(0);
         camera.setTranslateZ(-zoom);
+        camera.setTranslateX(0);
+        camera.setTranslateY(0);
         modelGroup.setTranslateX(0);
         modelGroup.setTranslateY(0);
     } // --- Fin del metodo resetView ---
@@ -600,7 +604,10 @@ public class PreviewPanel3DFX extends JFXPanel {
 
         zoom = radius / Math.tan(halfFov) * 2.5;
         zoom = Math.max(50, Math.min(10000, zoom));
+        fitZoom = zoom;
         camera.setTranslateZ(-zoom);
+        camera.setTranslateX(0);
+        camera.setTranslateY(0);
         logger.debug("[PreviewPanel3DFX] fitToView: radius=" + radius + " zoom=" + zoom);
     } // --- Fin del metodo fitToView ---
 
@@ -614,8 +621,8 @@ public class PreviewPanel3DFX extends JFXPanel {
         pressY = e.getSceneY();
         pressRotX = rotateY.getAngle();
         pressRotY = rotateX.getAngle();
-        pressPanX = modelGroup.getTranslateX();
-        pressPanY = modelGroup.getTranslateY();
+        pressCamX = camera.getTranslateX();
+        pressCamY = camera.getTranslateY();
     } // --- Fin del metodo onMousePressed ---
 
 
@@ -627,8 +634,8 @@ public class PreviewPanel3DFX extends JFXPanel {
         double dy = e.getSceneY() - pressY;
 
         if (dragButton == MouseButton.SECONDARY) {
-            modelGroup.setTranslateX(pressPanX + dx);
-            modelGroup.setTranslateY(pressPanY + dy);
+            camera.setTranslateX(pressCamX - dx);
+            camera.setTranslateY(pressCamY - dy);
         } else {
             double sensitivity = 0.6;
             double newRotY = pressRotX - dx * sensitivity;
@@ -661,6 +668,21 @@ public class PreviewPanel3DFX extends JFXPanel {
     public double getRotateYAngle() {
         return rotateY.getAngle();
     } // --- Fin del metodo getRotateYAngle ---
+
+
+    public double getPanX() {
+        return camera.getTranslateX();
+    } // --- Fin del metodo getPanX ---
+
+
+    public double getPanY() {
+        return camera.getTranslateY();
+    } // --- Fin del metodo getPanY ---
+
+
+    public double getZoomFactor() {
+        return fitZoom > 0 ? fitZoom / zoom : 1.0;
+    } // --- Fin del metodo getZoomFactor ---
 
 
 } // --- Fin de la clase PreviewPanel3DFX ---

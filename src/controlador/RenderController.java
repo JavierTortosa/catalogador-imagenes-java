@@ -1881,7 +1881,17 @@ public class RenderController {
         int contrast = panel.getContrastSlider().getValue();
         boolean antiAlias = panel.getChkAntiAlias().isSelected();
         boolean wireframe = panel.getChkWireframe().isSelected();
-        renderer.setSuperSample(panel.getCboCalidad().getSelectedIndex() + 1);
+        int superSample = panel.getCboCalidad().getSelectedIndex() + 1;
+        renderer.setSuperSample(superSample);
+
+        // El preview normaliza el modelo a ~200 unidades; el render AWT lo
+        // encaja en (SIZE - 2*MARGIN) píxeles. Se convierte el pan de la cámara
+        // (unidades de escena) a píxeles del render.
+        double zoomScale = panel.getPreview3DFX().getZoomFactor();
+        int renderSize = AwtModelRenderer.SIZE * superSample;
+        double pxPorUnidad = (renderSize - 2f * AwtModelRenderer.MARGIN) / 200.0 * zoomScale;
+        double panX = panel.getPreview3DFX().getPanX() * pxPorUnidad;
+        double panY = panel.getPreview3DFX().getPanY() * pxPorUnidad;
 
         String bgMode = panel.getSelectedBgMode();
         Color solidColor = panel.getSolidBgColor();
@@ -1900,7 +1910,7 @@ public class RenderController {
         return renderer.renderizarConAjustes(currentTriangles,
                 rotX, rotY, antiAlias, brightness, contrast,
                 bgMode, solidColor, gradientStart, gradientEnd,
-                bgImage, bgImageScale, wireframe);
+                bgImage, bgImageScale, wireframe, panX, panY, zoomScale);
     } // --- Fin del metodo renderizarPreview ---
 
 
