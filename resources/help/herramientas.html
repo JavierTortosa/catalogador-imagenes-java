@@ -80,11 +80,18 @@
         Visor 3D interactivo basado en JavaFX para inspeccionar modelos STL:
     </p>
     <ul>
-        <li><strong>Rotación:</strong> Arrastra con el ratón para rotar el modelo libremente.</li>
+        <li><strong>Rotación (botón izquierdo):</strong> Arrastra con el ratón para rotar el modelo. El movimiento
+            horizontal gira el modelo sobre su eje vertical y el vertical lo inclina (limitado a ±90º).</li>
+        <li><strong>Pan (botón derecho):</strong> Arrastra con el botón derecho para desplazar la cámara
+            siguiendo al ratón de forma 1:1, en cualquier orientación del modelo.</li>
         <li><strong>Zoom:</strong> Usa la rueda del ratón para acercar o alejar.</li>
-        <li><strong>Pan:</strong> Arrastra con el botón central para desplazar la cámara.</li>
-        <li><strong>Iluminación:</strong> Ajustable desde los controles del panel.</li>
+        <li><strong>Iluminación:</strong> Ajustable desde los controles del panel (brillo, contraste, luz de relleno).</li>
     </ul>
+    <p>
+        El encuadre que compones (rotación, pan y zoom) se refleja fielmente en el PNG exportado:
+        al guardar o asignar el preview desde la vista 3D se respeta la orientación y el desplazamiento
+        de la cámara.
+    </p>
 
     <h3>Vista 2D</h3>
     <p>
@@ -111,6 +118,18 @@
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_crosshair.png"></td>
             <td><strong>Ver cruceta:</strong> Muestra ejes de referencia X/Y/Z en el preview 3D.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_4002-grid_48x48.png"></td>
+            <td><strong>Contorno (wireframe):</strong> Alterna entre el relleno sólido y el modo alámbrico del modelo 3D en el preview.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_7005-settings_48x48.png"></td>
+            <td><strong>Luz de relleno:</strong> Luz tenue inferior-izquierda que aclara la zona de sombra del modelo. Desactivada por defecto.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_7005-settings_48x48.png"></td>
+            <td><strong>Calidad de render:</strong> Nivel de supersampling aplicado al PNG exportado: <em>Rápida</em> (1×), <em>Normal</em> (2×) y <em>Alta</em> (3×). Solo afecta al render guardado, no al preview.</td>
         </tr>
     </table>
 
@@ -164,13 +183,13 @@
                 <ul>
                     <li><strong>Editor avanzado activo:</strong> Añade la imagen actual como capa nueva en el canvas. Si el visor muestra una imagen 2D (cargada o composición exportada) usa esa imagen; en modo 3D re-renderiza el STL con los ajustes actuales. Si el canvas está vacío se redimensiona al tamaño de la imagen.</li>
                     <li><strong>Vista 2D visible:</strong> Copia la imagen actual del visor 2D a <code>outputDir/nombreBase.png</code> y la muestra en el grid de imágenes, dándole prioridad sobre las imágenes extraídas automáticamente.</li>
-                    <li><strong>Vista 3D visible:</strong> Captura la orientación actual del modelo 3D, los ajustes de imagen y fondo, y re-renderiza el PNG con esos parámetros.</li>
+                    <li><strong>Vista 3D visible:</strong> Captura la orientación, el encuadre (pan/zoom) y los ajustes de imagen y fondo del modelo 3D, y re-renderiza el PNG con esos parámetros.</li>
                 </ul>
             </td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_7008 - descarga.png"></td>
-            <td><strong>Guardar preview en disco:</strong> Abre un selector de carpeta (empezando en la carpeta del comprimido original) y guarda el preview actual como PNG. Si el visor 3D está activo, renderiza el modelo con los ajustes actuales; si el visor 2D está activo, captura la imagen mostrada.</td>
+            <td><strong>Guardar preview en disco:</strong> Abre un selector de carpeta (empezando en la carpeta del comprimido original) y guarda el preview actual como PNG. Si el visor 3D está activo, renderiza el modelo con los ajustes actuales y su encuadre (pan/zoom); si el visor 2D está activo, captura la imagen mostrada.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_70008-clear-preview.png"></td>

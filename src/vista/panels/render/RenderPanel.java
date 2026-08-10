@@ -13,9 +13,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridLayout;
 import java.awt.RenderingHints;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
-import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.List;
@@ -52,7 +50,11 @@ import vista.theme.ThemeManager;
 
 public class RenderPanel extends JPanel implements ThemeChangeListener {
 
-    // --- Listas de candidatos (panel izquierdo) ---
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	// --- Listas de candidatos (panel izquierdo) ---
     private final DefaultListModel<RenderCandidate> listModelSinImagen;
     private final JList<RenderCandidate> candidateListSinImagen;
     private final DefaultListModel<RenderCandidate> listModelConImagen;
@@ -314,12 +316,12 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
         leftSplit.setPreferredSize(new Dimension(280, 0));
 
         // ---------- PANEL CENTRAL: grid contextual a la pestaña de candidatos ----------
-        imagenesGrid = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
+        imagenesGrid = new JPanel(new WrapLayout(FlowLayout.LEFT, 6, 6));
         imagenesGrid.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         JScrollPane imagenesScroll = new JScrollPane(imagenesGrid);
         imagenesScroll.setBorder(BorderFactory.createTitledBorder("Imágenes extraídas"));
 
-        rendersGrid = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 6));
+        rendersGrid = new JPanel(new WrapLayout(FlowLayout.LEFT, 6, 6));
         rendersGrid.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         JScrollPane rendersScroll = new JScrollPane(rendersGrid);
         rendersScroll.setBorder(BorderFactory.createTitledBorder("Renders 3D generados"));

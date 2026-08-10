@@ -44,7 +44,6 @@ public class VisorV2 {
 
     // EDITOR AVANZADO
     
-    // TODO implementar el scanner -> 70009-scanner.png -> CMD_RENDER_PROCESAR_HUERFANOS 
     // TODO añadir el popupmenu al editor
         
     
@@ -56,7 +55,6 @@ public class VisorV2 {
     
     
     // RENDER
-    // FIXME el grid solo muestra 1 linea
     
     
     // GENERAL

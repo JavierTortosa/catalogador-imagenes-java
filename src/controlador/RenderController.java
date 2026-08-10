@@ -28,17 +28,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import modelo.editor.CanvasModel;
-import modelo.editor.LayerModel;
-import modelo.VisorModel;
-
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -61,14 +56,14 @@ import controlador.managers.RenderSceneController;
 import controlador.utils.ComponentRegistry;
 import controlador.worker.Zip2PngWorker;
 import controlador.worker.Zip2PngWorker.SourceInfo;
+import modelo.VisorModel;
+import modelo.editor.CanvasModel;
+import modelo.editor.LayerModel;
 import modelo.renderer.ImageEntry;
 import modelo.renderer.ImageLayer;
 import modelo.renderer.StlEntry;
 import modelo.renderer.Triangle;
 import servicios.ConfigKeys;
-import vista.config.UIDefinitionService;
-import vista.theme.ThemeManager;
-import vista.util.IconUtils;
 import servicios.ConfigurationManager;
 import servicios.renderer.AwtModelRenderer;
 import servicios.renderer.RenderTempFileManager;
@@ -77,9 +72,12 @@ import servicios.renderer.StlParser;
 import servicios.renderer.Zip2PngScanner;
 import servicios.renderer.Zip2PngScanner.RenderCandidate;
 import servicios.renderer.ZipExtractor;
+import vista.config.UIDefinitionService;
 import vista.dialogos.TaskProgressDialog;
 import vista.panels.render.PreviewPanel3DFX;
 import vista.panels.render.RenderPanel;
+import vista.theme.ThemeManager;
+import vista.util.IconUtils;
 
 public class RenderController {
 
