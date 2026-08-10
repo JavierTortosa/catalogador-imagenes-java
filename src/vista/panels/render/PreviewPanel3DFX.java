@@ -30,6 +30,7 @@ import javafx.scene.paint.ImagePattern;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.paint.Stop;
+import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.MeshView;
 import javafx.scene.shape.Rectangle;
@@ -58,6 +59,7 @@ public class PreviewPanel3DFX extends JFXPanel {
     private AmbientLight ambientLight;
     private DirectionalLight dirLight;
     private DirectionalLight fillLight;
+    private DirectionalLight fillLight2;
     private Line hLine;
     private Line vLine;
     private Rectangle bgRect;
@@ -137,6 +139,9 @@ public class PreviewPanel3DFX extends JFXPanel {
         dirLight.setDirection(new Point3D(-1, -0.5, -1));
         fillLight = new DirectionalLight(Color.rgb(80, 80, 100));
         fillLight.setDirection(new Point3D(0.5, 0.5, 0.5));
+        fillLight2 = new DirectionalLight(Color.rgb(70, 70, 90));
+        fillLight2.setDirection(new Point3D(-0.7, 0.8, 0.4));
+        fillLight2.setVisible(false);
 
         modelGroup = new Group();
         modelGroup.setVisible(false);
@@ -163,7 +168,7 @@ public class PreviewPanel3DFX extends JFXPanel {
         camera.setTranslateZ(-zoom);
 
         subRoot = new Group();
-        subRoot.getChildren().addAll(ambientLight, dirLight, fillLight, rotationGroup);
+        subRoot.getChildren().addAll(ambientLight, dirLight, fillLight, fillLight2, rotationGroup);
 
         subScene = new SubScene(subRoot, getWidth(), getHeight(), true, SceneAntialiasing.DISABLED);
         subScene.setCamera(camera);
@@ -311,9 +316,31 @@ public class PreviewPanel3DFX extends JFXPanel {
 
 
     public void setCrosshairVisible(boolean visible) {
-        hLine.setVisible(visible);
-        vLine.setVisible(visible);
+        hLine.setVisible(visible);        vLine.setVisible(visible);
     } // --- Fin del metodo setCrosshairVisible ---
+
+
+    /**
+     * Alterna entre modo relleno (sombreado suave) y modo alambre (wireframe)
+     * en el preview 3D.
+     */
+    public void setWireframe(boolean wireframe) {
+        Platform.runLater(() -> {
+            try {
+                meshView.setDrawMode(wireframe ? DrawMode.LINE : DrawMode.FILL);
+            } catch (Exception e) {
+                logger.error("[PreviewPanel3DFX] Error en setWireframe", e);
+            }
+        });
+    } // --- Fin del metodo setWireframe ---
+
+
+    /**
+     * Activa o desactiva la luz tenue de relleno inferior-izquierda.
+     */
+    public void setFillLight2Visible(boolean visible) {
+        fillLight2.setVisible(visible);
+    } // --- Fin del metodo setFillLight2Visible ---
 
 
     /**
@@ -604,7 +631,7 @@ public class PreviewPanel3DFX extends JFXPanel {
             modelGroup.setTranslateY(pressPanY + dy);
         } else {
             double sensitivity = 0.6;
-            double newRotY = pressRotX + dx * sensitivity;
+            double newRotY = pressRotX - dx * sensitivity;
             double newRotX = Math.max(-90, Math.min(90, pressRotY + dy * sensitivity));
             rotateY.setAngle(newRotY);
             rotateX.setAngle(newRotX);

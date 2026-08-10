@@ -99,6 +99,7 @@ public class HelpDialog extends JDialog {
         
         DefaultMutableTreeNode renderFolder = new DefaultMutableTreeNode(new HelpPageInfo("Modo Render", "render.html"));
         renderFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Herramientas", "herramientas.html")));
+        renderFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Scanner de Huérfanos", "render_scanner.html")));
         top.add(renderFolder);
 
         DefaultMutableTreeNode editorFolder = new DefaultMutableTreeNode(new HelpPageInfo("Modo Editor", "modo_editor.html"));

@@ -666,6 +666,7 @@ public class AppInitializer {
                 rc.setIconUtils(this.iconUtils);
                 rc.setUiDefinitionService(this.uiDefSvc);
                 rc.setThemeManager(this.themeManager);
+                rc.setModel(this.model);
                 this.clientController.setActionFactory(this.actionFactory);
                 this.actionFactory.initializeLateActions();
 

@@ -732,11 +732,13 @@ public class ActionFactory {
 
         // --- Acciones del Modo Render ---
         registerAction(AppActionCommands.CMD_RENDER_ESCANEAR_CARPETA, createRenderEscanearCarpetaAction());
+        registerAction(AppActionCommands.CMD_RENDER_ESCANEAR_HUERFANOS, createRenderEscanearHuerfanosAction());
         registerAction(AppActionCommands.CMD_RENDER_PROCESAR_SELECCIONADOS, createRenderProcesarSeleccionadosAction());
         registerAction(AppActionCommands.CMD_RENDER_PROCESAR_ARCHIVO, createRenderProcesarArchivoAction());
         registerAction(AppActionCommands.CMD_RENDER_COPIAR_ARCHIVOS, createRenderCopiarArchivosAction());
         registerAction(AppActionCommands.CMD_RENDER_ABRIR_TEMP, createRenderAbrirTempAction());
         registerAction(AppActionCommands.CMD_RENDER_DESCARGAR_ARCHIVOS, createRenderDescargarArchivosAction());
+        registerAction(AppActionCommands.CMD_RENDER_EXPORTAR_APROBADOS, createRenderExportarAprobadosAction());
         registerAction(AppActionCommands.CMD_RENDER_CLEAR_PREVIEW, createRenderClearPreviewAction());
 
         registerAction(AppActionCommands.CMD_EDITOR_NUEVO, createEditorNuevoAction());
@@ -1129,6 +1131,18 @@ public class ActionFactory {
     } // --- Fin del metodo createRenderEscanearCarpetaAction ---
 
 
+    private Action createRenderEscanearHuerfanosAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) {
+                    renderController.toggleScannerView();
+                }
+            }
+        };
+    } // --- Fin del metodo createRenderEscanearHuerfanosAction ---
+
+
     private Action createRenderProcesarSeleccionadosAction() {
         return new AbstractAction() {
             @Override
@@ -1199,6 +1213,18 @@ public class ActionFactory {
             }
         };
     } // --- Fin del metodo createRenderDescargarArchivosAction ---
+
+
+    private Action createRenderExportarAprobadosAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) {
+                    renderController.exportarAprobados();
+                }
+            }
+        };
+    } // --- Fin del metodo createRenderExportarAprobadosAction ---
 
 
     private Action createRenderClearPreviewAction() {
@@ -1678,7 +1704,12 @@ public class ActionFactory {
     private Action createLocateFileAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_LOCALIZAR);
         LocateFileAction action = new LocateFileAction(this.model, this.generalController.getVisorController(),
-                "Localizar Archivo", icon);
+                "Localizar Archivo", icon, () -> {
+                    if (this.renderController == null || this.model.getCurrentWorkMode() != WorkMode.RENDER) {
+                        return null;
+                    }
+                    return this.renderController.getRutaActualParaLocalizar();
+                });
         this.contextSensitiveActions.add(action);
         return action;
     } // --- Fin del método createLocateFileAction ---

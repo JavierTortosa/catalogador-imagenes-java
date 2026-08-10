@@ -13,9 +13,11 @@ import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -28,6 +30,7 @@ import java.util.Set;
 
 import modelo.editor.CanvasModel;
 import modelo.editor.LayerModel;
+import modelo.VisorModel;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -40,6 +43,7 @@ import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -68,6 +72,7 @@ import vista.util.IconUtils;
 import servicios.ConfigurationManager;
 import servicios.renderer.AwtModelRenderer;
 import servicios.renderer.RenderTempFileManager;
+import servicios.renderer.ScannerFolderResult;
 import servicios.renderer.StlParser;
 import servicios.renderer.Zip2PngScanner;
 import servicios.renderer.Zip2PngScanner.RenderCandidate;
@@ -118,6 +123,7 @@ public class RenderController {
     private volatile boolean loadingTriangles;
     private ComponentRegistry registry;
     private javax.swing.SwingWorker<?, ?> galleryWorker;
+    private VisorModel model;
 
     // Punteros de selección por pestaña
     private int pointerSinRenderizar = 0;
@@ -136,6 +142,43 @@ public class RenderController {
         wireControls();
         wireBackgroundControls();
         initAdvanceEditIconSize();
+        wireScannerPanel();
+    }
+
+    public void setModel(VisorModel model) {
+        this.model = model;
+    }
+
+
+    /**
+     * Ruta a localizar en el explorador según la selección actual del modo
+     * Render: el candidato seleccionado en las pestañas, o si no el preview
+     * que se está mostrando.
+     *
+     * @return ruta del candidato/preview actual, o null si no hay nada
+     */
+    public Path getRutaActualParaLocalizar() {
+        RenderCandidate candidate = getSelectedCandidate();
+        if (candidate != null) {
+            return candidate.path;
+        }
+        return currentPreviewPath;
+    } // --- Fin del metodo getRutaActualParaLocalizar ---
+
+    private void wireScannerPanel() {
+        var sp = panel.getScannerPanel();
+        sp.setOnEscanear(this::ejecutarEscanearHuerfanos);
+        sp.setOnProcesarSeleccion(this::abrirSeleccionScanner);
+        sp.addSubcarpetasChangeListener(e -> {
+            config.setString(ConfigKeys.RENDER_SCAN_INCLUDE_SUBFOLDERS,
+                    String.valueOf(sp.isIncludeSubfolders()));
+            try {
+                config.guardarConfiguracion(config.getConfig());
+            } catch (IOException ex) {
+                logger.warn("No se pudo guardar la configuración del scanner", ex);
+            }
+        });
+        sp.addTableSelectionListener(e -> sp.refrescarResumen());
     }
 
     public void setRegistry(ComponentRegistry registry) {
@@ -165,6 +208,26 @@ public class RenderController {
         };
         panel.getCandidateListSinImagen().addListSelectionListener(candidateListener);
         panel.getCandidateListConImagen().addListSelectionListener(candidateListener);
+
+        // Clic en la zona del checkbox de una fila -> alterna el marcado para procesar
+        java.awt.event.MouseAdapter checkboxToggle = new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() != 1) return;
+                JList<?> list = (JList<?>) e.getSource();
+                int index = list.locationToIndex(e.getPoint());
+                if (index < 0 || index >= list.getModel().getSize()) return;
+                if (e.getX() <= 24) {
+                    Object value = list.getModel().getElementAt(index);
+                    if (value instanceof RenderCandidate) {
+                        panel.toggleMarcadoParaProcesar((RenderCandidate) value);
+                        list.repaint();
+                    }
+                }
+            }
+        };
+        panel.getCandidateListSinImagen().addMouseListener(checkboxToggle);
+        panel.getCandidateListConImagen().addMouseListener(checkboxToggle);
 
         // Cambio de pestaña de candidatos: actualiza contenido inferior y card
         panel.getCandidateTabs().addChangeListener(e -> {
@@ -286,6 +349,10 @@ public class RenderController {
             }
         });
         panel.getChkCrosshair().addActionListener(e -> applyAdjustments());
+
+        panel.getChkWireframe().addActionListener(e -> applyAdjustments());
+        panel.getChkFillLight2().addActionListener(e -> applyAdjustments());
+        panel.getCboCalidad().addActionListener(e -> applyAdjustments());
     }
 
     private void wireBackgroundControls() {
@@ -407,6 +474,8 @@ public class RenderController {
         panel.getPreview3DFX().setCheckerboard(panel.isCheckerboard());
         panel.getPreview3DFX().setAntiAlias(panel.isAntiAlias());
         panel.getPreview3DFX().setCrosshairVisible(panel.isCrosshair());
+        panel.getPreview3DFX().setWireframe(panel.getChkWireframe().isSelected());
+        panel.getPreview3DFX().setFillLight2Visible(panel.getChkFillLight2().isSelected());
     }
 
     private RenderCandidate getSelectedCandidate() {
@@ -460,45 +529,6 @@ public class RenderController {
         if (selected == null || !selected.esComprimido) return;
 
         actualizarContenidoInferior();
-        if (panel.isCandidateTabSinRenderizar()) {
-            seleccionarThumbnailDeCandidato(selected);
-        }
-    }
-
-    private void seleccionarThumbnailDeCandidato(RenderCandidate candidate) {
-        Path thumbnailPath = encontrarThumbnailDelCandidato(candidate);
-        if (thumbnailPath != null && Files.exists(thumbnailPath)) {
-            showPreview(thumbnailPath);
-        } else if (panel.isCandidateTabSinRenderizar() && candidate.esComprimido) {
-            // Sin thumbnail todavía: mostrar el primer STL en el visor
-            try {
-                List<StlEntry> entries = ZipExtractor.listStlContents(candidate.path);
-                if (!entries.isEmpty()) {
-                    mostrarStlEnVisor(candidate, entries.get(0));
-                }
-            } catch (Exception ex) {
-                logger.warn("No se pudo listar STLs para preview: {}", candidate.nombreBase, ex);
-            }
-        }
-    }
-
-    private Path encontrarThumbnailDelCandidato(RenderCandidate candidate) {
-        Path assigned = outputDir.resolve(candidate.nombreBase + ".png");
-        if (Files.exists(assigned)) return assigned;
-        if (candidate.tieneImagenesDentro()) {
-            Path imgDir = imagesDir.resolve(candidate.nombreBase);
-            if (Files.isDirectory(imgDir)) {
-                try (var walk = Files.walk(imgDir, 3)) {
-                    return walk.filter(Files::isRegularFile)
-                            .filter(p -> {
-                                String n = p.getFileName().toString().toLowerCase();
-                                return n.endsWith(".png") || n.endsWith(".jpg") || n.endsWith(".jpeg");
-                            })
-                            .findFirst().orElse(null);
-                } catch (IOException ignored) {}
-            }
-        }
-        return null;
     }
 
     private void actualizarContenidoInferior() {
@@ -534,80 +564,7 @@ public class RenderController {
             } catch (Exception ex) {
                 logger.warn("No se pudo listar imágenes de {}: {}", selected.nombreBase, ex.getMessage());
             }
-            extraerImagenesCandidato(selected);
         }
-    }
-
-    private void mostrarStlEnVisor(RenderCandidate candidate, StlEntry stl) {
-        panel.show3DView();
-        new SwingWorker<Void, Void>() {
-            private Path tempDir;
-            @Override
-            protected Void doInBackground() throws Exception {
-                Path stlPath;
-                if (candidate.esComprimido) {
-                    tempDir = ZipExtractor.extractToTemp(candidate.path);
-                    stlPath = tempDir.resolve(stl.filename());
-                    if (!Files.exists(stlPath)) return null;
-                } else {
-                    stlPath = candidate.path;
-                }
-                List<Triangle> triangles = StlParser.parse(stlPath.toFile());
-                SwingUtilities.invokeLater(() -> {
-                    panel.getPreview3DFX().setMesh(triangles);
-                    resetPreviewAdjustments();
-                });
-                return null;
-            }
-            @Override
-            protected void done() {
-                if (tempDir != null) ZipExtractor.deleteDir(tempDir);
-            }
-        }.execute();
-    }
-
-    private void extraerImagenesCandidato(RenderCandidate candidate) {
-        if (candidate == null || !candidate.esComprimido || candidate.imagenesInternas.isEmpty()) return;
-
-        Path imgOut = imagesDir.resolve(candidate.nombreBase);
-        // Si ya hay imágenes extraídas, refrescar grid y seleccionar thumbnail sin re-extraer
-        if (Files.isDirectory(imgOut)) {
-            try (var files = Files.list(imgOut)) {
-                if (files.anyMatch(Files::isRegularFile)) {
-                    refreshThumbnails(null);
-                    panel.syncGridToCandidateTab();
-                    seleccionarThumbnailDeCandidato(candidate);
-                    return;
-                }
-            } catch (IOException ignored) {}
-        }
-
-        new SwingWorker<Void, Void>() {
-            private final String baseName = candidate.nombreBase;
-            @Override
-            protected Void doInBackground() throws Exception {
-                Path imgOut = imagesDir.resolve(baseName);
-                Files.createDirectories(imgOut);
-                for (ImageEntry img : candidate.imagenesInternas) {
-                    if (isCancelled()) return null;
-                    try {
-                        ZipExtractor.extractSingleFile(candidate.path, img.filename(), imgOut);
-                    } catch (Exception ex) {
-                        logger.warn("No se pudo extraer {} de {}: {}", img.filename(), baseName, ex.getMessage());
-                    }
-                }
-                return null;
-            }
-            @Override
-            protected void done() {
-                refreshThumbnails(null);
-                panel.syncGridToCandidateTab();
-                RenderCandidate current = getSelectedCandidate();
-                if (current != null && current.nombreBase.equals(baseName)) {
-                    seleccionarThumbnailDeCandidato(current);
-                }
-            }
-        }.execute();
     }
 
     private void actualizarInfobarRender(RenderCandidate candidate) {
@@ -694,6 +651,7 @@ public class RenderController {
                 "Previsualizando", "Cargando " + stl.filename() + "...");
 
         new SwingWorker<Void, Void>() {
+            private List<Triangle> loadedTriangles;
             private Path tempDir;
             @Override
             protected Void doInBackground() throws Exception {
@@ -705,16 +663,19 @@ public class RenderController {
                 } else {
                     stlPath = candidate.path;
                 }
-                List<Triangle> triangles = StlParser.parse(stlPath.toFile());
-                SwingUtilities.invokeLater(() -> {
-                    panel.getPreview3DFX().setMesh(triangles);
-                    resetPreviewAdjustments();
-                });
+                loadedTriangles = StlParser.parse(stlPath.toFile());
                 return null;
             }
             @Override
             protected void done() {
                 if (tempDir != null) ZipExtractor.deleteDir(tempDir);
+                if (loadedTriangles != null && !loadedTriangles.isEmpty()) {
+                    // El modelo pasa a ser el preview 3D actual: queda disponible
+                    // para "Guardar preview" aunque no venga de un render procesado.
+                    currentTriangles = loadedTriangles;
+                    panel.getPreview3DFX().setMesh(loadedTriangles);
+                    resetPreviewAdjustments();
+                }
                 dialog.closeDialog();
             }
         }.execute();
@@ -728,7 +689,8 @@ public class RenderController {
         panel.getContrastField().setText("0");
         panel.getChkCheckerboard().setSelected(false);
         panel.getChkAntiAlias().setSelected(false);
-        panel.getChkCrosshair().setSelected(true);
+        // La cruceta respeta el estado actual del control, no se fuerza.
+        applyAdjustments();
     }
 
     private void onImageDoubleClick() {
@@ -790,13 +752,7 @@ public class RenderController {
         long limiteMb = config.getInt(ConfigKeys.ZIP2PNG_LIMITE_MB, 512);
         long limiteBytes = limiteMb * 1024L * 1024L;
 
-        panel.getListModelSinImagen().clear();
-        panel.getListModelConImagen().clear();
-        panel.actualizarTitulosPestanyas();
-        contentModel.clear();
-        panel.getContentImageListModel().clear();
-        pngSourceMap.clear();
-        triangleCache.clear();
+        vaciarCandidatos();
 
         TaskProgressDialog dialog = new TaskProgressDialog(frame, "Escaneando", "Buscando archivos sin imagen...");
         new SwingWorker<List<RenderCandidate>, Integer>() {
@@ -818,17 +774,9 @@ public class RenderController {
             protected void done() {
                 try {
                     List<RenderCandidate> candidates = get();
-                    int sinImg = 0, conImg = 0;
-                    for (RenderCandidate c : candidates) {
-                        if (c.tieneImagenesDentro()) {
-                            panel.getListModelConImagen().addElement(c);
-                            conImg++;
-                        } else {
-                            panel.getListModelSinImagen().addElement(c);
-                            sinImg++;
-                        }
-                    }
-                    panel.actualizarTitulosPestanyas();
+                    poblarPestanyasConCandidates(candidates);
+                    int sinImg = panel.getListModelSinImagen().getSize();
+                    int conImg = panel.getListModelConImagen().getSize();
                     dialog.updateStatusText("Sin renderizar: " + sinImg + " | Con imagen: " + conImg);
                 } catch (Exception ex) {
                     logger.error("Error al finalizar escaneo", ex);
@@ -839,6 +787,233 @@ public class RenderController {
         dialog.setVisible(true);
     }
 
+    /**
+     * Reparte los candidatos en las pestañas "Sin renderizar" y "Con imagen" y
+     * actualiza sus títulos. Es el paso común entre {@code onScan} y el Scanner.
+     *
+     * @param candidates candidatos a distribuir
+     */
+    private void poblarPestanyasConCandidates(List<RenderCandidate> candidates) {
+        panel.getListModelSinImagen().clear();
+        panel.getListModelConImagen().clear();
+        for (RenderCandidate c : candidates) {
+            if (c.tieneImagenesDentro()) {
+                panel.getListModelConImagen().addElement(c);
+            } else {
+                panel.getListModelSinImagen().addElement(c);
+            }
+        }
+        panel.actualizarTitulosPestanyas();
+    } // --- Fin del metodo poblarPestanyasConCandidates ---
+
+
+    /**
+     * Vacía el estado temporal del pipeline de candidatos: listas de las
+     * pestañas, marcados, contenido inferior, cachés y aprobados. Se invoca al
+     * iniciar cualquier escaneo para que las pestañas reflejen solo el disco.
+     */
+    private void vaciarCandidatos() {
+        panel.getListModelSinImagen().clear();
+        panel.getListModelConImagen().clear();
+        panel.limpiarMarcados();
+        panel.actualizarTitulosPestanyas();
+        contentModel.clear();
+        panel.getContentImageListModel().clear();
+        pngSourceMap.clear();
+        triangleCache.clear();
+        thumbnailsAprobados.clear();
+        clearPreview();
+        panel.syncGridToCandidateTab();
+    } // --- Fin del metodo vaciarCandidatos ---
+
+
+    /**
+     * Alterna la vista del Scanner de Huérfanos en el panel central del Render.
+     * El toggle del Scanner es excluyente con los de Grid3D y Grid2D: al
+     * activarlo se deseleccionan los otros (y viceversa).
+     */
+    public void toggleScannerView() {
+        boolean nuevo = !panel.isScannerActive();
+        if (nuevo) {
+            prepararScannerParaMostrar();
+            deseleccionarToggle("button.render.grid3d");
+            deseleccionarToggle("button.render.grid2d");
+        } else {
+            deseleccionarToggle("button.render.scanner");
+        }
+        panel.setScannerActive(nuevo);
+    } // --- Fin del metodo toggleScannerView ---
+
+
+    /**
+     * Activa el Scanner de Huérfanos como vista inicial al entrar en modo
+     * Render. Pre-rellena la carpeta raíz del visor, selecciona su toggle y
+     * deselecciona los toggles de Grid3D/Grid2D para que la vista quede
+     * coherente con la exclusividad del grupo.
+     */
+    public void mostrarScannerPorDefecto() {
+        prepararScannerParaMostrar();
+        panel.setScannerActive(true);
+        seleccionarToggleScanner();
+        deseleccionarToggle("button.render.grid3d");
+        deseleccionarToggle("button.render.grid2d");
+    } // --- Fin del metodo mostrarScannerPorDefecto ---
+
+
+    private void prepararScannerParaMostrar() {
+        var sp = panel.getScannerPanel();
+        if (sp.getCarpetaInicial() == null) {
+            Path inicial = (model != null) ? model.getCarpetaRaizActual() : null;
+            if (inicial == null) inicial = lastScanFolder;
+            sp.setCarpetaInicial(inicial);
+        }
+        sp.setIncludeSubfolders(config.getBoolean(ConfigKeys.RENDER_SCAN_INCLUDE_SUBFOLDERS, true));
+    } // --- Fin del metodo prepararScannerParaMostrar ---
+
+
+    /**
+     * Ejecuta el escaneo de huérfanos sobre la carpeta del panel del Scanner.
+     * Muestra un TaskProgressDialog modal con contador de carpetas y candidatos
+     * en vivo; al terminar rellena la tabla agrupando por carpeta.
+     */
+    public void ejecutarEscanearHuerfanos() {
+        var sp = panel.getScannerPanel();
+        Path root = sp.getCarpetaInicial();
+        if (root == null) {
+            Path inicial = (model != null) ? model.getCarpetaRaizActual() : null;
+            if (inicial == null) inicial = lastScanFolder;
+            if (inicial != null) sp.setCarpetaInicial(inicial);
+            root = sp.getCarpetaInicial();
+        }
+        if (root == null || !Files.isDirectory(root)) {
+            JOptionPane.showMessageDialog(parentFrame,
+                    "Indica una carpeta válida para escanear.",
+                    "Scanner de huérfanos", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        final Path scanRoot = root;
+        final boolean incluir = sp.isIncludeSubfolders();
+
+        JFrame frame = getParentFrame();
+        if (frame == null) {
+            logger.warn("No se pudo obtener JFrame padre para TaskProgressDialog");
+            return;
+        }
+        long limiteMb = config.getInt(ConfigKeys.ZIP2PNG_LIMITE_MB, 512);
+        long limiteBytes = limiteMb * 1024L * 1024L;
+
+        sp.setResultados(List.of());
+        vaciarCandidatos();
+        TaskProgressDialog dialog = new TaskProgressDialog(frame, "Escaneando huérfanos",
+                "Buscando archivos sin representación...");
+        SwingWorker<List<RenderCandidate>, String> worker = new SwingWorker<>() {
+            @Override
+            protected List<RenderCandidate> doInBackground() {
+                Zip2PngScanner scanner = new Zip2PngScanner(limiteBytes);
+                int[] carpetas = {0};
+                int[] candidatos = {0};
+                List<RenderCandidate> found = scanner.scanFolder(scanRoot, incluir,
+                        c -> {
+                            candidatos[0]++;
+                            publish("Carpetas: " + carpetas[0] + " | Candidatos: " + candidatos[0]);
+                        },
+                        p -> {
+                            carpetas[0]++;
+                            publish("Carpetas: " + carpetas[0] + " | Candidatos: " + candidatos[0]);
+                        });
+                Zip2PngScanner.detectarImagenesEnArchivos(found);
+                return found;
+            }
+
+            @Override
+            protected void process(List<String> chunks) {
+                dialog.updateStatusText(chunks.get(chunks.size() - 1));
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<RenderCandidate> found = get();
+                    Map<Path, List<RenderCandidate>> porCarpeta = new HashMap<>();
+                    for (RenderCandidate c : found) {
+                        Path parent = c.path.getParent();
+                        if (parent == null) parent = scanRoot;
+                        porCarpeta.computeIfAbsent(parent, k -> new ArrayList<>()).add(c);
+                    }
+                    List<ScannerFolderResult> resultados = new ArrayList<>();
+                    for (Map.Entry<Path, List<RenderCandidate>> e : porCarpeta.entrySet()) {
+                        ScannerFolderResult r = new ScannerFolderResult(e.getKey(), List.copyOf(e.getValue()));
+                        if (r.pendientes() >= 1) {
+                            resultados.add(r);
+                        }
+                    }
+                    sp.setResultados(resultados);
+                    long totalPendientes = resultados.stream().mapToLong(ScannerFolderResult::pendientes).sum();
+                    long totalPreview = resultados.stream().mapToLong(ScannerFolderResult::conPreview).sum();
+                    dialog.updateStatusText("Carpetas: " + resultados.size()
+                            + " | Pendientes: " + totalPendientes
+                            + " | Con preview: " + totalPreview);
+                } catch (Exception ex) {
+                    logger.error("Error al finalizar escaneo de huérfanos", ex);
+                }
+                dialog.closeDialog();
+            }
+        };
+        dialog.setWorkerAsociado(worker);
+        worker.execute();
+        dialog.setVisible(true);
+    } // --- Fin del metodo ejecutarEscanearHuerfanos ---
+
+
+    /**
+     * Añade los candidatos de las carpetas marcadas en la tabla del Scanner a las
+     * pestañas del pipeline de render. Trabaja SOLO sobre el snapshot en memoria;
+     * nunca vuelve a escanear el disco. No procesa ni rellena el grid: el usuario
+     * revisa los candidatos con doble clic.
+     */
+    public void abrirSeleccionScanner() {
+        var sp = panel.getScannerPanel();
+        List<ScannerFolderResult> seleccion = sp.getSelectedResults();
+        if (seleccion.isEmpty()) {
+            JOptionPane.showMessageDialog(parentFrame,
+                    "Marca al menos una carpeta en la tabla para procesar.",
+                    "Abrir selección", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        List<RenderCandidate> candidatos = new ArrayList<>();
+        for (ScannerFolderResult r : seleccion) {
+            candidatos.addAll(r.candidates());
+        }
+        poblarPestanyasConCandidates(candidatos);
+        panel.limpiarMarcados();
+
+        panel.setScannerActive(false);
+        deseleccionarToggleScanner();
+    } // --- Fin del metodo abrirSeleccionScanner ---
+
+
+    private void deseleccionarToggleScanner() {
+        deseleccionarToggle("button.render.scanner");
+    } // --- Fin del metodo deseleccionarToggleScanner ---
+
+
+    private void seleccionarToggleScanner() {
+        if (registry == null) return;
+        Object btn = registry.get("button.render.scanner");
+        if (btn instanceof javax.swing.AbstractButton b) {
+            b.setSelected(true);
+        }
+    } // --- Fin del metodo seleccionarToggleScanner ---
+
+
+    private void deseleccionarToggle(String key) {
+        if (registry == null) return;
+        Object btn = registry.get(key);
+        if (btn instanceof javax.swing.AbstractButton b) {
+            b.setSelected(false);
+        }
+    } // --- Fin del metodo deseleccionarToggle ---
+
     private List<RenderCandidate> getAllCandidates() {
         List<RenderCandidate> all = new ArrayList<>();
         java.util.Collections.list(panel.getListModelSinImagen().elements()).forEach(all::add);
@@ -847,26 +1022,41 @@ public class RenderController {
     }
 
     private void onProcess(ActionEvent e) {
-        List<RenderCandidate> candidates = getAllCandidates();
-        if (candidates.isEmpty()) {
+        List<RenderCandidate> candidatos = new ArrayList<>(panel.getMarcadosParaProcesar());
+        if (candidatos.isEmpty()) {
+            candidatos = getAllCandidates();
+            if (candidatos.isEmpty()) {
+                JOptionPane.showMessageDialog(parentFrame,
+                        "No hay candidatos. Escanea una carpeta primero.",
+                        "Zip2PNG", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            if (candidatos.size() > 10) {
+                int opcion = JOptionPane.showConfirmDialog(parentFrame,
+                        "No hay archivos marcados.\n\u00BFProcesar los " + candidatos.size()
+                                + " archivos de la lista?",
+                        "Procesar lote", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+                if (opcion != JOptionPane.OK_OPTION) return;
+            }
+        }
+        if (candidatos.isEmpty()) {
             JOptionPane.showMessageDialog(parentFrame,
                     "No hay candidatos. Escanea una carpeta primero.",
                     "Zip2PNG", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
+        lanzarProcesamiento(candidatos);
+    }
 
-        limpiarOutputDir();
+    private void lanzarProcesamiento(List<RenderCandidate> candidatos) {
+        limpiarOutputDeCandidatos(candidatos);
         panel.getImagenesGrid().removeAll();
         panel.getRendersGrid().removeAll();
         panel.getRendersGrid().revalidate();
         panel.getRendersGrid().repaint();
         panel.getImagenesGrid().revalidate();
         panel.getImagenesGrid().repaint();
-        pngSourceMap.clear();
-        triangleCache.clear();
-        currentPreviewPath = null;
-        currentTriangles = null;
-        currentWorker = null;
+        this.currentWorker = null;
 
         JFrame frame = getParentFrame();
         if (frame == null) {
@@ -876,7 +1066,8 @@ public class RenderController {
         panel.actualizarTitulosPestanyas();
         TaskProgressDialog dialog = new TaskProgressDialog(frame, "Zip2PNG", "Procesando...");
 
-        Zip2PngWorker worker = new Zip2PngWorker(candidates, outputDir, dialog, () -> {
+        Zip2PngWorker worker = new Zip2PngWorker(candidatos, outputDir, dialog, () -> {
+            panel.limpiarMarcados();
             onProcessCompleted();
         });
         this.currentWorker = worker;
@@ -892,6 +1083,7 @@ public class RenderController {
         }
         SwingUtilities.invokeLater(() -> {
             refreshThumbnails(null);
+            reordenarProcesadosAlInicio();
             // Auto-seleccionar primer candidato en "Sin renderizar"
             if (panel.getListModelSinImagen().getSize() > 0) {
                 panel.getCandidateTabs().setSelectedIndex(0);
@@ -912,6 +1104,62 @@ public class RenderController {
         }
     }
 
+    /**
+     * Elimina únicamente la salida temporal de los candidatos indicados
+     * (PNG asociado y su carpeta de imágenes extraídas), sin tocar el resto.
+     *
+     * @param candidatos candidatos cuya salida previa se limpia
+     */
+    private void limpiarOutputDeCandidatos(List<RenderCandidate> candidatos) {
+        for (RenderCandidate c : candidatos) {
+            try {
+                Path png = outputDir.resolve(c.nombreBase + ".png");
+                Files.deleteIfExists(png);
+                pngSourceMap.remove(png);
+                triangleCache.remove(png);
+                Path imgDir = imagesDir.resolve(c.nombreBase);
+                if (Files.isDirectory(imgDir)) {
+                    RenderTempFileManager.deleteDir(imgDir);
+                }
+            } catch (Exception ex) {
+                logger.warn("No se pudo limpiar la salida previa de {}", c.nombreBase, ex);
+            }
+        }
+    }
+
+    /**
+     * Mueve al principio de sus pestañas los candidatos que ya tienen PNG
+     * generado en la salida temporal, conservando el orden relativo del resto.
+     * Mantiene una cola de trabajo/revisión: los procesados quedan arriba pero
+     * siguen seleccionables para decidir si la representación es buena.
+     */
+    private void reordenarProcesadosAlInicio() {
+        DefaultListModel<RenderCandidate> sinModel = panel.getListModelSinImagen();
+        DefaultListModel<RenderCandidate> conModel = panel.getListModelConImagen();
+        reordenarModelo(sinModel);
+        reordenarModelo(conModel);
+    }
+
+    private void reordenarModelo(DefaultListModel<RenderCandidate> model) {
+        List<RenderCandidate> procesados = new ArrayList<>();
+        List<RenderCandidate> resto = new ArrayList<>();
+        java.util.Enumeration<RenderCandidate> en = model.elements();
+        while (en.hasMoreElements()) {
+            RenderCandidate c = en.nextElement();
+            Path png = outputDir.resolve(c.nombreBase + ".png");
+            if (Files.exists(png)) {
+                procesados.add(c);
+            } else {
+                resto.add(c);
+            }
+        }
+        if (procesados.isEmpty()) return;
+        model.clear();
+        procesados.forEach(model::addElement);
+        resto.forEach(model::addElement);
+        panel.actualizarTitulosPestanyas();
+    }
+
     private void refreshThumbnails(Path highlightPng) {
         panel.getRendersGrid().removeAll();
         panel.getImagenesGrid().removeAll();
@@ -920,9 +1168,13 @@ public class RenderController {
         java.util.Enumeration<RenderCandidate> sinRender = panel.getListModelSinImagen().elements();
         while (sinRender.hasMoreElements()) {
             RenderCandidate c = sinRender.nextElement();
-            Path png = outputDir.resolve(c.nombreBase + ".png");
-            if (Files.exists(png)) {
-                addThumbnailToGrid(png, panel.getRendersGrid(), highlightPng, c.nombreBase, c);
+            try {
+                Path png = outputDir.resolve(c.nombreBase + ".png");
+                if (Files.exists(png)) {
+                    addThumbnailToGrid(png, panel.getRendersGrid(), highlightPng, c.nombreBase, c);
+                }
+            } catch (InvalidPathException ex) {
+                logger.warn("Nombre base inválido para render 3D: '{}'", c.nombreBase);
             }
         }
 
@@ -930,23 +1182,27 @@ public class RenderController {
         java.util.Enumeration<RenderCandidate> conImg = panel.getListModelConImagen().elements();
         while (conImg.hasMoreElements()) {
             RenderCandidate c = conImg.nextElement();
-            Path png = outputDir.resolve(c.nombreBase + ".png");
-            if (Files.exists(png)) {
-                addThumbnailToGrid(png, panel.getImagenesGrid(), highlightPng, c.nombreBase, c);
-                continue;
-            }
-            Path imgDir = imagesDir.resolve(c.nombreBase);
-            if (Files.isDirectory(imgDir)) {
-                try (var walk = Files.walk(imgDir, 3)) {
-                    walk.filter(Files::isRegularFile)
-                            .filter(p -> {
-                                String n = p.getFileName().toString().toLowerCase();
-                                return n.endsWith(".png") || n.endsWith(".jpg") || n.endsWith(".jpeg")
-                                        || n.endsWith(".gif") || n.endsWith(".bmp") || n.endsWith(".webp");
-                            })
-                            .findFirst()
-                            .ifPresent(imgPath -> addThumbnailToGrid(imgPath, panel.getImagenesGrid(), highlightPng, c.nombreBase, c));
-                } catch (IOException ignored) {}
+            try {
+                Path png = outputDir.resolve(c.nombreBase + ".png");
+                if (Files.exists(png)) {
+                    addThumbnailToGrid(png, panel.getImagenesGrid(), highlightPng, c.nombreBase, c);
+                    continue;
+                }
+                Path imgDir = imagesDir.resolve(c.nombreBase);
+                if (Files.isDirectory(imgDir)) {
+                    try (var walk = Files.walk(imgDir, 3)) {
+                        walk.filter(Files::isRegularFile)
+                                .filter(p -> {
+                                    String n = p.getFileName().toString().toLowerCase();
+                                    return n.endsWith(".png") || n.endsWith(".jpg") || n.endsWith(".jpeg")
+                                            || n.endsWith(".gif") || n.endsWith(".bmp") || n.endsWith(".webp");
+                                })
+                                .findFirst()
+                                .ifPresent(imgPath -> addThumbnailToGrid(imgPath, panel.getImagenesGrid(), highlightPng, c.nombreBase, c));
+                    } catch (IOException ignored) {}
+                }
+            } catch (InvalidPathException ex) {
+                logger.warn("Nombre base inválido para imagen: '{}'", c.nombreBase);
             }
         }
 
@@ -1288,17 +1544,13 @@ public class RenderController {
             return;
         }
 
-        limpiarOutputDir();
+        limpiarOutputDeCandidatos(List.of(selected));
         panel.getRendersGrid().removeAll();
         panel.getRendersGrid().revalidate();
         panel.getRendersGrid().repaint();
         panel.getImagenesGrid().removeAll();
         panel.getImagenesGrid().revalidate();
         panel.getImagenesGrid().repaint();
-        pngSourceMap.clear();
-        triangleCache.clear();
-        currentPreviewPath = null;
-        currentTriangles = null;
         currentWorker = null;
 
         JFrame frame = getParentFrame();
@@ -1628,6 +1880,8 @@ public class RenderController {
         int brightness = panel.getBrightnessSlider().getValue();
         int contrast = panel.getContrastSlider().getValue();
         boolean antiAlias = panel.getChkAntiAlias().isSelected();
+        boolean wireframe = panel.getChkWireframe().isSelected();
+        renderer.setSuperSample(panel.getCboCalidad().getSelectedIndex() + 1);
 
         String bgMode = panel.getSelectedBgMode();
         Color solidColor = panel.getSolidBgColor();
@@ -1646,7 +1900,7 @@ public class RenderController {
         return renderer.renderizarConAjustes(currentTriangles,
                 rotX, rotY, antiAlias, brightness, contrast,
                 bgMode, solidColor, gradientStart, gradientEnd,
-                bgImage, bgImageScale);
+                bgImage, bgImageScale, wireframe);
     } // --- Fin del metodo renderizarPreview ---
 
 
@@ -1694,11 +1948,13 @@ public class RenderController {
 
 
     /**
-     * Limpia el panel de preview (visor 2D y 3D).
+     * Limpia el panel de preview (visor 2D y 3D). La cruceta del visor 3D
+     * respeta el estado actual del control, no se fuerza.
      */
     public void clearPreview() {
         panel.clearViewer2D();
         panel.getPreview3DFX().clearMesh();
+        panel.getPreview3DFX().setCrosshairVisible(panel.isCrosshair());
         currentPreviewPath = null;
         currentTriangles = null;
         logger.info("[RenderController] Preview limpiado.");
@@ -1706,17 +1962,25 @@ public class RenderController {
 
 
     /**
-     * Cambia a la pestaña "Sin renderizar" y sincroniza el grid.
+     * Cambia a la pestaña "Sin renderizar" y sincroniza el grid. Deselecciona
+     * el toggle del Scanner y el de Grid2D (exclusividad de vistas).
      */
     public void mostrarGrid3D() {
+        panel.setScannerActive(false);
+        deseleccionarToggle("button.render.scanner");
+        deseleccionarToggle("button.render.grid2d");
         panel.selectCandidateTab(0);
     } // --- Fin del metodo mostrarGrid3D ---
 
 
     /**
-     * Cambia a la pestaña "Con imagen" y sincroniza el grid.
+     * Cambia a la pestaña "Con imagen" y sincroniza el grid. Deselecciona el
+     * toggle del Scanner y el de Grid3D (exclusividad de vistas).
      */
     public void mostrarGrid2D() {
+        panel.setScannerActive(false);
+        deseleccionarToggle("button.render.scanner");
+        deseleccionarToggle("button.render.grid3d");
         panel.selectCandidateTab(1);
     } // --- Fin del metodo mostrarGrid2D ---
 
@@ -2512,18 +2776,70 @@ public class RenderController {
         Path folderInicial = selected.path.getParent();
 
         JFileChooser chooser = new JFileChooser(folderInicial.toFile());
-        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        chooser.setDialogTitle("Seleccionar carpeta de destino para el preview");
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        chooser.setDialogTitle("Guardar preview");
+
+        // Formato por defecto: PNG. El usuario puede cambiar extensión/nombre libremente.
+        List<String> formatos = formatosSoportados();
+        FileNameExtensionFilter filtroPng = null;
+        List<FileNameExtensionFilter> filtros = new ArrayList<>();
+        for (String f : formatos) {
+            FileNameExtensionFilter ff = new FileNameExtensionFilter(
+                    f.toUpperCase() + " Image (*." + f + ")", f);
+            filtros.add(ff);
+            if ("png".equals(f)) filtroPng = ff;
+        }
+        for (FileNameExtensionFilter ff : filtros) {
+            chooser.addChoosableFileFilter(ff);
+        }
+        FileNameExtensionFilter filtroInicial = (filtroPng != null) ? filtroPng
+                : (filtros.isEmpty() ? null : filtros.get(0));
+        if (filtroInicial != null) {
+            chooser.setFileFilter(filtroInicial);
+        }
+
+        // Nombre por defecto: el del archivo original sin extensión de compresión,
+        // conservando mayúsculas. Editable por el usuario.
+        String nombrePorDefecto = nombreArchivoSinCompresion(selected.path);
+        chooser.setSelectedFile(new File(folderInicial.toFile(), nombrePorDefecto + ".png"));
+
+        // Al cambiar el filtro de extensión, actualizar la extensión del nombre propuesto
+        chooser.addPropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, ev -> {
+            if (ev.getNewValue() instanceof FileNameExtensionFilter nf && nf.getExtensions().length > 0) {
+                File actual = chooser.getSelectedFile();
+                if (actual != null && actual.getParentFile() != null) {
+                    String nombre = actual.getName();
+                    int dot = nombre.lastIndexOf('.');
+                    String base = dot >= 0 ? nombre.substring(0, dot) : nombre;
+                    chooser.setSelectedFile(new File(actual.getParentFile(), base + "." + nf.getExtensions()[0]));
+                }
+            }
+        });
+
         if (chooser.showSaveDialog(parentFrame) != JFileChooser.APPROVE_OPTION) return;
 
-        Path destFolder = chooser.getSelectedFile().toPath();
-        Path destFile = destFolder.resolve(selected.nombreBase + ".png");
+        Path destFile = chooser.getSelectedFile().toPath();
+        String formato = detectarFormato(destFile, chooser.getFileFilter());
+        if (formato == null) {
+            JOptionPane.showMessageDialog(parentFrame,
+                    "Formato no soportado. Elige una extensión de las ofrecidas.",
+                    "Guardar Preview", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        destFile = asegurarExtension(destFile, formato);
+
+        if (Files.exists(destFile)) {
+            int opcion = JOptionPane.showConfirmDialog(parentFrame,
+                    "Ya existe:\n" + destFile + "\n\n¿Deseas sobrescribirlo?",
+                    "Guardar Preview", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+            if (opcion != JOptionPane.OK_OPTION) return;
+        }
 
         try {
             if (panel.isCandidateTabConImagen()) {
                 BufferedImage captura = panel.capturarVistaActual();
                 if (captura != null) {
-                    ImageIO.write(captura, "PNG", destFile.toFile());
+                    escribirPreview(captura, formato, destFile);
                     logger.info("Preview 2D descargado: {} (zoom={})",
                             destFile.getFileName(), String.format("%.2f", panel.getImageZoom()));
                 } else {
@@ -2533,7 +2849,12 @@ public class RenderController {
                                 "Guardar Preview", JOptionPane.WARNING_MESSAGE);
                         return;
                     }
-                    Files.copy(currentPreviewPath, destFile, StandardCopyOption.REPLACE_EXISTING);
+                    BufferedImage img = ImageIO.read(currentPreviewPath.toFile());
+                    if (img == null) {
+                        Files.copy(currentPreviewPath, destFile, StandardCopyOption.REPLACE_EXISTING);
+                    } else {
+                        escribirPreview(img, formato, destFile);
+                    }
                     logger.info("Imagen original copiada: {}", destFile.getFileName());
                 }
             } else {
@@ -2546,7 +2867,7 @@ public class RenderController {
 
                 BufferedImage img = renderizarPreview();
                 if (img == null) return;
-                ImageIO.write(img, "PNG", destFile.toFile());
+                escribirPreview(img, formato, destFile);
                 logger.info("Preview 3D descargado: {} ({}x{})",
                         destFile.getFileName(), img.getWidth(), img.getHeight());
             }
@@ -2562,6 +2883,205 @@ public class RenderController {
                     "Guardar Preview", JOptionPane.ERROR_MESSAGE);
         }
     } // --- Fin del metodo descargarPreview ---
+
+
+    /**
+     * Devuelve los formatos de imagen con escritor disponible en ImageIO,
+     * en orden de preferencia.
+     *
+     * @return lista de extensiones (p. ej. "png", "jpg", "bmp")
+     */
+    private List<String> formatosSoportados() {
+        Set<String> escritores = new HashSet<>();
+        for (String n : ImageIO.getWriterFormatNames()) {
+            escritores.add(n.toLowerCase());
+        }
+        String[] preferidos = { "png", "jpg", "jpeg", "bmp", "gif", "tiff", "webp" };
+        List<String> resultado = new ArrayList<>();
+        for (String p : preferidos) {
+            if (escritores.contains(p)) {
+                resultado.add(p);
+            }
+        }
+        return resultado;
+    } // --- Fin del metodo formatosSoportados ---
+
+
+    /**
+     * Deriva el formato de salida a partir de la extensión del archivo elegido,
+     * o del filtro de formato activo en el diálogo.
+     *
+     * @param destFile archivo seleccionado
+     * @param filtro   filtro activo en el JFileChooser
+     * @return extensión de formato soportada, o null si no hay coincidencia
+     */
+    private String detectarFormato(Path destFile, javax.swing.filechooser.FileFilter filtro) {
+        String nombre = destFile.getFileName().toString().toLowerCase();
+        for (String f : formatosSoportados()) {
+            if (nombre.endsWith("." + f)) {
+                return f;
+            }
+        }
+        if (filtro instanceof FileNameExtensionFilter nf && nf.getExtensions().length > 0) {
+            return nf.getExtensions()[0].toLowerCase();
+        }
+        return null;
+    } // --- Fin del metodo detectarFormato ---
+
+
+    /**
+     * Garantiza que el archivo de salida use la extensión del formato indicado:
+     * la añade si el nombre no tiene extensión y reemplaza una extensión no
+     * soportada por la del formato activo.
+     *
+     * @param destFile archivo destino
+     * @param formato  extensión de formato (p. ej. "png")
+     * @return archivo con extensión de formato garantizada
+     */
+    private Path asegurarExtension(Path destFile, String formato) {
+        String nombre = destFile.getFileName().toString();
+        int dot = nombre.lastIndexOf('.');
+        if (dot < 0) {
+            return destFile.resolveSibling(nombre + "." + formato);
+        }
+        String ext = nombre.substring(dot + 1).toLowerCase();
+        if (ext.equals(formato)) {
+            return destFile;
+        }
+        String base = nombre.substring(0, dot);
+        return destFile.resolveSibling(base + "." + formato);
+    } // --- Fin del metodo asegurarExtension ---
+
+
+    /**
+     * Obtiene el nombre del archivo original sin la extensión de compresión,
+     * conservando las mayúsculas originales (el nombre base del pipeline está
+     * normalizado a minúsculas).
+     *
+     * @param path archivo del candidato
+     * @return nombre base legible (p. ej. "ChibiSTL - Scarlet Witch Chibi - PlanetSTL")
+     */
+    private String nombreArchivoSinCompresion(Path path) {
+        String name = path.getFileName().toString();
+        String[] compresiones = { ".rar", ".zip", ".7z", ".tar", ".gz", ".bz2", ".xz", ".zst", ".lz", ".lz4",
+                ".001", ".stl", ".obj", ".3mf" };
+        while (true) {
+            String lower = name.toLowerCase();
+            String ext = null;
+            for (String e : compresiones) {
+                if (lower.endsWith(e)) {
+                    ext = e;
+                    break;
+                }
+            }
+            if (ext == null) break;
+            String sinExt = name.substring(0, name.length() - ext.length());
+            if (sinExt.isEmpty()) break;
+            name = sinExt;
+        }
+        name = name.replaceAll("(?i)\\.part\\d+$", "");
+        name = name.replaceAll("(?i)\\.r\\d+$", "");
+        name = name.replaceAll("(?i)\\.z\\d{2}$", "");
+        name = name.replaceAll("(?i)\\.7z\\.\\d{3,}$", "");
+        return name;
+    } // --- Fin del metodo nombreArchivoSinCompresion ---
+
+
+    /**
+     * Escribe una imagen en el formato y destino indicados.
+     *
+     * @param img      imagen a guardar
+     * @param formato  "png", "jpg", etc.
+     * @param destFile archivo de destino
+     * @throws IOException si falla la escritura
+     */
+    private void escribirPreview(BufferedImage img, String formato, Path destFile) throws IOException {
+        ImageIO.write(img, formato, destFile.toFile());
+    } // --- Fin del metodo escribirPreview ---
+
+
+    /**
+     * Exporta los PNG aprobados del grid a la carpeta de su ZIP original.
+     * Cada archivo aprobado se copia a {@code carpetaDelComprimido/<nombreBase>}
+     * con la extensión del PNG aprobado. Antes pide confirmación y avisa de los
+     * archivos destino que ya existen.
+     */
+    public void exportarAprobados() {
+        if (thumbnailsAprobados.isEmpty()) {
+            JOptionPane.showMessageDialog(parentFrame,
+                    "No hay renders aprobados en el grid.\n"
+                    + "Haz doble clic en un thumbnail para aprobarlo.",
+                    "Exportar aprobados", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        List<Path> aprobados = new ArrayList<>(thumbnailsAprobados);
+        List<Path> aExportar = new ArrayList<>();
+        List<String> destinos = new ArrayList<>();
+        for (Path png : aprobados) {
+            RenderCandidate c = buscarCandidatoDePng(png);
+            if (c == null) continue;
+            Path carpeta = c.path.getParent();
+            if (carpeta == null || !Files.isDirectory(carpeta)) continue;
+            String ext = png.getFileName().toString();
+            int dot = ext.lastIndexOf('.');
+            ext = dot >= 0 ? ext.substring(dot + 1) : "png";
+            Path destino = carpeta.resolve(c.nombreBase + "." + ext);
+            aExportar.add(png);
+            destinos.add(destino.toString());
+        }
+        if (aExportar.isEmpty()) {
+            JOptionPane.showMessageDialog(parentFrame,
+                    "No se pudo asociar ningún aprobado a su comprimido original.",
+                    "Exportar aprobados", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        long yaExisten = destinos.stream().filter(d -> Files.exists(Path.of(d))).count();
+        StringBuilder msg = new StringBuilder("Se exportarán " + aExportar.size()
+                + " representación(es) a la carpeta de su comprimido:");
+        if (yaExisten > 0) {
+            msg.append("\n\nAVISO: ").append(yaExisten)
+                    .append(" archivo(s) de destino ya existen y serán sobrescritos.");
+        }
+        int opcion = JOptionPane.showConfirmDialog(parentFrame, msg.toString(),
+                "Exportar aprobados", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (opcion != JOptionPane.OK_OPTION) return;
+
+        int copiados = 0;
+        for (int i = 0; i < aExportar.size(); i++) {
+            try {
+                Path origen = aExportar.get(i);
+                Path destino = Path.of(destinos.get(i));
+                Files.copy(origen, destino, StandardCopyOption.REPLACE_EXISTING);
+                copiados++;
+            } catch (IOException ex) {
+                logger.error("Error exportando aprobado a {}", destinos.get(i), ex);
+            }
+        }
+        JOptionPane.showMessageDialog(parentFrame,
+                "Copiados " + copiados + " representación(es) a sus carpetas originales.",
+                "Exportar aprobados", JOptionPane.INFORMATION_MESSAGE);
+    } // --- Fin del metodo exportarAprobados ---
+
+
+    /**
+     * Asocia un PNG aprobado con su candidato comprimido original, usando primero
+     * el mapa de fuentes y, si no está, buscando por coincidencia de nombre base.
+     *
+     * @param png ruta del PNG aprobado
+     * @return candidato asociado, o null si no se encuentra
+     */
+    private RenderCandidate buscarCandidatoDePng(Path png) {
+        SourceInfo info = pngSourceMap.get(png);
+        if (info != null) return info.candidate();
+        for (RenderCandidate c : getAllCandidates()) {
+            Path esperado = outputDir.resolve(c.nombreBase + ".png");
+            if (esperado.equals(png)) return c;
+            if (png.startsWith(imagesDir.resolve(c.nombreBase))) return c;
+        }
+        return null;
+    } // --- Fin del metodo buscarCandidatoDePng ---
 
 
     private void sincronizarFilmstripConListaContenido(ImageLayer sel) {

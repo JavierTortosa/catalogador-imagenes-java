@@ -6,27 +6,56 @@ import java.awt.Font;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+import java.awt.BorderLayout;
 
 import servicios.renderer.Zip2PngScanner.RenderCandidate;
 
 /**
- * Renderer para la lista de candidatos a renderizar.
+ * Renderer para la lista de candidatos a renderizar. Pinta un checkbox al
+ * inicio de cada fila que indica si el candidato está marcado para procesar.
  */
 public class RenderListCellRenderer extends DefaultListCellRenderer {
 
+    private static final long serialVersionUID = 1L;
+
     private final Font baseFont;
+    private final JCheckBox check = new JCheckBox();
+    private final JLabel label = new JLabel();
+    private final JPanel panel = new JPanel(new BorderLayout(6, 0));
+
+    /** Proveedor del estado de marcado de un candidato (o null para no mostrar checkbox). */
+    private java.util.function.Predicate<RenderCandidate> marcadoProvider;
 
     public RenderListCellRenderer() {
         baseFont = getFont().deriveFont(Font.PLAIN, 12f);
-        setOpaque(true);
+        check.setOpaque(false);
+        check.setFocusable(false);
+        check.setHorizontalAlignment(SwingConstants.CENTER);
+        label.setOpaque(true);
+        panel.setOpaque(false);
+        panel.add(check, BorderLayout.WEST);
+        panel.add(label, BorderLayout.CENTER);
     }
+
+    /**
+     * Fija el proveedor que determina si un candidato está marcado para procesar.
+     *
+     * @param marcadoProvider predicado consultado por cada celda, o null para
+     *                        ocultar el checkbox
+     */
+    public void setMarcadoProvider(java.util.function.Predicate<RenderCandidate> marcadoProvider) {
+        this.marcadoProvider = marcadoProvider;
+    } // --- Fin del metodo setMarcadoProvider ---
 
     @Override
     public Component getListCellRendererComponent(JList<?> list, Object value,
             int index, boolean isSelected, boolean cellHasFocus) {
-        JLabel label = (JLabel) super.getListCellRendererComponent(
+        JLabel base = (JLabel) super.getListCellRendererComponent(
                 list, value, index, isSelected, cellHasFocus);
 
         if (value instanceof RenderCandidate) {
@@ -48,16 +77,20 @@ public class RenderListCellRenderer extends DefaultListCellRenderer {
                 label.setForeground(Color.WHITE);
             }
 
-            if (isSelected) {
-                label.setBackground(new Color(60, 60, 80));
-                label.setForeground(Color.WHITE);
-            } else {
-                label.setBackground(new Color(40, 40, 45));
+            Color bg = isSelected ? new Color(60, 60, 80) : new Color(40, 40, 45);
+            label.setBackground(bg);
+            label.setForeground(isSelected ? Color.WHITE : label.getForeground());
+            label.setBorder(BorderFactory.createEmptyBorder(3, 2, 3, 6));
+
+            if (marcadoProvider != null) {
+                check.setSelected(marcadoProvider.test(c));
+                panel.setVisible(true);
+                panel.setToolTipText(base.getToolTipText());
+                return panel;
             }
-            label.setBorder(BorderFactory.createEmptyBorder(3, 6, 3, 6));
         }
 
-        return label;
+        return base;
     }
 
     private String formatearTamano(long bytes) {

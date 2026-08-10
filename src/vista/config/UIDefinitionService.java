@@ -1197,6 +1197,8 @@ public class UIDefinitionService {
                         "70004 - copiar a origen.png", "Copiar archivos", "toolbarRender")
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_DESCARGAR_ARCHIVOS,
                         "7008 - descarga.png", "Guardar Prevew en Disco", "toolbarRender")
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_EXPORTAR_APROBADOS,
+                        "90102-exportar-imagen.png", "Exportar aprobados a carpetas originales", "toolbarRender")
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_ABRIR_TEMP,
                         "70006 - abrir temp.png", "Abrir carpeta temporal", "toolbarRender")
         		
@@ -1224,17 +1226,14 @@ public class UIDefinitionService {
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_PROCESAR_ARCHIVO,
                         "70003 - procesar archivo.png", "Procesar archivo", "toolbarRenderCenter")
         		
-        		, new SeparatorDefinition()
-        		
-        		, new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE /*CMD_RENDER_PROCESAR_HUERFANOS*/,
-                        "70009-scanner.png", "Escanear Archivos Sin Representacion", "toolbarRenderCenter")
-        		
         		
 		);
         
         List<ToolbarComponentDefinition> componentesPreviewRenderView = List.of(
         		
-        		new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_3DGRID,
+        		  new ToolbarButtonDefinition(AppActionCommands.CMD_RENDER_ESCANEAR_HUERFANOS,
+        				"70009-scanner.png", "Escanear Archivos Sin Representacion", "previewrenderview", ButtonType.TOGGLE)
+        		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_3DGRID,
                         "70101-3d_grid.png", "Grid Archivos Sin Imagen", "previewrenderview", ButtonType.TOGGLE)
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_2DGRID,
                         "70102-2d_grid.png", "Grid Archivos Con Imagen", "previewrenderview", ButtonType.TOGGLE)
@@ -1245,6 +1244,9 @@ public class UIDefinitionService {
         				"70105-edition-pro.png", "Edicion Avanzada", "previewrenderview", ButtonType.TOGGLE)
         		, new ToolbarButtonDefinition(AppActionCommands.CMD_PREVIEW_RENDER_COLLAGE,
                         "70103-multimage.png", "Panel Edicion Multi-Imagen", "previewrenderview", ButtonType.TOGGLE)
+        		
+//        		, new SeparatorDefinition()
+        		
         		
         		, new SeparatorDefinition()
         		

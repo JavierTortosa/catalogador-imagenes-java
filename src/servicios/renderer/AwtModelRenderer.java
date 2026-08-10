@@ -20,12 +20,15 @@ public class AwtModelRenderer implements ModelRenderer {
     private static final int SIZE = 512;
     private static final int MARGIN = 24;
 
-    private static final float AMBIENT = 0.20f;
+    private int superSample = 2;
+
+    private static final float AMBIENT = 0.30f;
 
     private static final float[][] LIGHTS = {
         { 0.6f, -0.8f,  0.5f, 0.50f },
         {-0.4f, -0.3f,  0.8f, 0.25f },
-        { 0.0f,  0.7f, -0.7f, 0.15f }
+        { 0.0f,  0.7f, -0.7f, 0.15f },
+        { 0.0f,  0.0f,  1.0f, 0.30f }
     };
 
     private static final float COLOR_RANGE = 210f;
@@ -55,112 +58,88 @@ public class AwtModelRenderer implements ModelRenderer {
 
 
     /**
-     * Renderiza con ajustes completos: rotación, brillo, contraste, AA y fondo.
+     * Renderiza con ajustes completos: rotación, brillo, contraste, AA, fondo
+     * y wireframe opcional. Se renderiza a resolución aumentada
+     * (supersampling) y se reduce a {@link #SIZE} con interpolación bilineal
+     * para suavizar facetas y bordes.
      */
     public BufferedImage renderizarConAjustes(List<Triangle> triangles,
             double rotX, double rotY, boolean antiAlias,
             int brightness, int contrast,
             String bgMode, Color solidColor,
             Color gradientStart, Color gradientEnd,
-            BufferedImage bgImage, double bgImageScale) {
+            BufferedImage bgImage, double bgImageScale, boolean wireframe) {
         boolean transparent = "transparent".equals(bgMode);
-        BufferedImage img = new BufferedImage(SIZE, SIZE,
+        int renderSize = SIZE * superSample;
+        BufferedImage hiRes = new BufferedImage(renderSize, renderSize,
                 transparent ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
-        Graphics2D g = img.createGraphics();
+        Graphics2D g = hiRes.createGraphics();
         try {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                     antiAlias ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF);
 
             if (!transparent) {
-                paintBackground(g, bgMode, solidColor, gradientStart, gradientEnd, bgImage, bgImageScale);
+                paintBackground(g, bgMode, solidColor, gradientStart, gradientEnd, bgImage, bgImageScale, renderSize);
             }
 
             if (triangles.isEmpty()) {
                 g.setColor(Color.RED);
                 g.drawString("No triangles", 10, 20);
-                return img;
-            }
+            } else {
+                float ambientLevel = 0.20f + (brightness + 100f) / 200f * 0.60f;
+                float contrastScale = 0.30f + (contrast + 100f) / 200f * 0.70f;
 
-            float ambientLevel = 0.20f + (brightness + 100f) / 200f * 0.60f;
-            float contrastScale = 0.30f + (contrast + 100f) / 200f * 0.70f;
+                List<Triangle> transformed = transformTriangles(triangles, rotX, rotY, renderSize);
+                transformed.sort(Comparator.comparingDouble(
+                        t -> -(t.v0[2] + t.v1[2] + t.v2[2]) / 3f));
 
-            List<Triangle> transformed = transformTriangles(triangles, rotX, rotY);
-            transformed.sort(Comparator.comparingDouble(
-                    t -> -(t.v0[2] + t.v1[2] + t.v2[2]) / 3f));
-
-            for (Triangle t : transformed) {
-                float nx = t.nx, ny = t.ny, nz = t.nz;
-                float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
-                if (len > 0.001f) { nx /= len; ny /= len; nz /= len; }
-                else {
-                    float[] e1 = { t.v1[0] - t.v0[0], t.v1[1] - t.v0[1], t.v1[2] - t.v0[2] };
-                    float[] e2 = { t.v2[0] - t.v0[0], t.v2[1] - t.v0[1], t.v2[2] - t.v0[2] };
-                    nx = e1[1] * e2[2] - e1[2] * e2[1];
-                    ny = e1[2] * e2[0] - e1[0] * e2[2];
-                    nz = e1[0] * e2[1] - e1[1] * e2[0];
-                    len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
-                    if (len > 0.001f) { nx /= len; ny /= len; nz /= len; }
-                    else continue;
-                }
-
-                float intensity = ambientLevel;
-                for (float[] light : LIGHTS) {
-                    float lx = light[0], ly = light[1], lz = light[2];
-                    float llen = (float) Math.sqrt(lx * lx + ly * ly + lz * lz);
-                    if (llen > 0.001f) { lx /= llen; ly /= llen; lz /= llen; }
-                    float dot = nx * lx + ny * ly + nz * lz;
-                    if (dot > 0) intensity += dot * light[3] * contrastScale;
-                }
-                if (intensity > 1f) intensity = 1f;
-
-                int gray = Math.round(80 + COLOR_RANGE * intensity);
-                gray = Math.max(80, Math.min(255, gray));
-                g.setColor(new Color(gray, gray, gray));
-
-                int[] xp = new int[]{
-                    Math.round(t.v0[0]), Math.round(t.v1[0]), Math.round(t.v2[0])
-                };
-                int[] yp = new int[]{
-                    Math.round(t.v0[1]), Math.round(t.v1[1]), Math.round(t.v2[1])
-                };
-                g.fillPolygon(xp, yp, 3);
-            }
-
-            boolean wireframe = true;
-            if (wireframe) {
-                BasicStroke wireStroke = new BasicStroke(0.7f);
-                g.setStroke(wireStroke);
                 for (Triangle t : transformed) {
-                    float nx = t.nx, ny = t.ny, nz = t.nz;
-                    float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
-                    if (len > 0.001f) { nx /= len; ny /= len; nz /= len; }
-                    float intensity = ambientLevel;
-                    for (float[] light : LIGHTS) {
-                        float lx = light[0], ly = light[1], lz = light[2];
-                        float llen = (float) Math.sqrt(lx * lx + ly * ly + lz * lz);
-                        if (llen > 0.001f) { lx /= llen; ly /= llen; lz /= llen; }
-                        float dot = nx * lx + ny * ly + nz * lz;
-                        if (dot > 0) intensity += dot * light[3] * contrastScale;
-                    }
-                    if (intensity > 1f) intensity = 1f;
+                    float[] normal = normalizar(t);
+                    float intensity = shade(normal, ambientLevel, contrastScale);
                     int gray = Math.round(80 + COLOR_RANGE * intensity);
                     gray = Math.max(80, Math.min(255, gray));
-                    int wireGray = Math.max(60, gray - 50);
-                    g.setColor(new Color(wireGray, wireGray, wireGray));
-
-                    int[] xp = new int[]{
+                    g.setColor(new Color(gray, gray, gray));
+                    g.fillPolygon(new int[]{
                         Math.round(t.v0[0]), Math.round(t.v1[0]), Math.round(t.v2[0])
-                    };
-                    int[] yp = new int[]{
+                    }, new int[]{
                         Math.round(t.v0[1]), Math.round(t.v1[1]), Math.round(t.v2[1])
-                    };
-                    g.drawPolygon(xp, yp, 3);
+                    }, 3);
+                }
+
+                if (wireframe) {
+                    BasicStroke wireStroke = new BasicStroke(0.7f);
+                    g.setStroke(wireStroke);
+                    for (Triangle t : transformed) {
+                        float[] normal = normalizar(t);
+                        float intensity = shade(normal, ambientLevel, contrastScale);
+                        int gray = Math.round(80 + COLOR_RANGE * intensity);
+                        gray = Math.max(80, Math.min(255, gray));
+                        int wireGray = Math.max(60, gray - 50);
+                        g.setColor(new Color(wireGray, wireGray, wireGray));
+                        g.drawPolygon(new int[]{
+                            Math.round(t.v0[0]), Math.round(t.v1[0]), Math.round(t.v2[0])
+                        }, new int[]{
+                            Math.round(t.v0[1]), Math.round(t.v1[1]), Math.round(t.v2[1])
+                        }, 3);
+                    }
                 }
             }
         } finally {
             g.dispose();
         }
-        return img;
+        if (superSample > 1) {
+            BufferedImage out = new BufferedImage(SIZE, SIZE, hiRes.getType());
+            Graphics2D g2 = out.createGraphics();
+            try {
+                g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                        RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                g2.drawImage(hiRes, 0, 0, SIZE, SIZE, null);
+            } finally {
+                g2.dispose();
+            }
+            return out;
+        }
+        return hiRes;
     }
 
 
@@ -169,18 +148,18 @@ public class AwtModelRenderer implements ModelRenderer {
      */
     private void paintBackground(Graphics2D g, String bgMode,
             Color solidColor, Color gradientStart, Color gradientEnd,
-            BufferedImage bgImage, double bgImageScale) {
+            BufferedImage bgImage, double bgImageScale, int renderSize) {
         switch (bgMode) {
             case "solid":
                 g.setColor(solidColor != null ? solidColor : new Color(60, 60, 65));
-                g.fillRect(0, 0, SIZE, SIZE);
+                g.fillRect(0, 0, renderSize, renderSize);
                 break;
             case "gradient":
                 Color start = gradientStart != null ? gradientStart : new Color(45, 45, 50);
                 Color end = gradientEnd != null ? gradientEnd : new Color(75, 75, 80);
-                GradientPaint gp = new GradientPaint(0, 0, start, 0, SIZE, end);
+                GradientPaint gp = new GradientPaint(0, 0, start, 0, renderSize, end);
                 g.setPaint(gp);
-                g.fillRect(0, 0, SIZE, SIZE);
+                g.fillRect(0, 0, renderSize, renderSize);
                 break;
             case "image":
                 if (bgImage != null) {
@@ -189,12 +168,12 @@ public class AwtModelRenderer implements ModelRenderer {
                     g.drawImage(bgImage, 0, 0, w, h, null);
                 } else {
                     g.setColor(new Color(60, 60, 65));
-                    g.fillRect(0, 0, SIZE, SIZE);
+                    g.fillRect(0, 0, renderSize, renderSize);
                 }
                 break;
             default:
                 g.setColor(new Color(60, 60, 65));
-                g.fillRect(0, 0, SIZE, SIZE);
+                g.fillRect(0, 0, renderSize, renderSize);
                 break;
         }
     }
@@ -202,6 +181,14 @@ public class AwtModelRenderer implements ModelRenderer {
 
     private static int clamp(int val, int min, int max) {
         return Math.max(min, Math.min(max, val));
+    }
+
+
+    public int getSuperSample() { return superSample; }
+
+
+    public void setSuperSample(int superSample) {
+        this.superSample = Math.max(1, superSample);
     }
 
 
@@ -219,36 +206,14 @@ public class AwtModelRenderer implements ModelRenderer {
                 return img;
             }
 
-            List<Triangle> transformed = transformTriangles(triangles, rotX, rotY);
+            List<Triangle> transformed = transformTriangles(triangles, rotX, rotY, SIZE);
 
             transformed.sort(Comparator.comparingDouble(
                     t -> -(t.v0[2] + t.v1[2] + t.v2[2]) / 3f));
 
             for (Triangle t : transformed) {
-                float nx = t.nx, ny = t.ny, nz = t.nz;
-                float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
-                if (len > 0.001f) { nx /= len; ny /= len; nz /= len; }
-                else {
-                    float[] e1 = { t.v1[0] - t.v0[0], t.v1[1] - t.v0[1], t.v1[2] - t.v0[2] };
-                    float[] e2 = { t.v2[0] - t.v0[0], t.v2[1] - t.v0[1], t.v2[2] - t.v0[2] };
-                    nx = e1[1] * e2[2] - e1[2] * e2[1];
-                    ny = e1[2] * e2[0] - e1[0] * e2[2];
-                    nz = e1[0] * e2[1] - e1[1] * e2[0];
-                    len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
-                    if (len > 0.001f) { nx /= len; ny /= len; nz /= len; }
-                    else continue;
-                }
-
-                float intensity = AMBIENT;
-                for (float[] light : LIGHTS) {
-                    float lx = light[0], ly = light[1], lz = light[2];
-                    float llen = (float) Math.sqrt(lx * lx + ly * ly + lz * lz);
-                    if (llen > 0.001f) { lx /= llen; ly /= llen; lz /= llen; }
-                    float dot = nx * lx + ny * ly + nz * lz;
-                    if (dot > 0) intensity += dot * light[3];
-                }
-                if (intensity > 1f) intensity = 1f;
-
+                float[] normal = normalizar(t);
+                float intensity = shade(normal, AMBIENT, 1f);
                 int gray = Math.round(80 + COLOR_RANGE * intensity);
                 gray = Math.max(80, Math.min(255, gray));
                 g.setColor(new Color(gray, gray, gray));
@@ -266,18 +231,8 @@ public class AwtModelRenderer implements ModelRenderer {
                 BasicStroke wireStroke = new BasicStroke(0.7f);
                 g.setStroke(wireStroke);
                 for (Triangle t : transformed) {
-                    float nx = t.nx, ny = t.ny, nz = t.nz;
-                    float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
-                    if (len > 0.001f) { nx /= len; ny /= len; nz /= len; }
-                    float intensity = AMBIENT;
-                    for (float[] light : LIGHTS) {
-                        float lx = light[0], ly = light[1], lz = light[2];
-                        float llen = (float) Math.sqrt(lx * lx + ly * ly + lz * lz);
-                        if (llen > 0.001f) { lx /= llen; ly /= llen; lz /= llen; }
-                        float dot = nx * lx + ny * ly + nz * lz;
-                        if (dot > 0) intensity += dot * light[3];
-                    }
-                    if (intensity > 1f) intensity = 1f;
+                    float[] normal = normalizar(t);
+                    float intensity = shade(normal, AMBIENT, 1f);
                     int gray = Math.round(80 + COLOR_RANGE * intensity);
                     gray = Math.max(80, Math.min(255, gray));
                     int wireGray = Math.max(60, gray - 50);
@@ -298,7 +253,7 @@ public class AwtModelRenderer implements ModelRenderer {
         return img;
     }
 
-    private List<Triangle> transformTriangles(List<Triangle> triangles, double rotX, double rotY) {
+    private List<Triangle> transformTriangles(List<Triangle> triangles, double rotX, double rotY, int renderSize) {
         float minX = Float.MAX_VALUE, maxX = Float.MIN_VALUE;
         float minY = Float.MAX_VALUE, maxY = Float.MIN_VALUE;
         float minZ = Float.MAX_VALUE, maxZ = Float.MIN_VALUE;
@@ -316,7 +271,7 @@ public class AwtModelRenderer implements ModelRenderer {
         float sizeY = maxY - minY;
         float sizeZ = maxZ - minZ;
         float maxDim = Math.max(sizeX, Math.max(sizeY, sizeZ));
-        float scale = (maxDim > 0.001f) ? (SIZE - 2f * MARGIN) / maxDim : 1f;
+        float scale = (maxDim > 0.001f) ? (renderSize - 2f * MARGIN) / maxDim : 1f;
 
         double ax = Math.toRadians(rotX);
         double ay = Math.toRadians(rotY);
@@ -325,16 +280,16 @@ public class AwtModelRenderer implements ModelRenderer {
 
         List<Triangle> result = new ArrayList<>(triangles.size());
         for (Triangle t : triangles) {
-            float[] tv0 = xform(t.v0, cx, cy, cz, scale, cxA, sxA, cyA, syA);
-            float[] tv1 = xform(t.v1, cx, cy, cz, scale, cxA, sxA, cyA, syA);
-            float[] tv2 = xform(t.v2, cx, cy, cz, scale, cxA, sxA, cyA, syA);
+            float[] tv0 = xform(t.v0, cx, cy, cz, scale, cxA, sxA, cyA, syA, renderSize);
+            float[] tv1 = xform(t.v1, cx, cy, cz, scale, cxA, sxA, cyA, syA, renderSize);
+            float[] tv2 = xform(t.v2, cx, cy, cz, scale, cxA, sxA, cyA, syA, renderSize);
             result.add(new Triangle(tv0, tv1, tv2, t.nx, t.ny, t.nz));
         }
         return result;
     }
 
     private float[] xform(float[] v, float cx, float cy, float cz, float s,
-            double cxA, double sxA, double cyA, double syA) {
+            double cxA, double sxA, double cyA, double syA, int renderSize) {
         float x = (v[0] - cx) * s;
         float y = (v[1] - cy) * s;
         float z = (v[2] - cz) * s;
@@ -342,7 +297,47 @@ public class AwtModelRenderer implements ModelRenderer {
         float z1 = (float) (y * sxA + z * cxA);
         float x2 = (float) (x * cyA + z1 * syA);
         float z2 = (float) (-x * syA + z1 * cyA);
-        return new float[]{ x2 + SIZE / 2f, y1 + SIZE / 2f, z2 };
+        return new float[]{ x2 + renderSize / 2f, y1 + renderSize / 2f, z2 };
+    }
+
+
+    /**
+     * Devuelve la normal normalizada de un triángulo; si la normal almacenada
+     * es nula la recalcula a partir de sus aristas. Devuelve null si no es
+     * posible calcularla.
+     */
+    private float[] normalizar(Triangle t) {
+        float nx = t.nx, ny = t.ny, nz = t.nz;
+        float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
+        if (len > 0.001f) { nx /= len; ny /= len; nz /= len; return new float[]{nx, ny, nz}; }
+
+        float[] e1 = { t.v1[0] - t.v0[0], t.v1[1] - t.v0[1], t.v1[2] - t.v0[2] };
+        float[] e2 = { t.v2[0] - t.v0[0], t.v2[1] - t.v0[1], t.v2[2] - t.v0[2] };
+        nx = e1[1] * e2[2] - e1[2] * e2[1];
+        ny = e1[2] * e2[0] - e1[0] * e2[2];
+        nz = e1[0] * e2[1] - e1[1] * e2[0];
+        len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
+        if (len <= 0.001f) return null;
+        nx /= len; ny /= len; nz /= len;
+        return new float[]{nx, ny, nz};
+    }
+
+
+    /**
+     * Calcula la intensidad de iluminación de una normal aplicando la luz
+     * ambiental y las luces direccionales de {@link #LIGHTS}.
+     */
+    private float shade(float[] n, float ambientLevel, float contrastScale) {
+        if (n == null) return ambientLevel;
+        float intensity = ambientLevel;
+        for (float[] light : LIGHTS) {
+            float lx = light[0], ly = light[1], lz = light[2];
+            float llen = (float) Math.sqrt(lx * lx + ly * ly + lz * lz);
+            if (llen > 0.001f) { lx /= llen; ly /= llen; lz /= llen; }
+            float dot = n[0] * lx + n[1] * ly + n[2] * lz;
+            if (dot > 0) intensity += dot * light[3] * contrastScale;
+        }
+        return Math.min(1f, intensity);
     }
 
 } // --- Fin de la clase AwtModelRenderer ---

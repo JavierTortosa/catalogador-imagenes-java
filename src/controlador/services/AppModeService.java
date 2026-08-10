@@ -549,6 +549,9 @@ public class AppModeService {
                 actualizarUiModo(modoAlQueSeEntra, actionMap);
                 if (toolbarManager != null)
                     toolbarManager.reconstruirContenedorDeToolbars(modoAlQueSeEntra);
+                if (modoAlQueSeEntra == WorkMode.RENDER && renderController != null) {
+                    renderController.mostrarScannerPorDefecto();
+                }
                 if (modoAlQueSeEntra == WorkMode.CARROUSEL
                         && visorController.getActionFactory().getCarouselManager() != null) {
                     visorController.getActionFactory().getCarouselManager().onCarouselModeChanged(true);

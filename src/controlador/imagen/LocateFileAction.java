@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -25,14 +26,24 @@ public class LocateFileAction extends AbstractAction implements ContextSensitive
 
     private final VisorModel modelRef;
     private final VisorController controllerRef; // <-- CAMBIO
+    private final Supplier<Path> contextPathSupplier;
 
     public LocateFileAction(VisorModel model, 
                             VisorController controller, // <-- CAMBIO
                             String name, 
                             ImageIcon icon) {
+        this(model, controller, name, icon, null);
+    }
+
+    public LocateFileAction(VisorModel model, 
+                            VisorController controller, // <-- CAMBIO
+                            String name, 
+                            ImageIcon icon,
+                            Supplier<Path> contextPathSupplier) {
         super(name, icon);
         this.modelRef = Objects.requireNonNull(model);
         this.controllerRef = Objects.requireNonNull(controller); // <-- CAMBIO
+        this.contextPathSupplier = contextPathSupplier;
 
         putValue(Action.SHORT_DESCRIPTION, "Abre la carpeta que contiene la imagen actual en el explorador de archivos");
         putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_LOCALIZAR);
@@ -50,18 +61,16 @@ public class LocateFileAction extends AbstractAction implements ContextSensitive
         
         JFrame mainFrame = controllerRef.getView(); // Obtenemos el frame una sola vez
 
-        String selectedKey = modelRef.getSelectedImageKey();
-        if (selectedKey == null || selectedKey.isEmpty()) {
+        Path filePath = null;
+        if (contextPathSupplier != null) {
+            filePath = contextPathSupplier.get();
+        }
+        if (filePath == null) {
+            filePath = obtenerRutaContextoVisualizador();
+        }
+        if (filePath == null) {
+            JOptionPane.showMessageDialog(mainFrame, "No se pudo encontrar la ruta del archivo seleccionado.", "Error al Localizar", JOptionPane.ERROR_MESSAGE);
             return;
-        }
-
-        Path filePath = modelRef.getRutaCompleta(selectedKey);
-        if (filePath == null || !Files.exists(filePath)) {
-            filePath = Path.of(selectedKey);
-        }
-        if (filePath == null || !Files.exists(filePath)) {
-             JOptionPane.showMessageDialog(mainFrame, "No se pudo encontrar la ruta del archivo seleccionado.", "Error al Localizar", JOptionPane.ERROR_MESSAGE);
-             return;
         }
 
         String osName = System.getProperty("os.name").toLowerCase();
@@ -86,6 +95,24 @@ public class LocateFileAction extends AbstractAction implements ContextSensitive
             JOptionPane.showMessageDialog(mainFrame, "Ocurrió un error inesperado:\n" + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+
+    /**
+     * Resuelve la ruta a localizar a partir del contexto del visualizador
+     * (imagen seleccionada actualmente en el modelo).
+     *
+     * @return ruta existente del archivo, o null si no se puede determinar
+     */
+    private Path obtenerRutaContextoVisualizador() {
+        String selectedKey = modelRef.getSelectedImageKey();
+        if (selectedKey == null || selectedKey.isEmpty()) {
+            return null;
+        }
+        Path filePath = modelRef.getRutaCompleta(selectedKey);
+        if (filePath == null || !Files.exists(filePath)) {
+            filePath = Path.of(selectedKey);
+        }
+        return (filePath != null && Files.exists(filePath)) ? filePath : null;
+    } // --- Fin del metodo obtenerRutaContextoVisualizador ---
 
     @Override
     public void updateEnabledState(VisorModel currentModel) {

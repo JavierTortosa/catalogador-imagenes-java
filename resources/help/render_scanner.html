@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Scanner de Huérfanos</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <h1><img src="ICON_PLACEHOLDER_70009-scanner.png" class="header-icon">Scanner de Huérfanos</h1>
+
+    <p>
+        El <strong>Scanner de Huérfanos</strong> es una vista del <strong>Modo Render</strong>
+        que localiza archivos 3D o comprimidos (STL, OBJ, 3MF, ZIP, RAR, 7z) sin representación
+        gráfica, para saber <em>dónde hay deuda de renders</em>. Se activa con el primer botón
+        de la barra central de vista preview (<em>previewrenderview</em>).
+    </p>
+    <p>
+        Un <strong>huérfano</strong> es un archivo 3D o comprimido para el que no existe una
+        imagen con el mismo nombre base en su misma carpeta (representación externa) ni tampoco
+        una imagen en el interior del comprimido (representación interna).
+    </p>
+    <p>
+        El escaneo es <strong>disco contra disco</strong>: no consulta la base de datos ni afecta
+        al <strong>Visualizador</strong>. El coste es siempre explícito y bajo demanda.
+    </p>
+
+    <h2>Flujo de Trabajo</h2>
+    <ol>
+        <li><strong>Carpeta inicial:</strong> Por defecto es la carpeta raíz del visor, pero se
+            puede cambiar con el botón <strong>…</strong> (selector de carpetas).</li>
+        <li><strong>Incluir subcarpetas:</strong> Activa el recorrido recursivo completo; sin
+            marcar, solo se escanea el nivel inmediato de la carpeta. La preferencia se recuerda
+            entre sesiones.</li>
+        <li><strong>Escanear:</strong> Se muestra un diálogo de progreso con la barra de trabajo y
+            el contador en vivo de <em>carpetas</em> y <em>candidatos</em> encontrados. Puede
+            cancelarse en cualquier momento.</li>
+        <li><strong>Revisar:</strong> La tabla muestra las carpetas con trabajo pendiente y se
+            puede ordenar pulsando cualquier cabecera de columna.</li>
+        <li><strong>Procesar selección:</strong> Envía los candidatos de las carpetas marcadas a
+            las pestañas <em>Sin renderizar</em> / <em>Con imagen</em> del Modo Render, sin volver
+            a escanear el disco.</li>
+    </ol>
+
+    <h2>La Tabla de Carpetas</h2>
+    <p>
+        Cada fila es una carpeta con al menos un archivo pendiente. La tabla <strong>no es un
+        inventario</strong> de las carpetas escaneadas: es la <strong>lista de trabajo</strong>
+        con deuda de renders.
+    </p>
+    <table class="help-table">
+        <tr><th>Columna</th><th>Descripción</th></tr>
+        <tr><td><strong>✓</strong></td><td>Casilla de selección. Decide qué carpetas se envían al render al pulsar "Procesar selección".</td></tr>
+        <tr><td><strong>Carpeta</strong></td><td>Últimas 1-2 subcarpetas de la ruta (para lectura rápida). La ruta completa aparece en la columna <em>Path</em> y como tooltip.</td></tr>
+        <tr><td><strong>Path</strong></td><td>Ruta completa de la carpeta, siempre visible.</td></tr>
+        <tr><td><strong>Pendientes</strong></td><td>Archivos sin representación externa ni interna: los que irán al pipeline de render.</td></tr>
+        <tr><td><strong>Con preview</strong></td><td>Comprimidos que sí contienen una imagen en su interior (no necesitan render).</td></tr>
+        <tr><td><strong>% Huérfanos</strong></td><td>Porcentaje de pendientes sobre los <strong>candidatos del escaneo</strong> (<code>pendientes / (pendientes + con preview)</code>), no sobre todos los archivos de la carpeta.</td></tr>
+        <tr><td><strong>Tamaño</strong></td><td>Tamaño total de los archivos pendientes de esa carpeta.</td></tr>
+    </table>
+    <p>
+        Los números de la tabla son el <strong>resultado congelado del escaneo</strong>; el orden
+        de las filas solo cambia la presentación. "Procesar selección" trabaja siempre sobre los
+        candidatos guardados en memoria, nunca vuelve al disco.
+    </p>
+
+    <h2>Ordenar la Tabla</h2>
+    <p>
+        Pulsa el título de cualquier columna para ordenar por ella (clic repetido alterna entre
+        ascendente y descendente). Al entrar, la tabla se ordena por <strong>% Huérfanos</strong>
+        descendente para mostrar primero las carpetas con mayor deuda de renders.
+    </p>
+
+    <h2>Consejos</h2>
+    <ul>
+        <li>Usa <strong>% Huérfanos</strong> y el orden de columnas para priorizar carpetas con
+            mucho trabajo pendiente y descartar las que ya tienen preview interna.</li>
+        <li>Una carpeta con muchos pendientes (p. ej. Multiboard) puede ignorarse por completo:
+            basta con no marcarla y seleccionar solo las carpetas que se quieren procesar.</li>
+        <li>El procesado posterior (render de los seleccionados) se hace con los botones
+            <strong>Procesar seleccionados</strong> y <strong>Procesar archivo</strong>, explicados
+            en el apartado <strong>Herramientas</strong> del árbol de ayuda.</li>
+    </ul>
+
+    <hr>
+    <p>
+        Para más detalles sobre el resto de la interfaz del modo, consulta el apartado
+        <strong>Herramientas</strong> del árbol de ayuda.
+    </p>
+
+</body>
+</html>

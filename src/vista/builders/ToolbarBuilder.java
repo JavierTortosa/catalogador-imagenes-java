@@ -353,6 +353,15 @@ public class ToolbarBuilder {
             if (AppActionCommands.CMD_CLIENTE_EDITAR.equals(cmd)) {
                 this.registry.register("button.cliente.editar", abstractButtonComponent);
             }
+            if (AppActionCommands.CMD_RENDER_ESCANEAR_HUERFANOS.equals(cmd)) {
+                this.registry.register("button.render.scanner", abstractButtonComponent);
+            }
+            if (AppActionCommands.CMD_PREVIEW_RENDER_3DGRID.equals(cmd)) {
+                this.registry.register("button.render.grid3d", abstractButtonComponent);
+            }
+            if (AppActionCommands.CMD_PREVIEW_RENDER_2DGRID.equals(cmd)) {
+                this.registry.register("button.render.grid2d", abstractButtonComponent);
+            }
 
             // Resaltar botón de cerrar cliente como peligroso
             if (AppActionCommands.CMD_CLIENTE_CERRAR_SINCRONIZAR.equals(cmd)) {

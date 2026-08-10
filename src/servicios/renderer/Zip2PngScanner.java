@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -56,6 +57,18 @@ public class Zip2PngScanner {
         public boolean tieneImagenesDentro() {
             return esComprimido && !imagenesInternas.isEmpty();
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof RenderCandidate other)) return false;
+            return path.equals(other.path);
+        }
+
+        @Override
+        public int hashCode() {
+            return path.hashCode();
+        }
     }
 
     private final long limiteBytes;
@@ -69,21 +82,41 @@ public class Zip2PngScanner {
     }
 
     /**
-     * Escanea una carpeta y notifica cada candidato encontrado via callback.
-     * No bloquea: el callback se invoca desde el hilo de escaneo.
+     * Escanea una carpeta buscando candidatos sin representación externa.
+     * <p>
+     * El parámetro {@code includeSubfolders} controla la profundidad:
+     * <ul>
+     *   <li>{@code false} → {@code Files.walk(folderPath, 1)} (solo nivel inmediato).</li>
+     *   <li>{@code true} → {@code Files.walk(folderPath, Integer.MAX_VALUE)} (recursivo).</li>
+     * </ul>
+     * <p>
+     * {@code folderCallback} solo notifica los directorios visitados (útil para
+     * progreso); NUNCA interviene en la agrupación de candidatos, que siempre se
+     * deriva de {@code RenderCandidate.path.getParent()}.
      *
-     * @param folderPath carpeta a escanear
-     * @param callback   recibe cada candidato encontrado (puede ser null)
+     * @param folderPath        carpeta a escanear
+     * @param includeSubfolders true para recorrido recursivo completo
+     * @param candidateCallback recibe cada candidato encontrado (puede ser null)
+     * @param folderCallback    recibe cada directorio visitado (puede ser null)
      * @return lista completa de candidatos
      */
-    public List<RenderCandidate> scanFolder(Path folderPath, Consumer<RenderCandidate> callback) {
+    public List<RenderCandidate> scanFolder(Path folderPath, boolean includeSubfolders,
+            Consumer<RenderCandidate> candidateCallback, Consumer<Path> folderCallback) {
         if (!Files.isDirectory(folderPath)) {
             return Collections.emptyList();
         }
 
-        List<Path> allFiles;
-        try (Stream<Path> walk = Files.walk(folderPath, 2)) {
-            allFiles = walk.filter(Files::isRegularFile).toList();
+        int depth = includeSubfolders ? Integer.MAX_VALUE : 1;
+        List<Path> allFiles = new ArrayList<>();
+        try (Stream<Path> walk = Files.walk(folderPath, depth)) {
+            for (Iterator<Path> it = walk.iterator(); it.hasNext();) {
+                Path p = it.next();
+                if (Files.isDirectory(p)) {
+                    if (folderCallback != null) folderCallback.accept(p);
+                } else if (Files.isRegularFile(p)) {
+                    allFiles.add(p);
+                }
+            }
         } catch (IOException e) {
             return Collections.emptyList();
         }
@@ -91,10 +124,12 @@ public class Zip2PngScanner {
         List<RenderCandidate> candidates = new ArrayList<>();
         Set<String> imagenesEncontradas = new HashSet<>();
 
+        // Clave compuesta "carpetaRelativa/nombreBase" (normalizada a /). Así
+        // A/modelo.zip no desaparece por existir B/modelo.png.
         for (Path file : allFiles) {
             String name = file.getFileName().toString().toLowerCase();
             if (esExtensionImagen(name)) {
-                imagenesEncontradas.add(nombreBase(name));
+                imagenesEncontradas.add(claveRepresentacion(folderPath, file));
             }
         }
 
@@ -104,8 +139,7 @@ public class Zip2PngScanner {
         for (Path file : allFiles) {
             String name = file.getFileName().toString().toLowerCase();
             if (esExtensionArchivo(name)) {
-                String groupKey = claveGrupo(name);
-                archives.computeIfAbsent(groupKey, k -> new ArrayList<>()).add(file);
+                archives.computeIfAbsent(claveGrupo(file), k -> new ArrayList<>()).add(file);
             } else if (esExtension3D(name)) {
                 standalone3D.add(file);
             }
@@ -113,34 +147,58 @@ public class Zip2PngScanner {
 
         for (List<Path> group : archives.values()) {
             Path first = group.get(0);
-            String name = first.getFileName().toString().toLowerCase();
-            String base = nombreBase(name);
-            if (imagenesEncontradas.contains(base)) continue;
+            if (imagenesEncontradas.contains(claveRepresentacion(folderPath, first))) continue;
 
             long totalSize = group.stream().mapToLong(p -> p.toFile().length()).sum();
             boolean excede = totalSize > limiteBytes;
-            RenderCandidate c = new RenderCandidate(first, base, totalSize, true, excede, group);
+            RenderCandidate c = new RenderCandidate(first, nombreBase(first.getFileName().toString().toLowerCase()),
+                    totalSize, true, excede, group);
             candidates.add(c);
-            if (callback != null) callback.accept(c);
+            if (candidateCallback != null) candidateCallback.accept(c);
         }
 
         for (Path file : standalone3D) {
-            String name = file.getFileName().toString().toLowerCase();
-            String base = nombreBase(name);
-            if (imagenesEncontradas.contains(base)) continue;
+            if (imagenesEncontradas.contains(claveRepresentacion(folderPath, file))) continue;
 
             long size = file.toFile().length();
             boolean excede = size > limiteBytes;
-            RenderCandidate c = new RenderCandidate(file, base, size, false, excede, List.of(file));
+            RenderCandidate c = new RenderCandidate(file, nombreBase(file.getFileName().toString().toLowerCase()),
+                    size, false, excede, List.of(file));
             candidates.add(c);
-            if (callback != null) callback.accept(c);
+            if (candidateCallback != null) candidateCallback.accept(c);
         }
 
         return candidates;
     }
 
+    /**
+     * Escanea recursivamente (incluye subcarpetas) notificando candidatos.
+     *
+     * @param folderPath carpeta a escanear
+     * @param callback   recibe cada candidato encontrado (puede ser null)
+     * @return lista completa de candidatos
+     */
+    public List<RenderCandidate> scanFolder(Path folderPath, Consumer<RenderCandidate> callback) {
+        return scanFolder(folderPath, true, callback, null);
+    }
+
     public List<RenderCandidate> scanFolder(Path folderPath) {
-        return scanFolder(folderPath, null);
+        return scanFolder(folderPath, true, null, null);
+    }
+
+    /**
+     * Clave de representación: "carpetaRelativa/nombreBase" normalizada a '/'.
+     * Se calcula IGUAL para imágenes y para archivos 3D/comprimidos, de modo que
+     * el matching sea correcto incluso con varias subcarpetas en el mismo escaneo.
+     */
+    private String claveRepresentacion(Path root, Path file) {
+        String base = nombreBase(file.getFileName().toString().toLowerCase());
+        Path parent = file.getParent();
+        if (parent == null || parent.equals(root)) {
+            return "/" + base;
+        }
+        String rel = root.relativize(parent).toString().replace('\\', '/');
+        return "/" + rel + "/" + base;
     }
 
     /**
@@ -168,16 +226,25 @@ public class Zip2PngScanner {
         return EXT_IMAGEN.stream().anyMatch(name::endsWith);
     }
 
-    private String claveGrupo(String name) {
-        String lower = name.toLowerCase();
-        if (lower.matches(".+\\.part\\d+\\.(rar|7z)$")
-                || lower.matches(".+\\.7z\\.\\d{3,}")
-                || lower.matches(".+\\.r\\d+")
-                || lower.matches(".+\\.z\\d{2}")) {
+    /**
+     * Clave de grupo multivolumen. Incorpora la carpeta del archivo para evitar
+     * que volúmenes homónimos de carpetas distintas se fusionen en un solo grupo.
+     */
+    private String claveGrupo(Path file) {
+        String name = file.getFileName().toString().toLowerCase();
+        String base;
+        if (name.matches(".+\\.part\\d+\\.(rar|7z)$")
+                || name.matches(".+\\.7z\\.\\d{3,}")
+                || name.matches(".+\\.r\\d+")
+                || name.matches(".+\\.z\\d{2}")) {
             int dot = name.indexOf('.');
-            return (dot == -1) ? name : name.substring(0, dot);
+            base = (dot == -1) ? name : name.substring(0, dot);
+        } else {
+            base = nombreBase(name);
         }
-        return nombreBase(name);
+        Path parent = file.getParent();
+        String carpeta = (parent == null) ? "" : parent.toString().replace('\\', '/');
+        return carpeta + "/" + base;
     }
 
     private String nombreBase(String name) {
@@ -215,6 +282,16 @@ public class Zip2PngScanner {
                 s = s.substring(0, s.length() - imgExt.length());
                 break;
             }
+        }
+        // Windows no permite que una ruta termine en espacio ni en punto
+        // (ej: "modelo .zip" → base "modelo "). Se recorta para poder usar la
+        // base como nombre de archivo de salida (".png") sin InvalidPathException.
+        s = s.trim();
+        while (s.endsWith(".")) {
+            s = s.substring(0, s.length() - 1);
+        }
+        if (s.isEmpty()) {
+            s = "archivo";
         }
         return s;
     }

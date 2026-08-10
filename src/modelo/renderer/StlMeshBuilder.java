@@ -1,11 +1,16 @@
 package modelo.renderer;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javafx.scene.shape.TriangleMesh;
 
 /**
  * Convierte una lista de Triangle del parser STL en un TriangleMesh de JavaFX.
+ * Los vértices coincidentes se sueldan y las normales se promedian por vértice
+ * para obtener un sombreado suave (Gouraud) en lugar del aspecto facetado.
  */
 public class StlMeshBuilder {
 
@@ -16,39 +21,123 @@ public class StlMeshBuilder {
         TriangleMesh mesh = new TriangleMesh();
 
         int n = triangles.size();
-        float[] points = new float[n * 9];
-        float[] texCoords = new float[]{0, 0};
         int[] faces = new int[n * 6];
 
+        Map<VertexKey, Integer> vertexIndex = new HashMap<>();
+        List<float[]> vertexData = new ArrayList<>();
+        int[] normAccum = new int[n * 9];
+
+        int fi = 0;
         for (int i = 0; i < n; i++) {
             Triangle t = triangles.get(i);
-            int vi = i * 9;
-            points[vi]      = t.v0[0];
-            points[vi + 1]  = t.v0[1];
-            points[vi + 2]  = t.v0[2];
-            points[vi + 3]  = t.v1[0];
-            points[vi + 4]  = t.v1[1];
-            points[vi + 5]  = t.v1[2];
-            points[vi + 6]  = t.v2[0];
-            points[vi + 7]  = t.v2[1];
-            points[vi + 8]  = t.v2[2];
+            float[] faceNormal = computeFaceNormal(t);
+            int[] vi = new int[3];
+            float[][] verts = new float[][]{t.v0, t.v1, t.v2};
+            for (int k = 0; k < 3; k++) {
+                VertexKey key = new VertexKey(verts[k]);
+                Integer idx = vertexIndex.get(key);
+                int viK;
+                if (idx == null) {
+                    viK = vertexIndex.size();
+                    vertexIndex.put(key, viK);
+                    vertexData.add(verts[k]);
+                } else {
+                    viK = idx;
+                }
+                vi[k] = viK;
+            }
 
-            int fi = i * 6;
-            int base = i * 3;
-            faces[fi]     = base;
-            faces[fi + 1] = 0;
-            faces[fi + 2] = base + 1;
-            faces[fi + 3] = 0;
-            faces[fi + 4] = base + 2;
-            faces[fi + 5] = 0;
+            for (int k = 0; k < 3; k++) {
+                faces[fi++] = vi[k];
+                faces[fi++] = 0;
+            }
+
+            for (int k = 0; k < 3; k++) {
+                int vk = vi[k] * 3;
+                normAccum[vk]     += faceNormal[0];
+                normAccum[vk + 1] += faceNormal[1];
+                normAccum[vk + 2] += faceNormal[2];
+            }
         }
 
-        mesh.getPoints().setAll(points);
-        mesh.getTexCoords().setAll(texCoords);
+        int vertexCount = vertexIndex.size();
+        float[] normOut = new float[vertexCount * 3];
+        for (int i = 0; i < vertexCount; i++) {
+            int base = i * 3;
+            float nx = normAccum[base], ny = normAccum[base + 1], nz = normAccum[base + 2];
+            float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
+            if (len > 0.001f) {
+                normOut[base] = nx / len;
+                normOut[base + 1] = ny / len;
+                normOut[base + 2] = nz / len;
+            } else {
+                normOut[base] = 0;
+                normOut[base + 1] = 0;
+                normOut[base + 2] = 1;
+            }
+        }
+
+        float[] pointsOut = new float[vertexCount * 3];
+        for (int i = 0; i < vertexCount; i++) {
+            float[] v = vertexData.get(i);
+            pointsOut[i * 3] = v[0];
+            pointsOut[i * 3 + 1] = v[1];
+            pointsOut[i * 3 + 2] = v[2];
+        }
+
+        mesh.getPoints().setAll(pointsOut);
+        mesh.getNormals().setAll(normOut);
+        mesh.getTexCoords().setAll(new float[]{0, 0});
         mesh.getFaces().setAll(faces);
 
         return mesh;
     } // --- Fin del metodo build ---
+
+
+    /**
+     * Clave de vértice para soldar posiciones coincidentes con redondeo.
+     */
+    private static final class VertexKey {
+        private final long x;
+        private final long y;
+        private final long z;
+
+        VertexKey(float[] v) {
+            x = Math.round(v[0] * 1e4f);
+            y = Math.round(v[1] * 1e4f);
+            z = Math.round(v[2] * 1e4f);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof VertexKey)) return false;
+            VertexKey k = (VertexKey) o;
+            return x == k.x && y == k.y && z == k.z;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = (int) (x ^ (x >>> 32));
+            result = 31 * result + (int) (y ^ (y >>> 32));
+            result = 31 * result + (int) (z ^ (z >>> 32));
+            return result;
+        }
+    }
+
+
+    /**
+     * Calcula la normal de la cara de un triángulo a partir de sus aristas.
+     */
+    private static float[] computeFaceNormal(Triangle t) {
+        float[] e1 = { t.v1[0] - t.v0[0], t.v1[1] - t.v0[1], t.v1[2] - t.v0[2] };
+        float[] e2 = { t.v2[0] - t.v0[0], t.v2[1] - t.v0[1], t.v2[2] - t.v0[2] };
+        float nx = e1[1] * e2[2] - e1[2] * e2[1];
+        float ny = e1[2] * e2[0] - e1[0] * e2[2];
+        float nz = e1[0] * e2[1] - e1[1] * e2[0];
+        float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
+        if (len > 0.001f) { nx /= len; ny /= len; nz /= len; }
+        return new float[]{nx, ny, nz};
+    } // --- Fin del metodo computeFaceNormal ---
 
 
     /**

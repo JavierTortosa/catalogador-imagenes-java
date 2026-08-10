@@ -18,6 +18,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -25,6 +26,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -56,6 +58,7 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
     private final DefaultListModel<RenderCandidate> listModelConImagen;
     private final JList<RenderCandidate> candidateListConImagen;
     private final JTabbedPane candidateTabs;
+    private final java.util.Set<RenderCandidate> marcadosParaProcesar = new java.util.HashSet<>();
     private final DefaultListModel<StlEntry> contentListModel;
     private final JList<StlEntry> contentList;
     private final DefaultListModel<ImageEntry> contentImageListModel;
@@ -69,9 +72,12 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
     private final JPanel imagenesGrid;
     private final JPanel rendersGrid;
     private final AdvanceEditPanel advanceEditPanel;
+    private final ScannerPanel scannerPanel;
+    private boolean scannerActive;
     private static final String CARD_GRID_IMG = "img";
     private static final String CARD_GRID_RENDER = "render";
     private static final String CARD_GRID_ADVANCE_EDIT = "advance_edit";
+    private static final String CARD_GRID_SCANNER = "scanner";
 
     // --- Visor (panel derecho) ---
     private final PreviewPanel3DFX preview3DFX;
@@ -105,6 +111,9 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
     private final JTextField contrastField;
     private final JCheckBox chkAntiAlias;
     private final JCheckBox chkCrosshair;
+    private final JCheckBox chkWireframe;
+    private final JCheckBox chkFillLight2;
+    private final JComboBox<String> cboCalidad;
 
     // --- Controles de fondo ---
     private final ButtonGroup bgGroup;
@@ -179,6 +188,7 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
             rendersGrid.setBackground(tema.colorFondoSecundario());
             rightPanel.setBackground(tema.colorFondoSecundario());
             viewerCardPanel.setBackground(tema.colorFondoSecundario());
+            scannerPanel.setBackground(tema.colorFondoSecundario());
             tabbedPane.setBackground(tema.colorFondoPrincipal());
             tabbedPane.setForeground(tema.colorTextoPrimario());
             imageDisplayPanel.setBackground(tema.colorFondoSecundario());
@@ -255,15 +265,20 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
         setBackground(themeColor("Panel.background", 35, 35, 40));
 
         // ---------- PANEL IZQUIERDO: listas de candidatos ----------
+        RenderListCellRenderer rendererSin = new RenderListCellRenderer();
+        rendererSin.setMarcadoProvider(this::isMarcadoParaProcesar);
+        RenderListCellRenderer rendererCon = new RenderListCellRenderer();
+        rendererCon.setMarcadoProvider(this::isMarcadoParaProcesar);
+
         listModelSinImagen = new DefaultListModel<>();
         candidateListSinImagen = new JList<>(listModelSinImagen);
-        candidateListSinImagen.setCellRenderer(new RenderListCellRenderer());
+        candidateListSinImagen.setCellRenderer(rendererSin);
         candidateListSinImagen.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         JScrollPane listScrollSin = new JScrollPane(candidateListSinImagen);
 
         listModelConImagen = new DefaultListModel<>();
         candidateListConImagen = new JList<>(listModelConImagen);
-        candidateListConImagen.setCellRenderer(new RenderListCellRenderer());
+        candidateListConImagen.setCellRenderer(rendererCon);
         candidateListConImagen.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         JScrollPane listScrollCon = new JScrollPane(candidateListConImagen);
 
@@ -315,6 +330,9 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
 
         advanceEditPanel = new AdvanceEditPanel();
         gridCardPanel.add(advanceEditPanel, CARD_GRID_ADVANCE_EDIT);
+
+        scannerPanel = new ScannerPanel();
+        gridCardPanel.add(scannerPanel, CARD_GRID_SCANNER);
 
         // ---------- PANEL DERECHO: visor dual + controles ----------
         rightPanel = new JPanel(new BorderLayout(4, 4));
@@ -538,13 +556,36 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
         chkCrosshair.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         chkCrosshair.setForeground(themeColorLabel());
         chkCrosshair.setSelected(true);
+        chkWireframe = new JCheckBox("Contorno (wireframe)");
+        chkWireframe.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        chkWireframe.setForeground(themeColorLabel());
+        chkFillLight2 = new JCheckBox("Luz de relleno");
+        chkFillLight2.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        chkFillLight2.setForeground(themeColorLabel());
+        chkFillLight2.setToolTipText("Luz tenue inferior-izquierda para aclarar la zona de sombra");
         JPanel checkPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
         checkPanel.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         checkPanel.add(chkAntiAlias);
+        checkPanel.add(chkFillLight2);
         checkPanel.add(chkCrosshair);
+        checkPanel.add(chkWireframe);
+
+        JLabel calidadLabel = new JLabel("Calidad de render:");
+        calidadLabel.setForeground(themeColorLabel());
+        cboCalidad = new JComboBox<>(new String[]{"R\u00E1pida", "Normal", "Alta"});
+        cboCalidad.setSelectedIndex(1);
+        JPanel calidadPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
+        calidadPanel.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        calidadPanel.add(calidadLabel);
+        calidadPanel.add(cboCalidad);
+
         JPanel imagenBottom = new JPanel(new BorderLayout());
         imagenBottom.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
-        imagenBottom.add(checkPanel, BorderLayout.NORTH);
+        JPanel checksWrap = new JPanel(new BorderLayout());
+        checksWrap.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        checksWrap.add(checkPanel, BorderLayout.NORTH);
+        checksWrap.add(calidadPanel, BorderLayout.SOUTH);
+        imagenBottom.add(checksWrap, BorderLayout.NORTH);
         imagenTab.add(imagenBottom);
 
         tabbedPane.addTab("Imagen", imagenTab);
@@ -748,8 +789,10 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
 
         rightPanel.add(tabbedPane, BorderLayout.SOUTH);
 
-        // Sincronizar grid con la pestaña inicial ("Sin renderizar")
-        showGridCard(CARD_GRID_RENDER);
+        // Sincronizar grid con la pestaña inicial: por defecto se muestra el
+        // Scanner de Huérfanos (espacio de trabajo) hasta que haya candidatos.
+        scannerActive = true;
+        showGridCard(CARD_GRID_SCANNER);
 
         // ---------- ENSAMBLAR PANEL PRINCIPAL ----------
         Color wrapBg = themeColor("TabbedPane.contentAreaColor", 48, 48, 53);
@@ -850,6 +893,47 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
     public JList<RenderCandidate> getCandidateListSinImagen() { return candidateListSinImagen; }
     public DefaultListModel<RenderCandidate> getListModelConImagen() { return listModelConImagen; }
     public JList<RenderCandidate> getCandidateListConImagen() { return candidateListConImagen; }
+
+    /**
+     * Comprueba si un candidato está marcado para procesar.
+     *
+     * @param candidate candidato a consultar
+     * @return true si está marcado
+     */
+    public boolean isMarcadoParaProcesar(RenderCandidate candidate) {
+        return marcadosParaProcesar.contains(candidate);
+    } // --- Fin del metodo isMarcadoParaProcesar ---
+
+
+    /**
+     * Alterna el marcado de un candidato para procesar.
+     *
+     * @param candidate candidato cuyo marcado se alterna
+     */
+    public void toggleMarcadoParaProcesar(RenderCandidate candidate) {
+        if (candidate == null) return;
+        if (!marcadosParaProcesar.remove(candidate)) {
+            marcadosParaProcesar.add(candidate);
+        }
+    } // --- Fin del metodo toggleMarcadoParaProcesar ---
+
+
+    /**
+     * Candidatos actualmente marcados para procesar.
+     *
+     * @return copia del conjunto de candidatos marcados
+     */
+    public List<RenderCandidate> getMarcadosParaProcesar() {
+        return new java.util.ArrayList<>(marcadosParaProcesar);
+    } // --- Fin del metodo getMarcadosParaProcesar ---
+
+
+    /**
+     * Vacía el conjunto de candidatos marcados para procesar.
+     */
+    public void limpiarMarcados() {
+        marcadosParaProcesar.clear();
+    } // --- Fin del metodo limpiarMarcados ---
 
     public void actualizarTitulosPestanyas() {
         int sinCount = listModelSinImagen.getSize();
@@ -985,6 +1069,10 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
     }
 
     public void syncGridToCandidateTab() {
+        if (scannerActive) {
+            showGridCard(CARD_GRID_SCANNER);
+            return;
+        }
         if (advanceEditPanel.isActive()) {
             showGridCard(CARD_GRID_ADVANCE_EDIT);
             return;
@@ -994,6 +1082,23 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
         } else {
             showGridCard(CARD_GRID_IMG);
         }
+    }
+
+    public void setScannerActive(boolean active) {
+        this.scannerActive = active;
+        if (active) {
+            showGridCard(CARD_GRID_SCANNER);
+        } else {
+            syncGridToCandidateTab();
+        }
+    }
+
+    public boolean isScannerActive() {
+        return scannerActive;
+    }
+
+    public ScannerPanel getScannerPanel() {
+        return scannerPanel;
     }
 
     public void setAdvanceEditActive(boolean active) {
@@ -1113,6 +1218,9 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
     public JCheckBox getChkCheckerboard() { return chkCheckerboard; }
     public JCheckBox getChkAntiAlias() { return chkAntiAlias; }
     public JCheckBox getChkCrosshair() { return chkCrosshair; }
+    public JCheckBox getChkWireframe() { return chkWireframe; }
+    public JCheckBox getChkFillLight2() { return chkFillLight2; }
+    public JComboBox<String> getCboCalidad() { return cboCalidad; }
 
     // --- Getters fondo ---
     public ButtonGroup getBgGroup() { return bgGroup; }

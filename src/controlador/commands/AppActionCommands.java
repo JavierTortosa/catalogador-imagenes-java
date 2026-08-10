@@ -223,6 +223,8 @@ public interface AppActionCommands {
     public static final String CMD_RENDER_DESCARGAR_ARCHIVOS        = "cmd.render.descargar_archivos";
     public static final String CMD_RENDER_ABRIR_TEMP                = "cmd.render.abrir_temp";
     public static final String CMD_RENDER_CLEAR_PREVIEW             = "cmd.render.clear_preview";
+    public static final String CMD_RENDER_ESCANEAR_HUERFANOS        = "cmd.render.escanear_huerfanos";
+    public static final String CMD_RENDER_EXPORTAR_APROBADOS        = "cmd.render.exportar_aprobados";
 
     public static final String CMD_PREVIEW_RENDER_3DGRID            = "cmd.preview.render.3dgrid";
     public static final String CMD_PREVIEW_RENDER_2DGRID            = "cmd.preview.render.2dgrid";

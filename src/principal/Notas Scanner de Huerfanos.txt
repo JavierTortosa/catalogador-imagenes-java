@@ -1,122 +1,349 @@
 ===============================================================================
   SCANNER DE HUÉRFANOS — Buscar archivos 3D sin representación (modo RENDER)
+  PLAN v10 (FINAL) — aprobado para implementación
 ===============================================================================
 
 OBJETIVO
 --------
-Dado el botón "Escanear Archivos Sin Representacion" (icono 70009-scanner.png,
-ya existente en la toolbar toolbarRenderCenter pero inactivo, atado a
-CMD_FUNCIONALIDAD_PENDIENTE), implementar un escaneo disco-vs-disco que
-localice archivos 3D/comprimidos (STL, OBJ, 3MF, ZIP, RAR, 7z) sin imagen
-asociada, para poder generarlos después con el pipeline ZIP2PNG.
+Convertir el Scanner en una TERCERA VISTA del Modo Render (espacio de trabajo,
+no una acción modal). El usuario entra, escanea bajo demanda, analiza las
+carpetas con "deuda de renders" (pendientes, % huérfanos, tamaño), selecciona
+carpetas y envía sus candidatos a las pestañas del pipeline RENDER existente.
 
-  HUÉRFANO = archivo 3D o comprimido para el que no existe una representación
-             gráfica externa con el mismo nombre base en su misma carpeta.
+  HUÉRFANO = archivo 3D o comprimido (STL, OBJ, 3MF, ZIP, RAR, 7z) para el que
+             no existe una representación gráfica externa con el mismo nombre
+             base en su misma carpeta (tras FASE 2, tampoco interna).
+
+CONCEPTO
+--------
+  Zip2PngScanner → RenderCandidate[] → agrupar por carpeta → ScannerFolderResult[]
+    → tabla (solo datos visuales, sorter de Swing)
+    → "Procesar selección" → poblar pestañas Sin renderizar / Con imagen
+    → pipeline de render EXISTENTE (CMD_RENDER_PROCESAR_SELECCIONADOS / _ARCHIVO)
+
+  gridCardPanel pasa a tener 3 cards: CARD_GRID_IMG | CARD_GRID_RENDER |
+  CARD_GRID_SCANNER. Solo una activa: mostrarGrid3D()/mostrarGrid2D() desactivan
+  el Scanner (los 3 toggles son excluyentes en el ButtonGroup de
+  previewrenderview).
 
 FLUJO DE USUARIO
 ----------------
   RENDER
     │
-    ├── Escanear archivos sin representación
-    │     ├── elegir carpeta(s) inicial(es) (CarpetasSelectionDialog)
-    │     ├── incluir subcarpetas (estado propio renderScanIncludeSubfolders)
-    │     └── escanear (disco-vs-disco, sin tocar BD ni selectedImageKey)
-    │
-    └── resultado
-          ├── SIN RENDERIZAR (no tiene imagen externa ni interna)
-          └── CON IMAGEN (tiene imagen externa o interna dentro del comprimido)
-                    │
-                    ▼
-              usuario decide
-                    │
-                    ▼
-              generar renders (CMD_RENDER_PROCESAR_SELECCIONADOS / _ARCHIVO)
+    └── toggle "Escanear Archivos Sin Representacion" (70009-scanner.png)
+          ├── textbox con carpeta inicial (default: raíz del visor, editable)
+          ├── botón "…" (JFileChooser DIRECTORIES_ONLY)
+          ├── checkbox "Incluir subcarpetas" (persistido)
+          └── botón "Escanear"
+                │
+                ▼
+          TaskProgressDialog modal (barra indeterminada)
+          "Carpetas: N | Candidatos: M" (contador en vivo)
+                │
+                ▼
+          tabla de carpetas con trabajo pendiente:
+          [✓] Carpeta | Path | Pendientes | Con preview | % Huérfanos | Tamaño
+                │
+                ├── ordenar por columna (clic en cabecera, Swing RowSorter)
+                ├── marcar/desmarcar filas (checkbox)
+                └── botón "Procesar selección"
+                      │
+                      ▼
+                poblar pestañas Sin/Con imagen (SIN re-escanear)
+                      │
+                      ▼
+                usuario decide qué renders generar (pipeline existente)
 
-  CASO MULTIBOARD/SKADIS: se resuelve por SELECCIÓN EXPLÍCITA de carpetas en
-  el diálogo. No se analiza todo lo que existe, sino aquello que necesitamos.
+  CASO MULTIBOARD/SKADIS: el usuario decide. No se analiza todo lo que existe,
+  sino aquello que necesita. Una carpeta con 11.234 pendientes se puede ignorar
+  y seleccionar solo Skadis/Pegboard o Skadis/Hooks.
 
-DECISIONES DE DISEÑO
---------------------
-  1. Estado propio del Scanner: renderScanIncludeSubfolders (independiente del
-     VISUALIZADOR). NO se usa isMostrarSoloCarpetaActual() como profundidad.
-  2. Semántica única de recorrido en Zip2PngScanner vía includeSubfolders:
+DECISIONES DE DISEÑO (v10 FINAL)
+-------------------------------
+  1. TERCERA VISTA, no botón. El Scanner es un espacio de trabajo: entrar/salir,
+     escanear varias veces, revisar, seleccionar, lanzar al pipeline. No es una
+     acción puntual con diálogo de selección (se descarta CarpetasSelectionDialog
+     del plan v4).
+  2. Estado propio: ConfigKeys.RENDER_SCAN_INCLUDE_SUBFOLDERS (persistido,
+     default true). Independiente del VISUALIZADOR. NO se usa
+     isMostrarSoloCarpetaActual() como profundidad.
+  3. Semántica única de recorrido en Zip2PngScanner:
         includeSubfolders = false → depth 1
         includeSubfolders = true  → depth MAX_VALUE
      - scanFolder(folder, cb) / scanFolder(folder) delegan en TRUE (recursivo).
      - onScan existente se UNIFICA a scanFolder(folder, true, cb).
      ⚠ CAMBIO FUNCIONAL DELIBERADO: onScan pasa de Files.walk(folder, 2) a
        recursivo completo. NO es un efecto colateral del refactor.
-  3. FASE 1 / FASE 2 separadas:
-     FASE 1 → scanFolder(): detectar ausencia de representación externa.
+  4. FASE 1 / FASE 2 separadas:
+     FASE 1 → scanFolder(): detectar ausencia de representación EXTERNA.
      FASE 2 → detectarImagenesEnArchivos(): inspeccionar imágenes DENTRO de
               los comprimidos (más cara; solo para la pestaña Con imagen).
-  4. Bug de matching corregido: se pasa de Set<String> (solo nombreBase) a
+     ⚠ Los CONTADORES de la tabla se calculan DESPUÉS de FASE 2: un candidato
+       con preview interna NO cuenta como pendiente (100 candidatos → 20 con
+       preview → la tabla muestra 80 pendientes).
+  5. Bug de matching corregido: se pasa de Set<String> (solo nombreBase) a
      clave compuesta "carpetaRelativa/nombreBase" (normalizada a /). Así
      A/modelo.zip ya no desaparece de candidatos por existir B/modelo.png.
      Las imágenes y los archivos 3D/comprimidos calculan la clave EXACTAMENTE
      igual, incluso con varias raíces en el mismo escaneo.
-  5. No se persiste el resultado del Scanner en esta fase. La evolución futura
-     (Scanner incremental/persistente con SQLite) no cambia esta UX: el scanner
-     consultará su índice antes de recorrer.
+  6. DATOS FUERA DE LAS CELDAS:
+     - List<ScannerFolderResult> resultados (lista paralela, indexada por fila
+       de MODELO de la tabla).
+     - Las celdas contienen SOLO datos visuales tipados
+       (Boolean/String/Integer/Double/Long). El TableRowSorter ordena
+       presentación y JAMÁS toca los datos reales.
+  7. INVARIANTE (bloquea re-escaneos futuros): resultados + tabla = SNAPSHOT
+     congelado del último escaneo. procesarSeleccionScanner() opera SOLO sobre
+     esa lista en memoria; queda prohibido consultar disco o refrescar en ese
+     punto.
+  8. % Huérfanos = pendientes / (pendientes + conPreview). Es % sobre los
+     CANDIDATOS del scanner, NO sobre todos los archivos de la carpeta. (Se
+     aclara en la ayuda. El término "huérfano" se mantiene por coherencia con
+     toda la app.)
+  9. La tabla NO es un inventario de carpetas escaneadas: solo muestra carpetas
+     con ≥1 pendiente (lista de trabajo). Se explica en la ayuda.
+  10. "Procesar selección" solo LLEVA los grupos seleccionados al RENDER:
+      concatena candidates de las filas marcadas → poblarPestanyasConCandidates
+      → vuelve a la vista grid. NO dispara el pipeline de render.
+  11. Tamaño = suma de bytes de los PENDIENTES (lo que irá al pipeline).
+  12. Progreso: TaskProgressDialog MODAL (mismo diálogo que el visor y que
+      onScan). Barra indeterminada + contador en vivo "Carpetas: N |
+      Candidatos: M" vía publish()/process(). Botón Cancelar
+      (setWorkerAsociado).
+  13. Asociación inequívoca carpeta → candidatos: folderCallback del recorrido
+      sirve SOLO para el contador de progreso. La agrupación se deriva
+      EXCLUSIVAMENTE de candidate.getPath().getParent() en done() del worker.
+      "La carpeta de un candidato es la del archivo 3D/comprimido, no la del
+      recorrido" (válido también con includeSubfolders=true).
+  14. No se persiste el resultado del Scanner en esta fase. La evolución futura
+      (Scanner incremental/persistente con SQLite) no cambia esta UX: el scanner
+      consultará su índice antes de recorrer.
+
+TABLA DEL SCANNER (ScannerPanel)
+--------------------------------
+  [✓]  Carpeta          Path (visible)            Pendientes  Con preview  % Huérfanos  Tamaño
+  ☑   Skadis/Pegboard  D:\MODELOS\Skadis\Pegboard     80          20          80%        4,2 GB
+  ☑   Skadis/Hooks     D:\MODELOS\Skadis\Hooks        55          32          63%        2,1 GB
+  ☐   Multiboard/...   D:\MODELOS\Multiboard         11234         0          100%      18,7 GB
+
+  - setAutoCreateRowSorter(true) → TableRowSorter (clic ordena; clic repetido
+    alterna asc/desc). Nada de ordenarPorNombre()/ordenarPorTamano() a mano.
+  - getColumnClass() tipado: Boolean, String, String, Integer, Integer,
+    Double, Long → orden numérico correcto.
+  - Renderers: Tamaño → "4,2 GB"; % → "80%"; la celda cruda conserva el tipo
+    numérico (el sorter ordena por el valor crudo).
+  - Orden inicial: % Huérfanos descendente (setSortKeys).
+  - ⚠ OBLIGATORIO: modelRow = table.convertRowIndexToModel(vRow) al recuperar
+    ScannerFolderResult. Sin esto, ordenar y luego "Procesar selección" mandaría
+    carpetas equivocadas al render.
+  - La fila conserva TODOS sus candidatos (pendientes + con preview), porque
+    "Procesar selección" lleva ambos grupos a las pestañas.
+
+IMPLICACIÓN Y ESTRUCTURAS
+-------------------------
+  record ScannerFolderResult(Path folder, List<RenderCandidate> candidates)
+
+  ScannerFolderResult lo agrupa el controlador en done() del worker; la tabla
+  solo lo proyecta. El sorter de Swing queda completamente separado de los
+  datos reales.
 
 IMPLEMENTACIÓN
 --------------
   1. controlador/commands/AppActionCommands.java
        CMD_RENDER_ESCANEAR_HUERFANOS = "cmd.render.escanear_huerfanos"
-       (sustituye la referencia pendiente CMD_RENDER_PROCESAR_HUERFANOS de
-        VisorV2.java:47)
 
-  2. servicios/renderer/Zip2PngScanner.java
-       - Nueva firma scanFolder(Path, boolean includeSubfolders, Consumer)
-       - Files.walk(folderPath, 2) → Files.walk(folderPath, depth)
-       - Fix matching ruta+base (clave carpetaRelativa/nombreBase)
+  2. vista/config/UIDefinitionService.java (YA editado sin commitear)
+       - En componentesPreviewRenderView (línea ~1237): sustituir
+         CMD_FUNCIONALIDAD_PENDIENTE por CMD_RENDER_ESCANEAR_HUERFANOS
+         (ButtonType.TOGGLE, icono 70009-scanner.png, primer botón antes de
+         Grid 3D/2D).
+       - ELIMINAR el bloque comentado del scanner en toolbarRenderCenter
+         (líneas ~1227-1230).
+
+  3. controlador/factory/ActionFactory.java
+       - createRenderEscanearHuerfanosAction() →
+         renderController.toggleScannerView() (patrón
+         createRenderEscanearCarpetaAction).
+       - Registro junto a las acciones render.
+
+  4. servicios/ConfigKeys.java
+       - RENDER_SCAN_INCLUDE_SUBFOLDERS = "render.scan.include_subfolders"
+         (default true; getBoolean + setter de ConfigurationManager + guardar).
+
+  5. servicios/renderer/Zip2PngScanner.java
+       - Nueva firma:
+           scanFolder(Path, boolean includeSubfolders,
+                      Consumer<RenderCandidate> candidateCallback,
+                      Consumer<Path> folderCallback)
+       - Files.walk(folderPath, includeSubfolders ? Integer.MAX_VALUE : 1).
+       - Un solo pase iterando el Stream: Files.isDirectory(p) →
+         folderCallback.accept(p); Files.isRegularFile(p) → acumular.
+       - scanFolder(Path, Consumer) y scanFolder(Path) delegan en
+         (folder, true, cb, null).
+       - Fix matching clave carpetaRelativa/nombreBase (normalizada a /).
        - Se conservan: nombreBase() (modelo.v2.zip ↔ modelo.v2.png ya ok),
-         agrupación multivolumen, detectarImagenesEnArchivos()
+         agrupación multivolumen (claveGrupo), detectarImagenesEnArchivos().
 
-  3. controlador/RenderController.java
-       - Campos: VisorModel model (+setModel), boolean renderScanIncludeSubfolders=true
-       - ejecutarEscanearHuerfanos(ActionEvent):
-           1. Raíz = model.getCarpetaRaizActual() (fallback lastScanFolder)
-           2. CarpetasSelectionDialog (raíz + estado renderScanIncludeSubfolders)
-           3. Aceptar → List<Path> rootsToScan (solo raíces efectivas) + flag
-           4. SwingWorker + TaskProgressDialog:
-              FASE 1 scanFolder(root, renderScanIncludeSubfolders, cb) por raíz
-              FASE 2 detectarImagenesEnArchivos(candidates)
-           5. Repartir en getListModelSinImagen()/getListModelConImagen()
-              vía método compartido extraído de onScan (poblarPestanyasConCandidates)
-       - onScan refactorizado: scanFolder(folder, true, cb) + método compartido
+  6. NUEVO vista/panels/render/ScannerPanel.java
+       - Zona superior: JTextField (carpeta inicial) + botón "…" +
+         JCheckBox "Incluir subcarpetas" (onchange persiste) + botón "Escanear".
+       - Zona central: JTable + JScrollPane (6 columnas, RowSorter tipado,
+         renderers Tamaño/%, orden inicial % desc).
+       - Botón inferior "Procesar selección".
+       - List<ScannerFolderResult> resultados paralela (datos fuera de celdas).
+       - Métodos: setResultados/getResultados, getSelectedResults,
+         setCarpetaInicial/getCarpetaInicial, isIncludeSubfolders,
+         listeners Escanear/Procesar.
 
-  4. Nuevo vista/dialogos/CarpetasSelectionDialog.java
-       - JDialog modal con JTree + nodos JCheckBox (patrón TagSelectionDialog)
-       - Herencia de selección padre→hijos; desmarcar padre desmarca hijos
-       - List<Path> getRootsToScan() (solo raíces marcadas sin ancestro marcado)
-       - Checkbox "Incluir subcarpetas" (estado renderScanIncludeSubfolders)
-       - Botones Aceptar/Cancelar
+  7. vista/panels/render/RenderPanel.java
+       - Nueva card CARD_GRID_SCANNER con ScannerPanel en gridCardPanel.
+       - setScannerActive(boolean) / isScannerActive().
+       - syncGridToCandidateTab(): prioridad scannerActive → CARD_GRID_SCANNER,
+         luego advanceEdit → CARD_GRID_ADVANCE_EDIT, luego pestaña.
+         (Edge conocido: si el editor avanzado está activo y se enciende el
+         Scanner, el Scanner gana; salida normal por Grid 3D/2D.)
 
-  5. controlador/factory/ActionFactory.java
-       - createRenderEscanearHuerfanosAction() (patrón createRenderEscanearCarpetaAction)
-       - Registro en el mapa de acciones render
+  8. vista/builders/ToolbarBuilder.java
+       - Registrar el toggle bajo clave fija para deseleccionarlo
+         programáticamente: si cmd == CMD_RENDER_ESCANEAR_HUERFANOS →
+         registry.register("button.render.scanner", button)
+         (patrón "button.cliente.editar").
 
-  6. vista/config/UIDefinitionService.java (línea 1229)
-       - Sustituir CMD_FUNCIONALIDAD_PENDIENTE por CMD_RENDER_ESCANEAR_HUERFANOS
+  9. controlador/RenderController.java
+       - Campos: VisorModel model (+setModel), List<ScannerFolderResult>
+         scannerResultados.
+       - toggleScannerView(): panel.setScannerActive(!isScannerActive()); al
+         activar, pre-rellenar campo de carpeta inicial con
+         model.getCarpetaRaizActual() (fallback lastScanFolder).
+       - mostrarGrid3D()/mostrarGrid2D(): añadir panel.setScannerActive(false).
+       - ejecutarEscanearHuerfanos():
+           1. Leer carpeta inicial + RENDER_SCAN_INCLUDE_SUBFOLDERS.
+           2. Limpiar tabla + scannerResultados.
+           3. TaskProgressDialog modal + SwingWorker:
+              FASE 1 scanFolder(root, incluir, cb, folderCb) publicando
+              "Carpetas: N | Candidatos: M"; FASE 2
+              detectarImagenesEnArchivos(candidates).
+           4. done(): agrupar por candidate.getPath().getParent() →
+              ScannerFolderResult; contadores TRAS FASE 2 (pendientes =
+              !tieneImagenesDentro(), con preview = tieneImagenesDentro());
+              SOLO carpetas con ≥1 pendiente; llenar tabla + lista paralela;
+              updateStatusText final; cerrar.
+       - Refactor: extraer de onScan el cuerpo de done() →
+         poblarPestanyasConCandidates(List<RenderCandidate>); onScan lo
+         reutiliza.
+       - procesarSeleccionScanner():
+           1. Recorrer filas de la VISTA: table.getValueAt(vRow, 0).
+           2. modelRow = table.convertRowIndexToModel(vRow) →
+              scannerResultados.get(modelRow).
+           3. Concatenar candidates de las filas marcadas (SIN re-escanear).
+           4. poblarPestanyasConCandidates(candidates).
+           5. panel.setScannerActive(false); deseleccionar toggle vía
+              registry.get("button.render.scanner"); syncGridToCandidateTab();
+              auto-seleccionar pestaña Sin renderizar si hay pendientes.
+           - Sin selección → JOptionPane informativo.
+       - onScan unificado: scanFolder(folder, true, cb).
 
-  7. controlador/AppInitializer.java
-       - Añadir rc.setModel(this.model) en el bloque del RenderController
+  10. controlador/AppInitializer.java
+       - rc.setModel(this.model) en el bloque del RenderController.
+
+  11. Ayuda
+       - NUEVO resources/help/render_scanner.html (flujo, columnas, % huérfanos
+         sobre candidatos —no sobre todos los archivos—, tabla como lista de
+         trabajo —no inventario—, sorter, Procesar selección sin reescaneo).
+         Estilo de las páginas actuales, SIN enlaces/anclas; referencias
+         cruzadas como <strong>Apartado del árbol</strong>.
+       - HelpDialog.java: bajo renderFolder añadir
+         new HelpPageInfo("Scanner de Huérfanos", "render_scanner.html").
+       - ELIMINAR resources/help/editor/editor_avanzado.html (huérfano; su
+         info ya está en las subpáginas del Editor Avanzado).
 
 NO SE TOCA
 ----------
-  - ImageListManager, BuscadorArchivosWorker, indexación SQLite (pipeline visor)
-  - AppModeService / GeneralController.solicitarToggleModoCargaSubcarpetas
-  - Ayudas HTML del visor
+  - Visualizador: ImageListManager, BuscadorArchivosWorker, indexación SQLite,
+    selectedImageKey.
+  - AppModeService / GeneralController.solicitarToggleModoCargaSubcarpetas.
+  - Modo Cliente, editor de imágenes, pipeline de render (se REUTILIZA tal cual).
 
 VERIFICACIÓN
 ------------
-  mvn compile -q
+  1. mvn compile -q
+  2. Caso A/B: A/modelo.zip + A/modelo.png y B/modelo.zip deben producir
+     A/modelo → encontrada y B/modelo → huérfano, SIN mezclar A con B.
+  3. Manual: escanear → ordenar por % → marcar filas → reordenar por Tamaño →
+     "Procesar selección" → verificar que llegan EXACTAMENTE los candidatos
+     marcados a las pestañas (convertRowIndexToModel).
+  4. Cancelar a mitad de escaneo (botón Cancelar del diálogo).
 
-NOTAS DE LA CONVERSACIÓN (revisión cruzada con otra IA)
---------------------------------------------------------
-  - La otra IA validó el diseño v4. Punto único: el cambio de onScan a
-    recursivo completo es un cambio funcional DELIBERADO, no un refactor.
-  - Comprobación durante implementación: A/modelo.zip + A/modelo.png y
-    B/modelo.zip + B/modelo.png deben producir A/modelo → encontrada y
-    B/modelo → encontrada, sin mezclar A con B.
+HISTORIAL DE REVISIÓN (otra IA)
+-------------------------------
+  - v4: validado. Único punto: onScan → recursivo completo es cambio funcional
+    DELIBERADO.
+  - v5: ScannerFolderResult conserva los candidatos por carpeta (sin
+    re-escaneo); "Procesar selección" solo lleva al RENDER; contadores tras
+    FASE 2; persistir checkbox.
+  - v7: % Huérfanos; setAutoCreateRowSorter(true) tipado; OBLIGATORIO
+    convertRowIndexToModel.
+  - v9/v10: folderCallback SOLO para progreso (agrupación por
+    candidate.getPath().getParent()); % sobre candidatos (no sobre todos los
+    archivos); tabla = lista de trabajo (solo carpetas con ≥1 pendiente);
+    INVARIANTE: snapshot congelado, sin re-escaneo al procesar.
+
+ESTADO (última sesión)
+----------------------
+  - Implementación completa + mvn compile -q EXIT=0.
+  - Test aislado del caso A/B superado (RECURSIVO y NO RECURSIVO OK): con
+    A/modelo.zip+A/modelo.png, B/modelo.zip, C/sub/modelo.stl y modelo.rar en
+    raíz, el recursivo encuentra modelo.rar, B/modelo.zip y C/sub/modelo.stl;
+    el no recursivo solo modelo.rar; A nunca se mezcla con B.
+
+AJUSTES POR PRIMERAS IMPRESIONES DEL USUARIO
+--------------------------------------------
+  - Scanner como pestaña inicial del modo Render:
+      * RenderPanel: constructor ahora hace scannerActive = true y
+        showGridCard(CARD_GRID_SCANNER) (antes CARD_GRID_RENDER).
+      * AppModeService.entrarModo: en el bloque EDT-2, TRAS
+        reconstruirContenedorDeToolbars, se llama a
+        renderController.mostrarScannerPorDefecto() solo para WorkMode.RENDER
+        (EDITOR NO toca scanner; usa activarModoEditor).
+      * RenderController.mostrarScannerPorDefecto(): pre-rellena carpeta raíz +
+        includeSubfolders, panel.setScannerActive(true), selecciona
+        "button.render.scanner" y deselecciona grid3d/grid2d.
+  - Exclusividad scanner ↔ Grid3D ↔ Grid2D reforzada:
+      * Ya estaban en el mismo ButtonGroup de la barra "previewrenderview"
+        (ToolbarBuilder: previewrenderview en groupToolbarKeys; el scanner no
+        está en la lista de exclusiones CMD_CLIENTE_EDITAR/GALLERY/
+        ADVANCE_EDIT/COLLAGE).
+      * ADEMÁS, defensa explícita: ToolbarBuilder registra
+        button.render.grid3d y button.render.grid2d (patrón
+        button.render.scanner). RenderController.toggleScannerView/mostrarGrid2D/
+        mostrarGrid3D deseleccionan el/los otro(s) toggle vía
+        deseleccionarToggle(clave). helper genérico deseleccionarToggle(String)
+        + seleccionarToggleScanner().
+  - Ojo: ButtonGroup SÍ permite deseleccionar el toggle seleccionado al
+    volver a hacer clic (DefaultButtonModel → group.setSelected(m,false)),
+    así que el scanner también se puede apagar con un segundo clic (toggle
+    normal). El else de toggleScannerView lo cubre.
+  - Error NoSuchFileException de ExportItem.getAssociatedFilesSize: WARN
+    preexistente, saltó al abrir la vista de exportación del modo PROYECTO
+    (ToggleExportViewAction), con los discos apagados. No es un crash y no
+    pertenece al scanner; no se toca.
+  - Botón "Escanear" invisible para el usuario: la fila superior usaba
+    FlowLayout con JTextField(44 columnas) → en ventanas estrechas el botón se
+    envolvía y quedaba fuera de la vista. Se reemplazó por GridBagLayout
+    (campo flexible con weightx=1.0 + botón "Escanear" SIEMPRE visible a la
+    derecha) y se reduce el campo a 28 columnas. ScannerPanel.setBackground
+    ahora se fija también en el constructor.
+  - "Millón de errores" InvalidPathException en modo render: CAUSA PREEXISTENTE
+    (no del scanner). Nombres como "grandmaster .zip" (espacio antes de la
+    extensión) hacen que nombreBase() devuelva "grandmaster " (espacio final),
+    inválido en rutas Windows → outputDir.resolve(c.nombreBase) reventaba
+    (RenderController.refreshThumbnails:1164) en el EDT.
+      * Fix raíz: Zip2PngScanner.nombreBase() ahora hace s.trim() + elimina
+        puntos finales + fallback "archivo" si queda vacío. El matching de
+        claveRepresentacion no cambia (se recorta igual para imagen y archivo).
+      * Defensa: refreshThumbnails envuelve cada candidato en try/catch
+        InvalidPathException (warn y sigue) para que un nombre raro jamás tumbe
+        el EDT.
+      * Verificado con test aislado: base recortada correctamente.
+  - Pendiente: prueba manual en la app y commit (no se hacen sin petición
+    explícita).

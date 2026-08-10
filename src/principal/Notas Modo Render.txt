@@ -1,0 +1,177 @@
+===============================================================================
+  MODO RENDER - Resolución de representaciones (escalera de esfuerzo)
+  PLAN CONFIRMADO - versión 1 (para implementación)
+===============================================================================
+
+OBJETIVO
+--------
+Convertir el modo RENDER en un puesto de resolución rápida de representaciones
+para bibliotecas masivas (15k/40k archivos). No es un "generador de previews":
+es un sistema que consigue la representación suficientemente buena de cada
+archivo con el MÍNIMO coste, y solo invierte más trabajo cuando la
+representación obtenida no es útil.
+
+Filosofía: "La primera representación válida gana."
+  - imagen interna mediocre pero representativa > render perfecto que tarda 30s
+  - render automático aceptable > collage perfecto con intervención manual
+  - se escala solo cuando la representación FALLA, no porque podría ser más bonita
+  - el objetivo final es un PNG que REPRESENTE bien el archivo, no "tener PNG"
+
+REGLAS DE DISEÑO (aprobadas)
+----------------------------
+  R1. Encontrar una imagen interna NO implica procesar el archivo.
+  R2. Exportar una imagen interna puede convertirla directamente en representante.
+  R3. Procesar es opcional, no una etapa obligatoria (escalón de fallback).
+  R4. "Procesar selección" sin marcados procesa el LOTE completo, con
+      confirmación si el lote es grande (>10).
+  R5. Los checkboxes representan "quiero trabajar/procesar este archivo",
+      no "este archivo está procesado".
+  R6. Tras procesar, el archivo puede subir al inicio de la lista, pero sigue
+      siendo seleccionable para decidir si la representación es buena.
+  R7. Procesado != Representado: generar un render no garantiza que valga.
+  R8. "Tiene imagen" != "tiene representante": el humano decide la validez.
+
+  Semántica del checkbox:
+    - selección explícita   -> "estos concretamente" (se procesan esos)
+    - ninguno marcado       -> "todo el lote que tengo delante"
+  (evita marcar 40 checkboxes a mano; el lote completo se procesa en grupo)
+
+ESCALERA DE ESFUERZO (flujo conceptual)
+---------------------------------------
+  Nivel 0: ya existe representación externa -> el scanner NO lo manda al RENDER
+  Nivel 1: el comprimido trae imagen interna -> mostrar abajo, doble clic,
+           preview grande, ¿representa bien? -> EXPORTAR (coste ~0, sin procesar)
+  Nivel 2: imagen interna que no sirve -> PROCESAR (render automático)
+  Nivel 3: render automático que no sirve -> GALLERY (buscar imagen en contenidos)
+  Nivel 4: si no -> COLLAGE (composición de varias vistas/imágenes)
+  Nivel 5: si no -> EDITOR AVANZADO (control preciso)
+  Nivel 6: si no -> EDITOR (control total)
+
+  Es decir: la máquina hace primero lo barato y evidente; el tiempo humano solo
+  se emplea donde aporta valor.
+
+TRES CONCEPTOS SEPARADOS
+------------------------
+  1. PROCESAR  -> generar automáticamente representación (uno / selección / lote)
+  2. REVISAR   -> ver si la representación sirve (Grid / preview / Gallery / contenido)
+  3. REFINAR   -> cuando la automática no basta (Collage -> Avanzado -> Editor)
+
+FLUJO CONCRETO (implementado / a implementar)
+---------------------------------------------
+  SCANNER (carpeta libre o del visor; botón Escanear apagado si no hay carpeta)
+    -> escanear -> tabla de carpetas con huérfanos -> marcar carpetas
+    -> "Procesar selección" SOLO TRASLADA candidatos a las pestañas (sin procesar)
+    -> pestañas: "Sin renderizar" y "Con imagen"
+    -> en "Con imagen": abajo se listan las imágenes internas del comprimido
+
+  Por archivo:
+    A) imagen interna que sirve:
+         doble clic -> preview grande -> CMD_RENDER_DESCARGAR_ARCHIVOS
+         (guarda en la carpeta del comprimido por defecto, PNG/JPG, aviso si existe)
+         -> ya no es huérfano. SIN PROCESAR NADA.
+    B) imagen interna que NO sirve / no hay imagen:
+         marcar checkbox -> CMD_RENDER_PROCESAR_SELECCIONADOS
+         (marcados -> esos; sin marcados -> lote completo, confirmación si >10)
+         -> render en el grid -> revisar
+    C) si el render no basta -> Gallery -> Collage -> Editor avanzado -> Editor
+
+  Caso estrella (por lotes):
+    20 ZIPs -> los 20 sin marcar -> Procesar lote -> 20 renders en el grid
+    -> aprobar los que valen (doble clic en grid) -> "Exportar aprobados"
+    -> cada PNG a la carpeta de su ZIP original (carpeta/comprimido.png)
+    -> los dudosos continúan la escalera (Collage/Avanzado/Editor)
+
+  FASE FUTURA (NO en esta iteración):
+    - Fondo común + texto común aplicado por lote a renders dudosos
+      (composición masiva sobre el editor avanzado)
+
+CAMBIO 1 - Vía rápida (ya existe, se mantiene)
+-----------------------------------------------
+  - onImageDoubleClick (RenderController.java:759): extrae la imagen interna y
+    la muestra en el preview derecho. Sin procesar.
+  - descargarPreview (RenderController.java:2746): ya abre el JFileChooser en la
+    carpeta del comprimido (folderInicial = selected.path.getParent()).
+    AÑADIR: selector de formato PNG (por defecto) / JPG; aviso de sobrescritura.
+
+CAMBIO 2 - Checkbox de selección en las listas de candidatos
+--------------------------------------------------------------
+  - RenderPanel: Set<RenderCandidate> marcadosParaProcesar
+      + isMarcadoParaProcesar / toggleMarcadoParaProcesar
+      + getMarcadosParaProcesar / limpiarMarcados
+  - RenderListCellRenderer: pintar un JCheckBox al inicio de cada fila
+      (check + texto existente), consultando el estado vía provider inyectado.
+  - RenderController.wireControls: MouseAdapter en ambas listas para alternar
+      el marcado al hacer clic en la zona del checkbox (primeros ~20px) y repintar.
+  - Al hacer "Procesar selección" del scanner, los candidatos entran sin marcar.
+
+CAMBIO 3 - Procesado selectivo + lote con salvaguarda
+------------------------------------------------------
+  - procesarArchivo() (RenderController.java:1517): procesar SOLO el seleccionado
+      SIN limpiarOutputDir() (hoy borraba PNGs de otros candidatos).
+      Limpieza selectiva del candidato a reprocesar.
+  - onProcess() (RenderController.java:1076, CMD_RENDER_PROCESAR_SELECCIONADOS):
+      * hay marcados -> procesar solo los marcados
+      * sin marcados y <=10 -> lote completo directo
+      * sin marcados y >10 -> diálogo de confirmación
+        "No hay archivos marcados. ¿Procesar los N archivos de la lista?"
+        [Procesar lote] [Cancelar]
+  - Nuevo helper limpiarOutputDeCandidatos(List<RenderCandidate>): borra solo
+      outputDir/<nombreBase>.png e imagesDir/<nombreBase> de los que se reprocesan.
+
+CAMBIO 4 - "Procesados al inicio" (cola de trabajo/revisión)
+------------------------------------------------------------
+  - Tras onProcessCompleted (RenderController.java:1114):
+      reordenarProcesadosAlInicio() -> los candidatos con PNG en outputDir pasan
+      al frente de listModelSinImagen / listModelConImagen, conservando selección
+      y marcados. NO se quitan de la lista: siguen seleccionables para revisar.
+
+CAMBIO 5 - Acción nueva "Exportar aprobados" (grid -> carpetas originales)
+--------------------------------------------------------------------------
+  - Nueva acción CMD_RENDER_EXPORTAR_APROBADOS + registro en ActionFactory
+      + botón en la toolbar del render.
+  - exportarAprobados(): recorre thumbnailsAprobados, obtiene el candidate vía
+      pngSourceMap, y copia cada PNG a candidate.path.getParent()/<nombreBase>.png
+      con confirmación previa (avisando de sobrescritura). SOLO los aprobados.
+  - Resuelve el caso estrella: procesar lote -> revisar grid -> aprobar -> exportar
+      los 20 PNGs a sus carpetas originales de un golpe.
+
+CAMBIO 6 - Botón "Escanear" apagado sin carpeta inicial (ScannerPanel.java)
+---------------------------------------------------------------------------
+  - btnEscanear.setEnabled(getCarpetaInicial() != null)
+  - actualizado con DocumentListener en carpetaField (habilita en vivo si el
+    usuario escribe una ruta válida), tras setCarpetaInicial y tras
+    seleccionarCarpeta.
+  - prepararScannerParaMostrar ya deja el campo vacío si
+    model.getCarpetaRaizActual() es null -> el botón queda deshabilitado.
+
+NO TOCAR (fuera de alcance)
+---------------------------
+  - Zip2PngWorker (render automático) tal como está
+  - Detección de huérfanos de Zip2PngScanner (claveRepresentacion / nombreBase)
+
+VERIFICACIÓN
+------------
+  - mvn compile -q   (solo si el usuario lo pide, regla del AGENTS.md)
+  - Probar manualmente: scanner -> trasladar -> vía rápida (imagen interna),
+    lote con confirmación, procesados al inicio, exportar aprobados.
+
+ESTADO
+------
+  [x] Cambio 1: selector PNG/JPG + aviso sobrescritura en descargarPreview
+      (elegirFormatoPreview + escribirPreview; formato "png"/"jpg")
+  [x] Cambio 2: checkboxes en listas de candidatos
+      (RenderPanel.marcadosParaProcesar + RenderListCellRenderer con provider
+       + MouseAdapter en wireControls; clic en los primeros ~24px alterna)
+  [x] Cambio 3: procesado selectivo + lote con confirmación (>10)
+      (onProcess: marcados -> esos; sin marcados y <=10 -> lote directo;
+       sin marcados y >10 -> confirmación. limpiarOutputDeCandidatos.)
+  [x] Cambio 4: reordenarProcesadosAlInicio tras procesar
+      (onProcessCompleted llama a reordenarProcesadosAlInicio)
+  [x] Cambio 5: CMD_RENDER_EXPORTAR_APROBADOS -> exportar aprobados a carpetas
+      (AppActionCommands + ActionFactory + ToolbarButtonDefinition en
+       UIDefinitionService (icono 90102-exportar-imagen.png)
+       + RenderController.exportarAprobados / buscarCandidatoDePng)
+  [x] Cambio 6: btnEscanear apagado sin carpeta inicial
+      (ScannerPanel.actualizarEstadoEscaneo + DocumentListener en carpetaField)
+
+===============================================================================
