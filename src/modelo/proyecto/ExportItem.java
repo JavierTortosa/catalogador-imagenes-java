@@ -136,10 +136,15 @@ public class ExportItem {
             long total = 0;
             if (rutasArchivosAsociados != null) {
                 for (Path p : rutasArchivosAsociados) {
+                    if (p == null || !java.nio.file.Files.exists(p)) {
+                        // Archivo movido, borrado o inaccesible: no calcular tamaño
+                        logger.debug("Archivo asociado no encontrado (no se calculará su tamaño): {}", p);
+                        continue;
+                    }
                     try {
                         total += java.nio.file.Files.size(p);
                     } catch (java.io.IOException e) {
-                        logger.warn("No se pudo calcular el tamaño del archivo asociado: {}", p, e);
+                        logger.debug("No se pudo leer el tamaño del archivo asociado: {}", p);
                     }
                 }
             }

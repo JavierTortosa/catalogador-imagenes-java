@@ -73,8 +73,6 @@ public class VisorV2 {
     
     // TODO HACER SALTO DE CARPETA. Cuando estamos viendo una carpeta que vemos que no nos cuadra, poder saltar todas las imagenes de esa carpeta
     // TODO CTRL + SHIFT DEBE ACTIVAR EL MODO PANEO Y DESACTIVARLO CUANDO SE DEJA DE PULSAR
-    // FIXME si no tengo la carpeta con la que cerre el programa se abre el mensaje de bienvenida, pero en algun momento no detecta la carpeta inicial y no muestra el mensaje de bienvenida
-    // FIXME cuando abro la aplicacion con los discos duros apagados muestra la pantalla de bienvenids. si voy a proyecto, por ej, cuando regreso al modo visor con los discos duros apagados ya no se muestra la pantalla de bienvenida
     
     
     // PROYECTO
@@ -84,7 +82,6 @@ public class VisorV2 {
     // TODO añadir el tornado en seleccion
     // TODO en el panel de pdf, poder ordenar las imagenes mediante drag & drop o algun otro sistema
     // FIXME el panel de detalles de pdf no tiene el split para ajustar la altura
-    // FIXME cuando abro el panel de asignaciones con imagenes que no existen (seguramente porque se han movido) da un error java.nio.file.NoSuchFileException. hay que evitar hacer los procesos si las imagenes no estan.
     
     
     // CLIENTE
