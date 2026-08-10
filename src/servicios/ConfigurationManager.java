@@ -52,7 +52,12 @@ public class ConfigurationManager
 	        "miniaturas",
 	        "interfaz",
 	        "proyectos",
-	        "carrusel"
+	        "editor",
+	        "zip2png",
+	        "render",
+	        "ui",
+	        "carrusel",
+	        "carousel"
 	);
 	
 	private static ConfigurationManager instance = null;
@@ -73,7 +78,17 @@ public class ConfigurationManager
 		config = cargarConfiguracion();
 		
 		logger.debug("[ConfigurationManager] Mapa 'config' INICIALIZADO. HashCode: " + System.identityHashCode(config));
-		
+
+		// Reordenación automática única por sesión: consolida secciones "Nuevas"
+		// duplicadas y purga claves obsoletas del archivo config.cfg.
+		if (!reordenacionConfigEjecutada) {
+		    reordenacionConfigEjecutada = true;
+		    try {
+		        reordenarConfiguracion();
+		    } catch (IOException e) {
+		        logger.warn("No se pudo reordenar la configuración: " + e.getMessage());
+		    }
+		}
 	}
 	
 	// Método para cargar toda la configuración
@@ -356,97 +371,276 @@ public class ConfigurationManager
 	 */
 	private void crearConfigPorDefecto(File configFile) throws IOException {
 	    logger.debug("Creando config por defecto (estructura jerárquica v3.0)...");
-	    try (BufferedWriter writer = new BufferedWriter(new FileWriter(configFile))) {
-	        writer.write("# Archivo de Configuración VisorV2 (Generado por defecto)\n");
-	        writer.write("# Use '#' al inicio de línea para comentarios.\n\n");
-
-	        // --- Preparación ---
-	        List<String> sortedKeys = new ArrayList<>(DEFAULT_CONFIG.keySet());
-	        Collections.sort(sortedKeys);
-
-	        List<String> sortedCommentPrefixes = new ArrayList<>(DEFAULT_GROUP_COMMENTS.keySet());
-	        sortedCommentPrefixes.sort((s1, s2) -> Integer.compare(s2.length(), s1.length()));
-
-	        // --- Iteración y Escritura ---
-	        Set<String> writtenPrefixes = new HashSet<>();
-	        String lastWrittenTopSection = null;
-	        boolean firstEntryOverall = true;
-
-	        for (String key : sortedKeys) {
-	            String value = DEFAULT_CONFIG.get(key);
-	            if (value == null) continue;
-
-	            // --- Encontrar el MEJOR prefijo de comentario para ESTA clave ---
-	            String bestMatchingPrefixForKey = null;
-	            for (String prefix : sortedCommentPrefixes) {
-	                if (key.startsWith(prefix)) {
-	                    bestMatchingPrefixForKey = prefix;
-	                    break;
-	                }
-	            }
-
-	            if (bestMatchingPrefixForKey != null) {
-	                // --- Construir cadena jerárquica de prefijos a escribir ---
-	                // Desde la raíz (ej. "config") hasta el prefijo más específico
-	                String[] parts = bestMatchingPrefixForKey.split("\\.");
-	                List<String> fullChain = new ArrayList<>();
-	                StringBuilder sb = new StringBuilder();
-	                for (int i = 0; i < parts.length; i++) {
-	                    if (i > 0) sb.append(".");
-	                    sb.append(parts[i]);
-	                    fullChain.add(sb.toString());
-	                }
-
-	                // Filtrar solo los que tienen comentario y no se han escrito aún
-	                List<String> prefixesToWrite = new ArrayList<>();
-	                for (String p : fullChain) {
-	                    if (DEFAULT_GROUP_COMMENTS.containsKey(p) && !writtenPrefixes.contains(p)) {
-	                        prefixesToWrite.add(p);
-	                    }
-	                }
-
-	                // --- Escribir comentarios jerárquicos ---
-	                if (!prefixesToWrite.isEmpty()) {
-	                    for (int i = 0; i < prefixesToWrite.size(); i++) {
-	                        String prefix = prefixesToWrite.get(i);
-	                        String comment = DEFAULT_GROUP_COMMENTS.get(prefix);
-	                        if (comment == null) continue;
-
-	                        if (!firstEntryOverall) {
-	                            boolean isTopSection = KNOWN_SECTION_PREFIXES.contains(prefix);
-	                            if (i == 0 && isTopSection
-	                                    && lastWrittenTopSection != null
-	                                    && !prefix.equals(lastWrittenTopSection)) {
-	                                writer.write("\n\n");
-	                            } else {
-	                                writer.write("\n");
-	                            }
-	                        }
-
-	                        writer.write(comment + "\n");
-	                        writtenPrefixes.add(prefix);
-	                        firstEntryOverall = false;
-
-	                        if (KNOWN_SECTION_PREFIXES.contains(prefix)) {
-	                            lastWrittenTopSection = prefix;
-	                        }
-	                    }
-	                }
-	            }
-
-	            // --- Escribir Clave-Valor ---
-	            writer.write(key + " = " + value + "\n");
-	            firstEntryOverall = false;
-
-	        }
-
-	        writer.write("\n#----------------------- FIN CONFIGURACION ------------------------\n");
-
-	    } catch (IOException e) {
-	        logger.error("Error al crear configuración por defecto", e);
-	    }
+	    escribirConfigOrdenado(DEFAULT_CONFIG, configFile);
 	    logger.debug("Archivo de configuración por defecto creado en: " + configFile.getAbsolutePath());
 	} // --- Fin del metodo crearConfigPorDefecto ---
+
+
+	/**
+	 * Escribe un mapa de configuración en un archivo con la estructura jerárquica de
+	 * secciones (padre → hijo). Agrupa las claves por prefijo de sección de forma
+	 * insensible a mayúsculas (así, variantes como {@code toolbarRenderCenter} y
+	 * {@code toolbarrendercenter} caen en la misma sección) y genera dinámicamente
+	 * una sección por barra para las claves de botones y herramientas que no tienen
+	 * una sección explícita en {@link #DEFAULT_GROUP_COMMENTS}.
+	 * Las claves sin ninguna sección conocida se agrupan al final bajo el chivato
+	 * "# ===== Nuevas Configuraciones Añadidas =====".
+	 */
+	private void escribirConfigOrdenado(Map<String, String> configMap, File configFile) throws IOException {
+	    String texto = generarTextoConfigOrdenado(configMap);
+	    try (BufferedWriter writer = new BufferedWriter(new FileWriter(configFile))) {
+	        writer.write(texto);
+	    } catch (IOException e) {
+	        logger.error("Error al escribir configuración ordenada", e);
+	    }
+	} // --- Fin del metodo escribirConfigOrdenado ---
+
+
+	/**
+	 * Genera el contenido de un config.cfg ordenado jerárquicamente (padre → hijo)
+	 * a partir de un mapa de claves. Agrupa las claves por prefijo de sección de forma
+	 * insensible a mayúsculas y genera dinámicamente una sección por barra para las
+	 * claves de botones y herramientas sin sección explícita. Las claves sin ninguna
+	 * sección conocida se agrupan al final bajo el chivato
+	 * "# ===== Nuevas Configuraciones Añadidas =====".
+	 */
+	private String generarTextoConfigOrdenado(Map<String, String> configMap) {
+	    Map<String, String> comments = construirMapaComentariosCompleto(configMap);
+
+	    List<String> sortedKeys = new ArrayList<>(configMap.keySet());
+	    Collections.sort(sortedKeys);
+
+	    List<String> sortedCommentPrefixes = new ArrayList<>(comments.keySet());
+	    sortedCommentPrefixes.sort((s1, s2) -> {
+	        int cmp = Integer.compare(s2.length(), s1.length());
+	        return cmp != 0 ? cmp : s1.compareTo(s2);
+	    });
+
+	    StringBuilder sb = new StringBuilder();
+	    sb.append("# Archivo de Configuración VisorV2 (Generado por defecto)\n");
+	    sb.append("# Use '#' al inicio de línea para comentarios.\n\n");
+
+	    Set<String> writtenPrefixes = new HashSet<>();
+	    String lastWrittenTopSection = null;
+	    boolean firstEntryOverall = true;
+	    List<String> clavesSinSeccion = new ArrayList<>();
+
+	    for (String key : sortedKeys) {
+	        String value = configMap.get(key);
+	        if (value == null) continue;
+
+	        String bestMatchingPrefixForKey = null;
+	        for (String prefix : sortedCommentPrefixes) {
+	            if (key.toLowerCase().startsWith(prefix.toLowerCase())) {
+	                bestMatchingPrefixForKey = prefix;
+	                break;
+	            }
+	        }
+
+	        if (bestMatchingPrefixForKey != null) {
+	            String[] parts = bestMatchingPrefixForKey.split("\\.");
+	            List<String> fullChain = new ArrayList<>();
+	            StringBuilder chain = new StringBuilder();
+	            for (int i = 0; i < parts.length; i++) {
+	                if (i > 0) chain.append(".");
+	                chain.append(parts[i]);
+	                fullChain.add(chain.toString());
+	            }
+
+	            List<String> prefixesToWrite = new ArrayList<>();
+	            for (String p : fullChain) {
+	                if (comments.containsKey(p) && !writtenPrefixes.contains(p)) {
+	                    prefixesToWrite.add(p);
+	                }
+	            }
+
+	            if (!prefixesToWrite.isEmpty()) {
+	                for (int i = 0; i < prefixesToWrite.size(); i++) {
+	                    String prefix = prefixesToWrite.get(i);
+	                    String comment = comments.get(prefix);
+	                    if (comment == null) continue;
+
+	                    if (!firstEntryOverall) {
+	                        boolean isTopSection = KNOWN_SECTION_PREFIXES.contains(prefix);
+	                        if (i == 0 && isTopSection
+	                                && lastWrittenTopSection != null
+	                                && !prefix.equals(lastWrittenTopSection)) {
+	                            sb.append("\n\n");
+	                        } else {
+	                            sb.append("\n");
+	                        }
+	                    }
+
+	                    sb.append(comment).append("\n");
+	                    writtenPrefixes.add(prefix);
+	                    firstEntryOverall = false;
+
+	                    if (KNOWN_SECTION_PREFIXES.contains(prefix)) {
+	                        lastWrittenTopSection = prefix;
+	                    }
+	                }
+	            }
+
+	            sb.append(key).append(" = ").append(value).append("\n");
+	            firstEntryOverall = false;
+
+	        } else {
+	            clavesSinSeccion.add(key);
+	        }
+	    }
+
+	    if (!clavesSinSeccion.isEmpty()) {
+	        if (!firstEntryOverall) {
+	            sb.append("\n\n");
+	        }
+	        sb.append("# ===== Nuevas Configuraciones Añadidas =====\n");
+	        for (String key : clavesSinSeccion) {
+	            sb.append(key).append(" = ").append(configMap.get(key)).append("\n");
+	        }
+	    }
+
+	    sb.append("\n#----------------------- FIN CONFIGURACION ------------------------\n");
+	    return sb.toString();
+	} // --- Fin del metodo generarTextoConfigOrdenado ---
+
+
+	/**
+	 * Construye el mapa completo de comentarios de sección para escribir una
+	 * configuración ordenada: combina {@link #DEFAULT_GROUP_COMMENTS} con las
+	 * secciones dinámicas por barra detectadas a partir de las claves reales del mapa.
+	 */
+	private Map<String, String> construirMapaComentariosCompleto(Map<String, String> configMap) {
+	    Map<String, String> comments = new HashMap<>(DEFAULT_GROUP_COMMENTS);
+
+	    // Índice de títulos por clave de barra/categoría (normalizada) desde UIDefinitionService
+	    Map<String, String> titulos = new HashMap<>();
+	    UIDefinitionService uiDefs = new UIDefinitionService();
+	    uiDefs.generateModularToolbarStructure().forEach(tb -> {
+	        titulos.put(ConfigKeys.normalizePart(tb.claveBarra()), tb.titulo());
+	        tb.componentes().forEach(c -> {
+	            if (c instanceof ToolbarButtonDefinition b) {
+	                titulos.putIfAbsent(ConfigKeys.normalizePart(b.categoriaLayout()), tb.titulo());
+	            }
+	        });
+	    });
+
+	    Set<String> seccionesAnadidas = new HashSet<>();
+	    for (String key : configMap.keySet()) {
+	        String prefBoton = extraerPrefijoBarra(key, "interfaz.boton.");
+	        if (prefBoton != null) {
+	            String seccionKey = "interfaz.boton." + prefBoton.toLowerCase();
+	            if (seccionesAnadidas.add(seccionKey) && !comments.containsKey(seccionKey)) {
+	                comments.put(seccionKey, "# === Botones: " + tituloBarra(prefBoton, titulos) + " ===");
+	            }
+	        }
+	        String prefHerramienta = extraerPrefijoBarra(key, "interfaz.herramientas.");
+	        if (prefHerramienta != null) {
+	            String seccionKey = "interfaz.herramientas." + prefHerramienta.toLowerCase();
+	            if (seccionesAnadidas.add(seccionKey) && !comments.containsKey(seccionKey)) {
+	                comments.put(seccionKey, "# === Barra: " + tituloBarra(prefHerramienta, titulos) + " ===");
+	            }
+	        }
+	    }
+
+	    return comments;
+	} // --- Fin del metodo construirMapaComentariosCompleto ---
+
+
+	// Extrae el primer segmento de una clave jerárquica tras la raíz indicada.
+	// Por ejemplo, con raíz "interfaz.boton." y clave "interfaz.boton.edicion.zoom.visible"
+	// devuelve "edicion". Devuelve null si la clave no empieza por la raíz.
+	private String extraerPrefijoBarra(String key, String raiz) {
+	    if (!key.startsWith(raiz)) return null;
+	    String resto = key.substring(raiz.length());
+	    int dot = resto.indexOf('.');
+	    return dot > 0 ? resto.substring(0, dot) : resto;
+	}
+
+
+	// Devuelve un título legible para una barra: el de UIDefinitionService si existe
+	// (coincidencia por clave normalizada), o un humanizado de la clave en caso contrario.
+	private String tituloBarra(String claveBarra, Map<String, String> titulos) {
+	    String titulo = titulos.get(ConfigKeys.normalizePart(claveBarra));
+	    if (titulo != null && !titulo.isBlank()) return titulo;
+	    String humanizado = claveBarra
+	            .replaceAll("([a-z])([A-Z])", "$1 $2")
+	            .replace('_', ' ')
+	            .trim();
+	    if (humanizado.isBlank()) return claveBarra;
+	    return Character.toUpperCase(humanizado.charAt(0)) + humanizado.substring(1);
+	}
+
+
+	// Flag para garantizar que la reordenación automática solo se ejecute una vez por sesión
+	private static boolean reordenacionConfigEjecutada = false;
+
+
+	/**
+	 * Reordena el archivo {@code config.cfg} existente colocando cada clave en su
+	 * sección correcta (padre → hijo), consolidando las secciones duplicadas de
+	 * "Nuevas Configuraciones Añadidas" y purgando claves obsoletas conocidas.
+	 * Es idempotente: si el archivo ya está ordenado, no hace nada.
+	 * Se invoca automáticamente una vez por sesión si se detecta desorden.
+	 */
+	public void reordenarConfiguracion() throws IOException {
+	    File configFile = new File(CONFIG_FILE_PATH);
+	    if (!configFile.exists()) return;
+
+	    Map<String, String> mapa = leerArchivoConfigExistente(configFile);
+	    boolean huboCambios = mapa.keySet().removeIf(ConfigurationManager::esClaveObsoleta);
+	    huboCambios |= sanearValoresCorruptos(mapa);
+
+	    String textoOrdenado = generarTextoConfigOrdenado(mapa);
+	    String contenidoActual = leerContenidoArchivo(configFile);
+
+	    if (textoOrdenado.equals(contenidoActual)) {
+	        logger.debug("Config ya ordenado, no se reordena.");
+	        return;
+	    }
+
+	    escribirConfigOrdenado(mapa, configFile);
+	    logger.info("Config reordenado: claves colocadas en sus secciones"
+	            + (huboCambios ? ", obsoletas purgadas y valores saneados." : "."));
+	} // --- Fin del metodo reordenarConfiguracion ---
+
+
+	// Lee el contenido completo de un archivo como String
+	private String leerContenidoArchivo(File file) throws IOException {
+	    StringBuilder sb = new StringBuilder();
+	    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+	        String linea;
+	        while ((linea = reader.readLine()) != null) {
+	            sb.append(linea).append("\n");
+	        }
+	    }
+	    return sb.toString();
+	}
+
+
+	// Determina si una clave de configuración es obsoleta y debe eliminarse.
+	// Regla: los placeholders "todo_funcionalidad_pendiente" se consideran residuos.
+	// NOTA: No se eliminan claves legítimas aunque su valor esté corrupto; esos valores
+	// se sanan mediante sanearValoresCorruptos().
+	private static boolean esClaveObsoleta(String clave) {
+	    if (clave == null) return false;
+	    return clave.contains("todo_funcionalidad_pendiente");
+	}
+
+
+	// Sanea valores corruptos de claves conocidas. Por ejemplo, una clave booleana
+	// (editor.estado.recuperacion_pendiente) cuyo valor sea una ruta local de otro
+	// equipo (residuo de otra máquina) se restablece a su valor por defecto.
+	// Devuelve true si algún valor fue modificado.
+	private boolean sanearValoresCorruptos(Map<String, String> configMap) {
+	    boolean huboCambios = false;
+	    String valor = configMap.get(ConfigKeys.EDITOR_RECUPERACION_PENDIENTE);
+	    if (valor != null && !"true".equalsIgnoreCase(valor.trim()) && !"false".equalsIgnoreCase(valor.trim())) {
+	        logger.warn("  -> Valor corrupto saneado para '" + ConfigKeys.EDITOR_RECUPERACION_PENDIENTE + "': '" + valor + "' -> false");
+	        configMap.put(ConfigKeys.EDITOR_RECUPERACION_PENDIENTE, "false");
+	        huboCambios = true;
+	    }
+	    return huboCambios;
+	}
 
 
 	// Helper para encontrar la sección principal de un prefijo
@@ -634,6 +828,49 @@ public class ConfigurationManager
 	    defaults.put(ConfigKeys.ZIP2PNG_CARPETA_TEMP, tempDir);
 	    defaults.put(ConfigKeys.ZIP2PNG_RUTA_OPENSCAD, "");
 	    defaults.put(ConfigKeys.ZIP2PNG_RUTA_BLENDER, "");
+
+	    // --- Editor: AutoLayout ---
+	    defaults.put(ConfigKeys.EDITOR_AUTOLAYOUT_MARGIN, "24");
+	    defaults.put(ConfigKeys.EDITOR_AUTOLAYOUT_SPACING, "20");
+	    defaults.put(ConfigKeys.EDITOR_AUTOLAYOUT_FIT_MARGIN, "24");
+	    defaults.put(ConfigKeys.EDITOR_AUTOLAYOUT_HERO_SCALE, "0.5");
+	    defaults.put(ConfigKeys.EDITOR_AUTOLAYOUT_MOSAIC_VARIANCE, "0.15");
+	    defaults.put(ConfigKeys.EDITOR_AUTOLAYOUT_PACK_MODE, "SHELF");
+	    defaults.put(ConfigKeys.EDITOR_AUTOLAYOUT_NO_SELECCIONADAS, "SACAR_FUERA");
+
+	    // --- Editor: Smart Guides ---
+	    defaults.put(ConfigKeys.EDITOR_SMART_GUIDES_SHOW, "true");
+	    defaults.put(ConfigKeys.EDITOR_SMART_GUIDES_SNAP_CANVAS, "true");
+	    defaults.put(ConfigKeys.EDITOR_SMART_GUIDES_SNAP_LAYERS, "true");
+	    defaults.put(ConfigKeys.EDITOR_SMART_GUIDES_SNAP_DISTANCE, "6");
+	    defaults.put(ConfigKeys.EDITOR_SMART_GUIDES_STICKY_DISTANCE, "3");
+	    defaults.put(ConfigKeys.EDITOR_SMART_GUIDES_COLOR, "255,0,255");
+	    defaults.put(ConfigKeys.EDITOR_SMART_GUIDES_STROKE_WIDTH, "1.0");
+
+	    // --- Editor: Estado (documento en curso) ---
+	    defaults.put(ConfigKeys.EDITOR_CARPETA_BASE, ".editor_docs");
+	    defaults.put(ConfigKeys.EDITOR_ARCHIVO_TEMPORAL, "editor_temporal.edoc");
+	    defaults.put(ConfigKeys.EDITOR_ARCHIVO_RECUPERACION, "editor_recuperacion.edoc");
+	    defaults.put(ConfigKeys.EDITOR_RECUPERACION_PENDIENTE, "false");
+
+	    // --- Proyectos: Estado (selecciones recientes) ---
+	    defaults.put(ConfigKeys.PROYECTOS_LISTA_ACTIVA, "");
+	    defaults.put(ConfigKeys.PROYECTOS_ULTIMA_SELECCION_KEY, "");
+	    defaults.put(ConfigKeys.PROYECTOS_ULTIMA_DESCARTES_KEY, "");
+	    defaults.put(ConfigKeys.PROYECTOS_ULTIMO_PROYECTO_ABIERTO, "");
+
+	    // --- Render (escaneo) ---
+	    defaults.put(ConfigKeys.RENDER_SCAN_INCLUDE_SUBFOLDERS, "true");
+
+	    // --- UI: Fondo personalizado ---
+	    defaults.put(ConfigKeys.BACKGROUND_CUSTOM_COLOR_1, "128,128,128");
+	    defaults.put(ConfigKeys.BACKGROUND_CUSTOM_COLOR_2, "128,128,128");
+	    defaults.put(ConfigKeys.BACKGROUND_CUSTOM_COLOR_3, "128,128,128");
+	    defaults.put(ConfigKeys.BACKGROUND_CUSTOM_COLOR_4, "128,128,128");
+
+	    // --- Config: Canvas del Editor ---
+	    defaults.put(ConfigKeys.CANVAS_DEFAULT_WIDTH, "1920");
+	    defaults.put(ConfigKeys.CANVAS_DEFAULT_HEIGHT, "1080");
 	return defaults;
 	
 	}
@@ -703,11 +940,37 @@ public class ConfigurationManager
         comments.put("interfaz.infobar.inferior.nombre_ruta", "# --- Visibilidad y Formato para Nombre/Ruta (Inferior) ---");
         // ... etc para otros grupos de menús
 
-        // --- Subgrupos Nivel 1 (Dentro de miniaturas) ---
+        // --- Subgrupos Nivel 2 (Dentro de miniaturas) ---
         comments.put("miniaturas.cantidad",          	"# == Cantidad de miniaturas Antes/Después ==");
         comments.put("miniaturas.tamano.normal",     	"# == Tamaño Normal ==");
         comments.put("miniaturas.tamano.seleccionada", 	"# == Tamaño Seleccionada ==");
         comments.put("miniaturas.ui", 					"# == Configuración de Miniaturas en la UI ==");
+
+        // --- Editor (Auto Layout + Smart Guides) ---
+        comments.put("editor", 			"# ===== Editor =====");
+        comments.put("editor.autolayout",	"# == Auto Layout ==");
+        comments.put("editor.smart_guides",	"# == Smart Guides ==");
+        comments.put("editor.archivo", 	"# == Archivo del Documento ==");
+        comments.put("editor.estado", 	"# == Estado del Editor ==");
+        comments.put("editor.carpeta", 	"# == Carpeta Base del Editor ==");
+
+        // --- Zip2PNG / Renderizado ---
+        comments.put("zip2png", 	"# ===== Zip2PNG (Renderizado) =====");
+        comments.put("render", 		"# ===== Renderizado (Escaneo) =====");
+        comments.put("render.scan", "# == Escaneo de Carpetas ==");
+
+        // --- UI general ---
+        comments.put("ui", 			"# ===== UI (Fondos y Colores) =====");
+        comments.put("ui.background", "# == Fondo Personalizado ==");
+        comments.put("ui.background.custom", "# == Colores Personalizados ==");
+
+        // --- Config del Editor (canvas) ---
+        comments.put("config.editor", 		"# === Config: Editor ===");
+        comments.put("config.editor.canvas", "# == Canvas del Editor ==");
+
+        // --- Estado de Proyectos ---
+        comments.put("proyectos.estado", "# == Estado de Proyectos (recientes) ==");
+        comments.put("carrusel.estado",  "# == Estado del Carrusel ==");
 
         // --- Paneles de datos (infobars)
         comments.put("interfaz.menu.configuracion.paneles_de_datos", "# == Barras de Status o Paneles de Datos ==");
