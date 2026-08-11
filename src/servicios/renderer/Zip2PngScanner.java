@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import modelo.renderer.ImageEntry;
@@ -98,10 +99,12 @@ public class Zip2PngScanner {
      * @param includeSubfolders true para recorrido recursivo completo
      * @param candidateCallback recibe cada candidato encontrado (puede ser null)
      * @param folderCallback    recibe cada directorio visitado (puede ser null)
+     * @param entryCallback     recibe CADA entrada visitada (directorio o archivo), útil para progreso real (puede ser null)
      * @return lista completa de candidatos
      */
     public List<RenderCandidate> scanFolder(Path folderPath, boolean includeSubfolders,
-            Consumer<RenderCandidate> candidateCallback, Consumer<Path> folderCallback) {
+            Consumer<RenderCandidate> candidateCallback, Consumer<Path> folderCallback,
+            Consumer<Path> entryCallback) {
         if (!Files.isDirectory(folderPath)) {
             return Collections.emptyList();
         }
@@ -111,6 +114,7 @@ public class Zip2PngScanner {
         try (Stream<Path> walk = Files.walk(folderPath, depth)) {
             for (Iterator<Path> it = walk.iterator(); it.hasNext();) {
                 Path p = it.next();
+                if (entryCallback != null) entryCallback.accept(p);
                 if (Files.isDirectory(p)) {
                     if (folderCallback != null) folderCallback.accept(p);
                 } else if (Files.isRegularFile(p)) {
@@ -179,11 +183,11 @@ public class Zip2PngScanner {
      * @return lista completa de candidatos
      */
     public List<RenderCandidate> scanFolder(Path folderPath, Consumer<RenderCandidate> callback) {
-        return scanFolder(folderPath, true, callback, null);
+        return scanFolder(folderPath, true, callback, null, null);
     }
 
     public List<RenderCandidate> scanFolder(Path folderPath) {
-        return scanFolder(folderPath, true, null, null);
+        return scanFolder(folderPath, true, null, null, null);
     }
 
     /**
@@ -208,6 +212,21 @@ public class Zip2PngScanner {
      * @param candidates lista de candidatos a procesar
      */
     public static void detectarImagenesEnArchivos(List<RenderCandidate> candidates) {
+        detectarImagenesEnArchivos(candidates, null);
+    }
+
+    /**
+     * Escanea imágenes dentro de archivos comprimidos para todos los candidatos.
+     * Pobla el campo {@code imagenesInternas} de cada candidato comprimido y
+     * notifica progreso por cada archivo comprimido procesado.
+     *
+     * @param candidates lista de candidatos a procesar
+     * @param onArchivo  recibe {@code (procesados, total)} por cada comprimido con 7z (puede ser null)
+     */
+    public static void detectarImagenesEnArchivos(List<RenderCandidate> candidates,
+            BiConsumer<Integer, Integer> onArchivo) {
+        long total = candidates.stream().filter(c -> c.esComprimido).count();
+        long procesados = 0;
         for (RenderCandidate c : candidates) {
             if (!c.esComprimido) continue;
             try {
@@ -215,6 +234,8 @@ public class Zip2PngScanner {
             } catch (Exception e) {
                 // Si falla, dejamos lista vacía
             }
+            procesados++;
+            if (onArchivo != null) onArchivo.accept((int) procesados, (int) total);
         }
     }
 

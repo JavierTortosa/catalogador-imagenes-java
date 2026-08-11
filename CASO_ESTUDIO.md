@@ -23,12 +23,12 @@ El desarrollo de ModelTag se ha regido por el principio de maximizar el rendimie
 ```
 ┌────────────────────────────────────────────────────────┐
 │                      CAPA DE VISTA                     │
-│    Swing Puro (FlatLaf) • Renderizado por Demanda      │
+│   Swing (FlatLaf) + JavaFX 3D • Renderizado por Demanda│
 └───────────────────────────┬────────────────────────────┘
                             ▼
 ┌────────────────────────────────────────────────────────┐
 │                   CAPA DE CONTROLADOR                  │
-│   Patrón Command (90+ Acciones) • SwingWorkers • DI    │
+│  ActionFactory (150+ Acciones) • SwingWorkers • DI     │
 └───────────────────────────┬────────────────────────────┘
                             ▼
 ┌────────────────────────────────────────────────────────┐
@@ -40,8 +40,8 @@ El desarrollo de ModelTag se ha regido por el principio de maximizar el rendimie
 ### Stack Principal
 
 - **Entorno de Ejecución:** Java 21 (construido mediante Maven).
-- **Interfaz de Usuario (UI):** Swing puro (sin dependencias web o JavaFX pesadas), utilizando componentes estándar personalizados (JFrame, JList, JTable). La coherencia visual se maneja mediante la librería FlatLaf 3.4.1 (soportando múltiples temas y extensiones personalizadas).
-- **Base de Datos Local:** SQLite embebido accedido mediante JDBC con persistencia optimizada.
+- **Interfaz de Usuario (UI):** Swing (JFrame, JList, JTable) con coherencia visual mediante FlatLaf 3.4.1 (múltiples temas y extensiones personalizadas), complementado con JavaFX 21 embebido (JFXPanel) para la previsualización 3D interactiva de modelos STL.
+- **Base de Datos Local:** SQLite embebido (modo WAL) para el catálogo de imágenes y tags, con indexación incremental de bibliotecas y consultas relacionales eficientes.
 - **Serialización:** GSON 2.10.1 con adaptadores personalizados de tipo (TypeAdapter) y configuraciones específicas (disableHtmlEscaping) para asegurar la compatibilidad con rutas de archivos de Windows.
 - **Procesamiento de Miniaturas:** Thumbnailator 0.4.20 para generación adaptativa y escalado eficiente, y TwelveMonkeys 3.10.1 bajo el estándar ImageIO para extender el soporte a formatos avanzados de imagen (CMYK, PSD, WebP, TGA, etc.).
 - **Gestión de Caché:** Caffeine 3.1.8 para la gestión en memoria de miniaturas con políticas de desalojo automatizadas.
@@ -50,7 +50,7 @@ El desarrollo de ModelTag se ha regido por el principio de maximizar el rendimie
 ### Patrones de Diseño Aplicados
 
 - **MVC Plano Desacoplado:** Arquitectura limpia dividida en modelo, vista, controlador y servicios, gestionando la inyección de dependencias mediante un registro manual de componentes (ComponentRegistry).
-- **Command Pattern:** Encapsulación de la lógica de negocio en más de 90 clases de acción independientes coordinadas por un ActionFactory, lo que facilita la escalabilidad y mantenibilidad del software.
+- **ActionFactory (Command simplificado):** Más de 150 acciones de negocio (AbstractAction) encapsuladas y coordinadas desde una fábrica central (ActionFactory), lo que centraliza menús, toolbars y atajos de teclado y facilita el mantenimiento.
 - **Inicialización en 3 Fases:** Ciclo de vida predecible del inicio de la aplicación en la clase AppInitializer (instantiateComponents → wireDependencies → initializeApplication).
 
 ## 3. Soluciones de Ingeniería a Desafíos Complejos
@@ -87,11 +87,11 @@ Esta abstracción permite:
 
 - **Auto-relocalización Asíncrona:** El ProjectIntegrityService repara de forma autónoma rutas físicas rotas buscando de forma recursiva en el sistema por firma de nombre de archivo.
 - **Escritura Atómica:** La persistencia del archivo de configuración global se realiza escribiendo primero sobre un archivo temporal que, una vez validado, reemplaza de forma atómica al archivo original, eliminando el riesgo de archivos de configuración corruptos por cierres inesperados de la aplicación.
-- **Pre-vuelo de Exportación (Preflight):** Mediante ExportPreflightService se realizan comprobaciones previas antes de iniciar escrituras pesadas: validación de códigos de catálogo, existencia física, espacio disponible en disco y análisis estructural interno de los contenedores .7z para verificar la presencia de los ficheros STL requeridos.
+- **Pre-vuelo de Exportación (Preflight):** Mediante ExportPreflightService y PDFExportPreflightService se realizan comprobaciones previas antes de iniciar escrituras pesadas: validación de códigos de catálogo, existencia física, espacio disponible en disco y análisis estructural interno de los contenedores .7z para verificar la presencia de los ficheros STL requeridos.
 
-## 4. Arquitectura de Base de Datos (Esquema SQLite)
+## 4. Arquitectura de Datos (Catálogo SQLite + Persistencia GSON)
 
-El almacenamiento del catálogo se centraliza en un motor SQLite local. Se optimizó el rendimiento transaccional aplicando los modos PRAGMA journal_mode=WAL (Write-Ahead Logging), sincronización normal, almacenamiento temporal en memoria y un límite de caché de 64MB.
+El catálogo de imágenes y su taxonomía de tags se centraliza en un motor SQLite local (accesos concurrentes en modo WAL). La gestión de proyectos (selecciones, comentarios, checkboxes) y la configuración global se persisten mediante serialización GSON, lo que combina consultas relacionales eficientes con archivos de proyecto legibles y portables. Se optimizó el rendimiento transaccional aplicando los modos PRAGMA journal_mode=WAL (Write-Ahead Logging), sincronización normal, almacenamiento temporal en memoria y un límite de caché de 64MB.
 
 ```
 ┌──────────────────────┐
@@ -133,13 +133,15 @@ El almacenamiento del catálogo se centraliza en un motor SQLite local. Se optim
 
 El flujo de trabajo cubre el ciclo completo desde la catalogación hasta la entrega de propuestas interactivas:
 
-1. **Catalogación y Clasificación (Modo Datos):** Asignación de etiquetas personalizadas organizadas de forma arbórea y mapeo automático de la estructura física del disco como etiquetas de sistema no editables.
+1. **Catalogación y Clasificación (Modo Datos):** Asignación de etiquetas personalizadas organizadas de forma arbórea y mapeo automático de la estructura física del disco como etiquetas de sistema no editables, respaldado por la base de datos SQLite.
 2. **Filtrado Avanzado (Modo Visor):** Búsqueda instantánea de tipo "tornado" asíncrona que cruza de forma aditiva o sustractiva textos de ruta, nombres y etiquetas personalizadas.
-3. **Consolidación (Modo Proyecto):** Asociación semiautomática de imágenes con sus respectivos ficheros de geometría 3D, validando la integridad del contenido técnico del archivo y permitiendo la corrección de inconsistencias.
-4. **Validación del Cliente (Modo Cliente):** Exportación dinámica del catálogo consolidado a un entorno HTML estático interactivo. El cliente puede revisar de forma remota, realizar selecciones o descartes, y generar notas de comunicación de vuelta que el taller puede reimportar y procesar mediante el ClienteTableModel.
+3. **Creación de Imágenes Representativas (Modo RENDER):** Escaneo de bibliotecas de archivos comprimidos (ZIP/RAR/7Z) con modelos 3D, detección de imágenes embebidas, renderizado 3D de los STL más pesados (vía JavaFX) y edición de composiciones (fondos, brillo, collage, capas) para generar el PNG descriptivo de cada activo.
+4. **Consolidación (Modo Proyecto):** Asociación semiautomática de imágenes con sus respectivos ficheros de geometría 3D, validando la integridad del contenido técnico del archivo y permitiendo la corrección de inconsistencias.
+5. **Presentación Cíclica (Modo CARRUSEL):** Visualización secuencial automática de los activos de un proyecto para revisión rápida.
+6. **Validación del Cliente (Modo Cliente):** Exportación dinámica del catálogo consolidado a un HTML interactivo autocontenido (miniaturas base64 embebidas) y a PDF técnico (PDFBox). El cliente puede revisar de forma remota, realizar selecciones o descartes, y generar notas de comunicación de vuelta que el taller puede reimportar y procesar mediante el ClienteTableModel.
 
 ## 6. Conclusiones de Rendimiento y Desarrollo
 
 - **Optimización de Procesos:** La aplicación ha eliminado los cuellos de botella de renderizado locales asociados a las limitaciones de los exploradores de archivos genéricos del sistema operativo.
 - **Seguridad y Robustez:** Diseñada bajo un esquema no destructivo (operaciones de solo lectura sobre los activos de entrada salvo orden explícita del usuario), garantizando la total preservación de los archivos de origen.
-- **Mantenibilidad:** El uso estricto de patrones como Command y la modularización en servicios especializados ha permitido añadir funciones complejas (como la exportación HTML y el análisis de archivos comprimidos) de forma limpia y desacoplada del resto del sistema.
+- **Mantenibilidad:** El uso estricto de patrones y la modularización en servicios especializados ha permitido añadir funciones complejas (como la exportación HTML, el renderizado 3D y el análisis de archivos comprimidos) de forma limpia y desacoplada del resto del sistema.

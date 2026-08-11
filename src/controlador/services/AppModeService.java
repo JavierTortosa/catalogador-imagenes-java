@@ -550,7 +550,7 @@ public class AppModeService {
                 if (toolbarManager != null)
                     toolbarManager.reconstruirContenedorDeToolbars(modoAlQueSeEntra);
                 if (modoAlQueSeEntra == WorkMode.RENDER && renderController != null) {
-                    renderController.mostrarScannerPorDefecto();
+                    renderController.restaurarVistaRender();
                 }
                 if (modoAlQueSeEntra == WorkMode.CARROUSEL
                         && visorController.getActionFactory().getCarouselManager() != null) {

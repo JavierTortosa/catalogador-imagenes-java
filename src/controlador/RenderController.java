@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -127,6 +128,12 @@ public class RenderController {
     private int pointerSinRenderizar = 0;
     private int pointerConImagen = 0;
     private boolean syncingFromGrid;
+
+    // Vista activa del modo Render (grupo excluyente: scanner, grid 3D, grid 2D)
+    private static final String VISTA_SCANNER = "scanner";
+    private static final String VISTA_GRID3D = "grid3d";
+    private static final String VISTA_GRID2D = "grid2d";
+    private String vistaActivaRender = VISTA_SCANNER;
 
     public RenderController(RenderPanel panel, ConfigurationManager config, Component parentFrame) {
         this.panel = panel;
@@ -753,20 +760,47 @@ public class RenderController {
         vaciarCandidatos();
 
         TaskProgressDialog dialog = new TaskProgressDialog(frame, "Escaneando", "Buscando archivos sin imagen...");
-        new SwingWorker<List<RenderCandidate>, Integer>() {
+        new SwingWorker<List<RenderCandidate>, String>() {
             @Override
             protected List<RenderCandidate> doInBackground() {
+                publish("Contando archivos...");
+                long totalEntradas = contarEntradas(folder, true);
                 Zip2PngScanner scanner = new Zip2PngScanner(limiteBytes);
-                List<RenderCandidate> candidates = scanner.scanFolder(folder);
-                Zip2PngScanner.detectarImagenesEnArchivos(candidates);
-                publish(candidates.size());
+                List<RenderCandidate> candidates;
+                int[] candidatos = {0};
+                long[] entradas = {0};
+                int[] ultimoPct = {0};
+
+                candidates = scanner.scanFolder(folder, true, null, null, p -> {
+                    entradas[0]++;
+                    if (totalEntradas > 0) {
+                        int pct = (int) Math.min(100, (entradas[0] * 100L) / totalEntradas);
+                        if (pct != ultimoPct[0]) {
+                            ultimoPct[0] = pct;
+                            dialog.updateProgress(pct, 100, null);
+                            publish("Carpetas | Candidatos: " + candidatos[0]);
+                        }
+                    }
+                });
+                for (RenderCandidate c : candidates) candidatos[0]++;
+
+                publish("Comprobando imágenes dentro de los comprimidos...");
+                ultimoPct[0] = 0;
+                Zip2PngScanner.detectarImagenesEnArchivos(candidates, (procesados, total) -> {
+                    int pct = total > 0 ? (int) Math.min(100, (procesados * 100L) / total) : 100;
+                    if (pct != ultimoPct[0]) {
+                        ultimoPct[0] = pct;
+                        dialog.updateProgress(pct, 100, null);
+                        publish("Comprobando imágenes... " + procesados + " de " + total);
+                    }
+                });
+
                 logger.info("Escaneo completado: {} candidatos encontrados en {}", candidates.size(), folder);
                 return candidates;
             }
             @Override
-            protected void process(List<Integer> chunks) {
-                int count = chunks.get(chunks.size() - 1);
-                dialog.updateStatusText("Candidatos encontrados: " + count);
+            protected void process(List<String> chunks) {
+                dialog.updateStatusText(chunks.get(chunks.size() - 1));
             }
             @Override
             protected void done() {
@@ -776,6 +810,7 @@ public class RenderController {
                     int sinImg = panel.getListModelSinImagen().getSize();
                     int conImg = panel.getListModelConImagen().getSize();
                     dialog.updateStatusText("Sin renderizar: " + sinImg + " | Con imagen: " + conImg);
+                    mostrarGrid3D();
                 } catch (Exception ex) {
                     logger.error("Error al finalizar escaneo", ex);
                 }
@@ -817,6 +852,12 @@ public class RenderController {
         panel.actualizarTitulosPestanyas();
         contentModel.clear();
         panel.getContentImageListModel().clear();
+        panel.getImagenesGrid().removeAll();
+        panel.getImagenesGrid().revalidate();
+        panel.getImagenesGrid().repaint();
+        panel.getRendersGrid().removeAll();
+        panel.getRendersGrid().revalidate();
+        panel.getRendersGrid().repaint();
         pngSourceMap.clear();
         triangleCache.clear();
         thumbnailsAprobados.clear();
@@ -826,28 +867,25 @@ public class RenderController {
 
 
     /**
-     * Alterna la vista del Scanner de Huérfanos en el panel central del Render.
-     * El toggle del Scanner es excluyente con los de Grid3D y Grid2D: al
-     * activarlo se deseleccionan los otros (y viceversa).
+     * Muestra el Scanner de Huérfanos como una vista más del grupo excluyente
+     * (scanner / grid 3D / grid 2D). Al seleccionarlo se deseleccionan los otros
+     * dos toggles; nunca se "apaga" dejando sin vista activa.
      */
     public void toggleScannerView() {
-        boolean nuevo = !panel.isScannerActive();
-        if (nuevo) {
-            prepararScannerParaMostrar();
-            deseleccionarToggle("button.render.grid3d");
-            deseleccionarToggle("button.render.grid2d");
-        } else {
-            deseleccionarToggle("button.render.scanner");
-        }
-        panel.setScannerActive(nuevo);
+        prepararScannerParaMostrar();
+        panel.setScannerActive(true);
+        seleccionarToggleScanner();
+        deseleccionarToggle("button.render.grid3d");
+        deseleccionarToggle("button.render.grid2d");
+        vistaActivaRender = VISTA_SCANNER;
     } // --- Fin del metodo toggleScannerView ---
 
 
     /**
-     * Activa el Scanner de Huérfanos como vista inicial al entrar en modo
-     * Render. Pre-rellena la carpeta raíz del visor, selecciona su toggle y
-     * deselecciona los toggles de Grid3D/Grid2D para que la vista quede
-     * coherente con la exclusividad del grupo.
+     * Activa el Scanner de Huérfanos como vista actual del modo Render.
+     * Pre-rellena la carpeta raíz del visor, selecciona su toggle y deselecciona
+     * los toggles de Grid3D/Grid2D para que la vista quede coherente con la
+     * exclusividad del grupo.
      */
     public void mostrarScannerPorDefecto() {
         prepararScannerParaMostrar();
@@ -855,7 +893,27 @@ public class RenderController {
         seleccionarToggleScanner();
         deseleccionarToggle("button.render.grid3d");
         deseleccionarToggle("button.render.grid2d");
+        vistaActivaRender = VISTA_SCANNER;
     } // --- Fin del metodo mostrarScannerPorDefecto ---
+
+
+    /**
+     * Restaura la última vista activa del modo Render al entrar de nuevo en el
+     * modo. La primera vez (o si aún no se ha trabajado) se muestra el Scanner.
+     */
+    public void restaurarVistaRender() {
+        switch (vistaActivaRender) {
+            case VISTA_GRID3D:
+                mostrarGrid3D();
+                break;
+            case VISTA_GRID2D:
+                mostrarGrid2D();
+                break;
+            default:
+                mostrarScannerPorDefecto();
+                break;
+        }
+    } // --- Fin del metodo restaurarVistaRender ---
 
 
     private void prepararScannerParaMostrar() {
@@ -907,19 +965,42 @@ public class RenderController {
         SwingWorker<List<RenderCandidate>, String> worker = new SwingWorker<>() {
             @Override
             protected List<RenderCandidate> doInBackground() {
+                publish("Contando archivos...");
+                long totalEntradas = contarEntradas(scanRoot, incluir);
                 Zip2PngScanner scanner = new Zip2PngScanner(limiteBytes);
                 int[] carpetas = {0};
                 int[] candidatos = {0};
+                long[] entradas = {0};
+                int[] ultimoPct = {0};
                 List<RenderCandidate> found = scanner.scanFolder(scanRoot, incluir,
                         c -> {
                             candidatos[0]++;
-                            publish("Carpetas: " + carpetas[0] + " | Candidatos: " + candidatos[0]);
+                            publish("Casos encontrados: " + candidatos[0]);
                         },
                         p -> {
                             carpetas[0]++;
                             publish("Carpetas: " + carpetas[0] + " | Candidatos: " + candidatos[0]);
+                        },
+                        p -> {
+                            entradas[0]++;
+                            if (totalEntradas > 0) {
+                                int pct = (int) Math.min(100, (entradas[0] * 100L) / totalEntradas);
+                                if (pct != ultimoPct[0]) {
+                                    ultimoPct[0] = pct;
+                                    dialog.updateProgress(pct, 100, null);
+                                }
+                            }
                         });
-                Zip2PngScanner.detectarImagenesEnArchivos(found);
+                publish("Comprobando imágenes dentro de los comprimidos...");
+                ultimoPct[0] = 0;
+                Zip2PngScanner.detectarImagenesEnArchivos(found, (procesados, total) -> {
+                    int pct = total > 0 ? (int) Math.min(100, (procesados * 100L) / total) : 100;
+                    if (pct != ultimoPct[0]) {
+                        ultimoPct[0] = pct;
+                        dialog.updateProgress(pct, 100, null);
+                        publish("Comprobando imágenes... " + procesados + " de " + total);
+                    }
+                });
                 return found;
             }
 
@@ -930,6 +1011,10 @@ public class RenderController {
 
             @Override
             protected void done() {
+                if (isCancelled()) {
+                    dialog.closeDialog();
+                    return;
+                }
                 try {
                     List<RenderCandidate> found = get();
                     Map<Path, List<RenderCandidate>> porCarpeta = new HashMap<>();
@@ -985,14 +1070,8 @@ public class RenderController {
         poblarPestanyasConCandidates(candidatos);
         panel.limpiarMarcados();
 
-        panel.setScannerActive(false);
-        deseleccionarToggleScanner();
+        mostrarGrid3D();
     } // --- Fin del metodo abrirSeleccionScanner ---
-
-
-    private void deseleccionarToggleScanner() {
-        deseleccionarToggle("button.render.scanner");
-    } // --- Fin del metodo deseleccionarToggleScanner ---
 
 
     private void seleccionarToggleScanner() {
@@ -1011,6 +1090,15 @@ public class RenderController {
             b.setSelected(false);
         }
     } // --- Fin del metodo deseleccionarToggle ---
+
+
+    private void seleccionarToggle(String key) {
+        if (registry == null) return;
+        Object btn = registry.get(key);
+        if (btn instanceof javax.swing.AbstractButton b) {
+            b.setSelected(true);
+        }
+    } // --- Fin del metodo seleccionarToggle ---
 
     private List<RenderCandidate> getAllCandidates() {
         List<RenderCandidate> all = new ArrayList<>();
@@ -1875,6 +1963,7 @@ public class RenderController {
 
         double rotX = panel.getPreview3DFX().getRotateXAngle();
         double rotY = panel.getPreview3DFX().getRotateYAngle();
+        double rotZ = panel.getPreview3DFX().getRotateZAngle();
         int brightness = panel.getBrightnessSlider().getValue();
         int contrast = panel.getContrastSlider().getValue();
         boolean antiAlias = panel.getChkAntiAlias().isSelected();
@@ -1906,7 +1995,7 @@ public class RenderController {
         }
 
         return renderer.renderizarConAjustes(currentTriangles,
-                rotX, rotY, antiAlias, brightness, contrast,
+                rotX, rotY, rotZ, antiAlias, brightness, contrast,
                 bgMode, solidColor, gradientStart, gradientEnd,
                 bgImage, bgImageScale, wireframe, panX, panY, zoomScale);
     } // --- Fin del metodo renderizarPreview ---
@@ -1970,26 +2059,32 @@ public class RenderController {
 
 
     /**
-     * Cambia a la pestaña "Sin renderizar" y sincroniza el grid. Deselecciona
-     * el toggle del Scanner y el de Grid2D (exclusividad de vistas).
+     * Cambia a la pestaña "Sin renderizar" y sincroniza el grid. Selecciona el
+     * toggle de Grid3D y deselecciona los de Scanner y Grid2D (exclusividad de
+     * vistas).
      */
     public void mostrarGrid3D() {
         panel.setScannerActive(false);
         deseleccionarToggle("button.render.scanner");
         deseleccionarToggle("button.render.grid2d");
+        seleccionarToggle("button.render.grid3d");
         panel.selectCandidateTab(0);
+        vistaActivaRender = VISTA_GRID3D;
     } // --- Fin del metodo mostrarGrid3D ---
 
 
     /**
-     * Cambia a la pestaña "Con imagen" y sincroniza el grid. Deselecciona el
-     * toggle del Scanner y el de Grid3D (exclusividad de vistas).
+     * Cambia a la pestaña "Con imagen" y sincroniza el grid. Selecciona el
+     * toggle de Grid2D y deselecciona los de Scanner y Grid3D (exclusividad de
+     * vistas).
      */
     public void mostrarGrid2D() {
         panel.setScannerActive(false);
         deseleccionarToggle("button.render.scanner");
         deseleccionarToggle("button.render.grid3d");
+        seleccionarToggle("button.render.grid2d");
         panel.selectCandidateTab(1);
+        vistaActivaRender = VISTA_GRID2D;
     } // --- Fin del metodo mostrarGrid2D ---
 
 
@@ -3360,6 +3455,26 @@ public class RenderController {
         }
         return ph;
     }
+
+
+    /**
+     * Cuenta el número total de entradas (directorios y archivos) de la carpeta
+     * según la profundidad de escaneo, para poder mostrar un progreso real en la
+     * barra del diálogo.
+     *
+     * @param root             carpeta raíz del escaneo
+     * @param includeSubfolders true para recorrido recursivo completo
+     * @return total de entradas visitadas, o 0 si no se puede contar
+     */
+    private long contarEntradas(Path root, boolean includeSubfolders) {
+        int depth = includeSubfolders ? Integer.MAX_VALUE : 1;
+        try (Stream<Path> walk = Files.walk(root, depth)) {
+            return walk.count();
+        } catch (IOException e) {
+            logger.warn("[RenderController] No se pudo contar las entradas de {}: {}", root, e.getMessage());
+            return 0;
+        }
+    } // --- Fin del metodo contarEntradas ---
 
 
 } // --- Fin de la clase RenderController ---

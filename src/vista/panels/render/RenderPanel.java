@@ -36,6 +36,7 @@ import javax.swing.JSlider;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -44,6 +45,7 @@ import modelo.renderer.ImageEntry;
 import modelo.renderer.ImageLayer;
 import modelo.renderer.StlEntry;
 import servicios.renderer.Zip2PngScanner.RenderCandidate;
+import vista.components.ThemedToggleButton;
 import vista.theme.Tema;
 import vista.theme.ThemeChangeListener;
 import vista.theme.ThemeManager;
@@ -111,12 +113,11 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
     private final JLabel contrastLabel;
     private final JSlider contrastSlider;
     private final JTextField contrastField;
-    private final JCheckBox chkAntiAlias;
-    private final JCheckBox chkCrosshair;
-    private final JCheckBox chkWireframe;
-    private final JCheckBox chkFillLight2;
+    private final ThemedToggleButton chkCrosshair;
+    private final ThemedToggleButton chkWireframe;
+    private final ThemedToggleButton chkAntiAlias;
+    private final ThemedToggleButton chkFillLight2;
     private final JComboBox<String> cboCalidad;
-
     // --- Controles de fondo ---
     private final ButtonGroup bgGroup;
     private final JRadioButton rbSolid;
@@ -169,6 +170,10 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
     public void setThemeManager(ThemeManager tm) {
         this.themeManager = tm;
         if (tm != null) {
+            chkAntiAlias.setThemeManager(tm);
+            chkFillLight2.setThemeManager(tm);
+            chkCrosshair.setThemeManager(tm);
+            chkWireframe.setThemeManager(tm);
             tm.addThemeChangeListener(this);
             applyTheme(tm.getTemaActual());
         }
@@ -205,9 +210,21 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
                             cb.setBackground(tema.colorFondoSecundario());
                             cb.setForeground(tema.colorTextoPrimario());
                         }
+                        if (child instanceof JToggleButton tb) {
+                            tb.setBackground(tema.colorFondoSecundario());
+                            tb.setForeground(tema.colorTextoPrimario());
+                        }
                     }
                 }
             }
+            chkAntiAlias.setBackground(tema.colorFondoSecundario());
+            chkAntiAlias.setForeground(tema.colorTextoPrimario());
+            chkFillLight2.setBackground(tema.colorFondoSecundario());
+            chkFillLight2.setForeground(tema.colorTextoPrimario());
+            chkCrosshair.setBackground(tema.colorFondoSecundario());
+            chkCrosshair.setForeground(tema.colorTextoPrimario());
+            chkWireframe.setBackground(tema.colorFondoSecundario());
+            chkWireframe.setForeground(tema.colorTextoPrimario());
 
             // Pestaña Fondo
             java.awt.Component fondoComp = tabbedPane.getComponentAt(1);
@@ -534,61 +551,66 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
         tabbedPane.setForeground(themeColorLabel());
 
         // --- Tab "Imagen" ---
-        JPanel imagenTab = new JPanel(new GridLayout(0, 1, 2, 2));
+        JPanel imagenTab = new JPanel(new BorderLayout(2, 4));
         imagenTab.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+
+        JPanel slidersPanel = new JPanel(new GridLayout(0, 1, 2, 2));
+        slidersPanel.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        imagenTab.add(slidersPanel, BorderLayout.NORTH);
 
         brightnessLabel = new JLabel("Brillo");
         brightnessLabel.setForeground(themeColorLabel());
         brightnessLabel.setPreferredSize(new Dimension(70, 20));
         brightnessSlider = new JSlider(-100, 100, 0);
         brightnessField = new JTextField("0", 5);
-        imagenTab.add(buildSliderRow(brightnessLabel, brightnessSlider, brightnessField));
+        slidersPanel.add(buildSliderRow(brightnessLabel, brightnessSlider, brightnessField));
 
         contrastLabel = new JLabel("Contraste");
         contrastLabel.setForeground(themeColorLabel());
         contrastLabel.setPreferredSize(new Dimension(70, 20));
         contrastSlider = new JSlider(-100, 100, 0);
         contrastField = new JTextField("0", 5);
-        imagenTab.add(buildSliderRow(contrastLabel, contrastSlider, contrastField));
+        slidersPanel.add(buildSliderRow(contrastLabel, contrastSlider, contrastField));
 
-        chkAntiAlias = new JCheckBox("Antialiasing");
+        chkAntiAlias = new ThemedToggleButton(null);
         chkAntiAlias.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         chkAntiAlias.setForeground(themeColorLabel());
-        chkCrosshair = new JCheckBox("Cruceta (ejes)");
-        chkCrosshair.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
-        chkCrosshair.setForeground(themeColorLabel());
-        chkCrosshair.setSelected(true);
-        chkWireframe = new JCheckBox("Contorno (wireframe)");
+        chkAntiAlias.setToolTipText("Activa el antialiasing del preview 3D");
+
+        chkWireframe = new ThemedToggleButton(null);
         chkWireframe.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         chkWireframe.setForeground(themeColorLabel());
-        chkFillLight2 = new JCheckBox("Luz de relleno");
+        chkWireframe.setToolTipText("Contorno (wireframe)");
+
+        chkFillLight2 = new ThemedToggleButton(null);
         chkFillLight2.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         chkFillLight2.setForeground(themeColorLabel());
         chkFillLight2.setToolTipText("Luz tenue inferior-izquierda para aclarar la zona de sombra");
-        JPanel checkPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
-        checkPanel.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
-        checkPanel.add(chkAntiAlias);
-        checkPanel.add(chkFillLight2);
-        checkPanel.add(chkCrosshair);
-        checkPanel.add(chkWireframe);
 
-        JLabel calidadLabel = new JLabel("Calidad de render:");
+        chkCrosshair = new ThemedToggleButton(null);
+        chkCrosshair.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        chkCrosshair.setForeground(themeColorLabel());
+        chkCrosshair.setSelected(true);
+        chkCrosshair.setToolTipText("Cruceta (ejes)");
+
+        JLabel calidadLabel = new JLabel("Calidad del render:");
         calidadLabel.setForeground(themeColorLabel());
         cboCalidad = new JComboBox<>(new String[]{"R\u00E1pida", "Normal", "Alta"});
         cboCalidad.setSelectedIndex(1);
-        JPanel calidadPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
-        calidadPanel.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
-        calidadPanel.add(calidadLabel);
-        calidadPanel.add(cboCalidad);
 
-        JPanel imagenBottom = new JPanel(new BorderLayout());
-        imagenBottom.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
-        JPanel checksWrap = new JPanel(new BorderLayout());
-        checksWrap.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
-        checksWrap.add(checkPanel, BorderLayout.NORTH);
-        checksWrap.add(calidadPanel, BorderLayout.SOUTH);
-        imagenBottom.add(checksWrap, BorderLayout.NORTH);
-        imagenTab.add(imagenBottom);
+        // Mini toolbar inferior: botones de preview (icono + tooltip) y calidad
+        JPanel miniToolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 2));
+        miniToolbar.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        miniToolbar.add(chkAntiAlias);
+        miniToolbar.add(chkWireframe);
+        miniToolbar.add(chkFillLight2);
+        miniToolbar.add(crearSeparadorToolbar());
+        miniToolbar.add(chkCrosshair);
+        miniToolbar.add(crearSeparadorToolbar());
+        miniToolbar.add(calidadLabel);
+        miniToolbar.add(cboCalidad);
+
+        imagenTab.add(miniToolbar, BorderLayout.SOUTH);
 
         tabbedPane.addTab("Imagen", imagenTab);
 
@@ -871,10 +893,25 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
         slider.setBackground(themeColor("Panel.background", 50, 50, 55));
         row.add(slider, BorderLayout.CENTER);
         field.setHorizontalAlignment(JTextField.CENTER);
-        field.setPreferredSize(new Dimension(40, 22));
+        field.setPreferredSize(new Dimension(40, 20));
+        field.setMaximumSize(new Dimension(40, 20));
+        field.setFont(field.getFont().deriveFont(11f));
         row.add(field, BorderLayout.EAST);
         return row;
-    }
+    } // --- Fin del metodo buildSliderRow ---
+
+
+    /**
+     * Crea un separador vertical fino para la mini toolbar de la pestaña Imagen.
+     *
+     * @return separador vertical con alto y ancho fijos
+     */
+    private javax.swing.JComponent crearSeparadorToolbar() {
+        javax.swing.JSeparator sep = new javax.swing.JSeparator(javax.swing.SwingConstants.VERTICAL);
+        sep.setPreferredSize(new Dimension(2, 18));
+        sep.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        return sep;
+    } // --- Fin del metodo crearSeparadorToolbar ---
 
     public void repaintGradientPreview() {
         gradientPreview.repaint();
@@ -1218,10 +1255,10 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
     public JTextField getBrightnessField() { return brightnessField; }
     public JTextField getContrastField() { return contrastField; }
     public JCheckBox getChkCheckerboard() { return chkCheckerboard; }
-    public JCheckBox getChkAntiAlias() { return chkAntiAlias; }
-    public JCheckBox getChkCrosshair() { return chkCrosshair; }
-    public JCheckBox getChkWireframe() { return chkWireframe; }
-    public JCheckBox getChkFillLight2() { return chkFillLight2; }
+    public JToggleButton getChkAntiAlias() { return chkAntiAlias; }
+    public JToggleButton getChkCrosshair() { return chkCrosshair; }
+    public JToggleButton getChkWireframe() { return chkWireframe; }
+    public JToggleButton getChkFillLight2() { return chkFillLight2; }
     public JComboBox<String> getCboCalidad() { return cboCalidad; }
 
     // --- Getters fondo ---
@@ -1269,6 +1306,8 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
     public void setBrightnessIcon(javax.swing.Icon icon) { brightnessLabel.setIcon(icon); }
     public void setContrastIcon(javax.swing.Icon icon) { contrastLabel.setIcon(icon); }
     public void setAntiAliasIcon(javax.swing.Icon icon) { chkAntiAlias.setIcon(icon); }
+    public void setFillLightIcon(javax.swing.Icon icon) { chkFillLight2.setIcon(icon); }
     public void setCrosshairIcon(javax.swing.Icon icon) { chkCrosshair.setIcon(icon); }
+    public void setWireframeIcon(javax.swing.Icon icon) { chkWireframe.setIcon(icon); }
 
 } // --- Fin de la clase RenderPanel ---

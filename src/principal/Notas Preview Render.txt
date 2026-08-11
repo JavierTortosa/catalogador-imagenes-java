@@ -1,0 +1,254 @@
+===============================================================================
+PLAN: CONTROLES "MOVER" Y "ROTAR" CON SPINNERS EN EL MODO RENDER
+===============================================================================
+Estado: Aprobado (luz verde del socio). Pendiente de implementar.
+Fecha de redacción del plan: 11/08/2026
+
+-------------------------------------------------------------------------------
+1. CONTEXTO
+-------------------------------------------------------------------------------
+El visor del panel derecho del modo Render es un CardLayout con dos tarjetas
+(RenderPanel.java:106-107):
+
+  * Vista 3D (PreviewPanel3DFX): escena JavaFX con modelo STL. El ratón ya
+    permite:
+      - LMB horizontal  -> rotación Y
+      - LMB vertical    -> rotación X
+      - Shift + LMB     -> rotación Z
+      - RMB / MMB       -> pan (desplaza la cámara)
+      - Rueda           -> zoom
+  * Vista 2D (imageDisplayPanel): imagen estática (currentImage2D) con zoom/pan
+    propios de visualización (rueda + arrastre).
+
+Se añaden dos botones en la mini toolbar inferior de la pestaña "Imagen":
+MOVER y ROTAR. Al pulsarlos se despliega un JPopupMenu con 3 spinners (X, Y, Z).
+Idea inspirada en Chitubox. Los iconos move-preview.png y rotate-preview.png ya
+están subidos a resources/iconos/black/ y white/.
+
+-------------------------------------------------------------------------------
+2. COMPORTAMIENTO SEGÚN VISTA ACTIVA
+-------------------------------------------------------------------------------
+  Control     Vista 3D                     Vista 2D
+  ----------  ---------------------------  -----------------------------------
+  Rotar X     rotateX.setAngle()           deshabilitado
+  Rotar Y     rotateY.setAngle()           deshabilitado
+  Rotar Z     rotateZ.setAngle()           rota la imagen sobre su centro
+  Mover X     pan de cámara (camera.tx)    desplaza la imagen (imageOffsetX)
+  Mover Y     pan de cámara (camera.ty)    desplaza la imagen (imageOffsetY)
+  Mover Z     zoom/escala (zoom=fitZoom/f) zoom de imagen (imageZoom)
+
+Principio: los mismos botones significan "transformar lo que estoy viendo";
+el contexto decide la implementación. El usuario no aprende dos juegos de
+controles.
+
+Arquitectura resultante:
+
+                     PREVIEW
+                        |
+             +----------+----------+
+             |                     |
+            3D                    2D
+             |                     |
+       estado JavaFX         estado imagen
+             |                     |
+       +-----+-----+         +-----+-----+
+       X     Y     Z         X     Y     Z
+       |     |     |         |     |     |
+     pan   pan   zoom      pan   pan   zoom
+       |     |     |         |     |     |
+       +-----+-----+         +-----+-----+
+             |                     |
+       renderer PNG          transformación
+
+-------------------------------------------------------------------------------
+3. REGLA CLAVE: LOS SPINNERS SON ESTADO ABSOLUTO, NO INCREMENTOS
+-------------------------------------------------------------------------------
+  * Al abrir el popup se LEE el estado actual y se rellenan los spinners
+    (si el usuario giró con el ratón, el spinner muestra ese valor, p. ej.
+    Z = 35 grados).
+  * Al cambiar un spinner se APLICA un valor absoluto sobre los mismos objetos
+    internos que usa el ratón.
+  * NO crear variables paralelas de rotación/pan/zoom (ni spinnerRotationX,
+    spinnerPanY, etc.). Los spinners son únicamente controles de edición del
+    estado real de la vista.
+  * Ratón y spinners comparten el mismo estado -> no hay dos estados que
+    desincronizar. Se sincroniza al abrir el popup (sin polling en vivo para
+    no pisar lo que se está tecleando).
+  * Riesgo a evitar: "ratón dice 27°, spinner dice 25°, renderer dice otra
+    cosa".
+
+Mover Z en 3D reutiliza el zoom existente (fitZoom/zoom, getter ya disponible):
+  * El spinner Z es un PORCENTAJE VISUAL (100 = 100%).
+  * El factor interno es DECIMAL (1.0 = 100%).
+  * Rango del spinner: 10..400 (%).
+  * Al escribir: factor = valor / 100.0  ->  zoom = fitZoom / factor,
+    con clamp de seguridad zoom e [100, 10000].
+  * Al leer: getZoomFactor() * 100 -> spinner.
+  * OJO: no aplicar 150 donde se espera 1.5.
+
+-------------------------------------------------------------------------------
+4. ROTACIÓN: NORMALIZACIÓN AL LEER
+-------------------------------------------------------------------------------
+  * El estado real de JavaFX puede quedar en 450 grados tras arrastres
+    repetidos.
+  * En syncSpinnersDesdeVista() se normaliza a [-180, 180) (equivalente
+    canónico) mediante aritmética modular, p. ej.
+      ((angle % 360) + 360) % 360 - 180
+  * El usuario ajusta orientación, no revoluciones acumuladas.
+
+-------------------------------------------------------------------------------
+5. CONVENCIÓN DE EJES (PAN) - UNIFICADA
+-------------------------------------------------------------------------------
+  * Convención de referencia (la que debe cumplir todo):
+      - panX positivo = objeto hacia la DERECHA de la pantalla.
+      - panY positivo = objeto hacia ABAJO de la pantalla.
+    Coincide exactamente con el arrastre RMB actual (metáfora "agarrar el
+    objeto").
+  * Los spinners de Mover X/Y son esa misma convención (+50 = mismo resultado
+    que arrastrar hacia la derecha). No introducen una segunda convención.
+  * Hallazgo en código: en PreviewPanel3DFX.java:644-646 el arrastre RMB hace
+    camera.setTranslateX(pressCamX - dx). Arrastrar a la derecha (dx>0) hace
+    que camera.x DECRECE, y al desplazar la cámara a la izquierda el objeto
+    aparece a la derecha -> camera.x NEGATIVO = objeto a la DERECHA.
+    Sin embargo getPanX() devuelve camera.getTranslateX() sin invertir, y
+    renderizarPreview() (RenderController.java:1980) usa panX = getPanX()*px,
+    por lo que el PNG dibuja el objeto hacia la IZQUIERDA. Es una inversión de
+    signo PRE-EXISTENTE entre el pan del preview y el del PNG.
+  * Corrección: getPanX()/getPanY() pasan a devolver el DESPLAZAMIENTO DE
+    OBJETO EN PANTALLA (negando camera.translateX/Y); setPanX(double px) /
+    setPanY(double py) aplican la inversa al escribir camera.translateX/Y.
+  * Con eso, renderizarPreview() (que lee getPanX/getPanY) hereda
+    automáticamente la convención correcta, sin tocar AwtModelRenderer.
+  * getPanX()/getPanY() solo los consume RenderController:1980 -> el cambio es
+    seguro.
+  * El giro (rotación) ya usa la convención correcta: spinner X -> rotateX tal
+    cual, sin negaciones.
+
+-------------------------------------------------------------------------------
+6. RUEDA DEL RATÓN SOBRE SPINNERS (SISTEMA CHITUBOX)
+-------------------------------------------------------------------------------
+  * Un JSpinner de Swing no responde a la rueda por defecto.
+  * Se añade un MouseWheelListener común a los 6 spinners (y a sus
+    JSpinner.DefaultEditor, para que responda también sobre el campo de texto).
+  * Rueda normal  -> paso fino de 0.5.
+  * Shift + rueda -> paso grande de 5.
+  * Con clamp a los límites del modelo.
+  * Solo los spinners Mover/Rotar; Brillo/Contraste (que son JTextField) no
+    cambian.
+
+-------------------------------------------------------------------------------
+7. FORMATO DEL POPUP
+-------------------------------------------------------------------------------
+  Mover                    Rotar
+  X   [  0   ] px          X   [  0 deg ]
+  Y   [  0   ] px          Y   [  0 deg ]
+  Z   [ 100% ]             Z   [  0 deg ]
+
+  En vista 2D, Rotar X/Y aparecen deshabilitados (una imagen plana solo tiene
+  un eje de rotación real).
+
+-------------------------------------------------------------------------------
+8. CAMBIOS POR ARCHIVO
+-------------------------------------------------------------------------------
+8.1 PreviewPanel3DFX.java
+  Añadir setters programáticos (hoy solo hay getters), con guard null y
+  Platform.runLater:
+    - setRotateXAngle(double) / setRotateYAngle(double) / setRotateZAngle(double)
+      -> rotateX/Y/Z.setAngle().
+    - setPanX(double px) / setPanY(double py)
+      -> camera.setTranslateX/Y(negado), según convención objeto-en-pantalla.
+    - setZoomFactor(double factor)  (factor decimal)
+      -> zoom = fitZoom / factor con clamp 100..10000.
+  Modificar getPanX()/getPanY() para devolver el desplazamiento de objeto
+  (negando camera.translateX/Y).
+  NO añadir baseScale/extraScale.
+
+8.2 RenderPanel.java
+  * Mini toolbar (pestaña Imagen): tras la cruceta -> separador ->
+    btnMover + btnRotar (ThemedToggleButton, icono + tooltip) -> separador ->
+    Calidad.
+  * Cada botón con su JPopupMenu conteniendo 3 filas JSpinner compacto (patrón
+    de createAngleSpinner() en EditorComponentBar.java:2120):
+      - Rotar: SpinnerNumberModel(0, -360, 360, 5) con formato grados.
+      - Mover X/Y: (-2000..2000, 5).
+      - Mover Z: (10..400, 5, default 100) en %.
+  * Estado 2D: nuevo campo imageRotation (grados); en paintComponent (caso
+    no-collage, RenderPanel.java:411-418) aplicar AffineTransform con
+    rotate(angle, cx, cy) sobre el centro de la imagen.
+  * syncSpinnersDesdeVista(): según isShowing2DView() lee imageOffsetX/Y,
+    imageZoom, imageRotation y deshabilita Rotar-X/Y; si es 3D lee los getters
+    del preview y habilita los 3. Normaliza ángulos a [-180, 180).
+  * resetImageRotation() junto a resetImageZoom(); set2DImage() también resetea
+    imageRotation = 0.
+  * Getters: getBtnMover(), getBtnRotar(), getSpnMoverX/Y/Z(),
+    getSpnRotarX/Y/Z(), get/setImageRotation().
+
+8.3 RenderSceneController.java
+  * aplicarRotacion(double x, double y, double z) -> setters del preview.
+  * aplicarMovimiento(double panX, double panY, double zoomFactor) -> setters
+    del preview.
+
+8.4 RenderController.java (cableado en wireControls())
+  * ItemListener en cada botón: syncSpinnersDesdeVista() +
+    popup.show(btn, 0, btn.getHeight()).
+  * ChangeListener en cada spinner -> según vista activa:
+      - 3D: sceneController.aplicarRotacion(...) / aplicarMovimiento(...).
+      - 2D: panel.setImageOffsetX/Y(...), setImageZoom(...),
+        setImageRotation(...) -> repaint().
+  * PopupMenuListener para deseleccionar el toggle al cerrar el popup.
+  * MouseWheelListener común a los 6 spinners (rueda = 0.5, Shift = 5).
+  * PASO DE VERIFICACIÓN OBLIGATORIO: probar raton <-> spinner <-> reset <->
+    render PNG y confirmar que "se ve en el preview lo que sale en el PNG" y
+    que Mover X +50 == arrastre hacia la derecha.
+
+8.5 ViewBuilder.java
+  * iconUtils.getScaledIcon("move-preview.png", 16, 16) -> setMoveIcon(...).
+  * iconUtils.getScaledIcon("rotate-preview.png", 16, 16) -> setRotateIcon(...).
+
+-------------------------------------------------------------------------------
+9. RESETS REFLEJADOS EN LOS SPINNERS
+-------------------------------------------------------------------------------
+  * 3D: resetView() ya devuelve rotación 0/0/0, pan 0 y factor 1.0 -> los
+    spinners los muestran al abrir el popup. Sin tocar spinners directamente.
+  * 2D: resetImageZoom() (X/Y a 0, Z a 100%) + nuevo resetImageRotation()
+    (Z a 0 grados), llamado desde set2DImage().
+
+-------------------------------------------------------------------------------
+10. DECISIONES CONFIRMADAS
+-------------------------------------------------------------------------------
+  * Collage: los botones Mover/Rotar quedan DESHABILITADOS (en collage se
+    trabaja por capas, que ya tienen su propio sistema de transformación).
+  * Sin re-render en vivo en 2D: los spinners transforman la imagen del visor;
+    NO re-renderizan el PNG desde los triángulos.
+  * Spinners = estado absoluto, sin estado paralelo.
+  * Mover Z = porcentaje visible (100%) <-> factor interno (1.0).
+  * La rueda solo aplica a spinners Mover/Rotar; Brillo/Contraste sin cambios.
+
+-------------------------------------------------------------------------------
+11. FUERA DE ALCANCE
+-------------------------------------------------------------------------------
+  * No se tocan AwtModelRenderer ni renderizarPreview(): ya leen
+    getRotateXAngle/getRotateYAngle/getRotateZAngle/getPanX/getPanY/getZoomFactor,
+    así que el PNG final reflejará automáticamente los valores de los spinners
+    3D (tras la corrección de signo del pan).
+  * Brillo/Contraste no reciben rueda.
+
+-------------------------------------------------------------------------------
+12. FLUJO DE TRABAJO RESULTANTE
+-------------------------------------------------------------------------------
+  Ratón              -> trabajo rápido y libre
+  Mover/Rotar        -> ajuste preciso
+  Preview            -> comprobación
+  Render PNG         -> conserva el encuadre 3D
+  Editor avanzado    -> solo cuando lo anterior no basta
+
+  Caso de uso del modo Render:
+    STL sin representante -> render rápido -> Preview 3D -> ¿se entiende?
+      - sí  -> ajustar orientación/encuadre si hace falta -> representante
+      - no  -> más trabajo -> editor / composición / etc.
+  Y con una imagen 2D interna del ZIP, el mismo panel permite moverla,
+  ampliarla y girarla sin saltar a un editor más pesado.
+
+===============================================================================
+FIN DEL PLAN
+===============================================================================

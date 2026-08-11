@@ -399,12 +399,16 @@ public class ViewBuilder {
         }
         javax.swing.Icon brightnessIcon = iconUtils.getScaledCommonIcon("brightness.png", 16, 16);
         javax.swing.Icon contrastIcon = iconUtils.getScaledCommonIcon("contrast.png", 16, 16);
-        javax.swing.Icon eyeIcon = iconUtils.getScaledCommonIcon("eye.png", 16, 16);
-        javax.swing.Icon crosshairIcon = iconUtils.getScaledCommonIcon("crosshair.png", 16, 16);
+        javax.swing.Icon antiAliasIcon = iconUtils.getScaledIcon("antialiasing.png", 16, 16);
+        javax.swing.Icon fillLightIcon = iconUtils.getScaledIcon("luz-de-relleno.png", 16, 16);
+        javax.swing.Icon crosshairIcon = iconUtils.getScaledIcon("crosshair.png", 16, 16);
+        javax.swing.Icon wireframeIcon = iconUtils.getScaledIcon("contorno.png", 16, 16);
         if (brightnessIcon != null) renderWorkModePanel.setBrightnessIcon(brightnessIcon);
         if (contrastIcon != null) renderWorkModePanel.setContrastIcon(contrastIcon);
-        if (eyeIcon != null) renderWorkModePanel.setAntiAliasIcon(eyeIcon);
+        if (antiAliasIcon != null) renderWorkModePanel.setAntiAliasIcon(antiAliasIcon);
+        if (fillLightIcon != null) renderWorkModePanel.setFillLightIcon(fillLightIcon);
         if (crosshairIcon != null) renderWorkModePanel.setCrosshairIcon(crosshairIcon);
+        if (wireframeIcon != null) renderWorkModePanel.setWireframeIcon(wireframeIcon);
 
         // Asignar el CardLayout de WorkModes al centro del mainFrame
         mainFrame.add(workModesContainer, BorderLayout.CENTER);

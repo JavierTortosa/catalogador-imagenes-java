@@ -67,11 +67,12 @@ public class PreviewPanel3DFX extends JFXPanel {
 
     private Rotate rotateX;
     private Rotate rotateY;
+    private Rotate rotateZ;
     private double zoom = 500;
 
     private double pressX, pressY;
     private SceneAntialiasing currentAA;
-    private double pressRotX, pressRotY;
+    private double pressRotX, pressRotY, pressRotZ;
     private double pressCamX, pressCamY;
     private double fitZoom = 500;
     private MouseButton dragButton;
@@ -149,9 +150,10 @@ public class PreviewPanel3DFX extends JFXPanel {
 
         rotateX = new Rotate(0, Rotate.X_AXIS);
         rotateY = new Rotate(0, Rotate.Y_AXIS);
+        rotateZ = new Rotate(0, Rotate.Z_AXIS);
 
         rotationGroup = new Group();
-        rotationGroup.getTransforms().addAll(rotateY, rotateX);
+        rotationGroup.getTransforms().addAll(rotateY, rotateX, rotateZ);
         rotationGroup.getChildren().add(modelGroup);
 
         material = new PhongMaterial();
@@ -255,6 +257,7 @@ public class PreviewPanel3DFX extends JFXPanel {
 
         rotateX.setAngle(0);
         rotateY.setAngle(0);
+        rotateZ.setAngle(0);
 
         double width = (bb[3] - bb[0]) * scale;
         double height = (bb[4] - bb[1]) * scale;
@@ -576,6 +579,7 @@ public class PreviewPanel3DFX extends JFXPanel {
         fitZoom = 500;
         rotateX.setAngle(0);
         rotateY.setAngle(0);
+        rotateZ.setAngle(0);
         camera.setTranslateZ(-zoom);
         camera.setTranslateX(0);
         camera.setTranslateY(0);
@@ -590,6 +594,7 @@ public class PreviewPanel3DFX extends JFXPanel {
     private void fitToView(javafx.geometry.Bounds bounds) {
         rotateX.setAngle(0);
         rotateY.setAngle(0);
+        rotateZ.setAngle(0);
         modelGroup.setTranslateX(0);
         modelGroup.setTranslateY(0);
 
@@ -621,25 +626,33 @@ public class PreviewPanel3DFX extends JFXPanel {
         pressY = e.getSceneY();
         pressRotX = rotateY.getAngle();
         pressRotY = rotateX.getAngle();
+        pressRotZ = rotateZ.getAngle();
         pressCamX = camera.getTranslateX();
         pressCamY = camera.getTranslateY();
     } // --- Fin del metodo onMousePressed ---
 
 
     /**
-     * Maneja el arrastre del ratón: botón izquierdo rota, botón derecho panea.
+     * Maneja el arrastre del ratón: botón izquierdo rota (X/Y), con Shift añade
+     * rotación sobre el eje Z (roll) y desplazamiento vertical, botón central o
+     * derecho panean la cámara.
      */
     private void onMouseDragged(MouseEvent e) {
         double dx = e.getSceneX() - pressX;
         double dy = e.getSceneY() - pressY;
 
-        if (dragButton == MouseButton.SECONDARY) {
+        if (dragButton == MouseButton.SECONDARY || dragButton == MouseButton.MIDDLE) {
             camera.setTranslateX(pressCamX - dx);
+            camera.setTranslateY(pressCamY - dy);
+        } else if (e.isShiftDown()) {
+            double sensitivity = 0.6;
+            double newRotZ = pressRotZ - dx * sensitivity;
+            rotateZ.setAngle(newRotZ);
             camera.setTranslateY(pressCamY - dy);
         } else {
             double sensitivity = 0.6;
             double newRotY = pressRotX - dx * sensitivity;
-            double newRotX = Math.max(-90, Math.min(90, pressRotY + dy * sensitivity));
+            double newRotX = pressRotY - dy * sensitivity;
             rotateY.setAngle(newRotY);
             rotateX.setAngle(newRotX);
         }
@@ -668,6 +681,11 @@ public class PreviewPanel3DFX extends JFXPanel {
     public double getRotateYAngle() {
         return rotateY.getAngle();
     } // --- Fin del metodo getRotateYAngle ---
+
+
+    public double getRotateZAngle() {
+        return rotateZ.getAngle();
+    } // --- Fin del metodo getRotateZAngle ---
 
 
     public double getPanX() {

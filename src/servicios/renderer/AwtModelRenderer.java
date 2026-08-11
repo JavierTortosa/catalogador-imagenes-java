@@ -45,15 +45,15 @@ public class AwtModelRenderer implements ModelRenderer {
     }
 
     public BufferedImage renderizarInteractive(List<Triangle> triangles, double rotX, double rotY) {
-        return renderizarInterno(triangles, rotX, rotY, false, false);
+        return renderizarInterno(triangles, rotX, rotY, 0, false, false);
     }
 
     public BufferedImage renderizarFast(List<Triangle> triangles, double rotX, double rotY) {
-        return renderizarInterno(triangles, rotX, rotY, false, true);
+        return renderizarInterno(triangles, rotX, rotY, 0, false, true);
     }
 
     public BufferedImage renderizar(List<Triangle> triangles, double rotX, double rotY) {
-        return renderizarInterno(triangles, rotX, rotY, true, true);
+        return renderizarInterno(triangles, rotX, rotY, 0, true, true);
     }
 
 
@@ -68,7 +68,7 @@ public class AwtModelRenderer implements ModelRenderer {
      * @param zoomScale factor de zoom multiplicativo sobre la escala de encaje
      */
     public BufferedImage renderizarConAjustes(List<Triangle> triangles,
-            double rotX, double rotY, boolean antiAlias,
+            double rotX, double rotY, double rotZ, boolean antiAlias,
             int brightness, int contrast,
             String bgMode, Color solidColor,
             Color gradientStart, Color gradientEnd,
@@ -94,7 +94,7 @@ public class AwtModelRenderer implements ModelRenderer {
                 float ambientLevel = 0.20f + (brightness + 100f) / 200f * 0.60f;
                 float contrastScale = 0.30f + (contrast + 100f) / 200f * 0.70f;
 
-                List<Triangle> transformed = transformTriangles(triangles, rotX, rotY, renderSize,
+                List<Triangle> transformed = transformTriangles(triangles, rotX, rotY, rotZ, renderSize,
                         panX, panY, zoomScale);
                 transformed.sort(Comparator.comparingDouble(
                         t -> -(t.v0[2] + t.v1[2] + t.v2[2]) / 3f));
@@ -198,7 +198,7 @@ public class AwtModelRenderer implements ModelRenderer {
     }
 
 
-    private BufferedImage renderizarInterno(List<Triangle> triangles, double rotX, double rotY,
+    private BufferedImage renderizarInterno(List<Triangle> triangles, double rotX, double rotY, double rotZ,
             boolean antiAlias, boolean wireframe) {
         BufferedImage img = new BufferedImage(SIZE, SIZE, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
@@ -212,7 +212,7 @@ public class AwtModelRenderer implements ModelRenderer {
                 return img;
             }
 
-            List<Triangle> transformed = transformTriangles(triangles, rotX, rotY, SIZE, 0, 0, 1.0);
+            List<Triangle> transformed = transformTriangles(triangles, rotX, rotY, rotZ, SIZE, 0, 0, 1.0);
 
             transformed.sort(Comparator.comparingDouble(
                     t -> -(t.v0[2] + t.v1[2] + t.v2[2]) / 3f));
@@ -259,7 +259,7 @@ public class AwtModelRenderer implements ModelRenderer {
         return img;
     }
 
-    private List<Triangle> transformTriangles(List<Triangle> triangles, double rotX, double rotY,
+    private List<Triangle> transformTriangles(List<Triangle> triangles, double rotX, double rotY, double rotZ,
             int renderSize, double panX, double panY, double zoomScale) {
         float minX = Float.MAX_VALUE, maxX = Float.MIN_VALUE;
         float minY = Float.MAX_VALUE, maxY = Float.MIN_VALUE;
@@ -281,8 +281,10 @@ public class AwtModelRenderer implements ModelRenderer {
         float scale = (maxDim > 0.001f) ? (renderSize - 2f * MARGIN) / maxDim : 1f;
         scale *= (float) zoomScale;
 
+        double az = Math.toRadians(rotZ);
         double ax = Math.toRadians(rotX);
         double ay = Math.toRadians(rotY);
+        double czA = Math.cos(az), szA = Math.sin(az);
         double cxA = Math.cos(ax), sxA = Math.sin(ax);
         double cyA = Math.cos(ay), syA = Math.sin(ay);
 
@@ -291,23 +293,26 @@ public class AwtModelRenderer implements ModelRenderer {
 
         List<Triangle> result = new ArrayList<>(triangles.size());
         for (Triangle t : triangles) {
-            float[] tv0 = xform(t.v0, cx, cy, cz, scale, cxA, sxA, cyA, syA, offsetX, offsetY);
-            float[] tv1 = xform(t.v1, cx, cy, cz, scale, cxA, sxA, cyA, syA, offsetX, offsetY);
-            float[] tv2 = xform(t.v2, cx, cy, cz, scale, cxA, sxA, cyA, syA, offsetX, offsetY);
+            float[] tv0 = xform(t.v0, cx, cy, cz, scale, czA, szA, cxA, sxA, cyA, syA, offsetX, offsetY);
+            float[] tv1 = xform(t.v1, cx, cy, cz, scale, czA, szA, cxA, sxA, cyA, syA, offsetX, offsetY);
+            float[] tv2 = xform(t.v2, cx, cy, cz, scale, czA, szA, cxA, sxA, cyA, syA, offsetX, offsetY);
             result.add(new Triangle(tv0, tv1, tv2, t.nx, t.ny, t.nz));
         }
         return result;
     }
 
     private float[] xform(float[] v, float cx, float cy, float cz, float s,
-            double cxA, double sxA, double cyA, double syA, float offsetX, float offsetY) {
+            double czA, double szA, double cxA, double sxA, double cyA, double syA,
+            float offsetX, float offsetY) {
         float x = (v[0] - cx) * s;
         float y = (v[1] - cy) * s;
         float z = (v[2] - cz) * s;
-        float y1 = (float) (y * cxA - z * sxA);
-        float z1 = (float) (y * sxA + z * cxA);
-        float x2 = (float) (x * cyA + z1 * syA);
-        float z2 = (float) (-x * syA + z1 * cyA);
+        float xz = (float) (x * czA - y * szA);
+        float yz = (float) (x * szA + y * czA);
+        float y1 = (float) (yz * cxA - z * sxA);
+        float z1 = (float) (yz * sxA + z * cxA);
+        float x2 = (float) (xz * cyA + z1 * syA);
+        float z2 = (float) (-xz * syA + z1 * cyA);
         return new float[]{ x2 + offsetX, y1 + offsetY, z2 };
     }
 

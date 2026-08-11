@@ -53,6 +53,8 @@ public class ScannerPanel extends JPanel {
     private final JButton btnSeleccionarTodo;
     private final List<ScannerFolderResult> resultados = new ArrayList<>();
 
+    private boolean reconstruyendoTabla = false;
+
     private Runnable onEscanear;
     private Runnable onProcesarSeleccion;
 
@@ -84,7 +86,9 @@ public class ScannerPanel extends JPanel {
         table.setForeground(COLOR_TABLE_FG);
         table.getTableHeader().setReorderingAllowed(false);
         configureRenderers();
-        tableModel.addTableModelListener(e -> actualizarEstadoBotonSeleccion());
+        tableModel.addTableModelListener(e -> {
+            if (!reconstruyendoTabla) actualizarEstadoBotonSeleccion();
+        });
 
         JPanel topPanel = new JPanel(new GridBagLayout());
         topPanel.setBackground(COLOR_TABLE_BG);
@@ -246,19 +250,25 @@ public class ScannerPanel extends JPanel {
         resultados.clear();
         resultados.addAll(foldersResult);
 
-        tableModel.setRowCount(0);
-        for (ScannerFolderResult r : foldersResult) {
-            tableModel.addRow(new Object[] {
-                Boolean.TRUE,
-                carpetaCorta(r.folder()),
-                r.folder().toString(),
-                r.pendientes(),
-                r.conPreview(),
-                r.porcentajeHuerfanos(),
-                r.tamanoPendientesBytes()
-            });
+        reconstruyendoTabla = true;
+        try {
+            tableModel.setRowCount(0);
+            for (ScannerFolderResult r : foldersResult) {
+                tableModel.addRow(new Object[] {
+                    Boolean.TRUE,
+                    carpetaCorta(r.folder()),
+                    r.folder().toString(),
+                    r.pendientes(),
+                    r.conPreview(),
+                    r.porcentajeHuerfanos(),
+                    r.tamanoPendientesBytes()
+                });
+            }
+        } finally {
+            reconstruyendoTabla = false;
         }
         ordenarPorHuerfanosDesc();
+        actualizarEstadoBotonSeleccion();
         actualizarInfo();
         table.repaint();
     } // --- Fin del metodo setResultados ---
@@ -355,10 +365,10 @@ public class ScannerPanel extends JPanel {
      * @return true si todas las filas están marcadas (y hay alguna)
      */
     private boolean todosMarcados() {
-        int total = table.getRowCount();
+        int total = tableModel.getRowCount();
         if (total == 0) return false;
-        for (int vRow = 0; vRow < total; vRow++) {
-            if (!Boolean.TRUE.equals(table.getValueAt(vRow, 0))) return false;
+        for (int mRow = 0; mRow < total; mRow++) {
+            if (!Boolean.TRUE.equals(tableModel.getValueAt(mRow, 0))) return false;
         }
         return true;
     } // --- Fin del metodo todosMarcados ---
@@ -370,7 +380,7 @@ public class ScannerPanel extends JPanel {
      * "Deseleccionar todo" cuando todas lo están.
      */
     private void actualizarEstadoBotonSeleccion() {
-        int total = table.getRowCount();
+        int total = tableModel.getRowCount();
         if (total == 0) {
             btnSeleccionarTodo.setEnabled(false);
             btnSeleccionarTodo.setText("Seleccionar todo");

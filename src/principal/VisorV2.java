@@ -24,12 +24,12 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.69.50";
+        version = "V2.69.60";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
         UIManager.put("MenuBar.windowBindings", new Object[] {});
-
+        
         // La única responsabilidad del método main es programar la creación de la
         // aplicación en el Event Dispatch Thread (EDT) de Swing.
         // Toda la lógica de inicialización, incluyendo la configuración del tema,
@@ -55,7 +55,7 @@ public class VisorV2 {
     
     
     // RENDER
-    
+    // FIXME en la lista de candidatos de la izquierda hay que implementar un checkbox para marcar todo o nada
     
     // GENERAL
     
@@ -100,7 +100,6 @@ public class VisorV2 {
     
     // CONFIGURACION
     // FIXME en apariencia|personalizar tema: si customizamos un tema y vamos a salir nos tiene que avisar que el tema no se ha guardado y que la proxima vez que iniciemos la aplicacion lo hara con el tema actual
-    // FIXME hay referencias nuevas en el config.cfg hay un monton de "nueva configuracion añadida"
     
     
     // CARROUSEL
