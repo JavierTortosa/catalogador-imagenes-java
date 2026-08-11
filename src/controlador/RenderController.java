@@ -358,6 +358,130 @@ public class RenderController {
         panel.getChkWireframe().addActionListener(e -> applyAdjustments());
         panel.getChkFillLight2().addActionListener(e -> applyAdjustments());
         panel.getCboCalidad().addActionListener(e -> applyAdjustments());
+
+        wireMoverRotarControls();
+    }
+
+    /**
+     * Cablea los botones Mover/Rotar con sus popups de spinners.
+     * Los spinners representan estado absoluto de la vista activa (3D o 2D).
+     */
+    private void wireMoverRotarControls() {
+        wirePopupMoverRotar(panel.getBtnMover(), panel.getPopupMover());
+        wirePopupMoverRotar(panel.getBtnRotar(), panel.getPopupRotar());
+
+        javax.swing.event.ChangeListener spinnerListener = ev -> {
+            if (!(ev.getSource() instanceof javax.swing.JSpinner)) return;
+            javax.swing.JSpinner spinner = (javax.swing.JSpinner) ev.getSource();
+            if (!spinner.isShowing()) return;
+            if (panel.isShowing2DView()) {
+                aplicarSpinnerMoverRotar2D();
+            } else {
+                aplicarSpinnerMoverRotar3D();
+            }
+        };
+        for (javax.swing.JSpinner sp : new javax.swing.JSpinner[]{
+                panel.getSpnMoverX(), panel.getSpnMoverY(), panel.getSpnMoverZ(),
+                panel.getSpnRotarX(), panel.getSpnRotarY(), panel.getSpnRotarZ()}) {
+            sp.addChangeListener(spinnerListener);
+            configurarRuedaSpinner(sp);
+        }
+    }
+
+    /**
+     * Muestra el popup bajo el botón al seleccionarlo, sincronizando los
+     * spinners con el estado real de la vista; al cerrarse deselecciona el botón.
+     */
+    private void wirePopupMoverRotar(javax.swing.JToggleButton btn, javax.swing.JPopupMenu popup) {
+        btn.addItemListener(e -> {
+            if (btn.isSelected()) {
+                panel.syncSpinnersDesdeVista();
+                popup.show(btn, 0, btn.getHeight());
+            } else {
+                popup.setVisible(false);
+            }
+        });
+        popup.addPopupMenuListener(new javax.swing.event.PopupMenuListener() {
+            @Override
+            public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {}
+            @Override
+            public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {
+                btn.setSelected(false);
+            }
+            @Override
+            public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) {
+                btn.setSelected(false);
+            }
+        });
+    }
+
+    /**
+     * Aplica los valores absolutos de los spinners a la escena 3D.
+     */
+    private void aplicarSpinnerMoverRotar3D() {
+        double rotX = ((Number) panel.getSpnRotarX().getValue()).doubleValue();
+        double rotY = ((Number) panel.getSpnRotarY().getValue()).doubleValue();
+        double rotZ = ((Number) panel.getSpnRotarZ().getValue()).doubleValue();
+        double panX = ((Number) panel.getSpnMoverX().getValue()).doubleValue();
+        double panY = ((Number) panel.getSpnMoverY().getValue()).doubleValue();
+        double zoomFactor = ((Number) panel.getSpnMoverZ().getValue()).doubleValue() / 100.0;
+        sceneController.aplicarRotacion(rotX, rotY, rotZ);
+        sceneController.aplicarMovimiento(panX, panY, zoomFactor);
+    }
+
+    /**
+     * Aplica los valores absolutos de los spinners a la imagen 2D del visor.
+     */
+    private void aplicarSpinnerMoverRotar2D() {
+        double panX = ((Number) panel.getSpnMoverX().getValue()).doubleValue();
+        double panY = ((Number) panel.getSpnMoverY().getValue()).doubleValue();
+        double zoom = ((Number) panel.getSpnMoverZ().getValue()).doubleValue() / 100.0;
+        double rotZ = ((Number) panel.getSpnRotarZ().getValue()).doubleValue();
+        panel.setImageOffset2D(panX, panY);
+        panel.setImageZoom2D(zoom);
+        panel.setImageRotation(rotZ);
+    }
+
+    /**
+     * Configura la rueda del ratón sobre un spinner al estilo Chitubox:
+     * paso fino normal, paso 5 con Shift.
+     */
+    private void configurarRuedaSpinner(javax.swing.JSpinner spinner) {
+        java.awt.event.MouseWheelListener rueda = e -> {
+            javax.swing.SpinnerNumberModel model =
+                    (javax.swing.SpinnerNumberModel) spinner.getModel();
+            Object current = spinner.getValue();
+            boolean entero = current instanceof Integer || current instanceof Long;
+            double paso = e.isShiftDown() ? 5.0 : (entero ? 1.0 : 0.5);
+            double actual = ((Number) current).doubleValue();
+            double nuevo = e.getWheelRotation() < 0 ? actual + paso : actual - paso;
+            if (entero) nuevo = Math.floor(nuevo);
+            spinner.setValue(clampSpinnerValor(model, nuevo));
+        };
+        spinner.addMouseWheelListener(rueda);
+        if (spinner.getEditor() instanceof javax.swing.JSpinner.DefaultEditor de) {
+            de.getTextField().addMouseWheelListener(rueda);
+        }
+    }
+
+    /**
+     * Ajusta un valor a los límites del modelo del spinner.
+     */
+    private static Object clampSpinnerValor(javax.swing.SpinnerNumberModel model, double valor) {
+        Comparable<?> min = model.getMinimum();
+        Comparable<?> max = model.getMaximum();
+        double lo = min instanceof Number n ? n.doubleValue() : Double.NEGATIVE_INFINITY;
+        double hi = max instanceof Number n ? n.doubleValue() : Double.POSITIVE_INFINITY;
+        double clamped = Math.max(lo, Math.min(hi, valor));
+        Object cur = model.getValue();
+        if (cur instanceof Number) {
+            Class<?> cls = cur.getClass();
+            if (cls == Integer.class) return (int) Math.round(clamped);
+            if (cls == Long.class) return (long) Math.round(clamped);
+            if (cls == Float.class) return (float) clamped;
+            return clamped;
+        }
+        return clamped;
     }
 
     private void wireBackgroundControls() {

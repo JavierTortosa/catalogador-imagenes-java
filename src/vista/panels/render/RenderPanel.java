@@ -29,15 +29,18 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
+import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.ListSelectionModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
@@ -118,6 +121,19 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
     private final ThemedToggleButton chkAntiAlias;
     private final ThemedToggleButton chkFillLight2;
     private final JComboBox<String> cboCalidad;
+
+    // --- Botones Mover/Rotar con popups de spinners ---
+    private final ThemedToggleButton btnMover;
+    private final ThemedToggleButton btnRotar;
+    private final JPopupMenu popupMover;
+    private final JPopupMenu popupRotar;
+    private final JSpinner spnMoverX;
+    private final JSpinner spnMoverY;
+    private final JSpinner spnMoverZ;
+    private final JSpinner spnRotarX;
+    private final JSpinner spnRotarY;
+    private final JSpinner spnRotarZ;
+    private double imageRotation;
     // --- Controles de fondo ---
     private final ButtonGroup bgGroup;
     private final JRadioButton rbSolid;
@@ -174,6 +190,8 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
             chkFillLight2.setThemeManager(tm);
             chkCrosshair.setThemeManager(tm);
             chkWireframe.setThemeManager(tm);
+            btnMover.setThemeManager(tm);
+            btnRotar.setThemeManager(tm);
             tm.addThemeChangeListener(this);
             applyTheme(tm.getTemaActual());
         }
@@ -411,10 +429,15 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
                 double imgW = currentImage2D.getWidth();
                 double imgH = currentImage2D.getHeight();
                 double scale = imageZoom * Math.min((double) w / imgW, (double) h / imgH);
-                double xOff = (w - imgW * scale) / 2 + imageOffsetX;
-                double yOff = (h - imgH * scale) / 2 + imageOffsetY;
-                AffineTransform at = AffineTransform.getTranslateInstance(xOff, yOff);
+                double cx = w / 2.0 + imageOffsetX;
+                double cy = h / 2.0 + imageOffsetY;
+                AffineTransform at = new AffineTransform();
+                at.translate(cx, cy);
+                if (imageRotation != 0) {
+                    at.rotate(Math.toRadians(imageRotation));
+                }
                 at.scale(scale, scale);
+                at.translate(-imgW / 2, -imgH / 2);
                 g2.drawImage(currentImage2D, at, null);
                 g2.dispose();
             }
@@ -593,6 +616,34 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
         chkCrosshair.setSelected(true);
         chkCrosshair.setToolTipText("Cruceta (ejes)");
 
+        btnMover = new ThemedToggleButton(null);
+        btnMover.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        btnMover.setForeground(themeColorLabel());
+        btnMover.setToolTipText("Mover (posici\u00F3n y escala)");
+        btnMover.setPreferredSize(new Dimension(22, 22));
+
+        btnRotar = new ThemedToggleButton(null);
+        btnRotar.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        btnRotar.setForeground(themeColorLabel());
+        btnRotar.setToolTipText("Rotar (orientaci\u00F3n)");
+        btnRotar.setPreferredSize(new Dimension(22, 22));
+
+        spnMoverX = crearSpinnerPopup(new SpinnerNumberModel(0, -2000, 2000, 5));
+        spnMoverY = crearSpinnerPopup(new SpinnerNumberModel(0, -2000, 2000, 5));
+        spnMoverZ = crearSpinnerPopup(new SpinnerNumberModel(100, 10, 400, 5));
+        popupMover = crearPopupSpinners("Mover",
+                new JLabel("X (px)"), spnMoverX,
+                new JLabel("Y (px)"), spnMoverY,
+                new JLabel("Z (%)"), spnMoverZ);
+
+        spnRotarX = crearSpinnerPopup(new SpinnerNumberModel(0, -360, 360, 5));
+        spnRotarY = crearSpinnerPopup(new SpinnerNumberModel(0, -360, 360, 5));
+        spnRotarZ = crearSpinnerPopup(new SpinnerNumberModel(0, -360, 360, 5));
+        popupRotar = crearPopupSpinners("Rotar",
+                new JLabel("X (\u00B0)"), spnRotarX,
+                new JLabel("Y (\u00B0)"), spnRotarY,
+                new JLabel("Z (\u00B0)"), spnRotarZ);
+
         JLabel calidadLabel = new JLabel("Calidad del render:");
         calidadLabel.setForeground(themeColorLabel());
         cboCalidad = new JComboBox<>(new String[]{"R\u00E1pida", "Normal", "Alta"});
@@ -606,6 +657,9 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
         miniToolbar.add(chkFillLight2);
         miniToolbar.add(crearSeparadorToolbar());
         miniToolbar.add(chkCrosshair);
+        miniToolbar.add(crearSeparadorToolbar());
+        miniToolbar.add(btnMover);
+        miniToolbar.add(btnRotar);
         miniToolbar.add(crearSeparadorToolbar());
         miniToolbar.add(calidadLabel);
         miniToolbar.add(cboCalidad);
@@ -913,6 +967,89 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
         return sep;
     } // --- Fin del metodo crearSeparadorToolbar ---
 
+    /**
+     * Crea un JSpinner compacto para los popups de Mover/Rotar.
+     *
+     * @param model modelo numérico del spinner
+     * @return spinner compacto con editor estrecho
+     */
+    private JSpinner crearSpinnerPopup(SpinnerNumberModel model) {
+        JSpinner sp = new JSpinner(model);
+        sp.setPreferredSize(new Dimension(64, 20));
+        sp.setMaximumSize(new Dimension(64, 20));
+        sp.setMinimumSize(new Dimension(64, 20));
+        var editor = sp.getEditor();
+        if (editor instanceof JSpinner.DefaultEditor de) {
+            de.getTextField().setColumns(5);
+            de.getTextField().setHorizontalAlignment(JTextField.CENTER);
+        }
+        return sp;
+    } // --- Fin del metodo crearSpinnerPopup ---
+
+
+    /**
+     * Construye un JPopupMenu con pares etiqueta/spinner en filas.
+     *
+     * @param titulo  título del popup
+     * @param filas   pares alternados de JLabel y JSpinner (X/Y/Z)
+     * @return popup listo para mostrar bajo un botón
+     */
+    private JPopupMenu crearPopupSpinners(String titulo, javax.swing.JComponent... filas) {
+        JPanel panel = new JPanel(new GridLayout(0, 2, 8, 4));
+        panel.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        panel.setBorder(BorderFactory.createTitledBorder(titulo));
+        for (javax.swing.JComponent c : filas) {
+            if (c instanceof JLabel lb) {
+                lb.setForeground(themeColorLabel());
+            }
+            panel.add(c);
+        }
+        JPopupMenu popup = new JPopupMenu();
+        popup.add(panel);
+        return popup;
+    } // --- Fin del metodo crearPopupSpinners ---
+
+
+    /**
+     * Sincroniza los spinners de Mover/Rotar con el estado real de la vista
+     * activa (3D: preview JavaFX; 2D: offsets/zoom/rotación de imagen).
+     */
+    public void syncSpinnersDesdeVista() {
+        if (isShowing2DView()) {
+            spnMoverX.setValue((int) Math.round(imageOffsetX));
+            spnMoverY.setValue((int) Math.round(imageOffsetY));
+            spnMoverZ.setValue((int) Math.round(imageZoom * 100));
+            spnRotarX.setEnabled(false);
+            spnRotarY.setEnabled(false);
+            spnRotarZ.setEnabled(true);
+            spnRotarZ.setValue((int) Math.round(imageRotation));
+        } else {
+            PreviewPanel3DFX preview = preview3DFX;
+            spnMoverX.setValue((int) Math.round(preview.getPanX()));
+            spnMoverY.setValue((int) Math.round(preview.getPanY()));
+            spnMoverZ.setValue((int) Math.round(preview.getZoomFactor() * 100));
+            spnRotarX.setEnabled(true);
+            spnRotarY.setEnabled(true);
+            spnRotarZ.setEnabled(true);
+            spnRotarX.setValue(normalizarAngulo(preview.getRotateXAngle()));
+            spnRotarY.setValue(normalizarAngulo(preview.getRotateYAngle()));
+            spnRotarZ.setValue(normalizarAngulo(preview.getRotateZAngle()));
+        }
+    } // --- Fin del metodo syncSpinnersDesdeVista ---
+
+
+    /**
+     * Normaliza un ángulo al rango canónico [-180, 180).
+     *
+     * @param grados ángulo en grados
+     * @return equivalente canónico en grados
+     */
+    private static int normalizarAngulo(double grados) {
+        double norm = ((grados % 360) + 360) % 360;
+        if (norm >= 180) norm -= 360;
+        return (int) Math.round(norm);
+    } // --- Fin del metodo normalizarAngulo ---
+
     public void repaintGradientPreview() {
         gradientPreview.repaint();
     }
@@ -1024,8 +1161,12 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
         if (collageMode) {
             show2DView();
             imageDisplayPanel.setBorder(BorderFactory.createTitledBorder("Composición (collage)"));
+            btnMover.setEnabled(false);
+            btnRotar.setEnabled(false);
         } else {
             imageDisplayPanel.setBorder(null);
+            btnMover.setEnabled(true);
+            btnRotar.setEnabled(true);
         }
         imageDisplayPanel.repaint();
     }
@@ -1223,6 +1364,7 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
         imageZoom = 1.0;
         imageOffsetX = 0;
         imageOffsetY = 0;
+        imageRotation = 0;
     }
 
     public BufferedImage capturarVistaActual() {
@@ -1309,5 +1451,37 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
     public void setFillLightIcon(javax.swing.Icon icon) { chkFillLight2.setIcon(icon); }
     public void setCrosshairIcon(javax.swing.Icon icon) { chkCrosshair.setIcon(icon); }
     public void setWireframeIcon(javax.swing.Icon icon) { chkWireframe.setIcon(icon); }
+    public void setMoveIcon(javax.swing.Icon icon) { btnMover.setIcon(icon); }
+    public void setRotateIcon(javax.swing.Icon icon) { btnRotar.setIcon(icon); }
+
+    // --- Getters Mover/Rotar ---
+    public JToggleButton getBtnMover() { return btnMover; }
+    public JToggleButton getBtnRotar() { return btnRotar; }
+    public JPopupMenu getPopupMover() { return popupMover; }
+    public JPopupMenu getPopupRotar() { return popupRotar; }
+    public JSpinner getSpnMoverX() { return spnMoverX; }
+    public JSpinner getSpnMoverY() { return spnMoverY; }
+    public JSpinner getSpnMoverZ() { return spnMoverZ; }
+    public JSpinner getSpnRotarX() { return spnRotarX; }
+    public JSpinner getSpnRotarY() { return spnRotarY; }
+    public JSpinner getSpnRotarZ() { return spnRotarZ; }
+
+    public double getImageRotation() { return imageRotation; }
+
+    public void setImageRotation(double deg) {
+        this.imageRotation = deg;
+        imageDisplayPanel.repaint();
+    }
+
+    public void setImageOffset2D(double x, double y) {
+        this.imageOffsetX = x;
+        this.imageOffsetY = y;
+        imageDisplayPanel.repaint();
+    }
+
+    public void setImageZoom2D(double zoom) {
+        this.imageZoom = Math.max(0.05, Math.min(50.0, zoom));
+        imageDisplayPanel.repaint();
+    }
 
 } // --- Fin de la clase RenderPanel ---

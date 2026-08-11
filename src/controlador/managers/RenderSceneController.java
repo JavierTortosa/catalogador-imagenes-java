@@ -65,4 +65,20 @@ public class RenderSceneController {
         }
     } // --- Fin del metodo resetearRotacionYCamara ---
 
+    public void aplicarRotacion(double x, double y, double z) {
+        if (preview3DFX != null) {
+            preview3DFX.setRotateXAngle(x);
+            preview3DFX.setRotateYAngle(y);
+            preview3DFX.setRotateZAngle(z);
+        }
+    } // --- Fin del metodo aplicarRotacion ---
+
+    public void aplicarMovimiento(double panX, double panY, double zoomFactor) {
+        if (preview3DFX != null) {
+            preview3DFX.setPanX(panX);
+            preview3DFX.setPanY(panY);
+            preview3DFX.setZoomFactor(zoomFactor);
+        }
+    } // --- Fin del metodo aplicarMovimiento ---
+
 } // --- Fin de la clase RenderSceneController ---

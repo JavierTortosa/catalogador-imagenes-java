@@ -689,18 +689,84 @@ public class PreviewPanel3DFX extends JFXPanel {
 
 
     public double getPanX() {
-        return camera.getTranslateX();
+        return -camera.getTranslateX();
     } // --- Fin del metodo getPanX ---
 
 
     public double getPanY() {
-        return camera.getTranslateY();
+        return -camera.getTranslateY();
     } // --- Fin del metodo getPanY ---
 
 
     public double getZoomFactor() {
         return fitZoom > 0 ? fitZoom / zoom : 1.0;
     } // --- Fin del metodo getZoomFactor ---
+
+
+    /**
+     * Aplica una rotación absoluta (grados) sobre el eje X del modelo.
+     */
+    public void setRotateXAngle(double deg) {
+        Platform.runLater(() -> {
+            if (rotateX != null) rotateX.setAngle(deg);
+        });
+    } // --- Fin del metodo setRotateXAngle ---
+
+
+    /**
+     * Aplica una rotación absoluta (grados) sobre el eje Y del modelo.
+     */
+    public void setRotateYAngle(double deg) {
+        Platform.runLater(() -> {
+            if (rotateY != null) rotateY.setAngle(deg);
+        });
+    } // --- Fin del metodo setRotateYAngle ---
+
+
+    /**
+     * Aplica una rotación absoluta (grados) sobre el eje Z del modelo.
+     */
+    public void setRotateZAngle(double deg) {
+        Platform.runLater(() -> {
+            if (rotateZ != null) rotateZ.setAngle(deg);
+        });
+    } // --- Fin del metodo setRotateZAngle ---
+
+
+    /**
+     * Desplaza el objeto en pantalla (panX positivo = hacia la derecha),
+     * negando la traslación de cámara para mantener la convención del ratón.
+     */
+    public void setPanX(double panX) {
+        Platform.runLater(() -> {
+            if (camera != null) camera.setTranslateX(-panX);
+        });
+    } // --- Fin del metodo setPanX ---
+
+
+    /**
+     * Desplaza el objeto en pantalla (panY positivo = hacia abajo).
+     */
+    public void setPanY(double panY) {
+        Platform.runLater(() -> {
+            if (camera != null) camera.setTranslateY(-panY);
+        });
+    } // --- Fin del metodo setPanY ---
+
+
+    /**
+     * Aplica un factor de zoom absoluto (1.0 = 100%, encuadre original).
+     * Escribe la distancia de cámara derivada del zoom de encaje.
+     */
+    public void setZoomFactor(double factor) {
+        if (factor <= 0) return;
+        Platform.runLater(() -> {
+            double nuevoZoom = fitZoom / factor;
+            nuevoZoom = Math.max(100, Math.min(10000, nuevoZoom));
+            zoom = nuevoZoom;
+            camera.setTranslateZ(-zoom);
+        });
+    } // --- Fin del metodo setZoomFactor ---
 
 
 } // --- Fin de la clase PreviewPanel3DFX ---

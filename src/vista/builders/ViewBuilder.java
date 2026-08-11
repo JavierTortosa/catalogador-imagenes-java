@@ -403,12 +403,16 @@ public class ViewBuilder {
         javax.swing.Icon fillLightIcon = iconUtils.getScaledIcon("luz-de-relleno.png", 16, 16);
         javax.swing.Icon crosshairIcon = iconUtils.getScaledIcon("crosshair.png", 16, 16);
         javax.swing.Icon wireframeIcon = iconUtils.getScaledIcon("contorno.png", 16, 16);
+        javax.swing.Icon moveIcon = iconUtils.getScaledIcon("move-preview.png", 16, 16);
+        javax.swing.Icon rotateIcon = iconUtils.getScaledIcon("rotate-preview.png", 16, 16);
         if (brightnessIcon != null) renderWorkModePanel.setBrightnessIcon(brightnessIcon);
         if (contrastIcon != null) renderWorkModePanel.setContrastIcon(contrastIcon);
         if (antiAliasIcon != null) renderWorkModePanel.setAntiAliasIcon(antiAliasIcon);
         if (fillLightIcon != null) renderWorkModePanel.setFillLightIcon(fillLightIcon);
         if (crosshairIcon != null) renderWorkModePanel.setCrosshairIcon(crosshairIcon);
         if (wireframeIcon != null) renderWorkModePanel.setWireframeIcon(wireframeIcon);
+        if (moveIcon != null) renderWorkModePanel.setMoveIcon(moveIcon);
+        if (rotateIcon != null) renderWorkModePanel.setRotateIcon(rotateIcon);
 
         // Asignar el CardLayout de WorkModes al centro del mainFrame
         mainFrame.add(workModesContainer, BorderLayout.CENTER);
