@@ -251,4 +251,126 @@ Mover Z en 3D reutiliza el zoom existente (fitZoom/zoom, getter ya disponible):
 
 ===============================================================================
 FIN DEL PLAN
-===============================================================================
+================================================================
+
+
+================================================================
+PREVIEW / COLLAGE — ESTUDIO DE COMPOSICIÓN DEL MODO RENDER
+================================================================
+Concepto
+El preview NO es un simple "preview con collage". Es el estudio de composición
+rápida del modo Render. Su objetivo es una única cosa:
+
+  "Dame una representación suficientemente buena para saber qué contiene este
+   ZIP y poder trabajar con ella."
+
+Filosofía: representatividad antes que calidad. No se pretende competir con
+Blender/MeshLab ni con el editor. Si se ve un Vader y un trooper, el render
+ha cumplido su función.
+
+----------------------------------------------------------------
+LAS DOS FUNCIONES DEL COLLAGE
+----------------------------------------------------------------
+1. Representante rápido: montar una imagen representativa con varias capas
+   (imágenes del ZIP + renders STL + imágenes externas) lo antes posible.
+   Debe funcionar igual para 2D y para 3D.
+2. Composición reutilizable: el collage es un objeto intermedio que puede:
+   - exportarse a PNG directamente
+   - copiarse al portapapeles (→ editor avanzado, modo editor, grid)
+   - crear multi-imágenes de collages en el modo editor
+
+Regla de arquitectura del subsistema
+- Cualquier cosa visualizable en el Preview puede convertirse en una capa
+  visual del collage (fuente 2D → capa; fuente STL → render → capa).
+  Las capas del collage son SIEMPRE elementos visuales, nunca STL vivos.
+- Cualquier collage visible puede convertirse en imagen reutilizable fuera
+  del Preview.
+
+El botón "Contenido del ZIP" (tira inferior) es la paleta de materia prima:
+muestra las fuentes disponibles para construir la representación y sus
+miniaturas pueden convertirse en capas del collage.
+
+----------------------------------------------------------------
+TRES SISTEMAS DE CAPAS DISTINTOS (¡NO CONFUNDIR!)
+----------------------------------------------------------------
+1. PREVIEW (modo Render, panel derecho): layersListModel de ImageLayer +
+   imageDisplayPanel. Pestaña "Capas" del tabbedPane, habilitada SOLO en
+   COLLAGE (setEnabledAt). Es el que nos ocupa en estas notas.
+2. EDITOR AVANZADO (AdvanceEditPanel): editorLayerModel propio + pestaña
+   "Capas" propia. Reutiliza las MISMAS definiciones de componentes
+   (getComponentesLayerOrderPreviewRender/Load) pero construye sus PROPIOS
+   botones (createLayerActionButton) sobre editorLayerModel. No usa las
+   toolbars del ToolbarManager.
+3. MODO EDITOR (EditorComponentBar): edición por documento. Otro sistema.
+
+Cada sistema vive en su sitio: NO mezclar capas de preview con capas de
+editor, ni reutilizar sus modelos/acciones entre sí.
+
+----------------------------------------------------------------
+JERARQUÍA VISUAL DEL MODO RENDER
+----------------------------------------------------------------
+  MODO RENDER
+  │
+  ├── Imagen (brillo, contraste, mover, rotar, calidad)
+  ├── Fondo
+  └── Capas  ← SOLO disponible en COLLAGE
+      │
+      ├── Lista de capas
+      └── Herramientas de capas
+          ├── Orden  (frente / subir / bajar / fondo)
+          └── Carga / gestión (clean+add, add_img, add_layer, combinar,
+                               duplicar, eliminar)
+
+Las 10 herramientas de capas NO son herramientas del render 3D: son del
+resultado visual. Por eso pertenecen a la pestaña "Capas" (barra inferior
+bajo la lista) y NO a la barra lateral EAST del modo Render.
+
+----------------------------------------------------------------
+PENDIENTE — REUBICACIÓN DE HERRAMIENTAS DE CAPAS
+----------------------------------------------------------------
+Problema actual
+- En modo RENDER, ToolbarManager.reconstruirContenedorDeToolbars coloca las
+  toolbars layerorderpreview + layerloadpreview (definidas tbarEast en
+  UIDefinitionService) en el EAST de la ventana → aparecen en la barra
+  derecha aunque no haya collage.
+- El usuario las espera en la pestaña "Capas" (que solo se activa en COLLAGE).
+
+Solución decidida (NO ocultar: REUBICAR en la pestaña "Capas")
+1. RenderPanel: la pestaña "Capas" pasa de ser solo layersScroll a un
+   JPanel(BorderLayout): CENTER = layersScroll, SOUTH = layersToolbarContainer
+   (FlowLayout horizontal). Nuevo getter getLayersToolbarContainer().
+2. ViewBuilder: registrar el contenedor como "panel.render.layers.toolbar".
+3. ToolbarManager.reconstruirContenedorDeToolbars:
+   - Añadir layersContainer.removeAll() junto a los removeAll() iniciales
+     (garantiza que los botones aparecen UNA sola vez en cada reconstrucción).
+   - En case EAST: si claveBarra es layerorderpreview o layerloadpreview,
+     colocar la toolbar HORIZONTAL (setFloatable(false)) en el
+     layersContainer en vez del eastPanel; break. Null-guard: si el
+     contenedor no está registrado, caer al comportamiento EAST actual.
+   - No hace falta comprobar modoActual: ambas toolbars tienen modosVisibles
+     = RENDER, así que solo se procesan en ese modo.
+   - Rebuild por tema/modo intacto: reconstruirContenedorDeToolbars se llama
+     en cada cambio de modo (AppModeService) y en arranque (AppInitializer),
+     por lo que Render → otro modo → Render siempre reconstruye desde cero:
+     sin duplicados ni orientación vertical residual.
+4. RenderPanel.setCollageMode(boolean): ELIMINAR show2DView() y los dos
+   imageDisplayPanel.setBorder(...). Mantener: enable/disable de la pestaña
+   "Capas" (setEnabledAt), enable/disable de btnMover/btnRotar y repaint.
+   → Entrar/salir de COLLAGE NO toca ni vista ni títulos del visor.
+5. RenderController.toggleCollageMode(): eliminar el bloque que muestra/
+   oculta toolbar.layerorderpreview y toolbar.layerloadpreview por registry
+   (ya no están en EAST; la pestaña "Capas" gobierna su accesibilidad).
+   Dejar solo panel.setCollageMode(nuevo) + log.
+
+Responsabilidad separada
+- ToolbarManager    → decide DÓNDE se coloca la toolbar
+- RenderPanel       → decide si la pestaña "Capas" está habilitada
+- RenderController  → decide si se está en COLLAGE o no
+
+----------------------------------------------------------------
+FUERA DE ALCANCE (decisión de producto)
+----------------------------------------------------------------
+- No hacer edición 3D avanzada, composición 3D real, iluminación por capa,
+  cámaras independientes, persistencia compleja del collage ni plantillas.
+  Eso es trabajo para programas profesionales. Aquí basta con que "se vea lo
+  que es".===============

@@ -157,6 +157,10 @@ public class ToolbarManager implements ThemeChangeListener{
         centerPanel.removeAll();
         rightPanel.removeAll();
         if (eastPanel != null) eastPanel.removeAll();
+        JPanel layersContainer = registry.get("panel.render.layers.toolbar");
+        if (layersContainer != null) {
+            layersContainer.removeAll();
+        }
 
         List<ToolbarDefinition> todasLasBarras = new java.util.ArrayList<>(uiDefService.generateModularToolbarStructure());
         todasLasBarras.sort(java.util.Comparator.comparingInt(ToolbarDefinition::orden));
@@ -186,6 +190,16 @@ public class ToolbarManager implements ThemeChangeListener{
                     case CENTER: centerPanel.add(toolbar); break;
                     case RIGHT: rightPanel.add(toolbar); break;
                     case EAST:
+                        // En modo RENDER, las toolbars de capas viven en la pestaña
+                        // "Capas" del preview (debajo de la lista), no en el EAST.
+                        if ("layerorderpreview".equals(def.claveBarra()) || "layerloadpreview".equals(def.claveBarra())) {
+                            if (layersContainer != null) {
+                                toolbar.setOrientation(JToolBar.HORIZONTAL);
+                                toolbar.setFloatable(false);
+                                layersContainer.add(toolbar);
+                                break;
+                            }
+                        }
                         toolbar.setOrientation(JToolBar.VERTICAL);
                         toolbar.setFloatable(false);
                         toolbar.setMaximumSize(new java.awt.Dimension(
@@ -243,6 +257,7 @@ public class ToolbarManager implements ThemeChangeListener{
         rightPanel.revalidate();
         rightPanel.repaint();
         if (eastPanel != null) { eastPanel.revalidate(); eastPanel.repaint(); }
+        if (layersContainer != null) { layersContainer.revalidate(); layersContainer.repaint(); }
 
 	     if (this.backgroundControlManager != null) {
 	         logger.debug("  [ToolbarManager] Notificando a BackgroundControlManager para que se re-inicialice...");

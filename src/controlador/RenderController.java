@@ -1026,6 +1026,11 @@ public class RenderController {
      * modo. La primera vez (o si aún no se ha trabajado) se muestra el Scanner.
      */
     public void restaurarVistaRender() {
+        // Al entrar en el modo Render el collage siempre arranca desactivado:
+        // la pestaña "Capas" solo está disponible dentro de COLLAGE.
+        if (panel.isCollageMode()) {
+            panel.setCollageMode(false);
+        }
         switch (vistaActivaRender) {
             case VISTA_GRID3D:
                 mostrarGrid3D();
@@ -2218,22 +2223,6 @@ public class RenderController {
     public void toggleCollageMode() {
         boolean nuevo = !panel.isCollageMode();
         panel.setCollageMode(nuevo);
-        // Mostrar/ocultar toolbars de capas vía registry
-        if (registry != null) {
-            String[] toolbarKeys = {"toolbar.layerorderpreview", "toolbar.layerloadpreview"};
-            for (String key : toolbarKeys) {
-                java.awt.Component tb = registry.get(key);
-                if (tb != null) {
-                    tb.setVisible(nuevo);
-                    if (tb.getParent() != null) {
-                        tb.getParent().revalidate();
-                        tb.getParent().repaint();
-                    }
-                } else {
-                    logger.warn("[RenderController] Toolbar '{}' no encontrada en registry", key);
-                }
-            }
-        }
         logger.info("[RenderController] Modo collage: {}", nuevo);
     } // --- Fin del metodo toggleCollageMode ---
 

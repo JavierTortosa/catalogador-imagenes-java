@@ -162,6 +162,7 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
 
     private final JTabbedPane tabbedPane;
     private JScrollPane layersScroll;
+    private final JPanel layersToolbarContainer;
     private final JPanel cardPanel;
 
     private ThemeManager themeManager;
@@ -863,7 +864,15 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
         });
         this.layersScroll = new JScrollPane(layersList);
         layersScroll.setBorder(BorderFactory.createTitledBorder("Capas"));
-        tabbedPane.addTab("Capas", layersScroll);
+        this.layersToolbarContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        layersToolbarContainer.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        JPanel layersTab = new JPanel(new BorderLayout(4, 4));
+        layersTab.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        layersTab.add(layersScroll, BorderLayout.CENTER);
+        layersTab.add(layersToolbarContainer, BorderLayout.SOUTH);
+        tabbedPane.addTab("Capas", layersTab);
+        // La pestaña "Capas" arranca deshabilitada: solo se activa entrando en COLLAGE.
+        setCollageMode(false);
 
         rightPanel.add(tabbedPane, BorderLayout.SOUTH);
 
@@ -1151,23 +1160,17 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
 
     public void setCollageMode(boolean collageMode) {
         this.collageMode = collageMode;
-        // Mostrar/ocultar la pestaña Capas
+        // Mostrar/ocultar la pestaña Capas (y con ella las herramientas de capas)
         for (int i = 0; i < tabbedPane.getTabCount(); i++) {
             if ("Capas".equals(tabbedPane.getTitleAt(i))) {
                 tabbedPane.setEnabledAt(i, collageMode);
                 break;
             }
         }
-        if (collageMode) {
-            show2DView();
-            imageDisplayPanel.setBorder(BorderFactory.createTitledBorder("Composición (collage)"));
-            btnMover.setEnabled(false);
-            btnRotar.setEnabled(false);
-        } else {
-            imageDisplayPanel.setBorder(null);
-            btnMover.setEnabled(true);
-            btnRotar.setEnabled(true);
-        }
+        // Entrar/salir de collage NO toca ni la vista ni los títulos del visor:
+        // solo cambia la infraestructura de trabajo con capas.
+        btnMover.setEnabled(!collageMode);
+        btnRotar.setEnabled(!collageMode);
         imageDisplayPanel.repaint();
     }
 
@@ -1175,6 +1178,8 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
     public DefaultListModel<ImageLayer> getLayersListModel() { return layersListModel; }
     public JList<ImageLayer> getLayersList() { return layersList; }
     public int getSelectedLayerIndex() { return selectedLayerIndex; }
+
+    public JPanel getLayersToolbarContainer() { return layersToolbarContainer; }
 
     public ImageLayer getSelectedLayer() {
         if (selectedLayerIndex >= 0 && selectedLayerIndex < layersListModel.size()) {
