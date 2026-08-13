@@ -238,20 +238,24 @@ public class MenuPopupManager {
                 public void mouseReleased(MouseEvent e) { maybeShow(e); }
                 private void maybeShow(MouseEvent e) {
                     if (e.isPopupTrigger()) {
-                        String selectedKey = model != null ? model.getSelectedImageKey() : null;
-                        if (selectedKey == null) return;
-                        Path fullPath = model.getRutaCompleta(selectedKey);
-                        if (fullPath == null) {
-                            Path raiz = model.getCarpetaRaizActual();
-                            fullPath = (raiz != null) ? raiz.resolve(selectedKey) : Path.of(selectedKey);
+                        String soloNombre = obtenerNombreArchivoDesdeLabel(nombreLabel);
+                        if (soloNombre == null) {
+                            String selectedKey = model != null ? model.getSelectedImageKey() : null;
+                            if (selectedKey == null) return;
+                            Path fullPath = model.getRutaCompleta(selectedKey);
+                            if (fullPath == null) {
+                                Path raiz = model.getCarpetaRaizActual();
+                                fullPath = (raiz != null) ? raiz.resolve(selectedKey) : Path.of(selectedKey);
+                            }
+                            if (fullPath == null) return;
+                            soloNombre = fullPath.getFileName().toString();
                         }
-                        if (fullPath == null) return;
-                        final String soloNombre = fullPath.getFileName().toString();
+                        final String nombreCopiar = soloNombre;
                         JPopupMenu menu = new JPopupMenu();
                         JMenuItem copiarItem = new JMenuItem("Copiar nombre");
                         copiarItem.addActionListener(al -> {
                             java.awt.datatransfer.StringSelection selection =
-                                new java.awt.datatransfer.StringSelection(soloNombre);
+                                new java.awt.datatransfer.StringSelection(nombreCopiar);
                             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
                         });
                         menu.add(copiarItem);
@@ -267,6 +271,28 @@ public class MenuPopupManager {
     }
 
     // ==================== MENÚ CARRUSEL (VELOCIDAD) ====================
+
+    /**
+     * Extrae el nombre de archivo mostrado en el label de nombre de la barra
+     * superior. Así "Copiar nombre" copia lo que realmente se muestra (también
+     * en modo render), en lugar del nombre de la imagen seleccionada en el
+     * visor. Devuelve null si el label está vacío o muestra un valor nulo.
+     *
+     * @param nombreLabel El label "Archivo: ..." de la barra superior.
+     * @return El nombre mostrado, o null si no hay un nombre válido.
+     */
+    private String obtenerNombreArchivoDesdeLabel(JLabel nombreLabel) {
+        String texto = nombreLabel != null ? nombreLabel.getText() : null;
+        if (texto == null) return null;
+        String nombre = texto.replaceFirst("^Archivo:\\s*", "").trim();
+        if (nombre.isEmpty()
+                || "N/A".equalsIgnoreCase(nombre)
+                || "(ninguno)".equalsIgnoreCase(nombre)
+                || "(ninguna)".equalsIgnoreCase(nombre)) {
+            return null;
+        }
+        return nombre;
+    } // --- Fin del metodo obtenerNombreArchivoDesdeLabel ---
 
     /**
      * Muestra el menú de selección de velocidad del carrusel.

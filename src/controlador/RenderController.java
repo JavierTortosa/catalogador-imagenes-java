@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -118,6 +119,10 @@ public class RenderController {
     private volatile Path currentPreviewPath;
     private List<Triangle> currentTriangles;
     private Zip2PngWorker currentWorker;
+    private boolean procesadoUnico;
+
+    /** Marca si ya se lanzó la prueba temporal de snapshot HD (property visor.pruebaSnapshot). */
+    private boolean pruebaSnapshotHecho;
     private SwingWorker<List<Triangle>, Void> currentTriangleWorker;
     private volatile boolean loadingTriangles;
     private ComponentRegistry registry;
@@ -135,6 +140,9 @@ public class RenderController {
     private static final String VISTA_GRID2D = "grid2d";
     private String vistaActivaRender = VISTA_SCANNER;
 
+    /** Lado mayor máximo (px) para la imagen asignada al grid. */
+    private static final int MAX_LADO_GRID = 2048;
+
     public RenderController(RenderPanel panel, ConfigurationManager config, Component parentFrame) {
         this.panel = panel;
         this.config = config;
@@ -144,6 +152,7 @@ public class RenderController {
         this.sceneController = new RenderSceneController(panel.getPreview3DFX());
         this.outputDir = tempFileManager.getOutputDir();
         this.imagesDir = tempFileManager.getImagesDir();
+        this.renderer.setOutputSize(getResolucionSalida());
         wireControls();
         wireBackgroundControls();
         initAdvanceEditIconSize();
@@ -320,11 +329,14 @@ public class RenderController {
                 panel.getBrightnessField().setText(String.valueOf(src.getValue()));
             } else if (src == panel.getContrastSlider()) {
                 panel.getContrastField().setText(String.valueOf(src.getValue()));
+            } else if (src == panel.getFillLight2Slider()) {
+                panel.getFillLight2Field().setText(String.valueOf(src.getValue()));
             }
             applyAdjustments();
         };
         panel.getBrightnessSlider().addChangeListener(sliderListener);
         panel.getContrastSlider().addChangeListener(sliderListener);
+        panel.getFillLight2Slider().addChangeListener(sliderListener);
 
         java.awt.event.KeyAdapter fieldListener = new java.awt.event.KeyAdapter() {
             @Override
@@ -337,6 +349,9 @@ public class RenderController {
                         panel.getBrightnessSlider().setValue(val);
                     } else if (field == panel.getContrastField()) {
                         panel.getContrastSlider().setValue(val);
+                    } else if (field == panel.getFillLight2Field()) {
+                        val = Math.max(0, Math.min(100, val));
+                        panel.getFillLight2Slider().setValue(val);
                     }
                     applyAdjustments();
                 } catch (NumberFormatException ignored) {}
@@ -344,6 +359,7 @@ public class RenderController {
         };
         panel.getBrightnessField().addKeyListener(fieldListener);
         panel.getContrastField().addKeyListener(fieldListener);
+        panel.getFillLight2Field().addKeyListener(fieldListener);
 
         panel.getChkCheckerboard().addActionListener(e -> applyAdjustments());
         panel.getChkAntiAlias().addActionListener(e -> {
@@ -420,14 +436,16 @@ public class RenderController {
      */
     private void aplicarSpinnerMoverRotar3D() {
         double rotX = ((Number) panel.getSpnRotarX().getValue()).doubleValue();
-        double rotY = ((Number) panel.getSpnRotarY().getValue()).doubleValue();
-        double rotZ = ((Number) panel.getSpnRotarZ().getValue()).doubleValue();
+        // En la convención de la escena los spinners Y/Z aparecen cruzados:
+        // el valor del spinner Y gobierna la rotación Z percibida y viceversa.
+        double rotY = ((Number) panel.getSpnRotarZ().getValue()).doubleValue();
+        double rotZ = ((Number) panel.getSpnRotarY().getValue()).doubleValue();
         double panX = ((Number) panel.getSpnMoverX().getValue()).doubleValue();
         double panY = ((Number) panel.getSpnMoverY().getValue()).doubleValue();
         double zoomFactor = ((Number) panel.getSpnMoverZ().getValue()).doubleValue() / 100.0;
         sceneController.aplicarRotacion(rotX, rotY, rotZ);
         sceneController.aplicarMovimiento(panX, panY, zoomFactor);
-    }
+    } // --- Fin del metodo aplicarSpinnerMoverRotar3D ---
 
     /**
      * Aplica los valores absolutos de los spinners a la imagen 2D del visor.
@@ -604,6 +622,7 @@ public class RenderController {
         panel.getPreview3DFX().setAntiAlias(panel.isAntiAlias());
         panel.getPreview3DFX().setCrosshairVisible(panel.isCrosshair());
         panel.getPreview3DFX().setWireframe(panel.getChkWireframe().isSelected());
+        panel.getPreview3DFX().setFillLight2Intensity(panel.getFillLight2Slider().getValue());
         panel.getPreview3DFX().setFillLight2Visible(panel.getChkFillLight2().isSelected());
     }
 
@@ -728,7 +747,12 @@ public class RenderController {
         }
 
         javax.swing.JTextField pathField = registry.get("textfield.info.rutaImagen");
-        if (pathField != null) pathField.setText("Ruta: " + ruta);
+        if (pathField != null) {
+            pathField.setText("Ruta: " + ruta);
+            if (candidate != null) {
+                pathField.setToolTipText("Ruta: " + ruta);
+            }
+        }
 
         javax.swing.JLabel label;
         label = registry.get("label.info.nombreArchivo");
@@ -816,6 +840,8 @@ public class RenderController {
         panel.getBrightnessField().setText("0");
         panel.getContrastSlider().setValue(0);
         panel.getContrastField().setText("0");
+        panel.getFillLight2Slider().setValue(40);
+        panel.getFillLight2Field().setText("40");
         panel.getChkCheckerboard().setSelected(false);
         panel.getChkAntiAlias().setSelected(false);
         // La cruceta respeta el estado actual del control, no se fuerza.
@@ -1042,6 +1068,8 @@ public class RenderController {
                 mostrarScannerPorDefecto();
                 break;
         }
+
+        actualizarInfobarRender(getSelectedCandidate());
     } // --- Fin del metodo restaurarVistaRender ---
 
 
@@ -1284,13 +1312,15 @@ public class RenderController {
         Zip2PngWorker worker = new Zip2PngWorker(candidatos, outputDir, dialog, () -> {
             panel.limpiarMarcados();
             onProcessCompleted();
-        });
+        }, getResolucionSalida());
         this.currentWorker = worker;
         worker.execute();
         dialog.setVisible(true);
     }
 
     private void onProcessCompleted() {
+        boolean unico = procesadoUnico;
+        procesadoUnico = false;
         if (currentWorker != null) {
             for (SourceInfo si : currentWorker.getSourceInfos()) {
                 pngSourceMap.put(si.pngPath(), si);
@@ -1298,16 +1328,20 @@ public class RenderController {
         }
         SwingUtilities.invokeLater(() -> {
             refreshThumbnails(null);
-            reordenarProcesadosAlInicio();
-            // Auto-seleccionar primer candidato en "Sin renderizar"
-            if (panel.getListModelSinImagen().getSize() > 0) {
-                panel.getCandidateTabs().setSelectedIndex(0);
-                pointerSinRenderizar = 0;
-                panel.getCandidateListSinImagen().setSelectedIndex(0);
-            } else if (panel.getListModelConImagen().getSize() > 0) {
-                panel.getCandidateTabs().setSelectedIndex(1);
-                pointerConImagen = 0;
-                panel.getCandidateListConImagen().setSelectedIndex(0);
+            // En procesado único no se reordenan ni se auto-seleccionan otros
+            // candidatos: el foco queda en el archivo procesado.
+            if (!unico) {
+                reordenarProcesadosAlInicio();
+                // Auto-seleccionar primer candidato en "Sin renderizar"
+                if (panel.getListModelSinImagen().getSize() > 0) {
+                    panel.getCandidateTabs().setSelectedIndex(0);
+                    pointerSinRenderizar = 0;
+                    panel.getCandidateListSinImagen().setSelectedIndex(0);
+                } else if (panel.getListModelConImagen().getSize() > 0) {
+                    panel.getCandidateTabs().setSelectedIndex(1);
+                    pointerConImagen = 0;
+                    panel.getCandidateListConImagen().setSelectedIndex(0);
+                }
             }
             panel.syncGridToCandidateTab();
         });
@@ -1464,7 +1498,7 @@ public class RenderController {
                         return;
                     }
                     seleccionarCandidatoEnLista(candidate);
-                    showPreview(p);
+                    showPreview(p, candidate);
                 }
             });
             grid.add(label);
@@ -1504,6 +1538,7 @@ public class RenderController {
                 panel.getCandidateTabs().setSelectedIndex(0);
                 panel.getCandidateListSinImagen().setSelectedIndex(idx);
                 syncingFromGrid = false;
+                actualizarInfobarRender(candidate);
                 return;
             }
         }
@@ -1515,13 +1550,14 @@ public class RenderController {
             }
         }
         syncingFromGrid = false;
+        actualizarInfobarRender(candidate);
     }
 
     private boolean isPathInImagesDir(Path p) {
         return p.startsWith(imagesDir);
     }
 
-    private void showPreview(Path pngPath) {
+    private void showPreview(Path pngPath, RenderCandidate candidate) {
         logger.debug("[RenderController] showPreview: " + pngPath.getFileName());
         this.currentPreviewPath = pngPath;
         this.loadingTriangles = false;
@@ -1534,7 +1570,7 @@ public class RenderController {
         if (panel.isCandidateTabConImagen() || isPathInImagesDir(pngPath)) {
             showImagePreview(pngPath);
         } else {
-            showRenderPreview(pngPath);
+            showRenderPreview(pngPath, candidate);
         }
     }
 
@@ -1561,15 +1597,16 @@ public class RenderController {
         }
     }
 
-    private void showRenderPreview(Path pngPath) {
+    private void showRenderPreview(Path pngPath, RenderCandidate candidate) {
         panel.show3DView();
         currentTriangles = getCachedTriangles(pngPath);
         logger.debug("[RenderController] triangleCache hit: " + (currentTriangles != null));
         if (currentTriangles != null) {
             sceneController.cargarMalla3D(currentTriangles, 0, 0, false, panel.isAntiAlias(), panel.isCrosshair());
+            dispararPruebaSnapshotSiProcede();
         } else {
             sceneController.limpiarEscena();
-            cargarTriangulosAsync();
+            cargarTriangulosAsync(candidate);
         }
     }
 
@@ -1593,11 +1630,6 @@ public class RenderController {
         }
     }
 
-    private void selectPreviewThumbnail(Path pngPath) {
-        showPreview(pngPath);
-        resaltarThumbnail(pngPath);
-    }
-
     private void mostrarErrorCarga(String mensaje) {
         javax.swing.SwingUtilities.invokeLater(() -> {
             javax.swing.JOptionPane.showMessageDialog(parentFrame,
@@ -1607,7 +1639,7 @@ public class RenderController {
         });
     }
 
-    private void cargarTriangulosAsync() {
+    private void cargarTriangulosAsync(RenderCandidate candidate) {
         if (currentPreviewPath == null) { logger.warn("[RenderController] cargarTriangulosAsync: currentPreviewPath is null"); return; }
         
         // Cancelar trabajador anterior si está en ejecución para evitar race conditions
@@ -1625,6 +1657,13 @@ public class RenderController {
             protected List<Triangle> doInBackground() throws Exception {
                 logger.debug("[RenderController] Worker doInBackground: buscando SourceInfo...");
                 SourceInfo info = pngSourceMap.get(pathSiendoCargado);
+                if (info == null && candidate != null) {
+                    info = derivarOrigen(pathSiendoCargado, candidate);
+                    if (info != null) {
+                        pngSourceMap.put(pathSiendoCargado, info);
+                        logger.debug("[RenderController] Origen derivado para: " + pathSiendoCargado.getFileName());
+                    }
+                }
                 if (info == null) {
                     errorMsg = "No se encontró información del origen para:\n"
                             + pathSiendoCargado.getFileName()
@@ -1675,6 +1714,7 @@ public class RenderController {
                             logger.debug("[RenderController] Llamando cargarMalla3D...");
                             sceneController.cargarMalla3D(tris, panel.getBrightness(), panel.getContrast(),
                                     panel.isCheckerboard(), panel.isAntiAlias(), panel.isCrosshair());
+                            dispararPruebaSnapshotSiProcede();
                             logger.debug("[RenderController] setMesh completado");
                         } else {
                             logger.warn("[RenderController] Omitiendo setMesh: path ha cambiado");
@@ -1697,6 +1737,32 @@ public class RenderController {
         };
         currentTriangleWorker.execute();
     }
+
+    /**
+     * Deriva el origen (candidato + STL) de un PNG de render cuando no está en
+     * el mapa de sesión, para poder previsualizarlo aunque se haya generado en
+     * otra sesión o tras un re-arranque. Para comprimidos elige el STL mayor,
+     * igual que hace el worker de procesado.
+     *
+     * @param pngPath   PNG de render a asociar.
+     * @param candidate Candidato al que pertenece el PNG.
+     * @return SourceInfo reconstruido, o null si no se puede determinar.
+     */
+    private SourceInfo derivarOrigen(Path pngPath, RenderCandidate candidate) {
+        try {
+            if (candidate.esComprimido) {
+                List<StlEntry> stls = ZipExtractor.listStlContents(candidate.path);
+                if (stls.isEmpty()) return null;
+                stls.sort(Comparator.comparingLong(StlEntry::sizeBytes).reversed());
+                return new SourceInfo(pngPath, candidate, stls.get(0));
+            }
+            return new SourceInfo(pngPath, candidate,
+                    new StlEntry(candidate.path.getFileName().toString(), candidate.path.toFile().length()));
+        } catch (Exception ex) {
+            logger.warn("No se pudo derivar origen para: {}", pngPath.getFileName(), ex);
+            return null;
+        }
+    } // --- Fin del metodo derivarOrigen ---
 
     private JFrame getParentFrame() {
         if (parentFrame instanceof JFrame) return (JFrame) parentFrame;
@@ -1779,8 +1845,9 @@ public class RenderController {
 
         Zip2PngWorker worker = new Zip2PngWorker(single, outputDir, dialog, () -> {
             onProcessCompleted();
-        });
+        }, getResolucionSalida());
         this.currentWorker = worker;
+        procesadoUnico = true;
         worker.execute();
         dialog.setVisible(true);
     } // --- Fin del metodo procesarArchivo ---
@@ -1790,22 +1857,40 @@ public class RenderController {
      * Abre un diálogo para copiar los PNGs generados a la carpeta elegida.
      */
     public void copiarArchivos() {
-        List<Path> pngs = new ArrayList<>();
-        try (var files = Files.list(outputDir)) {
-            files.filter(p -> p.getFileName().toString().toLowerCase().endsWith(".png")).forEach(pngs::add);
-        } catch (IOException ex) {
-            logger.error("Error listando PNGs para copiar", ex);
-            return;
-        }
+        // Solo se copian los PNG asociados a los candidatos visibles en el grid, no
+        // todo el contenido de la carpeta temporal (que acumula residuos de sesiones).
+        // Se conserva el candidato de cada PNG para poder copiarlo a SU carpeta de
+        // origen cuando se elige esa opción.
+        LinkedHashMap<Path, RenderCandidate> pngs = new LinkedHashMap<>();
+        java.util.Collections.list(panel.getListModelSinImagen().elements()).forEach(c -> {
+            Path png = outputDir.resolve(c.nombreBase + ".png");
+            if (Files.exists(png)) pngs.put(png, c);
+        });
+        java.util.Collections.list(panel.getListModelConImagen().elements()).forEach(c -> {
+            Path png = outputDir.resolve(c.nombreBase + ".png");
+            if (Files.exists(png)) {
+                pngs.put(png, c);
+                return;
+            }
+            Path imgDir = imagesDir.resolve(c.nombreBase);
+            if (Files.isDirectory(imgDir)) {
+                try (var walk = Files.walk(imgDir, 3)) {
+                    walk.filter(Files::isRegularFile)
+                            .filter(p -> {
+                                String n = p.getFileName().toString().toLowerCase();
+                                return n.endsWith(".png") || n.endsWith(".jpg") || n.endsWith(".jpeg")
+                                        || n.endsWith(".gif") || n.endsWith(".bmp") || n.endsWith(".webp");
+                            })
+                            .findFirst()
+                            .ifPresent(p -> pngs.put(p, c));
+                } catch (IOException ignored) {}
+            }
+        });
         if (pngs.isEmpty()) {
             JOptionPane.showMessageDialog(parentFrame, "No hay PNGs generados para copiar.",
                     "Copiar Archivos", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        String rutaOrigen = !panel.getListModelSinImagen().isEmpty()
-                ? panel.getListModelSinImagen().getElementAt(0).path.getParent().toString()
-                : "";
 
         JDialog dialog = new JDialog(getParentFrame(), "Copiar Archivos Generados", true);
         dialog.setLayout(new BorderLayout(10, 10));
@@ -1816,8 +1901,8 @@ public class RenderController {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridwidth = 2;
 
-        JRadioButton rbTemp = new JRadioButton("Carpeta temporal");
-        JRadioButton rbOrigen = new JRadioButton("Carpeta de origen");
+        JRadioButton rbTemp = new JRadioButton("Carpeta temporal (todos en 1 carpeta)");
+        JRadioButton rbOrigen = new JRadioButton("Carpeta de origen (cada archivo en su carpeta)");
         JRadioButton rbCustom = new JRadioButton("Carpeta personalizada");
         ButtonGroup group = new ButtonGroup();
         group.add(rbTemp);
@@ -1830,7 +1915,7 @@ public class RenderController {
 
         rbTemp.setSelected(true);
         rbTemp.addActionListener(ev -> tfRuta.setText(outputDir.toString()));
-        rbOrigen.addActionListener(ev -> { if (!rutaOrigen.isEmpty()) tfRuta.setText(rutaOrigen); });
+        rbOrigen.addActionListener(ev -> tfRuta.setText("  (cada archivo a su carpeta de origen)"));
         rbCustom.addActionListener(ev -> {
             JFileChooser chooser = new JFileChooser();
             chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -1867,27 +1952,49 @@ public class RenderController {
         dialog.add(btnPanel, BorderLayout.SOUTH);
 
         btnCopiar.addActionListener(ev -> {
-            Path dest = Path.of(tfRuta.getText());
-            if (!Files.exists(dest)) {
-                try { Files.createDirectories(dest); } catch (IOException ex) {
-                    logger.error("No se pudo crear carpeta {}", dest, ex);
-                    return;
+            int copiados = 0;
+            if (rbOrigen.isSelected()) {
+                // Cada PNG a la carpeta donde vive su archivo origen.
+                for (Map.Entry<Path, RenderCandidate> entry : pngs.entrySet()) {
+                    Path png = entry.getKey();
+                    Path dest = entry.getValue().path.getParent();
+                    if (dest == null) continue;
+                    try {
+                        Files.createDirectories(dest);
+                        Files.copy(png, dest.resolve(png.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+                        copiados++;
+                    } catch (IOException ex) {
+                        logger.error("Error copiando {} a {}", png, dest, ex);
+                    }
                 }
-            }
-            for (Path p : pngs) {
-                try {
-                    Files.copy(p, dest.resolve(p.getFileName()), StandardCopyOption.REPLACE_EXISTING);
-                } catch (IOException ex) {
-                    logger.error("Error copiando {} a {}", p, dest, ex);
+            } else {
+                Path dest = Path.of(tfRuta.getText());
+                if (!Files.exists(dest)) {
+                    try { Files.createDirectories(dest); } catch (IOException ex) {
+                        logger.error("No se pudo crear carpeta {}", dest, ex);
+                        return;
+                    }
+                }
+                for (Path p : pngs.keySet()) {
+                    try {
+                        Files.copy(p, dest.resolve(p.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+                        copiados++;
+                    } catch (IOException ex) {
+                        logger.error("Error copiando {} a {}", p, dest, ex);
+                    }
                 }
             }
             dialog.dispose();
-            JOptionPane.showMessageDialog(parentFrame, "Copiados " + pngs.size() + " archivos a:\n" + dest,
+            String resumen = rbOrigen.isSelected()
+                    ? "a sus carpetas de origen"
+                    : "a:\n" + tfRuta.getText();
+            JOptionPane.showMessageDialog(parentFrame,
+                    "Copiados " + copiados + " archivos " + resumen,
                     "Copiar Archivos", JOptionPane.INFORMATION_MESSAGE);
         });
         btnCancelar.addActionListener(ev -> dialog.dispose());
 
-        dialog.setSize(450, 320);
+        dialog.setSize(500, 320);
         dialog.setLocationRelativeTo(parentFrame);
         dialog.setVisible(true);
     } // --- Fin del metodo copiarArchivos ---
@@ -2034,12 +2141,14 @@ public class RenderController {
             return;
         }
         try {
-            BufferedImage captura = panel.capturarVistaActual();
+            // Se guarda la imagen completa del preview escalada al máximo permitido,
+            // no el recorte cuadrado del visor.
+            BufferedImage imagen = panel.getCurrentImage2D();
             Path dest = outputDir.resolve(selected.nombreBase + ".png");
-            if (captura != null) {
-                ImageIO.write(captura, "PNG", dest.toFile());
-                logger.info("Vista capturada guardada: {} (zoom={})",
-                        dest.getFileName(), String.format("%.2f", panel.getImageZoom()));
+            if (imagen != null) {
+                ImageIO.write(escalarSiNecesario(imagen, MAX_LADO_GRID), "PNG", dest.toFile());
+                logger.info("Imagen completa guardada en el grid: {} ({}x{})",
+                        dest.getFileName(), imagen.getWidth(), imagen.getHeight());
             } else {
                 Files.copy(currentPreviewPath, dest, StandardCopyOption.REPLACE_EXISTING);
                 logger.info("Imagen original copiada al grid: {}", dest.getFileName());
@@ -2066,7 +2175,7 @@ public class RenderController {
         try {
             BufferedImage img = renderizarPreview();
             if (img == null) return;
-            ImageIO.write(img, "PNG", currentPreviewPath.toFile());
+            ImageIO.write(escalarSiNecesario(img, MAX_LADO_GRID), "PNG", currentPreviewPath.toFile());
             logger.info("Preview re-renderizado y guardado: {} ({}x{})",
                     currentPreviewPath.getFileName(), img.getWidth(), img.getHeight());
             putCachedTriangles(currentPreviewPath, currentTriangles);
@@ -2082,12 +2191,122 @@ public class RenderController {
 
 
     /**
-     * Renderiza el STL actual con la orientación y los ajustes de
-     * brillo/contraste/AA/fondo del panel de preview.
+     * Obtiene la imagen del preview 3D tal como se ve: captura la SubScene
+     * JavaFX actual (modelo con su rotación, zoom, pan y luces/brightness ya
+     * aplicados) y le compone el fondo elegido según el modo activo.
      *
      * @return la imagen renderizada, o null si no hay modelo cargado
      */
     private BufferedImage renderizarPreview() {
+        if (currentTriangles == null) return null;
+
+        BufferedImage escena = panel.getPreview3DFX().capturarEscena3DSuperSampled(getResolucionSalida());
+        if (escena == null) {
+            return renderizarPreviewAwt();
+        }
+
+        String bgMode = panel.getSelectedBgMode();
+        boolean transparent = "transparent".equals(bgMode);
+        int w = escena.getWidth();
+        int h = escena.getHeight();
+        BufferedImage out = new BufferedImage(w, h,
+                transparent ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = out.createGraphics();
+        try {
+            if (!transparent) {
+                pintarFondoExportacion(g, bgMode, w, h);
+            }
+            g.drawImage(escena, 0, 0, null);
+        } finally {
+            g.dispose();
+        }
+        return out;
+    } // --- Fin del metodo renderizarPreview ---
+
+
+    /**
+     * Pinta el fondo de exportación (sólido, gradiente o imagen) en el lienzo
+     * del render capturado del preview 3D.
+     *
+     * @param g      lienzo de dibujo
+     * @param bgMode modo de fondo activo del panel
+     * @param w      ancho del lienzo
+     * @param h      alto del lienzo
+     */
+    private void pintarFondoExportacion(Graphics2D g, String bgMode, int w, int h) {
+        switch (bgMode) {
+            case "solid":
+                g.setColor(panel.getSolidBgColor());
+                g.fillRect(0, 0, w, h);
+                break;
+            case "gradient":
+                Color start = panel.getGradientStartColor();
+                Color end = panel.getGradientEndColor();
+                g.setPaint(new java.awt.GradientPaint(0, 0, start, 0, h, end));
+                g.fillRect(0, 0, w, h);
+                break;
+            case "image":
+                String imgPath = panel.getBgImageField().getText();
+                BufferedImage bgImage = null;
+                double bgImageScale = 1.0;
+                if (!imgPath.isEmpty()) {
+                    bgImage = loadBgImageAWT(Path.of(imgPath));
+                    bgImageScale = panel.getBgImageScaleSlider().getValue() / 50.0;
+                }
+                if (bgImage != null) {
+                    int bw = (int) Math.round(bgImage.getWidth() * bgImageScale);
+                    int bh = (int) Math.round(bgImage.getHeight() * bgImageScale);
+                    g.drawImage(bgImage, 0, 0, bw, bh, null);
+                } else {
+                    g.setColor(new Color(60, 60, 65));
+                    g.fillRect(0, 0, w, h);
+                }
+                break;
+            default:
+                g.setColor(new Color(60, 60, 65));
+                g.fillRect(0, 0, w, h);
+                break;
+        }
+    } // --- Fin del metodo pintarFondoExportacion ---
+
+
+    /**
+     * Lado (px) de la imagen de salida del render AWT, leído de la
+     * configuración. Mínimo 128.
+     */
+    private int getResolucionSalida() {
+        return Math.max(128, config.getInt(ConfigKeys.ZIP2PNG_RESOLUCION_SALIDA, 1024));
+    }
+
+
+    /**
+     * PRUEBA TEMPORAL: si la app se lanzó con -Dvisor.pruebaSnapshot=<carpeta>,
+     * genera una sola vez los PNG A/B/C del snapshot HD tras cargar un modelo.
+     */
+    private void dispararPruebaSnapshotSiProcede() {
+        String dir = System.getProperty("visor.pruebaSnapshot");
+        if (dir == null || dir.isBlank() || pruebaSnapshotHecho) return;
+        pruebaSnapshotHecho = true;
+        Path pdir = Path.of(dir);
+        final int[] intentos = {0};
+        javax.swing.Timer timer = new javax.swing.Timer(600, ev -> {
+            boolean ok = panel.getPreview3DFX().generarPruebaSnapshot(pdir, 1024);
+            if (ok || intentos[0]++ >= 4) {
+                ((javax.swing.Timer) ev.getSource()).stop();
+            }
+        });
+        timer.setInitialDelay(400);
+        timer.start();
+    } // --- Fin del metodo dispararPruebaSnapshotSiProcede ---
+
+
+    /**
+     * Fallback de renderizado por software del STL actual con los ajustes
+     * del panel; se usa cuando no se puede capturar la SubScene JavaFX.
+     *
+     * @return la imagen renderizada, o null si no hay modelo cargado
+     */
+    private BufferedImage renderizarPreviewAwt() {
         if (currentTriangles == null) return null;
 
         double rotX = panel.getPreview3DFX().getRotateXAngle();
@@ -2104,7 +2323,7 @@ public class RenderController {
         // encaja en (SIZE - 2*MARGIN) píxeles. Se convierte el pan de la cámara
         // (unidades de escena) a píxeles del render.
         double zoomScale = panel.getPreview3DFX().getZoomFactor();
-        int renderSize = AwtModelRenderer.SIZE * superSample;
+        int renderSize = renderer.getOutputSize() * superSample;
         double pxPorUnidad = (renderSize - 2f * AwtModelRenderer.MARGIN) / 200.0 * zoomScale;
         double panX = panel.getPreview3DFX().getPanX() * pxPorUnidad;
         double panY = panel.getPreview3DFX().getPanY() * pxPorUnidad;
@@ -2127,7 +2346,7 @@ public class RenderController {
                 rotX, rotY, rotZ, antiAlias, brightness, contrast,
                 bgMode, solidColor, gradientStart, gradientEnd,
                 bgImage, bgImageScale, wireframe, panX, panY, zoomScale);
-    } // --- Fin del metodo renderizarPreview ---
+    } // --- Fin del metodo renderizarPreviewAwt ---
 
 
     /**
@@ -3053,11 +3272,13 @@ public class RenderController {
 
         try {
             if (panel.isCandidateTabConImagen()) {
-                BufferedImage captura = panel.capturarVistaActual();
-                if (captura != null) {
-                    escribirPreview(captura, formato, destFile);
-                    logger.info("Preview 2D descargado: {} (zoom={})",
-                            destFile.getFileName(), String.format("%.2f", panel.getImageZoom()));
+                // Se guarda la imagen completa del preview, no el recorte del panel
+                // (que incluía el fondo del visor y producía un cuadrado).
+                BufferedImage imagenPreview = panel.getCurrentImage2D();
+                if (imagenPreview != null) {
+                    escribirPreview(imagenPreview, formato, destFile);
+                    logger.info("Preview 2D descargado: {} ({}x{})",
+                            destFile.getFileName(), imagenPreview.getWidth(), imagenPreview.getHeight());
                 } else {
                     if (currentPreviewPath == null || !Files.exists(currentPreviewPath)) {
                         JOptionPane.showMessageDialog(parentFrame,
@@ -3088,9 +3309,18 @@ public class RenderController {
                         destFile.getFileName(), img.getWidth(), img.getHeight());
             }
 
-            JOptionPane.showMessageDialog(parentFrame,
+            Object[] opciones = { "Abrir carpeta", "Cerrar" };
+            int opc = JOptionPane.showOptionDialog(parentFrame,
                     "Preview guardado en:\n" + destFile,
-                    "Guardar Preview", JOptionPane.INFORMATION_MESSAGE);
+                    "Guardar Preview", JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE, null, opciones, opciones[1]);
+            if (opc == 0) {
+                try {
+                    Desktop.getDesktop().open(destFile.getParent().toFile());
+                } catch (IOException ex) {
+                    logger.warn("No se pudo abrir la carpeta destino: {}", destFile.getParent(), ex);
+                }
+            }
 
         } catch (Exception e) {
             logger.error("Error al descargar preview", e);
@@ -3214,6 +3444,33 @@ public class RenderController {
     private void escribirPreview(BufferedImage img, String formato, Path destFile) throws IOException {
         ImageIO.write(img, formato, destFile.toFile());
     } // --- Fin del metodo escribirPreview ---
+
+
+    /**
+     * Escala una imagen al lado mayor máximo indicado si lo supera, conservando
+     * la proporción. Si ya cabe, la devuelve tal cual.
+     *
+     * @param imagen  imagen de origen
+     * @param maxLado lado mayor máximo permitido en píxeles
+     * @return imagen escalada o la original si no necesita reducción
+     */
+    private BufferedImage escalarSiNecesario(BufferedImage imagen, int maxLado) {
+        int w = imagen.getWidth();
+        int h = imagen.getHeight();
+        int ladoMayor = Math.max(w, h);
+        if (ladoMayor <= maxLado) return imagen;
+
+        double escala = (double) maxLado / ladoMayor;
+        int nuevoW = Math.max(1, (int) Math.round(w * escala));
+        int nuevoH = Math.max(1, (int) Math.round(h * escala));
+        BufferedImage escalada = new BufferedImage(nuevoW, nuevoH, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = escalada.createGraphics();
+        g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
+                java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.drawImage(imagen, 0, 0, nuevoW, nuevoH, null);
+        g.dispose();
+        return escalada;
+    } // --- Fin del metodo escalarSiNecesario ---
 
 
     /**

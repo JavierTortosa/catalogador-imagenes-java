@@ -37,12 +37,13 @@ public class Zip2PngWorker extends SwingWorker<Void, String> {
     private final List<SourceInfo> sourceInfos;
 
     public Zip2PngWorker(List<RenderCandidate> candidates, Path outputDir,
-            TaskProgressDialog dialog, Runnable onDone) {
+            TaskProgressDialog dialog, Runnable onDone, int outputSize) {
         this.candidates = candidates;
         this.outputDir = outputDir;
         this.dialog = dialog;
         this.onDone = onDone;
         this.renderer = new AwtModelRenderer();
+        this.renderer.setOutputSize(outputSize);
         this.generatedFiles = new ArrayList<>();
         this.sourceInfos = new ArrayList<>();
         if (this.dialog != null) {

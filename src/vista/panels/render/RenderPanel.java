@@ -116,6 +116,9 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
     private final JLabel contrastLabel;
     private final JSlider contrastSlider;
     private final JTextField contrastField;
+    private final JLabel fillLight2Label;
+    private final JSlider fillLight2Slider;
+    private final JTextField fillLight2Field;
     private final ThemedToggleButton chkCrosshair;
     private final ThemedToggleButton chkWireframe;
     private final ThemedToggleButton chkAntiAlias;
@@ -596,6 +599,13 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
         contrastField = new JTextField("0", 5);
         slidersPanel.add(buildSliderRow(contrastLabel, contrastSlider, contrastField));
 
+        fillLight2Label = new JLabel("Luz relleno");
+        fillLight2Label.setForeground(themeColorLabel());
+        fillLight2Label.setPreferredSize(new Dimension(70, 20));
+        fillLight2Slider = new JSlider(0, 100, 40);
+        fillLight2Field = new JTextField("40", 5);
+        slidersPanel.add(buildSliderRow(fillLight2Label, fillLight2Slider, fillLight2Field));
+
         chkAntiAlias = new ThemedToggleButton(null);
         chkAntiAlias.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
         chkAntiAlias.setForeground(themeColorLabel());
@@ -1041,8 +1051,11 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
             spnRotarY.setEnabled(true);
             spnRotarZ.setEnabled(true);
             spnRotarX.setValue(normalizarAngulo(preview.getRotateXAngle()));
-            spnRotarY.setValue(normalizarAngulo(preview.getRotateYAngle()));
-            spnRotarZ.setValue(normalizarAngulo(preview.getRotateZAngle()));
+            // Spinners Y/Z cruzados con la convención de la escena (ver
+            // aplicarSpinnerMoverRotar3D): el spinner Y muestra la rotación Z
+            // percibida y el spinner Z la rotación Y percibida.
+            spnRotarY.setValue(normalizarAngulo(preview.getRotateZAngle()));
+            spnRotarZ.setValue(normalizarAngulo(preview.getRotateYAngle()));
         }
     } // --- Fin del metodo syncSpinnersDesdeVista ---
 
@@ -1401,6 +1414,8 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
     public JSlider getContrastSlider() { return contrastSlider; }
     public JTextField getBrightnessField() { return brightnessField; }
     public JTextField getContrastField() { return contrastField; }
+    public JSlider getFillLight2Slider() { return fillLight2Slider; }
+    public JTextField getFillLight2Field() { return fillLight2Field; }
     public JCheckBox getChkCheckerboard() { return chkCheckerboard; }
     public JToggleButton getChkAntiAlias() { return chkAntiAlias; }
     public JToggleButton getChkCrosshair() { return chkCrosshair; }
@@ -1452,6 +1467,7 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
 
     public void setBrightnessIcon(javax.swing.Icon icon) { brightnessLabel.setIcon(icon); }
     public void setContrastIcon(javax.swing.Icon icon) { contrastLabel.setIcon(icon); }
+    public void setFillLight2Icon(javax.swing.Icon icon) { fillLight2Label.setIcon(icon); }
     public void setAntiAliasIcon(javax.swing.Icon icon) { chkAntiAlias.setIcon(icon); }
     public void setFillLightIcon(javax.swing.Icon icon) { chkFillLight2.setIcon(icon); }
     public void setCrosshairIcon(javax.swing.Icon icon) { chkCrosshair.setIcon(icon); }

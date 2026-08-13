@@ -1,8 +1,23 @@
 package vista.panels.render;
 
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+
+import javax.imageio.ImageIO;
+
+import net.coobird.thumbnailator.Thumbnails;
+import net.coobird.thumbnailator.resizers.configurations.Antialiasing;
+import net.coobird.thumbnailator.resizers.configurations.Rendering;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +32,10 @@ import javafx.scene.Group;
 import javafx.scene.PerspectiveCamera;
 import javafx.scene.Scene;
 import javafx.scene.SceneAntialiasing;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.SubScene;
+import javafx.scene.image.PixelFormat;
+import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseButton;
@@ -38,6 +56,7 @@ import javafx.scene.shape.TriangleMesh;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Transform;
 import modelo.renderer.StlMeshBuilder;
 import modelo.renderer.Triangle;
 
@@ -72,7 +91,7 @@ public class PreviewPanel3DFX extends JFXPanel {
 
     private double pressX, pressY;
     private SceneAntialiasing currentAA;
-    private double pressRotX, pressRotY, pressRotZ;
+    private double pressAngX, pressAngY, pressAngZ;
     private double pressCamX, pressCamY;
     private double fitZoom = 500;
     private MouseButton dragButton;
@@ -82,6 +101,7 @@ public class PreviewPanel3DFX extends JFXPanel {
     private SubScene subScene;
     private Group subRoot;
     private LinearGradient backgroundGradient;
+    private int fillLight2Intensity = 40;
     
     
     // --- Background mode support ---
@@ -153,7 +173,7 @@ public class PreviewPanel3DFX extends JFXPanel {
         rotateZ = new Rotate(0, Rotate.Z_AXIS);
 
         rotationGroup = new Group();
-        rotationGroup.getTransforms().addAll(rotateY, rotateX, rotateZ);
+        rotationGroup.getTransforms().addAll(rotateZ, rotateY, rotateX);
         rotationGroup.getChildren().add(modelGroup);
 
         material = new PhongMaterial();
@@ -345,6 +365,32 @@ public class PreviewPanel3DFX extends JFXPanel {
     public void setFillLight2Visible(boolean visible) {
         fillLight2.setVisible(visible);
     } // --- Fin del metodo setFillLight2Visible ---
+
+
+    /**
+     * Ajusta la intensidad de la luz tenue de relleno (0-100). El valor se
+     * escala linealmente sobre el color base de la luz y se aplica aunque la
+     * luz esté visible o no. En 40 se reproduce el aspecto tenue original;
+     * en 100 la luz resulta claramente perceptible.
+     *
+     * @param value intensidad en el rango 0-100
+     */
+    public void setFillLight2Intensity(int value) {
+        this.fillLight2Intensity = Math.max(0, Math.min(100, value));
+        double f = fillLight2Intensity / 100.0;
+        Platform.runLater(() -> {
+            if (fillLight2 == null) return;
+            fillLight2.setColor(Color.rgb(
+                    (int) Math.round(180 * f),
+                    (int) Math.round(180 * f),
+                    (int) Math.round(200 * f)));
+        });
+    } // --- Fin del metodo setFillLight2Intensity ---
+
+
+    public int getFillLight2Intensity() {
+        return fillLight2Intensity;
+    } // --- Fin del metodo getFillLight2Intensity ---
 
 
     /**
@@ -624,18 +670,21 @@ public class PreviewPanel3DFX extends JFXPanel {
         dragButton = e.getButton();
         pressX = e.getSceneX();
         pressY = e.getSceneY();
-        pressRotX = rotateY.getAngle();
-        pressRotY = rotateX.getAngle();
-        pressRotZ = rotateZ.getAngle();
+        pressAngX = rotateX.getAngle();
+        pressAngY = rotateY.getAngle();
+        pressAngZ = rotateZ.getAngle();
         pressCamX = camera.getTranslateX();
         pressCamY = camera.getTranslateY();
     } // --- Fin del metodo onMousePressed ---
 
 
     /**
-     * Maneja el arrastre del ratón: botón izquierdo rota (X/Y), con Shift añade
-     * rotación sobre el eje Z (roll) y desplazamiento vertical, botón central o
-     * derecho panean la cámara.
+     * Maneja el arrastre del ratón. Convención (figura de pie frente a la
+     * cámara): arrastre vertical con botón izquierdo rota sobre X (lanzamiento
+     * hacia delante/atrás); arrastre horizontal con botón izquierdo rota sobre
+     * Z (inclinación lateral sobre el eje de la cámara); con Shift, arrastre
+     * horizontal rota sobre Y (giro de guiñada) y arrastre vertical desplaza
+     * la cámara. Pulsando el botón central o derecho se panea la cámara.
      */
     private void onMouseDragged(MouseEvent e) {
         double dx = e.getSceneX() - pressX;
@@ -646,15 +695,15 @@ public class PreviewPanel3DFX extends JFXPanel {
             camera.setTranslateY(pressCamY - dy);
         } else if (e.isShiftDown()) {
             double sensitivity = 0.6;
-            double newRotZ = pressRotZ - dx * sensitivity;
-            rotateZ.setAngle(newRotZ);
+            double newRotY = pressAngY + dx * sensitivity;
+            rotateY.setAngle(newRotY);
             camera.setTranslateY(pressCamY - dy);
         } else {
             double sensitivity = 0.6;
-            double newRotY = pressRotX - dx * sensitivity;
-            double newRotX = pressRotY - dy * sensitivity;
-            rotateY.setAngle(newRotY);
+            double newRotX = pressAngX + dy * sensitivity;
+            double newRotZ = pressAngZ - dx * sensitivity;
             rotateX.setAngle(newRotX);
+            rotateZ.setAngle(newRotZ);
         }
     } // --- Fin del metodo onMouseDragged ---
 
@@ -767,6 +816,354 @@ public class PreviewPanel3DFX extends JFXPanel {
             camera.setTranslateZ(-zoom);
         });
     } // --- Fin del metodo setZoomFactor ---
+
+
+    /**
+     * Comportamiento legacy/fallback: captura en el hilo de JavaFX la SubScene
+     * 3D actual (modelo + luces) a la resolución natural del panel, sin
+     * supersampling. Se conserva para los flujos que no requieren alta
+     * resolución.
+     *
+     * @return imagen con el modelo renderizado y fondo transparente, o null si
+     *         no está lista, no hay modelo cargado o falla la captura
+     */
+    public BufferedImage capturarEscena3D() {
+        if (subScene == null || modelGroup == null || !modelGroup.isVisible()) return null;
+
+        WritableImage snap = snapshotEnFxThread(() -> subScene.snapshot(null, null), 3000);
+        if (snap == null) return null;
+        return toBufferedImage(snap);
+    } // --- Fin del metodo capturarEscena3D ---
+
+
+    /**
+     * Captura la SubScene JavaFX con supersampling y la reduce al lado mayor
+     * indicado. NO cambia cámara, FOV, transforms, zoom, rotación, iluminación
+     * ni el tamaño visual del panel: solo aplica una escala de proyección en el
+     * momento del snapshot. El aspect ratio de la SubScene se conserva.
+     *
+     * @param targetLadoMayor lado mayor (px) de la imagen final
+     * @return imagen final ARGB, o null si la captura falla o supera el timeout
+     */
+    public BufferedImage capturarEscena3DSuperSampled(int targetLadoMayor) {
+        if (subScene == null || modelGroup == null || !modelGroup.isVisible()) return null;
+        if (targetLadoMayor <= 0) return capturarEscena3D();
+
+        final double[] dims = new double[2];
+        final int[] factorUsado = new int[1];
+        final int[] snapSize = new int[2];
+        final long[] tSnapNs = new long[1];
+
+        WritableImage snap = snapshotEnFxThread(() -> {
+            double w0 = subScene.getWidth();
+            double h0 = subScene.getHeight();
+            dims[0] = w0;
+            dims[1] = h0;
+            if (w0 <= 0 || h0 <= 0) return null;
+
+            double ladoMayor = Math.max(w0, h0);
+            // Factor adaptativo: mínimo 2x, suficiente para alcanzar el objetivo
+            // y limitado para no superar 2048 px internos.
+            int factorTarget = (int) Math.ceil(targetLadoMayor / ladoMayor);
+            int factorFit = (int) Math.max(1, Math.floor(2048.0 / ladoMayor));
+            int factor = Math.min(Math.max(2, factorTarget), factorFit);
+            factorUsado[0] = factor;
+
+            SnapshotParameters params = new SnapshotParameters();
+            params.setFill(Color.TRANSPARENT);
+            params.setDepthBuffer(true);
+            params.setTransform(Transform.scale(factor, factor));
+
+            int sw = (int) Math.rint(w0 * factor);
+            int sh = (int) Math.rint(h0 * factor);
+            snapSize[0] = sw;
+            snapSize[1] = sh;
+
+            long t0 = System.nanoTime();
+            try {
+                return subScene.snapshot(params, new WritableImage(sw, sh));
+            } finally {
+                tSnapNs[0] = System.nanoTime() - t0;
+            }
+        }, 15000);
+
+        if (snap == null) return null;
+
+        long tConv0 = System.nanoTime();
+        BufferedImage grande = toBufferedImage(snap);
+        long tConv = System.nanoTime() - tConv0;
+
+        long tDown0 = System.nanoTime();
+        BufferedImage finalImg;
+        try {
+            finalImg = Thumbnails.of(grande)
+                    .size(targetLadoMayor, targetLadoMayor)
+                    .keepAspectRatio(true)
+                    .rendering(Rendering.QUALITY)
+                    .antialiasing(Antialiasing.ON)
+                    .asBufferedImage();
+        } catch (IOException ex) {
+            logger.warn("[PreviewPanel3DFX] Error en downsample del supersample", ex);
+            return null;
+        }
+        long tDown = System.nanoTime() - tDown0;
+
+        logger.info("[PreviewPanel3DFX] Supersample: subScene={}x{} factor={} interno={}x{} final={}x{} | snapshot={}ms conversion={}ms downsample={}ms",
+                (int) dims[0], (int) dims[1], factorUsado[0], snapSize[0], snapSize[1],
+                finalImg.getWidth(), finalImg.getHeight(),
+                tSnapNs[0] / 1_000_000, tConv / 1_000_000, tDown / 1_000_000);
+        return finalImg;
+    } // --- Fin del metodo capturarEscena3DSuperSampled ---
+
+
+    /**
+     * Ejecuta la captura en el hilo de JavaFX y espera el resultado con timeout.
+     * Devuelve null si la captura falla o no completa a tiempo.
+     */
+    private WritableImage snapshotEnFxThread(Supplier<WritableImage> captura, long timeoutMs) {
+        final WritableImage[] resultado = new WritableImage[1];
+        final CountDownLatch latch = new CountDownLatch(1);
+        Platform.runLater(() -> {
+            try {
+                resultado[0] = captura.get();
+            } catch (Exception ex) {
+                logger.warn("[PreviewPanel3DFX] Error capturando escena 3D", ex);
+            } finally {
+                latch.countDown();
+            }
+        });
+        try {
+            if (!latch.await(timeoutMs, TimeUnit.MILLISECONDS)) {
+                logger.warn("[PreviewPanel3DFX] Timeout capturando escena 3D ({} ms)", timeoutMs);
+                return null;
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        return resultado[0];
+    } // --- Fin del metodo snapshotEnFxThread ---
+
+
+    /**
+     * Convierte un {@link WritableImage} JavaFX a {@link BufferedImage} ARGB.
+     * Usa acceso masivo a píxeles ({@link PixelReader#getPixels}) en vez del
+     * bucle getColor/setRGB píxel a píxel.
+     *
+     * @param snap imagen JavaFX a convertir
+     * @return imagen ARGB equivalente
+     */
+    private BufferedImage toBufferedImage(WritableImage snap) {
+        int w = (int) snap.getWidth();
+        int h = (int) snap.getHeight();
+        BufferedImage out = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+        int[] px = new int[w * h];
+        PixelReader pr = snap.getPixelReader();
+        pr.getPixels(0, 0, w, h, PixelFormat.getIntArgbInstance(), px, 0, w);
+        out.setRGB(0, 0, w, h, px, 0, w);
+        return out;
+    } // --- Fin del metodo toBufferedImage ---
+
+
+    /**
+     * PRUEBA TEMPORAL: genera A (snapshot normal), B (snapshot supersampleado x4)
+     * y C (B reducido al lado mayor indicado), los guarda como PNG y vuelca
+     * métricas de encuadre y detalle. Devuelve true si pudo capturar.
+     */
+    public boolean generarPruebaSnapshot(Path dir, int targetLadoMayor) {
+        if (subScene == null || modelGroup == null || !modelGroup.isVisible()) return false;
+        final boolean[] resultado = new boolean[]{false};
+        final CountDownLatch latch = new CountDownLatch(1);
+        Platform.runLater(() -> {
+            try {
+                Files.createDirectories(dir);
+                double w = subScene.getWidth();
+                double h = subScene.getHeight();
+
+                long t0 = System.nanoTime();
+                // A) snapshot normal (como producción)
+                WritableImage a = subScene.snapshot(null, null);
+                long tSnapA = (System.nanoTime() - t0) / 1_000_000;
+
+                // B) supersample x4 con la misma escena (cámara/FOV/aspect intactos)
+                double s = 4.0;
+                SnapshotParameters params = new SnapshotParameters();
+                params.setFill(Color.TRANSPARENT);
+                params.setDepthBuffer(true);
+                params.setTransform(Transform.scale(s, s));
+                t0 = System.nanoTime();
+                WritableImage b = subScene.snapshot(params,
+                        new WritableImage((int) Math.rint(w * s), (int) Math.rint(h * s)));
+                long tSnapB = (System.nanoTime() - t0) / 1_000_000;
+
+                t0 = System.nanoTime();
+                BufferedImage aBuf = toBufferedImage(a);
+                BufferedImage bBuf = toBufferedImage(b);
+                long tConv = (System.nanoTime() - t0) / 1_000_000;
+
+                t0 = System.nanoTime();
+                BufferedImage cBuf = Thumbnails.of(bBuf)
+                        .size(targetLadoMayor, targetLadoMayor)
+                        .asBufferedImage();
+                long tDownC = (System.nanoTime() - t0) / 1_000_000;
+
+                // VALIDACIÓN: B reducido EXACTAMENTE al tamaño de A. Si ambos
+                // representan la misma escena, A ≈ downB (solo difiere por el
+                // antialiasing/upscale) y el RMS debe ser bajo.
+                t0 = System.nanoTime();
+                BufferedImage downB = Thumbnails.of(bBuf)
+                        .size(aBuf.getWidth(), aBuf.getHeight())
+                        .keepAspectRatio(true)
+                        .asBufferedImage();
+                long tDownB = (System.nanoTime() - t0) / 1_000_000;
+
+                Path pa = dir.resolve("prueba_A.png");
+                Path pb = dir.resolve("prueba_B.png");
+                Path pc = dir.resolve("prueba_C.png");
+                Path pd = dir.resolve("prueba_downB.png");
+                ImageIO.write(aBuf, "PNG", pa.toFile());
+                ImageIO.write(bBuf, "PNG", pb.toFile());
+                ImageIO.write(cBuf, "PNG", pc.toFile());
+                ImageIO.write(downB, "PNG", pd.toFile());
+
+                double[] rmsAB = rmsContenido(aBuf, downB);
+
+                int[] bboxA = bboxContenido(aBuf);
+                int[] bboxC = bboxContenido(cBuf);
+                double aspectA = (bboxA[2] - bboxA[0] + 1) / (double) (bboxA[3] - bboxA[1] + 1);
+                double aspectC = (bboxC[2] - bboxC[0] + 1) / (double) (bboxC[3] - bboxC[1] + 1);
+                double cxA = (bboxA[0] + bboxA[2]) / 2.0 / aBuf.getWidth();
+                double cyA = (bboxA[1] + bboxA[3]) / 2.0 / aBuf.getHeight();
+                double cxC = (bboxC[0] + bboxC[2]) / 2.0 / cBuf.getWidth();
+                double cyC = (bboxC[1] + bboxC[3]) / 2.0 / cBuf.getHeight();
+
+                // Referencia: upscale bicúbico de A al tamaño de C (si B fuese un
+                // upscale, C sería casi idéntico a esto y el RMS sería ~0)
+                BufferedImage upA = new BufferedImage(cBuf.getWidth(), cBuf.getHeight(),
+                        BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g = upA.createGraphics();
+                g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                        RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                g.drawImage(aBuf, 0, 0, upA.getWidth(), upA.getHeight(), null);
+                g.dispose();
+
+                double[] rms = rmsContenido(cBuf, upA);
+                long gradC = gradientCount(cBuf);
+                long gradUpA = gradientCount(upA);
+
+                StringBuilder sb = new StringBuilder();
+                sb.append("[PruebaSnapshot] A=").append(aBuf.getWidth()).append('x').append(aBuf.getHeight())
+                        .append(" B=").append(bBuf.getWidth()).append('x').append(bBuf.getHeight())
+                        .append(" C=").append(cBuf.getWidth()).append('x').append(cBuf.getHeight())
+                        .append(" downB=").append(downB.getWidth()).append('x').append(downB.getHeight()).append('\n');
+                sb.append("[PruebaSnapshot] Encuadre A: cx=").append(String.format("%.3f", cxA))
+                        .append(" cy=").append(String.format("%.3f", cyA))
+                        .append(" aspectBBox=").append(String.format("%.3f", aspectA)).append('\n');
+                sb.append("[PruebaSnapshot] Encuadre C: cx=").append(String.format("%.3f", cxC))
+                        .append(" cy=").append(String.format("%.3f", cyC))
+                        .append(" aspectBBox=").append(String.format("%.3f", aspectC)).append('\n');
+                sb.append("[PruebaSnapshot] RMS C vs upscale(A)=").append(String.format("%.3f", rms[0]))
+                        .append(" fraccionCambiada=").append(String.format("%.3f", rms[1])).append('\n');
+                sb.append("[PruebaSnapshot] VALIDACION A vs downB: rms=").append(String.format("%.3f", rmsAB[0]))
+                        .append(" fraccionCambiada=").append(String.format("%.3f", rmsAB[1])).append('\n');
+                sb.append("[PruebaSnapshot] Tiempos: snapA=").append(tSnapA).append("ms snapB=").append(tSnapB)
+                        .append("ms conv=").append(tConv).append("ms downC=").append(tDownC)
+                        .append("ms downB=").append(tDownB).append("ms\n");
+                sb.append("[PruebaSnapshot] Gradientes fuertes: C=").append(gradC)
+                        .append(" upA=").append(gradUpA).append('\n');
+                sb.append("[PruebaSnapshot] Guardados: ").append(pa).append(" | ").append(pb)
+                        .append(" | ").append(pc).append(" | ").append(pd);
+                logger.info(sb.toString());
+                System.out.println(sb.toString());
+                resultado[0] = true;
+            } catch (Exception ex) {
+                logger.error("[PruebaSnapshot] Error generando prueba", ex);
+            } finally {
+                latch.countDown();
+            }
+        });
+        try {
+            if (!latch.await(20, TimeUnit.SECONDS)) {
+                logger.warn("[PruebaSnapshot] Timeout generando prueba");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        return resultado[0];
+    } // --- Fin del metodo generarPruebaSnapshot ---
+
+
+    /** Bounding box (minX, minY, maxX, maxY) de los píxeles no transparentes. */
+    private int[] bboxContenido(BufferedImage img) {
+        int minX = img.getWidth(), minY = img.getHeight(), maxX = -1, maxY = -1;
+        for (int y = 0; y < img.getHeight(); y++) {
+            for (int x = 0; x < img.getWidth(); x++) {
+                if (((img.getRGB(x, y) >>> 24) & 0xff) > 0) {
+                    if (x < minX) minX = x;
+                    if (x > maxX) maxX = x;
+                    if (y < minY) minY = y;
+                    if (y > maxY) maxY = y;
+                }
+            }
+        }
+        if (maxX < 0) return new int[]{0, 0, 0, 0};
+        return new int[]{minX, minY, maxX, maxY};
+    } // --- Fin del metodo bboxContenido ---
+
+
+    /** RMS de diferencia de color entre dos imágenes sobre píxeles con contenido. */
+    private double[] rmsContenido(BufferedImage a, BufferedImage b) {
+        int w = Math.min(a.getWidth(), b.getWidth());
+        int h = Math.min(a.getHeight(), b.getHeight());
+        double acc = 0;
+        long n = 0, changed = 0;
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int pa = a.getRGB(x, y), pb = b.getRGB(x, y);
+                boolean ca = ((pa >>> 24) & 0xff) > 0;
+                boolean cb = ((pb >>> 24) & 0xff) > 0;
+                if (!ca && !cb) continue;
+                double dr = ((pa >> 16) & 0xff) - ((pb >> 16) & 0xff);
+                double dg = ((pa >> 8) & 0xff) - ((pb >> 8) & 0xff);
+                double db = (pa & 0xff) - (pb & 0xff);
+                double d2 = (dr * dr + dg * dg + db * db) / (3.0 * 255.0 * 255.0);
+                acc += d2;
+                n++;
+                if (d2 > (10.0 / 255.0) * (10.0 / 255.0)) changed++;
+            }
+        }
+        if (n == 0) return new double[]{0, 0};
+        return new double[]{Math.sqrt(acc / n), changed / (double) n};
+    } // --- Fin del metodo rmsContenido ---
+
+
+    /** Cuenta píxeles con gradiente de luminancia fuerte (>40). */
+    private long gradientCount(BufferedImage img) {
+        int w = img.getWidth(), h = img.getHeight();
+        int[] lum = new int[w * h];
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int argb = img.getRGB(x, y);
+                if (((argb >>> 24) & 0xff) == 0) {
+                    lum[y * w + x] = -1;
+                    continue;
+                }
+                int r = (argb >> 16) & 0xff, g = (argb >> 8) & 0xff, b = argb & 0xff;
+                lum[y * w + x] = (r * 299 + g * 587 + b * 114) / 1000;
+            }
+        }
+        long count = 0;
+        for (int y = 1; y < h - 1; y++) {
+            for (int x = 1; x < w - 1; x++) {
+                int l = lum[y * w + x];
+                if (l < 0) continue;
+                int up = lum[(y - 1) * w + x], dn = lum[(y + 1) * w + x];
+                int lf = lum[y * w + x - 1], rg = lum[y * w + x + 1];
+                if (up < 0 || dn < 0 || lf < 0 || rg < 0) continue;
+                if (Math.max(Math.abs(rg - lf), Math.abs(dn - up)) > 40) count++;
+            }
+        }
+        return count;
+    } // --- Fin del metodo gradientCount ---
 
 
 } // --- Fin de la clase PreviewPanel3DFX ---

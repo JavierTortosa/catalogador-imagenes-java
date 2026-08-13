@@ -17,8 +17,13 @@ import modelo.renderer.Triangle;
 
 public class AwtModelRenderer implements ModelRenderer {
 
+    /** Lado por defecto (px) de la imagen de salida. */
     public static final int SIZE = 512;
     public static final int MARGIN = 24;
+
+    /** Lado (px) de la imagen de salida efectiva; mayor que {@link #SIZE} para
+     *  guardar renders finales con más calidad. */
+    private int outputSize = SIZE;
 
     private int superSample = 2;
 
@@ -75,7 +80,7 @@ public class AwtModelRenderer implements ModelRenderer {
             BufferedImage bgImage, double bgImageScale, boolean wireframe,
             double panX, double panY, double zoomScale) {
         boolean transparent = "transparent".equals(bgMode);
-        int renderSize = SIZE * superSample;
+        int renderSize = outputSize * superSample;
         BufferedImage hiRes = new BufferedImage(renderSize, renderSize,
                 transparent ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
         Graphics2D g = hiRes.createGraphics();
@@ -134,12 +139,12 @@ public class AwtModelRenderer implements ModelRenderer {
             g.dispose();
         }
         if (superSample > 1) {
-            BufferedImage out = new BufferedImage(SIZE, SIZE, hiRes.getType());
+            BufferedImage out = new BufferedImage(outputSize, outputSize, hiRes.getType());
             Graphics2D g2 = out.createGraphics();
             try {
                 g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                         RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-                g2.drawImage(hiRes, 0, 0, SIZE, SIZE, null);
+                g2.drawImage(hiRes, 0, 0, outputSize, outputSize, null);
             } finally {
                 g2.dispose();
             }
@@ -193,6 +198,16 @@ public class AwtModelRenderer implements ModelRenderer {
     public int getSuperSample() { return superSample; }
 
 
+    public int getOutputSize() {
+        return outputSize;
+    }
+
+
+    public void setOutputSize(int outputSize) {
+        this.outputSize = Math.max(128, outputSize);
+    }
+
+
     public void setSuperSample(int superSample) {
         this.superSample = Math.max(1, superSample);
     }
@@ -200,7 +215,7 @@ public class AwtModelRenderer implements ModelRenderer {
 
     private BufferedImage renderizarInterno(List<Triangle> triangles, double rotX, double rotY, double rotZ,
             boolean antiAlias, boolean wireframe) {
-        BufferedImage img = new BufferedImage(SIZE, SIZE, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage img = new BufferedImage(outputSize, outputSize, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
         try {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
@@ -212,7 +227,7 @@ public class AwtModelRenderer implements ModelRenderer {
                 return img;
             }
 
-            List<Triangle> transformed = transformTriangles(triangles, rotX, rotY, rotZ, SIZE, 0, 0, 1.0);
+            List<Triangle> transformed = transformTriangles(triangles, rotX, rotY, rotZ, outputSize, 0, 0, 1.0);
 
             transformed.sort(Comparator.comparingDouble(
                     t -> -(t.v0[2] + t.v1[2] + t.v2[2]) / 3f));

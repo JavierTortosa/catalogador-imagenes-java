@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.69.80";
+        version = "V2.69.90";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -45,7 +45,7 @@ public class VisorV2 {
     // EDITOR AVANZADO
     
     // TODO añadir el popupmenu al editor
-        
+    
     
     /* TODO implementar multiples fuentes de copiado:
     	Si el portapapeles contiene texto → crear una TextLayer.
@@ -56,6 +56,9 @@ public class VisorV2 {
     
     // RENDER
     // FIXME en la lista de candidatos de la izquierda hay que implementar un checkbox para marcar todo o nada
+    // FIXME cuando cambio la carpeta del visor no se actualiza la carpeta del scanner
+    
+    
     
     // GENERAL
     

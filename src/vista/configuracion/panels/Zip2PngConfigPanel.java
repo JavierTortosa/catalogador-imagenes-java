@@ -27,12 +27,14 @@ public class Zip2PngConfigPanel extends JPanel implements ConfigurationPanel {
     private final JTextField txtRutaOpenscad;
     private final JTextField txtRutaBlender;
     private final JSpinner spnLimiteMb;
+    private final JSpinner spnResolucion;
     private final JTextField txtCarpetaTemp;
 
     private String initialMotor;
     private String initialRutaOpenscad;
     private String initialRutaBlender;
     private int initialLimiteMb;
+    private int initialResolucion;
     private String initialCarpetaTemp;
 
     public Zip2PngConfigPanel() {
@@ -76,6 +78,19 @@ public class Zip2PngConfigPanel extends JPanel implements ConfigurationPanel {
         add(spnLimiteMb, c);
         row++;
 
+        JLabel lblResolucion = new JLabel("Resolución salida (px):");
+        lblResolucion.setToolTipText(
+                "Lado mayor de la imagen de salida. Aplica al render batch (Zip2PNG) "
+                + "y al snapshot supersampleado del preview 3D al asignar/guardar/exportar. "
+                + "Se mantiene el aspect ratio actual; no genera salida cuadrada.");
+        c.gridx = 0; c.gridy = row;
+        add(lblResolucion, c);
+
+        spnResolucion = new JSpinner(new SpinnerNumberModel(1024, 512, 4096, 256));
+        c.gridx = 1; c.gridy = row;
+        add(spnResolucion, c);
+        row++;
+
         c.gridx = 0; c.gridy = row;
         add(new JLabel("Carpeta temporal:"), c);
 
@@ -97,6 +112,9 @@ public class Zip2PngConfigPanel extends JPanel implements ConfigurationPanel {
 
         initialLimiteMb = config.getInt(ConfigKeys.ZIP2PNG_LIMITE_MB, 512);
         spnLimiteMb.setValue(initialLimiteMb);
+
+        initialResolucion = config.getInt(ConfigKeys.ZIP2PNG_RESOLUCION_SALIDA, 1024);
+        spnResolucion.setValue(initialResolucion);
 
         initialCarpetaTemp = config.getString(ConfigKeys.ZIP2PNG_CARPETA_TEMP,
                 System.getProperty("java.io.tmpdir") + File.separator + "visor_zip2png");
@@ -135,6 +153,13 @@ public class Zip2PngConfigPanel extends JPanel implements ConfigurationPanel {
             changed = true;
         }
 
+        int resolucion = (Integer) spnResolucion.getValue();
+        if (resolucion != initialResolucion) {
+            config.setString(ConfigKeys.ZIP2PNG_RESOLUCION_SALIDA, String.valueOf(resolucion));
+            initialResolucion = resolucion;
+            changed = true;
+        }
+
         String carpetaTemp = txtCarpetaTemp.getText().trim();
         if (!carpetaTemp.equals(initialCarpetaTemp)) {
             config.setString(ConfigKeys.ZIP2PNG_CARPETA_TEMP, carpetaTemp);
@@ -151,6 +176,7 @@ public class Zip2PngConfigPanel extends JPanel implements ConfigurationPanel {
                 || !txtRutaOpenscad.getText().trim().equals(initialRutaOpenscad)
                 || !txtRutaBlender.getText().trim().equals(initialRutaBlender)
                 || !((Integer) spnLimiteMb.getValue()).equals(initialLimiteMb)
+                || !((Integer) spnResolucion.getValue()).equals(initialResolucion)
                 || !txtCarpetaTemp.getText().trim().equals(initialCarpetaTemp);
     }
 

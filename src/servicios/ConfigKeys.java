@@ -295,6 +295,7 @@ public final class ConfigKeys {
     // --- Configuración de Zip2PNG / Renderizado ---
     public static final String ZIP2PNG_MOTOR = "zip2png.motor";
     public static final String ZIP2PNG_LIMITE_MB = "zip2png.limite_mb";
+    public static final String ZIP2PNG_RESOLUCION_SALIDA = "zip2png.resolucion_salida";
     public static final String RENDER_SCAN_INCLUDE_SUBFOLDERS = "render.scan.include_subfolders";
     public static final String ZIP2PNG_CARPETA_TEMP = "zip2png.carpeta_temp";
     public static final String ZIP2PNG_RUTA_OPENSCAD = "zip2png.ruta_openscad";
