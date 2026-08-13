@@ -6,7 +6,7 @@
 |-------|-------|
 | **Proyecto** | Visor de Imágenes V2 (DAM) |
 | **Componente** | Modo RENDER (Zip2Png) |
-| **Versión del documento** | 1.0 |
+| **Versión del documento** | 1.1 |
 | **Estado** | Aprobado para revisión |
 | **Audiencia** | Cliente, equipo de desarrollo, QA |
 
@@ -143,8 +143,13 @@ El producto ofrece las siguientes capacidades de alto nivel:
 
 ### 2.5 Restricciones de diseño e implementación
 
-- El renderizado actual emplea un **motor por software** (AWT/Swing) con resolución fija de
-  **512×512 píxeles**.
+- El renderizado actual emplea un **motor por software** (AWT/Swing) cuya resolución de salida
+  es **configurable** vía la clave `zip2png.resolucion_salida` (lado mayor, por defecto **1024**,
+  rango 512–4096 en el panel de configuración). El motor renderiza a resolución aumentada
+  (**supersampling** de 2× o adaptativo) y reduce a la resolución objetivo con interpolación.
+- El **preview 3D** (JavaFX) se captura con **supersampling adaptativo** (mínimo 2×, tope interno
+  de 2048 px) y se reduce al lado mayor objetivo conservando el **aspect ratio**; aplica al
+  asignar, guardar o exportar el preview.
 - El escaneo es deliberadamente **rápido**: no abre los comprimidos, solo compara nombres de
   archivo.
 - La extracción y el listado de comprimidos requieren `7z.exe`.
@@ -215,14 +220,15 @@ clase entre paréntesis permiten la trazabilidad al código fuente (apéndice A)
 | ID | Requisito |
 |----|-----------|
 | **RF-022** | El motor de software debe renderizar una lista de triángulos a una imagen `BufferedImage`. |
-| **RF-023** | El renderizado por defecto debe producir una imagen de **512×512** píxeles con margen de 24 px. |
-| **RF-024** | El modelo debe iluminarse con luz ambiental (20 %) y 3 luces direccionales para lograr volumen. |
+| **RF-023** | El renderizado debe producir una imagen cuyo **lado mayor** sea configurable (clave `zip2png.resolucion_salida`, por defecto **1024** px, rango 512–4096 en el panel); `AwtModelRenderer.SIZE` es el valor por defecto interno. |
+| **RF-024** | El modelo debe iluminarse con luz ambiental (30 %) y **4 luces direccionales** para lograr volumen. |
 | **RF-025** | Debe aplicar un rango de color normalizado (210) para el sombreado. |
 | **RF-026** | Debe admitir la **rotación** del modelo sobre los ejes X e Y antes de renderizar. |
 | **RF-027** | Debe ofrecer una variante de renderizado **interactivo** (sin SSAO) para previsualización en tiempo real. |
 | **RF-028** | Debe ofrecer una variante de renderizado **con SSAO** (ambient occlusion) para la imagen final. |
 | **RF-029** | Debe admitir **ajustes de brillo y contraste** sobre la imagen resultante. |
 | **RF-030** | Debe admitir distintos **fondos**: sólido, degradado (dos colores), imagen con escala, y transparente (canal alfa). |
+| **RF-030a** | El motor debe admitir un factor de **supersampling** configurable (`setSuperSample`, mínimo 1): renderiza a `outputSize × superSample` y reduce a `outputSize` con interpolación bilineal. |
 | **RF-031** | La imagen renderizada debe poder escribirse en disco en formato PNG. |
 
 ### 3.5 Módulo E — Visor 3D interactivo (`PreviewPanel3DFX`, `StlMeshBuilder`)
@@ -238,6 +244,8 @@ clase entre paréntesis permiten la trazabilidad al código fuente (apéndice A)
 | **RF-038** | El visor debe admitir una **imagen de fondo** con factor de escala ajustable. |
 | **RF-039** | El visor debe mostrar una **crosshair** (reticula) opcional y un fondo **damero** (checkerboard) opcional para transparencias. |
 | **RF-040** | El modelo debe poder **resetearse** a su orientación inicial. |
+| **RF-040a** | El visor debe capturar la escena con **supersampling adaptativo** (`capturarEscena3DSuperSampled`): recibe el lado mayor objetivo, usa un factor mínimo de 2×, lo limita para no superar **2048 px** internos y reduce a la resolución objetivo preservando el **aspect ratio** de la SubScene (cámara, FOV, zoom y rotación no se alteran). |
+| **RF-040b** | Debe conservarse una captura **legacy** (`capturarEscena3D`) a resolución natural del panel para los flujos de baja resolución. |
 
 ### 3.6 Módulo F — Flujo de trabajo principal (`RenderController`, `RenderPanel`)
 
@@ -253,6 +261,7 @@ clase entre paréntesis permiten la trazabilidad al código fuente (apéndice A)
 | **RF-048** | Los STLs del filmstrip deben mostrarse como placeholders y renderizarse **en segundo plano**, con una barra de progreso indicando el avance. |
 | **RF-049** | La acción **Escanear carpeta** debe abrir un selector de carpeta, ejecutar el escaneo y clasificar los resultados en las dos pestañas. |
 | **RF-050** | La acción **Procesar seleccionados** debe renderizar todos los candidatos en lote, generando un PNG por candidato y extrayendo las imágenes embebidas de los que las contengan. |
+| **RF-050a** | El renderizado en lote debe usar la **resolución de salida configurada** (`zip2png.resolucion_salida`) transmitida al `AwtModelRenderer` vía `setOutputSize` en `Zip2PngWorker`. |
 | **RF-051** | La acción **Procesar archivo** debe renderizar únicamente el candidato actualmente seleccionado. |
 | **RF-052** | La acción **Abrir carpeta temporal** debe abrir el explorador en la carpeta temporal de renders. |
 | **RF-053** | La acción **Descargar preview** debe abrir un selector de carpeta (empezando en la carpeta del comprimido original) y guardar el preview actual como PNG. |
@@ -279,6 +288,7 @@ clase entre paréntesis permiten la trazabilidad al código fuente (apéndice A)
 |     | **a)** Si el editor avanzado está activo, añadir la imagen actual como nueva capa del canvas. |
 |     | **b)** Si el visor 2D muestra una imagen, usar esa imagen. |
 |     | **c)** En modo 3D, re-renderizar el STL con los ajustes actuales de imagen y fondo. |
+| **RF-063a** | Cuando el contexto sea el visor 3D, el preview debe obtenerse con **supersampling** (`capturarEscena3DSuperSampled`) a la resolución de salida configurada, con fallback al motor AWT si la captura falla. |
 | **RF-064** | Si el canvas del editor está vacío, se debe redimensionar al tamaño de la imagen asignada. |
 | **RF-065** | El usuario debe poder marcar renders como **aprobados** en el grid. |
 | **RF-066** | Al cerrar el modo con renders aprobados pendientes, el sistema debe preguntar si se copian a la carpeta de destino de los archivos de origen. |
@@ -308,9 +318,10 @@ clase entre paréntesis permiten la trazabilidad al código fuente (apéndice A)
 | **RF-084** | Debe permitir introducir la **ruta de OpenSCAD** (opcional). |
 | **RF-085** | Debe permitir introducir la **ruta de Blender** (opcional). |
 | **RF-086** | Debe permitir configurar el **límite de tamaño** en MB (rango 1–99999, incremento de 64). |
+| **RF-086a** | Debe permitir configurar la **resolución de salida** en px (lado mayor, rango 512–4096, incremento de 256; por defecto 1024). El tooltip debe explicar que aplica al render batch y al snapshot supersampleado del preview, conservando el aspect ratio. |
 | **RF-087** | Debe permitir configurar la **carpeta temporal** de renders. |
 | **RF-088** | La configuración debe cargarse al abrir el diálogo y guardarse únicamente si hubo cambios, persistida vía `ConfigurationManager`. |
-| **RF-089** | Las claves de configuración deben estar centralizadas en `ConfigKeys` (`zip2png.motor`, `zip2png.limite_mb`, `zip2png.carpeta_temp`, `zip2png.ruta_openscad`, `zip2png.ruta_blender`). |
+| **RF-089** | Las claves de configuración deben estar centralizadas en `ConfigKeys` (`zip2png.motor`, `zip2png.limite_mb`, `zip2png.resolucion_salida`, `zip2png.carpeta_temp`, `zip2png.ruta_openscad`, `zip2png.ruta_blender`). |
 
 ### 3.11 Módulo K — Integración de modo (`AppModeService`, `ViewBuilder`, `ActionFactory`)
 
@@ -379,7 +390,7 @@ clase entre paréntesis permiten la trazabilidad al código fuente (apéndice A)
 ### CU-07 Configurar el subsistema
 
 1. El usuario abre el diálogo de configuración (pestaña **Renderizado**).
-2. Elige motor, rutas externas, límite y carpeta temporal.
+2. Elige motor, rutas externas, límite, resolución de salida y carpeta temporal.
 3. Guarda; los cambios se persisten solo si hubo modificaciones.
 
 ---
@@ -392,7 +403,7 @@ clase entre paréntesis permiten la trazabilidad al código fuente (apéndice A)
 |----|-----------|
 | **RNF-001** | El escaneo de carpetas no debe abrir los comprimidos; debe completarse en tiempo proporcional al número de archivos (comparación de nombres y tamaños). |
 | **RNF-002** | El renderizado de un STL debe ejecutarse en un hilo de fondo (`SwingWorker`), sin bloquear la EDT. |
-| **RNF-003** | El renderizado por software produce imágenes de 512×512; el coste por modelo debe ser acotado (tipo de imagen ARGB, un solo pase con SSAO opcional). |
+| **RNF-003** | El renderizado por software produce imágenes con lado mayor configurable (por defecto 1024) mediante supersampling + reducción bilineal; el coste por modelo debe ser acotado (tipo de imagen ARGB, un solo pase). |
 | **RNF-004** | Las operaciones de 7z deben tener timeout de 120 s para evitar bloqueos indefinidos. |
 | **RNF-005** | El listado de contenido de un comprimido debe usar 7z sin extracción previa (eficiente en disco). |
 
@@ -468,6 +479,7 @@ clase entre paréntesis permiten la trazabilidad al código fuente (apéndice A)
 |-------|-------------|-------------|
 | `zip2png.motor` | `awt` | Motor de renderizado. |
 | `zip2png.limite_mb` | `512` | Límite de tamaño de candidato. |
+| `zip2png.resolucion_salida` | `1024` | Lado mayor (px) de la imagen de salida (rango 512–4096). |
 | `zip2png.carpeta_temp` | `%TEMP%/visor_zip2png` | Carpeta temporal de renders. |
 | `zip2png.ruta_openscad` | *(vacío)* | Ruta de OpenSCAD. |
 | `zip2png.ruta_blender` | *(vacío)* | Ruta de Blender. |
@@ -476,10 +488,12 @@ clase entre paréntesis permiten la trazabilidad al código fuente (apéndice A)
 
 | Constante | Valor | Descripción |
 |-----------|-------|-------------|
-| `SIZE` | 512 | Resolución de la imagen. |
+| `SIZE` | 512 | Lado por defecto interno de la imagen. |
+| `outputSize` | 512 (configurable) | Lado efectivo de salida; se fija desde `zip2png.resolucion_salida`. |
+| `superSample` | 2 | Factor de supersampling (mínimo 1). |
 | `MARGIN` | 24 | Margen del modelo en la imagen. |
-| `AMBIENT` | 0.20 | Intensidad de luz ambiental. |
-| `LIGHTS` | 3 direccionales | Luces direccionales. |
+| `AMBIENT` | 0.30 | Intensidad de luz ambiental. |
+| `LIGHTS` | 4 direccionales | Luces direccionales. |
 | `COLOR_RANGE` | 210 | Rango de color del sombreado. |
 
 ---

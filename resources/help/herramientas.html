@@ -125,13 +125,26 @@
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_7005-settings_48x48.png"></td>
-            <td><strong>Luz de relleno:</strong> Luz tenue inferior-izquierda que aclara la zona de sombra del modelo. Desactivada por defecto.</td>
+            <td><strong>Luz de relleno:</strong> Luz tenue inferior-izquierda que aclara la zona de sombra del modelo. El toggle activa/desactiva la luz y su slider (0–100) regula la intensidad. Desactivada por defecto.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_7005-settings_48x48.png"></td>
             <td><strong>Calidad de render:</strong> Nivel de supersampling aplicado al PNG exportado: <em>Rápida</em> (1×), <em>Normal</em> (2×) y <em>Alta</em> (3×). Solo afecta al render guardado, no al preview.</td>
         </tr>
+        <tr>
+            <td class="icon-cell"></td>
+            <td><strong>Mover:</strong> Botón que abre un popup con spinners absolutos de la vista activa: X e Y (desplazamiento en px) y Z (escala en %). Se aplican en vivo y se sincronizan con el estado real del visor al abrir.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"></td>
+            <td><strong>Rotar:</strong> Botón que abre un popup con spinners absolutos de orientación X, Y y Z (grados). En la vista 3D gobierna la rotación del modelo; en la 2D solo el spinner Z (giro de la imagen) está disponible. En 3D los valores Y/Z aparecen cruzados respecto a la escena.</td>
+        </tr>
     </table>
+    <p>
+        Los spinners de <strong>Mover</strong> y <strong>Rotar</strong> admiten la
+        <strong>rueda del ratón</strong> al estilo Chitubox: un clic de rueda cambia el valor en pasos
+        finos y con <strong>Shift</strong> en pasos de 5.
+    </p>
 
     <h3>Pestaña "Fondo"</h3>
     <table class="help-table">
@@ -221,7 +234,7 @@
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_70103-multimage.png"></td>
-            <td><strong>Collage:</strong> Activa el modo de edición multi-imagen (collage). Muestra las toolbars de ordenación y carga de capas en el lateral EAST, y habilita la pestaña "Capas" en el panel derecho para gestionar las imágenes apiladas.</td>
+            <td><strong>Collage:</strong> Activa el modo de edición multi-imagen (collage). Habilita la pestaña "Capas" en el panel derecho (con sus barras de ordenación y carga de capas en la parte inferior) para gestionar las imágenes apiladas.</td>
         </tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_70104-gallery-view.png"></td>
@@ -242,7 +255,8 @@
     </p>
 
     <h2>Barra de Orden de Capas (<em>layerorderpreview</em>)</h2>
-    <p>Barra vertical en el lateral EAST, visible en modo <strong>Collage</strong> y <strong>Editor Avanzado</strong>. Permite reordenar las capas de imágenes apiladas:</p>
+    <p>Barra horizontal en la parte inferior de la pestaña <strong>Capas</strong> del panel derecho,
+        visible únicamente en modo <strong>Collage</strong>. Permite reordenar las capas de imágenes apiladas:</p>
     <table class="controls-table">
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_70201-bring-to-front.png"></td>
@@ -263,7 +277,8 @@
     </table>
 
     <h2>Barra de Carga de Capas (<em>layerloadpreview</em>)</h2>
-    <p>Barra vertical en el lateral EAST, visible únicamente en modo <strong>Collage</strong> y <strong>Editor Avanzado</strong>. Gestiona la adición y eliminación de capas:</p>
+    <p>Barra horizontal en la parte inferior de la pestaña <strong>Capas</strong> del panel derecho,
+        visible únicamente en modo <strong>Collage</strong>. Gestiona la adición y eliminación de capas:</p>
     <table class="controls-table">
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_70301-clean-and-add-image.png"></td>
@@ -301,11 +316,13 @@
     </p>
     <h3>Pestaña "Capas"</h3>
     <p>
-        Al activar el modo collage o el editor avanzado aparece la pestaña <strong>"Capas"</strong>
-        en el panel derecho. Muestra las capas como tarjetas visuales apiladas verticalmente
-        (<code>LayerCardPanel</code>), con la capa superior arriba (estilo Photoshop). El panel
-        incluye una <strong>barra de scroll vertical</strong> que aparece cuando hay más capas de
-        las que caben. Cada tarjeta incluye, de izquierda a derecha:
+        Al activar el modo collage aparece la pestaña <strong>"Capas"</strong> en el panel derecho
+        (arranca deshabilitada y solo se habilita dentro de COLLAGE). Muestra las capas como tarjetas
+        visuales apiladas verticalmente (<code>LayerCardPanel</code>), con la capa superior arriba
+        (estilo Photoshop). El panel incluye una <strong>barra de scroll vertical</strong> que aparece
+        cuando hay más capas de las que caben, y las barras de <strong>Orden</strong> y
+        <strong>Carga de capas</strong> se sitúan en su parte inferior. Cada tarjeta incluye,
+        de izquierda a derecha:
     </p>
     <ul>
         <li><strong>Ojo de visibilidad:</strong> Toggle que muestra/oculta la capa en el lienzo.</li>

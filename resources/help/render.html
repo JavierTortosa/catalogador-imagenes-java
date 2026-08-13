@@ -28,6 +28,17 @@
         <li><strong>Procesar:</strong> Ejecuta el renderizado por lotes de todos los candidatos.</li>
     </ol>
 
+    <h2>Resolución y calidad del render</h2>
+    <p>
+        La imagen de salida se genera con <strong>supersampling</strong> (procesado a resolución
+        aumentada y reducción suavizada) al asignar, guardar o exportar el preview desde la vista 3D.
+        El <strong>lado mayor</strong> de la imagen resultante es configurable en el apartado de
+        configuración <strong>Renderizado</strong> (clave <code>zip2png.resolucion_salida</code>,
+        por defecto 1024 px, rango 512–4096), conservando el aspect ratio actual. El combo
+        <strong>Calidad del render</strong> de la pestaña "Imagen" ajusta el factor de supersampling
+        del render guardado (Rápida 1×, Normal 2×, Alta 3×).
+    </p>
+
     <p>
         Para más detalles sobre la interfaz (paneles, barras y botones del modo) consulta la sección
         <strong>Herramientas</strong> del árbol de ayuda. Para la edición de imágenes con capas
