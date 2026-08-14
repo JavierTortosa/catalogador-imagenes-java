@@ -71,6 +71,44 @@ public class TextLayer implements Layer {
     } // --- Fin del constructor TextLayer ---
 
 
+    /**
+     * Crea una capa de texto con un id concreto (p. ej. para reconstruir desde
+     * un documento {@code .edoc}). Si el id es nulo o vacío, genera uno nuevo.
+     *
+     * @param id     id persistido de la capa, o {@code null}
+     * @param name   nombre de la capa
+     * @param text   texto de la capa
+     * @param font   fuente de la capa
+     * @param color  color del texto
+     * @param bounds rectángulo de la capa
+     * @return la capa creada con el id indicado
+     */
+    public static TextLayer crearConId(String id, String name, String text, Font font, Color color, Rectangle bounds) {
+        String idFinal = (id != null && !id.isBlank()) ? id : UUID.randomUUID().toString();
+        return new TextLayer(idFinal, name, text, font, color, bounds);
+    } // --- Fin del metodo crearConId ---
+
+
+    private TextLayer(String id, String name, String text, Font font, Color color, Rectangle bounds) {
+        this.id = id;
+        this.name = name;
+        this.text = text;
+        this.font = font;
+        this.color = color;
+        this.alignment = ALIGN_LEFT;
+        this.vertical = false;
+        this.underline = false;
+        this.strikethrough = false;
+        this.flowColumns = false;
+        this.lineSpacing = 1.2f;
+        this.bounds = Objects.requireNonNull(bounds);
+        this.visible = true;
+        this.locked = false;
+        this.autoSize = false;
+        this.opacity = 1.0f;
+    } // --- Fin del constructor privado TextLayer ---
+
+
     private TextLayer(String id, String name, String text, Font font, Color color,
                       int alignment, boolean vertical, boolean underline,
                       boolean strikethrough, boolean flowColumns, float lineSpacing,

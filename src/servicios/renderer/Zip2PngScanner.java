@@ -39,20 +39,54 @@ public class Zip2PngScanner {
     public static class RenderCandidate {
         public final Path path;
         public final String nombreBase;
+        public final String carpetaRelativa;
         public final long tamanoBytes;
         public final boolean esComprimido;
         public final boolean excedeLimite;
         public final List<Path> volumenesAgrupados;
         public List<ImageEntry> imagenesInternas = List.of();
 
-        public RenderCandidate(Path path, String nombreBase, long tamanoBytes,
+        public RenderCandidate(Path path, String nombreBase, String carpetaRelativa, long tamanoBytes,
                 boolean esComprimido, boolean excedeLimite, List<Path> volumenesAgrupados) {
             this.path = path;
             this.nombreBase = nombreBase;
+            this.carpetaRelativa = carpetaRelativa;
             this.tamanoBytes = tamanoBytes;
             this.esComprimido = esComprimido;
             this.excedeLimite = excedeLimite;
             this.volumenesAgrupados = volumenesAgrupados;
+        }
+
+        /**
+         * Ruta de salida única para este candidato dentro de la carpeta temporal.
+         * Incluye la carpeta relativa (normalizada a '/') para que dos candidatos
+         * homónimos de subcarpetas distintas no colisionen en el mismo PNG.
+         * <p>
+         * Es el equivalente a {@code claveRepresentacion} pero sin la barra inicial:
+         * {@code "modelo"} para la raíz, {@code "sub/nombre/modelo"} para subcarpetas.
+         *
+         * @return ruta relativa de salida sin extensión
+         */
+        public String rutaSalida() {
+            return carpetaRelativa.isEmpty() ? nombreBase : carpetaRelativa + "/" + nombreBase;
+        }
+
+        /**
+         * Nombre plano único para copiar a una carpeta sin estructura jerárquica.
+         * Desambigua candidatos homónimos de subcarpetas distintas añadiendo la
+         * carpeta relativa como sufijo (ej. {@code "A/motor"} → {@code "motor_a"}),
+         * de modo que dos archivos {@code motor} no colisionen en el mismo destino.
+         * <p>
+         * Solo se usa al copiar a un destino plano; al copiar a la carpeta de origen
+         * cada archivo conserva su nombre base y su carpeta y no hay colisión.
+         *
+         * @return nombre de salida sin extensión, único en un destino plano
+         */
+        public String nombrePlano() {
+            if (carpetaRelativa.isEmpty()) {
+                return nombreBase;
+            }
+            return nombreBase + "_" + carpetaRelativa.replace('/', '_').replace('\\', '_');
         }
 
         public boolean tieneImagenesDentro() {
@@ -156,7 +190,7 @@ public class Zip2PngScanner {
             long totalSize = group.stream().mapToLong(p -> p.toFile().length()).sum();
             boolean excede = totalSize > limiteBytes;
             RenderCandidate c = new RenderCandidate(first, nombreBase(first.getFileName().toString().toLowerCase()),
-                    totalSize, true, excede, group);
+                    carpetaRelativa(folderPath, first), totalSize, true, excede, group);
             candidates.add(c);
             if (candidateCallback != null) candidateCallback.accept(c);
         }
@@ -167,7 +201,7 @@ public class Zip2PngScanner {
             long size = file.toFile().length();
             boolean excede = size > limiteBytes;
             RenderCandidate c = new RenderCandidate(file, nombreBase(file.getFileName().toString().toLowerCase()),
-                    size, false, excede, List.of(file));
+                    carpetaRelativa(folderPath, file), size, false, excede, List.of(file));
             candidates.add(c);
             if (candidateCallback != null) candidateCallback.accept(c);
         }
@@ -188,6 +222,18 @@ public class Zip2PngScanner {
 
     public List<RenderCandidate> scanFolder(Path folderPath) {
         return scanFolder(folderPath, true, null, null, null);
+    }
+
+    /**
+     * Carpeta relativa de un archivo respecto al root escaneado, normalizada a '/'.
+     * Devuelve cadena vacía para archivos en la raíz.
+     */
+    private String carpetaRelativa(Path root, Path file) {
+        Path parent = file.getParent();
+        if (parent == null || parent.equals(root)) {
+            return "";
+        }
+        return root.relativize(parent).toString().replace('\\', '/');
     }
 
     /**

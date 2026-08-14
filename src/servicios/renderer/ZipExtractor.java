@@ -56,10 +56,15 @@ public class ZipExtractor {
         pb.redirectErrorStream(true);
         try {
             Process p = pb.start();
+            // La salida de 7z debe drenarse mientras el proceso corre: si el pipe
+            // del SO se llena (una línea por archivo extraído), 7z se bloquea y
+            // waitFor agota el timeout con archivos grandes.
+            Thread drenador = drenarSalidaEnFondo(p);
             if (!p.waitFor(120, java.util.concurrent.TimeUnit.SECONDS)) {
                 p.destroyForcibly();
                 throw new IOException("Timeout extrayendo " + archivePath);
             }
+            drenador.join();
             if (p.exitValue() != 0) {
                 throw new IOException("7z exit code " + p.exitValue() + " extrayendo " + archivePath);
             }
@@ -223,10 +228,12 @@ public class ZipExtractor {
         pb.redirectErrorStream(true);
         try {
             Process p = pb.start();
+            Thread drenador = drenarSalidaEnFondo(p);
             if (!p.waitFor(120, java.util.concurrent.TimeUnit.SECONDS)) {
                 p.destroyForcibly();
                 throw new IOException("Timeout extrayendo " + internalPath + " de " + archivePath);
             }
+            drenador.join();
             if (p.exitValue() != 0) {
                 throw new IOException("7z exit code " + p.exitValue() + " extrayendo " + internalPath);
             }
@@ -235,6 +242,29 @@ public class ZipExtractor {
             throw new IOException("Interrupción extrayendo " + internalPath, e);
         }
     }
+
+        /**
+     * Lanza un hilo daemon que drena la salida del proceso de 7z hasta EOF.
+     * Evita que el pipe del sistema operativo se llene y bloquee al proceso
+     * padre en extracciones grandes (el padre no lee la salida directamente).
+     *
+     * @param p proceso 7z ya iniciado
+     * @return hilo que debe esperarse tras {@code waitFor} para asegurar el cierre
+     */
+    private static Thread drenarSalidaEnFondo(Process p) {
+        Thread t = new Thread(() -> {
+            try (var in = p.getInputStream()) {
+                byte[] buf = new byte[8192];
+                while (in.read(buf) != -1) { /* descartar */ }
+            } catch (Exception e) {
+                logger.debug("Error drenando salida de 7z", e);
+            }
+        }, "zip2png-7z-drain");
+        t.setDaemon(true);
+        t.start();
+        return t;
+    }
+
 
     /**
      * Elimina un directorio temporal recursivamente.

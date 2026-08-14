@@ -150,6 +150,9 @@ El producto ofrece las siguientes capacidades de alto nivel:
 - El **preview 3D** (JavaFX) se captura con **supersampling adaptativo** (mínimo 2×, tope interno
   de 2048 px) y se reduce al lado mayor objetivo conservando el **aspect ratio**; aplica al
   asignar, guardar o exportar el preview.
+- El estado de la vista 3D (rotación, pan y zoom) para el **fallback AWT** se lee de forma
+  **coherente dentro del hilo de JavaFX** (`capturarEstadoVista`), no desde la EDT, para que la
+  imagen exportada refleje exactamente el encuadre mostrado.
 - El escaneo es deliberadamente **rápido**: no abre los comprimidos, solo compara nombres de
   archivo.
 - La extracción y el listado de comprimidos requieren `7z.exe`.
@@ -424,6 +427,7 @@ clase entre paréntesis permiten la trazabilidad al código fuente (apéndice A)
 | **RNF-011** | Si un comprimido no contiene STL, el sistema debe informarlo y continuar con el siguiente candidato. |
 | **RNF-012** | La limpieza de temporales debe ser tolerante a archivos bloqueados (advertencias en log, no fallos). |
 | **RNF-013** | La carga de mallas debe realizarse en segundo plano; los errores de parseo deben mostrarse sin bloquear la UI. |
+| **RNF-013a** | La lectura del estado de la vista 3D (rotación, pan, zoom) para renders de exportación (fallback AWT) debe hacerse dentro del hilo de JavaFX con timeout, de modo que los valores sean coherentes con el encuadre visible. |
 
 ### 5.4 Mantenibilidad
 

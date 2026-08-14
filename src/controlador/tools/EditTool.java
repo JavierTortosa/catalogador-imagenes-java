@@ -106,7 +106,13 @@ public class EditTool extends Tool {
             int y = ((Number) bar().getSpinnerY().getValue()).intValue();
             int w = ((Number) bar().getSpinnerW().getValue()).intValue();
             int h = ((Number) bar().getSpinnerH().getValue()).intValue();
-            layer.setBounds(new Rectangle(x, y, w, h));
+            var history = bar().getEditorHistory();
+            if (history != null) {
+                history.record("Propiedades de capa",
+                        () -> layer.setBounds(new Rectangle(x, y, w, h)));
+            } else {
+                layer.setBounds(new Rectangle(x, y, w, h));
+            }
             ctx.canvasPanel().repaint();
         } catch (Exception ignored) {
         }
@@ -118,7 +124,12 @@ public class EditTool extends Tool {
         if (layer == null || layer.isLocked()) return;
         try {
             double angle = ((Number) bar().getSpinnerAngle().getValue()).doubleValue();
-            layer.setRotation(angle);
+            var history = bar().getEditorHistory();
+            if (history != null) {
+                history.record("Rotación de capa", () -> layer.setRotation(angle));
+            } else {
+                layer.setRotation(angle);
+            }
             ctx.canvasPanel().repaint();
         } catch (Exception ignored) {
         }
@@ -486,9 +497,21 @@ public class EditTool extends Tool {
             default -> { return; }
         }
 
-        for (Layer layer : layers) {
-            Rectangle b = layer.getBounds();
-            layer.setBounds(new Rectangle(b.x + dx, b.y + dy, b.width, b.height));
+        var history = bar().getEditorHistory();
+        if (history != null) {
+            List<Layer> finalLayers = layers;
+            int fdx = dx, fdy = dy;
+            history.record("Mover capa", () -> {
+                for (Layer layer : finalLayers) {
+                    Rectangle b = layer.getBounds();
+                    layer.setBounds(new Rectangle(b.x + fdx, b.y + fdy, b.width, b.height));
+                }
+            });
+        } else {
+            for (Layer layer : layers) {
+                Rectangle b = layer.getBounds();
+                layer.setBounds(new Rectangle(b.x + dx, b.y + dy, b.width, b.height));
+            }
         }
         bar().updateEditLayerFields(model().getActiveLayer());
         ctx.canvasPanel().repaint();

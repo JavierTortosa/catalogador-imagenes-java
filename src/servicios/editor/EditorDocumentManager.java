@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParseException;
 
 import modelo.editor.CanvasModel;
 import modelo.editor.ImageLayer;
@@ -350,17 +351,21 @@ public class EditorDocumentManager {
         }
         try (Reader reader = new FileReader(rutaArchivo.toFile())) {
             EditorDoc doc = gson.fromJson(reader, EditorDoc.class);
+            if (doc == null) {
+                logger.error("[EditorDocumentManager] Documento vacío o sin contenido válido: {}", rutaArchivo);
+                return false;
+            }
             aplicarDocumento(doc, rutaArchivo.toAbsolutePath().getParent());
             if (history != null) {
                 history.clear();
             }
-            this.nombreRecuperado = (doc != null) ? doc.nombreDocumento : null;
+            this.nombreRecuperado = doc.nombreDocumento;
             this.archivoActivo = rutaArchivo;
             this.nombreDocumento = nombreDesdeRuta(rutaArchivo);
             this.dirty = false;
             notifyDirty();
             return true;
-        } catch (IOException e) {
+        } catch (JsonParseException | IOException e) {
             logger.error("[EditorDocumentManager] Error al abrir documento {}: {}", rutaArchivo, e.getMessage(), e);
             return false;
         }
@@ -430,15 +435,12 @@ public class EditorDocumentManager {
                 dto.srcPath = il.getSrcPath();
             } else {
                 // Capa r\u00E1ster sin origen (pintada/degradado/fusi\u00F3n) o shape:
-                // se exporta a la carpeta "<archivo>_capas/" del documento actual.
+                // se exporta SIEMPRE a la carpeta "<archivo>_capas/" del documento
+                // actual para reflejar el estado vigente de la capa en memoria.
                 String rel = carpetaCapasRelativa();
-                if (il.getSrcPath() == null || !il.getSrcPath().startsWith(rel + "/")) {
-                    String ruta = exportarPng(l, rel);
-                    dto.srcPath = ruta;
-                    il.setSrcPath(ruta);
-                } else {
-                    dto.srcPath = il.getSrcPath();
-                }
+                String ruta = exportarPng(l, rel);
+                dto.srcPath = ruta;
+                il.setSrcPath(ruta);
             }
         } else if (l instanceof TextLayer tl) {
             dto.type = "TEXT";
@@ -491,10 +493,15 @@ public class EditorDocumentManager {
             Rectangle b = l.getBounds();
             BufferedImage img = new BufferedImage(Math.max(1, b.width), Math.max(1, b.height), BufferedImage.TYPE_INT_ARGB);
             Graphics2D g = img.createGraphics();
+            boolean visibleOriginal = l.isVisible();
             try {
                 g.translate(-b.x, -b.y);
+                // Se exporta aunque la capa est\u00E9 oculta para no perder su contenido
+                // si el usuario la guarda con visibilidad desactivada.
+                l.setVisible(true);
                 l.paint(g);
             } finally {
+                l.setVisible(visibleOriginal);
                 g.dispose();
             }
             Path archivo = capasDir.resolve(l.getId() + ".png");
@@ -572,7 +579,7 @@ public class EditorDocumentManager {
                 return textoCapa(dto, b);
             }
             BufferedImage img = cargarImagen(dto.srcPath, baseDocDir);
-            ImageLayer il = new ImageLayer(dto.name != null ? dto.name : "Capa", img, b);
+            ImageLayer il = ImageLayer.crearConId(dto.id, dto.name != null ? dto.name : "Capa", img, b);
             il.setType("SHAPE".equals(tipo) ? ImageLayer.LayerType.SHAPE : ImageLayer.LayerType.IMAGE);
             if (il.getType() == ImageLayer.LayerType.SHAPE) {
                 il.setShapeType(dto.shapeType);
@@ -596,7 +603,7 @@ public class EditorDocumentManager {
         Font font = new Font(dto.fontFamily != null ? dto.fontFamily : "SansSerif",
                 dto.fontStyle != null ? dto.fontStyle : Font.PLAIN,
                 dto.fontSize != null ? dto.fontSize : 24);
-        TextLayer tl = new TextLayer(dto.name != null ? dto.name : "Texto",
+        TextLayer tl = TextLayer.crearConId(dto.id, dto.name != null ? dto.name : "Texto",
                 dto.text != null ? dto.text : "", font,
                 colorFromInt(dto.textColorArgb),
                 b);

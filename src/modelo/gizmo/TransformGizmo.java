@@ -270,6 +270,20 @@ public class TransformGizmo {
     public Rectangle drag(int dx, int dy) {
         if (dragStartBounds == null || currentHandle == Handle.NONE) return dragStartBounds;
 
+        // Los deltas del ratón llegan en coordenadas de canvas, pero el marco se
+        // dibuja rotado (ver draw/hitTest). Al escalar hay que des-rotar los
+        // deltas al sistema local del marco; MOVE se aplica tal cual porque la
+        // capa debe seguir al ratón en el canvas.
+        if (rotation != 0 && currentHandle != Handle.MOVE) {
+            double rad = Math.toRadians(-rotation);
+            double cos = Math.cos(rad);
+            double sin = Math.sin(rad);
+            double rx = dx * cos - dy * sin;
+            double ry = dx * sin + dy * cos;
+            dx = (int) Math.round(rx);
+            dy = (int) Math.round(ry);
+        }
+
         Rectangle r = new Rectangle(dragStartBounds);
         int minS = constraints.minSize();
 

@@ -91,8 +91,9 @@ public class Zip2PngWorker extends SwingWorker<Void, String> {
                         List<Triangle> triangles = StlParser.parse(stlPath.toFile());
                         java.awt.image.BufferedImage img = renderer.renderizar(triangles);
 
-                        String pngName = candidate.nombreBase + ".png";
+                        String pngName = candidate.rutaSalida() + ".png";
                         Path pngPath = outputDir.resolve(pngName);
+                        Files.createDirectories(pngPath.getParent());
                         javax.imageio.ImageIO.write(img, "PNG", pngPath.toFile());
                         generatedFiles.add(pngPath);
                         sourceInfos.add(new SourceInfo(pngPath, candidate, largest));
@@ -106,8 +107,9 @@ public class Zip2PngWorker extends SwingWorker<Void, String> {
                     List<Triangle> triangles = StlParser.parse(stlPath.toFile());
                     java.awt.image.BufferedImage img = renderer.renderizar(triangles);
 
-                    String pngName = candidate.nombreBase + ".png";
+                    String pngName = candidate.rutaSalida() + ".png";
                     Path pngPath = outputDir.resolve(pngName);
+                    Files.createDirectories(pngPath.getParent());
                     javax.imageio.ImageIO.write(img, "PNG", pngPath.toFile());
                     generatedFiles.add(pngPath);
                     sourceInfos.add(new SourceInfo(pngPath, candidate,
@@ -121,7 +123,7 @@ public class Zip2PngWorker extends SwingWorker<Void, String> {
 
                 // Extraer imágenes embebidas siempre que el candidato las tenga
                 if (candidate.tieneImagenesDentro()) {
-                    Path imgBaseDir = outputDir.resolve("imagenes").resolve(candidate.nombreBase);
+                    Path imgBaseDir = outputDir.resolve("imagenes").resolve(candidate.rutaSalida());
                     Files.createDirectories(imgBaseDir);
                     for (ImageEntry imgEntry : candidate.imagenesInternas) {
                         if (isCancelled()) return null;

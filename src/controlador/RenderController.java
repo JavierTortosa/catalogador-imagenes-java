@@ -786,6 +786,16 @@ public class RenderController {
         return dot >= 0 ? name.substring(dot + 1).toUpperCase() : "?";
     }
 
+    /**
+     * Extensión de un nombre de archivo con su punto (ej. {@code ".png"}),
+     * o cadena vacía si el nombre no tiene extensión.
+     */
+    private String extensionConPunto(Path path) {
+        String name = path.getFileName().toString();
+        int dot = name.lastIndexOf('.');
+        return dot >= 0 ? name.substring(dot) : "";
+    }
+
     private String formatFileSize(long bytes) {
         if (bytes < 1024) return bytes + " B";
         int exp = (int) (Math.log(bytes) / Math.log(1024));
@@ -860,7 +870,7 @@ public class RenderController {
         new SwingWorker<Path, Void>() {
             @Override
             protected Path doInBackground() throws Exception {
-                Path imgOutput = imagesDir.resolve(candidate.nombreBase);
+                Path imgOutput = imagesDir.resolve(candidate.rutaSalida());
                 Files.createDirectories(imgOutput);
                 ZipExtractor.extractSingleFile(candidate.path, img.filename(), imgOutput);
                 Path extracted = imgOutput.resolve(img.filename());
@@ -1362,11 +1372,11 @@ public class RenderController {
     private void limpiarOutputDeCandidatos(List<RenderCandidate> candidatos) {
         for (RenderCandidate c : candidatos) {
             try {
-                Path png = outputDir.resolve(c.nombreBase + ".png");
+                Path png = outputDir.resolve(c.rutaSalida() + ".png");
                 Files.deleteIfExists(png);
                 pngSourceMap.remove(png);
                 triangleCache.remove(png);
-                Path imgDir = imagesDir.resolve(c.nombreBase);
+                Path imgDir = imagesDir.resolve(c.rutaSalida());
                 if (Files.isDirectory(imgDir)) {
                     RenderTempFileManager.deleteDir(imgDir);
                 }
@@ -1395,7 +1405,7 @@ public class RenderController {
         java.util.Enumeration<RenderCandidate> en = model.elements();
         while (en.hasMoreElements()) {
             RenderCandidate c = en.nextElement();
-            Path png = outputDir.resolve(c.nombreBase + ".png");
+            Path png = outputDir.resolve(c.rutaSalida() + ".png");
             if (Files.exists(png)) {
                 procesados.add(c);
             } else {
@@ -1418,7 +1428,7 @@ public class RenderController {
         while (sinRender.hasMoreElements()) {
             RenderCandidate c = sinRender.nextElement();
             try {
-                Path png = outputDir.resolve(c.nombreBase + ".png");
+                Path png = outputDir.resolve(c.rutaSalida() + ".png");
                 if (Files.exists(png)) {
                     addThumbnailToGrid(png, panel.getRendersGrid(), highlightPng, c.nombreBase, c);
                 }
@@ -1432,12 +1442,12 @@ public class RenderController {
         while (conImg.hasMoreElements()) {
             RenderCandidate c = conImg.nextElement();
             try {
-                Path png = outputDir.resolve(c.nombreBase + ".png");
+                Path png = outputDir.resolve(c.rutaSalida() + ".png");
                 if (Files.exists(png)) {
                     addThumbnailToGrid(png, panel.getImagenesGrid(), highlightPng, c.nombreBase, c);
                     continue;
                 }
-                Path imgDir = imagesDir.resolve(c.nombreBase);
+                Path imgDir = imagesDir.resolve(c.rutaSalida());
                 if (Files.isDirectory(imgDir)) {
                     try (var walk = Files.walk(imgDir, 3)) {
                         walk.filter(Files::isRegularFile)
@@ -1780,13 +1790,21 @@ public class RenderController {
 
         List<Path> pngs = new ArrayList<>();
         try {
-            String prefix = selected.nombreBase;
-            try (var files = Files.list(outputDir)) {
-                files.filter(p -> {
-                    String name = p.getFileName().toString().toLowerCase();
-                    return name.endsWith(".png")
-                            && (name.equals(prefix + ".png") || name.startsWith(prefix + "_"));
-                }).forEach(pngs::add);
+            // El PNG vive en outputDir con la estructura de carpetas del candidato
+            Path png = outputDir.resolve(selected.rutaSalida() + ".png");
+            if (Files.exists(png)) {
+                pngs.add(png);
+            } else {
+                Path imgDir = imagesDir.resolve(selected.rutaSalida());
+                if (Files.isDirectory(imgDir)) {
+                    try (var walk = Files.walk(imgDir, 3)) {
+                        walk.filter(p -> {
+                            String name = p.getFileName().toString().toLowerCase();
+                            return name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg")
+                                    || name.endsWith(".gif") || name.endsWith(".bmp") || name.endsWith(".webp");
+                        }).findFirst().ifPresent(pngs::add);
+                    }
+                }
             }
         } catch (IOException ex) {
             logger.error("Error listando PNGs para copiar", ex);
@@ -1863,16 +1881,16 @@ public class RenderController {
         // origen cuando se elige esa opción.
         LinkedHashMap<Path, RenderCandidate> pngs = new LinkedHashMap<>();
         java.util.Collections.list(panel.getListModelSinImagen().elements()).forEach(c -> {
-            Path png = outputDir.resolve(c.nombreBase + ".png");
+            Path png = outputDir.resolve(c.rutaSalida() + ".png");
             if (Files.exists(png)) pngs.put(png, c);
         });
         java.util.Collections.list(panel.getListModelConImagen().elements()).forEach(c -> {
-            Path png = outputDir.resolve(c.nombreBase + ".png");
+            Path png = outputDir.resolve(c.rutaSalida() + ".png");
             if (Files.exists(png)) {
                 pngs.put(png, c);
                 return;
             }
-            Path imgDir = imagesDir.resolve(c.nombreBase);
+            Path imgDir = imagesDir.resolve(c.rutaSalida());
             if (Files.isDirectory(imgDir)) {
                 try (var walk = Files.walk(imgDir, 3)) {
                     walk.filter(Files::isRegularFile)
@@ -1975,9 +1993,16 @@ public class RenderController {
                         return;
                     }
                 }
-                for (Path p : pngs.keySet()) {
+                for (Map.Entry<Path, RenderCandidate> entry : pngs.entrySet()) {
+                    Path p = entry.getKey();
+                    Path origen = p.getFileName();
+                    // En un destino plano los homónimos de subcarpetas se
+                    // desambiguían con la carpeta relativa (motor_a.png).
+                    String nombre = (entry.getValue() != null)
+                            ? entry.getValue().nombrePlano() + extensionConPunto(origen)
+                            : origen.toString();
                     try {
-                        Files.copy(p, dest.resolve(p.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+                        Files.copy(p, dest.resolve(nombre), StandardCopyOption.REPLACE_EXISTING);
                         copiados++;
                     } catch (IOException ex) {
                         logger.error("Error copiando {} a {}", p, dest, ex);
@@ -2007,11 +2032,18 @@ public class RenderController {
         if (chooser.showSaveDialog(parentFrame) != JFileChooser.APPROVE_OPTION) return;
 
         Path destFolder = chooser.getSelectedFile().toPath();
-        try (var files = Files.list(outputDir)) {
-            files.filter(p -> p.getFileName().toString().toLowerCase().endsWith(".png"))
+        try (var walk = Files.walk(outputDir)) {
+            walk.filter(Files::isRegularFile)
+                    .filter(p -> p.getFileName().toString().toLowerCase().endsWith(".png"))
                     .forEach(p -> {
                         try {
-                            Files.copy(p, destFolder.resolve(p.getFileName()),
+                            // En un destino plano los homónimos de subcarpetas se
+                            // desambiguían con la carpeta relativa (motor_a.png).
+                            RenderCandidate c = buscarCandidatoDePng(p);
+                            String nombre = (c != null)
+                                    ? c.nombrePlano() + extensionConPunto(p.getFileName())
+                                    : p.getFileName().toString();
+                            Files.copy(p, destFolder.resolve(nombre),
                                     StandardCopyOption.REPLACE_EXISTING);
                         } catch (IOException ex) {
                             logger.error("Error copiando {} a {}", p, destFolder, ex);
@@ -2144,7 +2176,8 @@ public class RenderController {
             // Se guarda la imagen completa del preview escalada al máximo permitido,
             // no el recorte cuadrado del visor.
             BufferedImage imagen = panel.getCurrentImage2D();
-            Path dest = outputDir.resolve(selected.nombreBase + ".png");
+            Path dest = outputDir.resolve(selected.rutaSalida() + ".png");
+            Files.createDirectories(dest.getParent());
             if (imagen != null) {
                 ImageIO.write(escalarSiNecesario(imagen, MAX_LADO_GRID), "PNG", dest.toFile());
                 logger.info("Imagen completa guardada en el grid: {} ({}x{})",
@@ -2309,9 +2342,16 @@ public class RenderController {
     private BufferedImage renderizarPreviewAwt() {
         if (currentTriangles == null) return null;
 
-        double rotX = panel.getPreview3DFX().getRotateXAngle();
-        double rotY = panel.getPreview3DFX().getRotateYAngle();
-        double rotZ = panel.getPreview3DFX().getRotateZAngle();
+        // Se lee el estado de la vista dentro del hilo FX para garantizar que la
+        // rotación, pan y zoom sean coherentes con lo que se muestra en pantalla.
+        var estado = panel.getPreview3DFX().capturarEstadoVista();
+        if (estado == null) {
+            logger.warn("No se pudo leer el estado 3D para el render AWT");
+            return null;
+        }
+        double rotX = estado.rotX;
+        double rotY = estado.rotY;
+        double rotZ = estado.rotZ;
         int brightness = panel.getBrightnessSlider().getValue();
         int contrast = panel.getContrastSlider().getValue();
         boolean antiAlias = panel.getChkAntiAlias().isSelected();
@@ -2322,11 +2362,11 @@ public class RenderController {
         // El preview normaliza el modelo a ~200 unidades; el render AWT lo
         // encaja en (SIZE - 2*MARGIN) píxeles. Se convierte el pan de la cámara
         // (unidades de escena) a píxeles del render.
-        double zoomScale = panel.getPreview3DFX().getZoomFactor();
+        double zoomScale = estado.zoomFactor;
         int renderSize = renderer.getOutputSize() * superSample;
         double pxPorUnidad = (renderSize - 2f * AwtModelRenderer.MARGIN) / 200.0 * zoomScale;
-        double panX = panel.getPreview3DFX().getPanX() * pxPorUnidad;
-        double panY = panel.getPreview3DFX().getPanY() * pxPorUnidad;
+        double panX = estado.panX * pxPorUnidad;
+        double panY = estado.panY * pxPorUnidad;
 
         String bgMode = panel.getSelectedBgMode();
         Color solidColor = panel.getSolidBgColor();
@@ -3151,7 +3191,7 @@ public class RenderController {
         new SwingWorker<BufferedImage, Void>() {
             @Override
             protected BufferedImage doInBackground() throws Exception {
-                Path imgOutput = imagesDir.resolve(candidate.nombreBase);
+                Path imgOutput = imagesDir.resolve(candidate.rutaSalida());
                 Files.createDirectories(imgOutput);
                 ZipExtractor.extractSingleFile(candidate.path, img.filename(), imgOutput);
                 Path extracted = imgOutput.resolve(img.filename());
@@ -3549,9 +3589,9 @@ public class RenderController {
         SourceInfo info = pngSourceMap.get(png);
         if (info != null) return info.candidate();
         for (RenderCandidate c : getAllCandidates()) {
-            Path esperado = outputDir.resolve(c.nombreBase + ".png");
+            Path esperado = outputDir.resolve(c.rutaSalida() + ".png");
             if (esperado.equals(png)) return c;
-            if (png.startsWith(imagesDir.resolve(c.nombreBase))) return c;
+            if (png.startsWith(imagesDir.resolve(c.rutaSalida()))) return c;
         }
         return null;
     } // --- Fin del metodo buscarCandidatoDePng ---

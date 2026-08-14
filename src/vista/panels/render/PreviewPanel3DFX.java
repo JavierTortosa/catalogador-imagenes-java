@@ -340,7 +340,10 @@ public class PreviewPanel3DFX extends JFXPanel {
 
 
     public void setCrosshairVisible(boolean visible) {
-        hLine.setVisible(visible);        vLine.setVisible(visible);
+        Platform.runLater(() -> {
+            if (hLine != null) hLine.setVisible(visible);
+            if (vLine != null) vLine.setVisible(visible);
+        });
     } // --- Fin del metodo setCrosshairVisible ---
 
 
@@ -363,7 +366,9 @@ public class PreviewPanel3DFX extends JFXPanel {
      * Activa o desactiva la luz tenue de relleno inferior-izquierda.
      */
     public void setFillLight2Visible(boolean visible) {
-        fillLight2.setVisible(visible);
+        Platform.runLater(() -> {
+            if (fillLight2 != null) fillLight2.setVisible(visible);
+        });
     } // --- Fin del metodo setFillLight2Visible ---
 
 
@@ -621,16 +626,21 @@ public class PreviewPanel3DFX extends JFXPanel {
      * Restablece la vista a valores por defecto.
      */
     public void resetView() {
-        zoom = 500;
-        fitZoom = 500;
-        rotateX.setAngle(0);
-        rotateY.setAngle(0);
-        rotateZ.setAngle(0);
-        camera.setTranslateZ(-zoom);
-        camera.setTranslateX(0);
-        camera.setTranslateY(0);
-        modelGroup.setTranslateX(0);
-        modelGroup.setTranslateY(0);
+        Platform.runLater(() -> {
+            if (camera == null) return;
+            zoom = 500;
+            fitZoom = 500;
+            if (rotateX != null) rotateX.setAngle(0);
+            if (rotateY != null) rotateY.setAngle(0);
+            if (rotateZ != null) rotateZ.setAngle(0);
+            camera.setTranslateZ(-zoom);
+            camera.setTranslateX(0);
+            camera.setTranslateY(0);
+            if (modelGroup != null) {
+                modelGroup.setTranslateX(0);
+                modelGroup.setTranslateY(0);
+            }
+        });
     } // --- Fin del metodo resetView ---
 
 
@@ -750,6 +760,51 @@ public class PreviewPanel3DFX extends JFXPanel {
     public double getZoomFactor() {
         return fitZoom > 0 ? fitZoom / zoom : 1.0;
     } // --- Fin del metodo getZoomFactor ---
+
+
+    /**
+     * Snapshot inmutable del estado de la vista 3D (rotación, pan y zoom) tal
+     * como lo aplica la escena en un instante concreto. Todos los valores se
+     * leen dentro del hilo de JavaFX para garantizar coherencia.
+     */
+    public static final class EstadoVista3D {
+
+        public final double rotX;
+        public final double rotY;
+        public final double rotZ;
+        public final double panX;
+        public final double panY;
+        public final double zoomFactor;
+
+        private EstadoVista3D(double rotX, double rotY, double rotZ,
+                double panX, double panY, double zoomFactor) {
+            this.rotX = rotX;
+            this.rotY = rotY;
+            this.rotZ = rotZ;
+            this.panX = panX;
+            this.panY = panY;
+            this.zoomFactor = zoomFactor;
+        } // --- Fin del constructor EstadoVista3D ---
+    } // --- Fin de la clase EstadoVista3D ---
+
+
+    /**
+     * Lee el estado completo de la vista 3D dentro del hilo de JavaFX y lo
+     * devuelve como snapshot coherente, a diferencia de los getters individuales
+     * que se leen desde el hilo del llamador.
+     *
+     * @return snapshot con la rotación, pan y zoom actuales, o null si el hilo
+     *         FX no responde en el timeout
+     */
+    public EstadoVista3D capturarEstadoVista() {
+        return ejecutarEnFxThread(() -> new EstadoVista3D(
+                getRotateXAngle(),
+                getRotateYAngle(),
+                getRotateZAngle(),
+                getPanX(),
+                getPanY(),
+                getZoomFactor()), 15000);
+    } // --- Fin del metodo capturarEstadoVista ---
 
 
     /**
@@ -921,27 +976,41 @@ public class PreviewPanel3DFX extends JFXPanel {
      * Devuelve null si la captura falla o no completa a tiempo.
      */
     private WritableImage snapshotEnFxThread(Supplier<WritableImage> captura, long timeoutMs) {
-        final WritableImage[] resultado = new WritableImage[1];
+        return ejecutarEnFxThread(captura, timeoutMs);
+    } // --- Fin del metodo snapshotEnFxThread ---
+
+
+    /**
+     * Ejecuta una acción en el hilo de JavaFX y espera el resultado con timeout.
+     * Devuelve null si la acción falla, es null o no completa a tiempo. Reutiliza
+     * el mismo patrón latch+timeout que la captura de escena.
+     *
+     * @param accion    proveedor a ejecutar dentro del hilo FX
+     * @param timeoutMs milisegundos máximos de espera
+     * @return resultado de la acción, o null en caso de error o timeout
+     */
+    private <T> T ejecutarEnFxThread(Supplier<T> accion, long timeoutMs) {
+        final T[] resultado = (T[]) new Object[1];
         final CountDownLatch latch = new CountDownLatch(1);
         Platform.runLater(() -> {
             try {
-                resultado[0] = captura.get();
+                resultado[0] = accion.get();
             } catch (Exception ex) {
-                logger.warn("[PreviewPanel3DFX] Error capturando escena 3D", ex);
+                logger.warn("[PreviewPanel3DFX] Error ejecutando acción en el hilo FX", ex);
             } finally {
                 latch.countDown();
             }
         });
         try {
             if (!latch.await(timeoutMs, TimeUnit.MILLISECONDS)) {
-                logger.warn("[PreviewPanel3DFX] Timeout capturando escena 3D ({} ms)", timeoutMs);
+                logger.warn("[PreviewPanel3DFX] Timeout ejecutando acción en el hilo FX ({} ms)", timeoutMs);
                 return null;
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
         return resultado[0];
-    } // --- Fin del metodo snapshotEnFxThread ---
+    } // --- Fin del metodo ejecutarEnFxThread ---
 
 
     /**

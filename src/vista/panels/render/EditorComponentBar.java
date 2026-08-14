@@ -482,6 +482,14 @@ toolPanelBuilders.put(AppActionCommands.CMD_ADVANCED_EDITOR_ZOOM, this::buildZoo
 
 
     /**
+     * @return el historial del documento vinculado a la barra, o {@code null}
+     */
+    public EditorHistory getEditorHistory() {
+        return editorHistory;
+    } // --- Fin del metodo getEditorHistory ---
+
+
+    /**
      * Actualiza el estado habilitado de los botones Deshacer/Rehacer/Historial
      * según el estado del historial.
      */

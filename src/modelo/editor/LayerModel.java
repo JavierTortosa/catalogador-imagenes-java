@@ -93,6 +93,9 @@ public class LayerModel {
         if (index < 0 || index >= layers.size()) return;
         layers.remove(index);
         adjustIndicesAfterRemove(index);
+        if (activeIndex > index) {
+            activeIndex--;
+        }
         if (activeIndex >= layers.size()) {
             activeIndex = layers.size() - 1;
         }
@@ -116,6 +119,9 @@ public class LayerModel {
         copy.setName(original.getName() + " (copia)");
         layers.add(index + 1, copy);
         shiftIndicesAfterInsert(index + 1);
+        if (activeIndex >= index + 1) {
+            activeIndex++;
+        }
         fireChanged();
         return copy;
     } // --- Fin del metodo duplicateLayer ---
@@ -126,10 +132,8 @@ public class LayerModel {
         if (fromIndex == toIndex) return;
         Layer layer = layers.remove(fromIndex);
         layers.add(toIndex, layer);
+        activeIndex = ajustarIndiceEnMovimiento(activeIndex, fromIndex, toIndex);
         shiftSelectionOnMove(fromIndex, toIndex);
-        if (activeIndex == fromIndex) {
-            activeIndex = toIndex;
-        }
         fireChanged();
     } // --- Fin del metodo moveLayer ---
 
@@ -407,19 +411,33 @@ public class LayerModel {
         if (selectedIndices.isEmpty()) return;
         Set<Integer> adjusted = new LinkedHashSet<>();
         for (int idx : selectedIndices) {
-            int newIdx;
-            if (idx == from) {
-                newIdx = to;
-            } else if (from < to) {
-                newIdx = (idx > from && idx <= to) ? idx - 1 : idx;
-            } else {
-                newIdx = (idx >= to && idx < from) ? idx + 1 : idx;
-            }
-            adjusted.add(newIdx);
+            adjusted.add(ajustarIndiceEnMovimiento(idx, from, to));
         }
         selectedIndices.clear();
         selectedIndices.addAll(adjusted);
     } // --- Fin del metodo shiftSelectionOnMove ---
+
+
+    /**
+     * Devuelve el índice que adopta un índice dado tras mover la capa de
+     * {@code from} a {@code to}: la capa movida pasa a {@code to}, y las que
+     * estaban entre medias se desplazan una posición en la dirección opuesta.
+     * <p>
+     * Se aplica tanto a la selección como a la capa activa para que ambas
+     * sigan apuntando a las mismas capas después del movimiento.
+     *
+     * @param idx  índice original a recalcular
+     * @param from índice de origen del movimiento
+     * @param to   índice de destino del movimiento
+     * @return índice recalculado tras el movimiento
+     */
+    private int ajustarIndiceEnMovimiento(int idx, int from, int to) {
+        if (idx == from) return to;
+        if (from < to) {
+            return (idx > from && idx <= to) ? idx - 1 : idx;
+        }
+        return (idx >= to && idx < from) ? idx + 1 : idx;
+    } // --- Fin del metodo ajustarIndiceEnMovimiento ---
 
 
     // ==================== COMBINAR CAPAS ====================

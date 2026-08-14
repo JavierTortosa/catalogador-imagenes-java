@@ -43,6 +43,22 @@ public class ImageLayer implements Layer {
     } // --- Fin del constructor ImageLayer ---
 
 
+    /**
+     * Crea una capa de imagen con un id concreto (p. ej. para reconstruir desde
+     * un documento {@code .edoc}). Si el id es nulo o vacío, genera uno nuevo.
+     *
+     * @param id     id persistido de la capa, o {@code null}
+     * @param name   nombre de la capa
+     * @param image  imagen de la capa (puede ser {@code null})
+     * @param bounds rectángulo de la capa
+     * @return la capa creada con el id indicado
+     */
+    public static ImageLayer crearConId(String id, String name, BufferedImage image, Rectangle bounds) {
+        String idFinal = (id != null && !id.isBlank()) ? id : UUID.randomUUID().toString();
+        return new ImageLayer(idFinal, name, image, bounds);
+    } // --- Fin del metodo crearConId ---
+
+
     private ImageLayer(String id, String name, BufferedImage image, Rectangle bounds) {
         this.id = id;
         this.name = Objects.requireNonNull(name);
@@ -259,7 +275,8 @@ public class ImageLayer implements Layer {
 
     @Override
     public ImageLayer copy() {
-        ImageLayer clone = new ImageLayer(this.name, this.image, this.bounds);
+        ImageLayer clone = new ImageLayer(this.name, clonarImagen(this.image),
+                this.bounds != null ? new Rectangle(this.bounds) : null);
         clone.visible = this.visible;
         clone.locked = this.locked;
         clone.opacity = this.opacity;
@@ -271,6 +288,7 @@ public class ImageLayer implements Layer {
         clone.shapeRenderW = this.shapeRenderW;
         clone.shapeRenderH = this.shapeRenderH;
         clone.rotation = this.rotation;
+        clone.srcPath = this.srcPath;
         return clone;
     } // --- Fin del metodo copy ---
 
