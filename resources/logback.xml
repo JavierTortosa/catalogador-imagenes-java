@@ -61,7 +61,7 @@
     <logger name="controlador.VisorController" level="INFO"/>
     <logger name="controlador.GeneralController" level="INFO"/>
     <logger name="servicios.db.DatabaseManager" level="INFO"/>
-    
+
     <!-- Silenciar mensajes molestos de PDFBox sobre el soporte de memoria unmapping que no son fallos reales -->
     <logger name="org.apache.pdfbox.io.IOUtils" level="OFF"/>
 

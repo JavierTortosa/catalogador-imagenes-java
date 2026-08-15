@@ -106,7 +106,7 @@ public class ClientBuilder {
         }
         if (sharedGridPanel != null) {
             registry.register("panel.display.grid.cliente", sharedGridPanel);
-            registry.register("list.grid.cliente", sharedGridPanel.getGridList(), "WHEEL_NAVIGABLE");
+            registry.register("list.grid.cliente", sharedGridPanel.getGridList(), "WHEEL_NAVIGABLE", "GRID_NAVIGABLE");
         }
         if (sharedPolaroidPanel != null) {
             registry.register("panel.cliente.display.polaroid", sharedPolaroidPanel);

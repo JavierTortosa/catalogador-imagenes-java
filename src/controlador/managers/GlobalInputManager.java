@@ -31,6 +31,7 @@ import javax.swing.border.TitledBorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import controlador.GridNavigationController;
 import controlador.ProjectController;
 import controlador.VisorController;
 import controlador.commands.AppActionCommands;
@@ -39,6 +40,7 @@ import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import modelo.VisorModel.DisplayMode;
 import modelo.VisorModel.WorkMode;
+import servicios.ConfigKeys;
 
 /**
  * Gestor centralizado para los eventos de entrada globales de la aplicación.
@@ -163,9 +165,6 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
     public void configurarListeners() {
         logger.debug("[GestorEntradaGlobal] Configurando listeners de entrada globales...");
 
-        // Referencia al grid del modo Datos para navegación con rueda
-        JList<String> dataModeGrid = registry.get("list.datamode.grid");
-
         java.awt.event.MouseWheelListener masterWheelListener = e -> {
             // Obtenemos las referencias a los JLabels de imagen UNA SOLA VEZ, al inicio del evento.
             Component etiquetaImagenVisualizador = registry.get("label.imagenPrincipal");
@@ -223,7 +222,7 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
                 return;
             }
 
-            // Verificar si estamos sobre una grid (HORIZONTAL_WRAP) para scroll por filas.
+            // Verificar si estamos sobre un grid configurado (tag GRID_NAVIGABLE) para scroll por filas.
             // El evento puede venir del JList directamente o de un hijo (cellRenderer panel),
             // así que buscamos el JList más cercano en la jerarquía.
             // Nota: SwingUtilities.getAncestorOfClass NO incluye el propio sourceComponent,
@@ -231,42 +230,14 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
             Component possibleJList = (sourceComponent instanceof JList)
                 ? sourceComponent
                 : SwingUtilities.getAncestorOfClass(JList.class, sourceComponent);
-            if (possibleJList instanceof JList) {
-                JList<?> gridList = (JList<?>) possibleJList;
-                if (gridList.getLayoutOrientation() == JList.HORIZONTAL_WRAP) {
-                    int viewportWidth = gridList.getVisibleRect().width;
-                    int cellWidth = gridList.getFixedCellWidth();
-                    if (viewportWidth <= 0) {
-                        java.awt.Container parent = gridList.getParent();
-                        if (parent != null) viewportWidth = parent.getWidth();
-                    }
-                    if (viewportWidth <= 0) viewportWidth = gridList.getWidth();
-                    if (cellWidth <= 0) cellWidth = viewportWidth;
-                    if (viewportWidth > 0 && cellWidth > 0) {
-                        int elementosPorFila = Math.max(1, viewportWidth / cellWidth);
-                        int rotation = e.getWheelRotation();
-                        int pasos = rotation * elementosPorFila;
-                        
-                        // --- Data mode: navegar directamente en la JList del grid ---
-                        if (gridList == dataModeGrid && model.getCurrentWorkMode() == WorkMode.DATOS) {
-                            int currentIndex = gridList.getSelectedIndex();
-                            int size = gridList.getModel().getSize();
-                            int targetIndex = Math.max(0, Math.min(currentIndex + pasos, size - 1));
-                            if (size > 0 && targetIndex >= 0 && targetIndex != currentIndex) {
-                                gridList.setSelectedIndex(targetIndex);
-                                gridList.ensureIndexIsVisible(targetIndex);
-                            }
-                        } else {
-                            if (pasos < 0) {
-                                for (int i = 0; i > pasos; i--) modoController.navegarAnterior();
-                            } else {
-                                for (int i = 0; i < pasos; i++) modoController.navegarSiguiente();
-                            }
-                        }
-                        e.consume();
-                        return;
-                    }
-                }
+            if (possibleJList instanceof JList && esGridNavegable((JList<?>) possibleJList)) {
+                GridNavigationController gridNav = crearGridNavigationController((JList<?>) possibleJList);
+                // Un tick de rueda = una fila completa (equivalente al antiguo pasos = rotation * elementosPorFila).
+                // Con circular=false el clamp produce EXACTAMENTE el mismo targetIndex que el antiguo
+                // branch especial de DATOS (GlobalInputManager:251-258): clamp(current + rotation*columnas).
+                gridNav.moveRow(e.getWheelRotation());
+                e.consume();
+                return;
             }
 
             navegarSiguienteOAnterior(e.getWheelRotation());
@@ -475,13 +446,30 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
         
         if (!focoEnComponenteConNavegacionPropia && !e.isShiftDown()) {
             boolean consumed = false;
-            switch (e.getKeyCode()) {
-                case KeyEvent.VK_UP: case KeyEvent.VK_LEFT: modoController.navegarAnterior(); consumed = true; break;
-                case KeyEvent.VK_DOWN: case KeyEvent.VK_RIGHT: modoController.navegarSiguiente(); consumed = true; break;
-                case KeyEvent.VK_HOME: modoController.navegarPrimero(); consumed = true; break;
-                case KeyEvent.VK_END: modoController.navegarUltimo(); consumed = true; break;
-                case KeyEvent.VK_PAGE_UP: modoController.navegarBloqueAnterior(); consumed = true; break;
-                case KeyEvent.VK_PAGE_DOWN: modoController.navegarBloqueSiguiente(); consumed = true; break;
+
+            // --- Navegación de GRID: si el display actual es GRID y hay grid activo ---
+            GridNavigationController gridNav = getGridNavSiActivo();
+            if (gridNav != null && gridNav.getModelSize() > 0) {
+                switch (e.getKeyCode()) {
+                    case KeyEvent.VK_UP: gridNav.previousRow(); consumed = true; break;
+                    case KeyEvent.VK_DOWN: gridNav.nextRow(); consumed = true; break;
+                    case KeyEvent.VK_LEFT: gridNav.previous(); consumed = true; break;
+                    case KeyEvent.VK_RIGHT: gridNav.next(); consumed = true; break;
+                    case KeyEvent.VK_HOME: gridNav.first(); consumed = true; break;
+                    case KeyEvent.VK_END: gridNav.last(); consumed = true; break;
+                    case KeyEvent.VK_PAGE_UP: gridNav.previousPage(); consumed = true; break;
+                    case KeyEvent.VK_PAGE_DOWN: gridNav.nextPage(); consumed = true; break;
+                }
+            } else {
+                // --- Comportamiento 1×1 actual (lista maestra, carrusel, etc.) ---
+                switch (e.getKeyCode()) {
+                    case KeyEvent.VK_UP: case KeyEvent.VK_LEFT: modoController.navegarAnterior(); consumed = true; break;
+                    case KeyEvent.VK_DOWN: case KeyEvent.VK_RIGHT: modoController.navegarSiguiente(); consumed = true; break;
+                    case KeyEvent.VK_HOME: modoController.navegarPrimero(); consumed = true; break;
+                    case KeyEvent.VK_END: modoController.navegarUltimo(); consumed = true; break;
+                    case KeyEvent.VK_PAGE_UP: modoController.navegarBloqueAnterior(); consumed = true; break;
+                    case KeyEvent.VK_PAGE_DOWN: modoController.navegarBloqueSiguiente(); consumed = true; break;
+                }
             }
             if (consumed) {
                 e.consume();
@@ -491,6 +479,51 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
         
         return false;
     } // --- FIN de metodo dispatchKeyEvent ---
+
+    /**
+     * Devuelve un {@link GridNavigationController} sobre el grid activo si el
+     * display actual es GRID y el grid tiene modelo con elementos; si no, null.
+     * Usado por el teclado para bifurcar la navegación 1×1 vs por-filas.
+     * @return El controlador de navegación del grid activo, o null.
+     */
+    private GridNavigationController getGridNavSiActivo() {
+        if (model == null || visorController == null || visorController.getDisplayModeManager() == null) return null;
+        if (model.getCurrentDisplayMode() != DisplayMode.GRID) return null;
+        javax.swing.JList<String> gridActivo = visorController.getDisplayModeManager().getActiveGridList();
+        if (gridActivo == null || gridActivo.getModel().getSize() == 0) return null;
+        return crearGridNavigationController(gridActivo);
+    } // --- FIN de metodo getGridNavSiActivo ---
+
+    /**
+     * Comprueba si una JList está registrada como grid navegable (tag GRID_NAVIGABLE).
+     * Evita deducir el comportamiento exclusivamente del layout (Precisión 1).
+     * @param candidate La JList a comprobar.
+     * @return {@code true} si está registrada con el tag GRID_NAVIGABLE.
+     */
+    private boolean esGridNavegable(JList<?> candidate) {
+        if (registry == null || candidate == null) return false;
+        List<Component> grids = registry.getComponentsByTag("GRID_NAVIGABLE");
+        if (grids == null) return false;
+        return grids.contains(candidate);
+    } // --- FIN de metodo esGridNavegable ---
+
+    /**
+     * Crea un {@link GridNavigationController} sobre una JList configurándolo con
+     * la circularidad y el salto de bloque actuales de la aplicación.
+     * @param gridList La JList configurada como grid.
+     * @return El controlador ya configurado.
+     */
+    private GridNavigationController crearGridNavigationController(JList<?> gridList) {
+        GridNavigationController gridNav = new GridNavigationController(gridList);
+        if (model != null) {
+            gridNav.setCircular(model.isNavegacionCircularActivada());
+        }
+        if (visorController != null && visorController.getConfigurationManager() != null) {
+            int saltoBloque = visorController.getConfigurationManager().getInt(ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE, 10);
+            gridNav.setPageScrollIncrement(saltoBloque);
+        }
+        return gridNav;
+    } // --- FIN de metodo crearGridNavigationController ---
 
     @Override
     public void propertyChange(java.beans.PropertyChangeEvent evt) {

@@ -1,0 +1,384 @@
+AUDITORÍA TÉCNICA: SISTEMA DE GRIDS
+0. Diagnóstico de partida (resumen ejecutivo)
+La propuesta de la otra IA es mayoritariamente correcta y más limpia que mi plan anterior. Después de auditar el código real, la confirmo con matices importantes:
+
+GridDisplayPanel YA existe y es el componente visual reutilizable que la otra IA propone. No hay que crearlo.
+GridCoordinator está HUÉRFANO: nadie lo instancia (búsqueda global de new GridCoordinator = 0 resultados fuera de su propia clase). No participa en nada. La otra IA acierta al excluirlo.
+NavigationService NO es para grids: es navegación de carpetas (FolderNavigationManager). La otra IA acierta al excluirlo.
+La separación navegación/acción YA existe de facto: cada modo escucha la selección de su JList con addListSelectionListener y reacciona. Un GridNavigationController que solo mueve la selección de la JList dispararía los listeners existentes sin tocar reglas de negocio.
+El fallo real de la rueda está en GlobalInputManager líneas 259-264: detecta el grid pero después llama modoController.navegarSiguiente() en bucle (simula lista). Es exactamente lo que la otra IA quiere eliminar.
+PROYECTO tiene 1 grid real (el compartido) + 2 listas verticales laterales. La premisa "PROYECTO → 2 grids" del SRS debe matizarse (detalle en Pregunta 6).
+DATOS usa instancia propia de GridDisplayPanel con ListContext propio — el aislamiento que exige el SRS ya está y la propuesta lo respeta.
+Pregunta 1 — Arquitectura actual de cada grid
+Modo	Componente	Tipo real	Modelo	Renderer	Navegación
+VISOR	GridDisplayPanel (instancia sharedGridPanel, creada en ViewBuilder:152)	JList<String> HORIZONTAL_WRAP, celdas fijas, en JScrollPane	DefaultListModel<String> completo (poblado por DisplayModeManager.poblarGridConModelo)	GridCellRenderer (GridDisplayPanel:91)	Listener DisplayModeManager:63 → listCoordinator.seleccionarImagenPorIndice(). Rueda: branch HORIZONTAL_WRAP → bucle modoController.navegarSiguiente(). Doble clic: GridCellRenderer:79-98 → previewer.showPreviewForIndexPublic.
+PROYECTO grid 1	MISMO GridDisplayPanel compartido (registrado list.grid.proyecto en ProjectBuilder:290)	JList<String> idéntica	idem (poblada por projectController.actualizarModeloPrincipalConListaDeProyectoActiva)	GridCellRenderer	Listener DisplayModeManager:79 → projectListCoordinator.seleccionarImagenPorIndice(). Rueda: idem.
+PROYECTO grid 2	⚠️ No es un grid. list.proyecto.nombres y list.proyecto.descartes son JList<String> verticales con ProjectListCellRenderer (ProjectBuilder:166,229).	JList<String> VERTICAL	DefaultListModel<String> por lista	ProjectListCellRenderer (no HORIZONTAL_WRAP)	ProjectListCoordinator.obtenerListaActivaUI() (línea 363) elige según getNombreListaActiva(); flechas del teclado global caen en modoController → projectController.
+CLIENTE	MISMO GridDisplayPanel compartido (ClientBuilder:100)	JList<String> idéntica	idem	GridCellRenderer	Listener ClientController.activarVistaCliente:195 → visorController.actualizarImagenPrincipalPorPath + sincronizarContextoNavegacion.
+DATOS	Instancia PROPIA de GridDisplayPanel (DataBuilder:398, con fakeRegistry)	JList<String> HORIZONTAL_WRAP	DefaultListModel<String> propio	GridCellRenderer	Listener DataController:1248 → model.getDatosListContext().setSelectedImageKey() + sincronizarSeleccionConVisualizador + cargarImagenEnVisor. Navegación propia: DataController:2722-2820 (directa sobre la JList).
+RENDER	❌ NO usa GridDisplayPanel. JPanel con WrapLayout (RenderPanel:358,363)	JPanel + JLabel añadidos a mano	Ninguno (colección visual)	Ninguno (el propio addThumbnailToGrid crea JLabels)	No hay navegación por teclado/rueda en el grid. La selección se hace por las listas laterales candidateListSinImagen/candidateListConImagen (listener RenderController:219 → onCandidateSelected).
+Registro común: todos los grids están en ComponentRegistry con tag WHEEL_NAVIGABLE (ViewBuilder:160, ProjectBuilder:290, ClientBuilder:109, DataBuilder:491). El render no está registrado → la rueda no lo trata.
+
+Pregunta 2 — GridDisplayPanel
+Responsabilidades actuales (vista/panels/GridDisplayPanel.java, 179 líneas):
+
+Contiene la JList (gridList) con HORIZONTAL_WRAP, selección múltiple, celdas fijas.
+Asocia el GridCellRenderer.
+Contiene el JScrollPane.
+Barra de herramientas inferior (toolbarContainer) — añadida por builders.
+setGridCellSize, setProjectManager, onThemeChanged, getters.
+Qué conoce: VisorModel, ThumbnailService, ThemeManager, IconUtils, ThumbnailPreviewer, ComponentRegistry, GridCellRenderer. El renderer a su vez conoce IProjectManager y ProjectController (para estados de exportación).
+
+¿Acoplado a VISOR? Parcialmente: usa VisorModel para resolver rutas (modeloVisor.getRutaCompleta) en el renderer, y gridThumbnailService del visor. Pero esto no impide reutilizarlo (DATOS ya lo usa con otro modelo).
+
+Veredicto: puede quedar prácticamente intacto como componente visual. NO debe convertirse en cerebro. El único cambio mínimo deseable sería exponer getters útiles (ya los tiene) — no requiere modificación para la arquitectura propuesta.
+
+Pregunta 3 — GridCoordinator
+Qué es: controlador/GridCoordinator.java (308 líneas). Ventana deslizante sobre lista maestra + precarga de thumbnails. Campos: fullMasterModel, gridViewModel, firstVisibleIndexInMaster, lastVisibleIndexInMaster, precacheExecutor, ThumbnailService. Implementa MasterListChangeListener.
+
+Quién lo instancia: NADIE. Búsqueda global: solo su definición. No hay new GridCoordinator, ni setEnabled, ni registro.
+
+Relación con navegación: ninguna en runtime (código muerto). Fue diseñado para virtualización/precache, responsabilidad distinta.
+
+Veredicto:
+
+No convertir en GridNavigationController (mezclaría virtualización con navegación de usuario — coincido con la otra IA).
+No tocar ahora (riesgo 0, no interfiere). Opcional: eliminarlo en una limpieza futura.
+El sistema actual usa el DefaultListModel completo en el grid del visor (sin ventana deslizante), así que los índices de la JList == índices de la lista maestra. Esto simplifica mucho: navegar el grid por índice funciona directamente.
+Pregunta 4 — GlobalInputManager
+Es KeyEventDispatcher global (registrado en AppInitializer:735) + gestor de rueda/paneo.
+
+Teclado (dispatchKeyEvent, líneas 387-493):
+
+Numpad 0-9 → acciones zoom.
+Ctrl+T / Ctrl+Supr → texto en grid PROYECTO.
+Ctrl + / Ctrl - → tamaño miniaturas.
+ESPACIO → CMD_PROYECTO_TOGGLE_MARCA (si existe).
+ALT → foco menú.
+Navegación (líneas 476-490): !focoEnComponenteConNavegacionPropia (excluye JTextComponent/JTable/JTree) y !isShiftDown():
+VK_UP o VK_LEFT → modoController.navegarAnterior()
+VK_DOWN o VK_RIGHT → modoController.navegarSiguiente()
+VK_HOME → navegarPrimero(), VK_END → navegarUltimo()
+VK_PAGE_UP → navegarBloqueAnterior(), VK_PAGE_DOWN → navegarBloqueSiguiente()
+Rueda (configurarListeners, 163-384): masterWheelListener enganchado a todos los componentes con tag WHEEL_NAVIGABLE. Lógica:
+
+Ctrl+Alt → bloque.
+Sobre label de imagen → zoom/pan.
+Sobre tabla exportación (PROYECTO) → navegación tabla.
+Sobre JList HORIZONTAL_WRAP → calcula elementosPorFila = viewportWidth/cellWidth; caso DATOS (gridList == dataModeGrid) → setSelectedIndex(target); caso general → bucle for(i...) modoController.navegarSiguiente() (la "chapuza").
+Fallback → navegarSiguienteOAnterior(rotation).
+Distribución (A/B/C):
+
+Lógica	¿Dónde debe quedar?
+Detección de componente (imagen/grid/tabla), decisión de qué acción aplicar, enrutado por modo	A) GlobalInputManager (router puro)
+Cálculo de columnas/filas → elementosPorFila, calcularIndiceFilaAnterior/Siguiente	C) GridUtils (funciones puras)
+move(index), moveRow(±), next/previous, first/last, page sobre una JList + ensureIndexIsVisible	B) GridNavigationController (recibe la JList)
+Saber cuál es el grid activo del modo	Existe ya: DisplayModeManager.getActiveGridList() (privado; se puede exponer)
+Conclusión: GlobalInputManager debe quedar como router. El bucle for ... navegarSiguiente() se sustituye por gridNavController.moveRow(±). Las flechas deben bifurcar: si model.getCurrentDisplayMode() == GRID → navegación por grid; si no → comportamiento actual.
+
+Pregunta 5 — DATOS
+Por qué tiene instancia propia: el SRS exige que el modo DATOS tenga su propio ListContext aislado del Visualizador (gotcha documentado en AGENTS.md: los listeners de list.datamode.* usan model.getDatosListContext(), no setSelectedImageKey global). DataBuilder:398 crea un GridDisplayPanel aparte con su propio fakeRegistry y su propio ThumbnailPreviewer.
+
+¿Puede usarse GridNavigationController sin romper nada? SÍ. Clave:
+
+GridNavigationController solo mueve la selección de la JList (setSelectedIndex + ensureIndexIsVisible). NO toca contextos.
+El listener existente de DataController:1248 reacciona a esa selección y escribe en datosListContext. La acción específica sigue viviendo en DataController.
+DisplayModeManager.getActiveGridList() ya devuelve list.datamode.grid para DATOS.
+Conclusión: compartir el comportamiento físico es seguro; los contextos siguen aislados. La rueda en DATOS ya navega "directo sobre la JList"; con la refactorización ese caso especial desaparece porque se generaliza: todos los modos navegan directo sobre su JList activa.
+
+Pregunta 6 — PROYECTO
+Realidad del código: PROYECTO tiene 1 grid real (la parrilla compartida list.grid.proyecto) + 2 listas verticales (list.proyecto.nombres, list.proyecto.descartes) con ProjectListCellRenderer.
+
+¿Ambos pueden usar GridDisplayPanel + GridNavigationController?
+
+La parrilla: sí, exactamente igual que VISOR. Listener DisplayModeManager:79 ya reacciona a su selección.
+Las 2 listas laterales: NO son grids (no son HORIZONTAL_WRAP). Son listas verticales que actúan como selector lateral. Aplicarles navegación "por filas" (↑↓ = ±columnas) no tiene sentido. Para ellas, la navegación vertical 1×1 actual es la correcta.
+Matiz al SRS: si el SRS llama "2 grids" a esas dos listas, hay una discrepancia terminológica con el código. Recomiendo no tocar las listas laterales: solo la parrilla entra en el sistema universal. El ProjectListCoordinator se mantiene como hoy (es la acción específica del modo PROYECTO).
+
+Pregunta 7 — RENDER (el trabajo real)
+Cómo funciona hoy:
+
+RenderPanel:358,363: imagenesGrid y rendersGrid son JPanel(new WrapLayout(FlowLayout.LEFT,6,6)) dentro de un CardLayout (gridCardPanel) que conmuta por pestaña de candidato.
+RenderController.addThumbnailToGrid (:1474): lee la imagen, crea ImageIcon, crea JLabel, le añade un MouseAdapter (doble clic → toggleAprobado; clic simple → seleccionarCandidatoEnLista + showPreview), le pone borde si aprobado/highlight, y grid.add(label).
+resaltarThumbnail/resaltarEnGrid (:1623): recorre los JLabel del JPanel por toolTipText para pintar el borde azul de highlight. Depende de JPanel+JLabel.
+El estado "aprobado" vive en thumbnailsAprobados (Set<Path>) en RenderController (:1483).
+refreshGallery/loadGalleryContent (:3624): alimentan el filmstrip a partir de las listas de candidatos, no del grid.
+Qué habría que cambiar para JList<RenderCandidate> + DefaultListModel + HORIZONTAL_WRAP + RenderListCellRenderer:
+
+RenderPanel: sustituir los dos JPanel(WrapLayout) por dos JList<RenderCandidate> (o una) con celdas fijas y RenderListCellRenderer.
+Eliminar: el MouseAdapter de doble clic/toggle de addThumbnailToGrid; el recorrido de JLabels de resaltarEnGrid (se sustituye por selección de JList + renderer que pinta el highlight).
+Conservar:
+thumbnailsAprobados (estado aprobado) → el RenderListCellRenderer pinta el check/borde leyendo el Set (igual que hoy pinta crearIconoConCheck).
+showPreview y seleccionarCandidatoEnLista → se llaman desde el listener de selección de la JList (o doble clic vía cell renderer).
+refreshGallery → sigue dependiendo de las listas de candidatos, no del grid.
+Navegación: al ser JList, entra en el sistema universal; el listener del grid render (nuevo) haría onCandidateSelected equivalente.
+Aprobar: hoy es doble clic; la decisión tomada es moverlo a ESPACIO en modo RENDER.
+Riesgos reales: (1) resaltarEnGrid depende de JPanel+JLabel → hay que reescribirlo con renderer/selección; (2) el borde/highlight hoy se recalcula en cada refreshThumbnails; con renderer se recalcula en cada repintado (mejor); (3) las dos listas render/imágenes van en pestañas — hay que mapear qué JList está visible para la navegación. Ninguna dependencia bloqueante.
+
+Pregunta 8 — Selección vs navegación
+Estado actual:
+
+Reaccionar a la selección: cada modo tiene su addListSelectionListener sobre su JList:
+VISOR: DisplayModeManager:63 → ListCoordinator → imagen principal + tira + listeners.
+PROYECTO: DisplayModeManager:79 → ProjectListCoordinator.
+CLIENTE: ClientController:195 → actualizarImagenPrincipalPorPath + sincronizarContextoNavegacion.
+DATOS: DataController:1248 → datosListContext + sincronización con visor.
+RENDER: RenderController:219 (candidatos) → onCandidateSelected.
+La arquitectura objetivo es 100% compatible: GridNavigationController.move(index) hace jlist.setSelectedIndex(index) + ensureIndexIsVisible; el listener del modo reacciona. No hay que duplicar la acción específica. La cadena propuesta por la otra IA funciona tal cual:
+
+tecla → GridNavigationController → JList.setSelectedIndex → listener del modo → acción específica
+Pregunta 9 — Rueda
+Confirmado: sí, hoy se hace exactamente el anti-patrón descrito:
+
+GlobalInputManager:260-264:
+if (pasos < 0) { for (int i=0; i>pasos; i--) modoController.navegarAnterior(); }
+else          { for (int i=0; i<pasos; i++)  modoController.navegarSiguiente(); }
+Descubre que está en un grid (HORIZONTAL_WRAP) pero simula navegación de lista N veces (con el coste de N sincronizaciones completas).
+Cambio: sustituir ese bucle por gridNav.moveRow(±1) (un solo setSelectedIndex con salto = GridUtils.calcularColumnasPorFila(grid)). El caso especial de DATOS (:251-258) desaparece: todos los grids navegan igual. También se evita el coste de N sincronizaciones.
+
+Pregunta 10 — Arquitectura propuesta
+Encaja con el código. Mi propuesta final (confirmada tras auditar):
+
+                     ┌──────────────────────────┐
+                     │    GridDisplayPanel      │  componente visual (YA EXISTE)
+                     │    JList + renderer      │  ≈ INTACTO
+                     └────────────┬─────────────┘
+                                  │ (contiene/expone JList)
+                                  ▼
+                     ┌──────────────────────────┐
+                     │ GridNavigationController │  NUEVO
+                     │  next/previous,          │  física del grid
+                     │  nextRow/previousRow,    │  → JList.setSelectedIndex
+                     │  first/last, next/prevPage│  + ensureIndexIsVisible
+                     │  moveTo(index)           │
+                     └────────────┬─────────────┘
+                                  │
+                     ┌────────────┴─────────────┐
+                     │        GridUtils         │  NUEVO (solo geometría)
+                     │  calcularColumnasPorFila  │
+                     │  calcularFila/Columna     │
+                     │  calcularIndiceFila...    │
+                     └────────────┬─────────────┘
+                                  ▼
+        ┌───────────┬─────────────┬─────────────┬──────────────┐
+     VISOR        PROYECTO      CLIENTE        DATOS         RENDER
+        │            │             │             │              │
+    ListCoordinator ProjectList    Client-      Data-         Render-
+    (existe)        Coordinator   Controller    Controller    Controller
+    reaccionan a la selección de la JList (listeners YA EXISTENTES)
+Cómo resuelve el teclado: GlobalInputManager (router) → si DisplayMode == GRID y hay grid activo → GridNavigationController sobre DisplayModeManager.getActiveGridList(); si no → comportamiento actual (1×1 sobre lista maestra). En modos sin grid (CARRUSEL, o display no-GRID) no se pierde la navegación 1×1 actual.
+
+Por qué NO usar IModoController/IListCoordinator como cerebro: esos ya son los "reaccionadores a la selección" por modo. Meter la geometría en ellos duplicaría lógica (la otra IA tiene razón). La única pieza nueva real es GridNavigationController + GridUtils.
+
+Pregunta 11 — Lista exacta de cambios (sin ejecutar)
+CREAR
+Archivo	Cambio	Motivo	Riesgo
+controlador/GridUtils.java	Funciones puras de geometría (calcularColumnasPorFila(JList), calcularFila, calcularColumna, calcularIndiceFilaAnterior/Siguiente)	Unificar cálculo hoy duplicado	Bajo
+controlador/GridNavigationController.java	Mover selección de una JList por tecla/rueda (next/previous/nextRow/previousRow/first/last/nextPage/prevPage/moveTo)	Comportamiento físico universal	Bajo
+vista/renderers/RenderListCellRenderer.java	Renderer de celdas del grid render (thumbnail + check aprobado + borde selección/highlight)	Sustituir JPanel+JLabel	Medio
+MODIFICAR
+Archivo	Cambio	Motivo	Riesgo
+GlobalInputManager.java	Sustituir bucle for(navegarSiguiente) por gridNav.moveRow(±); bifurcar flechas ↑↓/←→ en modo GRID; quitar caso especial DATOS del wheel	Router puro; matemática a GridUtils	Medio
+RenderPanel.java (:358,363)	JPanel(WrapLayout) → JList<RenderCandidate> + HORIZONTAL_WRAP + celdas fijas + cell renderer; registrar con tag WHEEL_NAVIGABLE	Integrar render al sistema universal	Medio
+RenderController.java	addThumbnailToGrid → poblar DefaultListModel; eliminar MouseAdapter del JLabel y resaltarEnGrid por renderer/selección; añadir listener de selección de la JList → onCandidateSelected/preview; ESPACIO alterna aprobado	Conversión render	Medio
+DisplayModeManager.java	Exponer getActiveGridList() (hoy privado) para que GlobalInputManager/GridNavigationController lo usen	Reutilizar la resolución existente	Bajo
+GeneralController.java	(Opcional) si se mantiene el teclado vía modoController: añadir caso RENDER. Preferible que la ruta grid la resuelva GlobalInputManager directamente	Enrutar	Bajo
+DataController.java	(Opcional) navegarBloque* usa 10 hardcodeado (:2800,2816) → usar GridUtils/config (armonización)	Consistencia con SALTO_BLOQUE	Bajo
+ELIMINAR
+Código	Motivo	Riesgo
+GlobalInputManager:251-265 (branch especial DATOS + bucle)	Sustituido por navegación universal	Bajo
+RenderController.resaltarEnGrid (iteración sobre JLabels)	Sustituido por renderer/selección	Medio
+NO TOCAR
+GridDisplayPanel, GridCellRenderer, CustomGridCellPanel, GridCoordinator (muerto, fuera del sistema), ListCoordinator, ProjectListCoordinator, ClientController (navegación), NavigationService, VisorController, ViewBuilder, ProjectBuilder, ClientBuilder, DataBuilder.
+
+Pregunta 12 — Qué NO debemos hacer (sobreingeniería)
+NO convertir GridCoordinator en cerebro universal (mezcla virtualización+navegación).
+NO meter navegación en GridDisplayPanel (quedaría acoplado al modelo).
+NO añadir métodos de geometría a IModoController/IListCoordinator ni crear un "supermodelo universal de selección" (cada modo ya reacciona vía listener).
+NO forzar instancia única compartida en DATOS (rompería su ListContext aislado).
+NO reutilizar NavigationService (es de carpetas).
+NO fusionar la reacción a la selección: navegación universal ≠ acción específica.
+NO tocar las listas verticales laterales de PROYECTO (no son grids).
+Capas finales mínimas: GridDisplayPanel (vista) + GridNavigationController + GridUtils (física) + listeners por modo (acción).
+
+Pregunta 13 — Compatibilidad con los SRS
+Requisito SRS	Compatibilidad
+Selección	✓ Los listeners por modo siguen reaccionando; nada cambia
+Sincronización	✓ ListCoordinator/ProjectListCoordinator/DataController.sincronizarSeleccionConVisualizador intactos
+ListContext	✓ DATOS mantiene datosListContext; GridNavigationController no toca contextos
+Navegación teclado/rueda	✓ ↑↓ = fila, ←→ = ±1, Home/End, PageUp/Down, rueda = fila (objetivo del SRS)
+Múltiples grids	✓ Visor/Proyecto/Cliente comparten instancia; Datos propia; todos con el mismo comportamiento
+RENDER	✓ Se conservan aprobado, preview, selección, galería (pasa a JList)
+Aislamiento DATOS	✓ Sin fusionar contextos
+Contradicción encontrada	⚠️ El SRS parece hablar de "PROYECTO con 2 grids"; el código tiene 1 grid real + 2 listas verticales. Aclarar terminología antes de implementar (Pregunta 6).
+VEREDICTO
+1. ¿Es viable un comportamiento universal de grid? SÍ, plenamente. El diseño ya casi existe: GridDisplayPanel + listeners por modo. Solo falta la pieza física (GridNavigationController+GridUtils) y convertir RENDER. Es de bajo riesgo si se hace por fases con compilación.
+
+2. ¿Qué clase debería ser el núcleo? GridNavigationController (física de la JList), apoyado en GridUtils (geometría) y DisplayModeManager.getActiveGridList() (resolución del grid activo). GridDisplayPanel permanece como contenedor visual.
+
+3. ¿Qué clases actuales sobran o hacen demasiado?
+
+Sobran (muerto): GridCoordinator (huérfano) — retirarlo fuera de alcance.
+Hacen demasiado: GlobalInputManager (el bucle de rueda y la lógica de filas deben salir a GridNavigationController/GridUtils; queda como router). RenderController (su gestión de grid JPanel+JLabel es la única razón de su divergencia).
+Están bien como están: GridDisplayPanel, GridCellRenderer, ListCoordinator, ProjectListCoordinator, DataController (acción por modo), NavigationService (no relacionado).
+4. Orden exacto de implementación con menor riesgo:
+
+Fase	Acción	Verificación
+F0	Crear GridUtils (funciones puras)	mvn compile
+F1	Crear GridNavigationController (opera sobre una JList cualquiera)	mvn compile
+F2	Exponer DisplayModeManager.getActiveGridList(); conectar rueda (sustituir bucle) y teclado (bifurcar modo GRID)	Compilar + probar rueda/teclado en VISOR, PROYECTO, CLIENTE, DATOS
+F3	Convertir grid RENDER a JList<RenderCandidate> + RenderListCellRenderer; ESPACIO = aprobar	Compilar + probar render completo
+F4	Armonización opcional DATOS (navegarBloque* con config)	Compilar
+F5	Limpieza (eliminar branch DATOS del wheel, resaltarEnGrid)	Compilar + regresión
+
+============================================================================
+PLAN DE IMPLEMENTACIÓN — APROBADO (auditoría + validación de la otra IA)
+============================================================================
+
+0. DECISIÓN FINAL
+La otra IA aprueba la arquitectura punto por punto, con DOS PRECISIONES
+incorporadas en este plan:
+  - Precisión 1 (config explícita): un grid NO se define por el layout
+    (HORIZONTAL_WRAP), sino por configuración EXPLÍCITA (tag GRID_NAVIGABLE).
+  - Precisión 2 (DATOS conservador): no se elimina el branch especial de DATOS
+    en la rueda sin demostrar primero que GridNavigationController produce
+    un comportamiento EQUIVALENTE.
+
+CORRECCIÓN SOBRE PROYECTO (importante):
+  PROYECTO SÍ entra en el sistema universal. La auditoría distinguía "1 grid
+  real + 2 listas verticales laterales"; eso NO significa que PROYECTO quede
+  fuera:
+    - GRID principal (list.grid.proyecto, HORIZONTAL_WRAP compartido)
+      → navegación por filas SÍ.
+    - Listas laterales (list.proyecto.nombres, list.proyecto.descartes,
+      VERTICAL) → navegación vertical 1×1 actual, NO entrar (no son grids).
+
+1. PRINCIPIO RECTOR (corregido con la Precisión 1)
+NO:  "Cualquier JList con HORIZONTAL_WRAP es un grid y recibe navegación de grid."
+SÍ:  "Un grid es una JList configurada EXPLÍCITAMENTE como grid."
+     Configuración: tag GRID_NAVIGABLE en ComponentRegistry (junto a WHEEL_NAVIGABLE).
+     Un futuro HORIZONTAL_WRAP sin el tag NO recibe navegación de grid.
+     GridNavigationController NO evalúa el layout ni conoce modos: opera sobre la
+     JList que le pasan. La decisión "esto es un grid" la toma GlobalInputManager
+     (router), nunca se deduce solo del layout.
+
+2. ARQUITECTURA FINAL CONFIRMADA
+                     GridDisplayPanel          (vista, ≈INTACTO)
+                        └── JList (+ tag GRID_NAVIGABLE)
+                              └── GridNavigationController   (física)
+                                    └── GridUtils             (geometría pura)
+                                          └── listeners existentes por modo (acción)
+
+   GlobalInputManager (router): recibe eventos globales → identifica el grid activo
+   (por tag/config o DisplayModeManager.getActiveGridList()) → delega la navegación
+   en GridNavigationController → NO contiene la matemática del grid.
+
+   Separación de responsabilidades:
+     GridNavigationController → "mueve la selección" (setSelectedIndex + ensureIndexIsVisible)
+     listener del modo         → "reacciona a la selección" (negocio, sin cambios)
+
+3. OBJETIVO DE LA REFACTORIZACIÓN (resumen oficial)
+   - Un GRID es una JList configurada como grid.
+   - Su comportamiento físico de navegación está centralizado.
+   - GridNavigationController: anterior, siguiente, fila anterior, fila siguiente,
+     primero, último, página anterior, página siguiente, moveTo.
+   - GridUtils: únicamente geometría/cálculos.
+   - El controlador NO: conoce VISOR/DATOS/RENDER/PROYECTO, modifica ListContext,
+     ni ejecuta acciones de negocio.
+   - El modo correspondiente reacciona al cambio de selección mediante sus
+     listeners/callbacks existentes.
+   - GlobalInputManager: recibe eventos globales, identifica el grid activo,
+     delega la navegación, no contiene la matemática del grid.
+   - RENDER: se convierte al mismo modelo JList.
+   - Listas verticales: NO son grids, mantienen navegación normal.
+   - GridDisplayPanel: permanece principalmente como componente visual.
+
+   PRUEBA ARQUITECTÓNICA DE ACEPTACIÓN (antes de dar por terminada F3):
+     JList<?> nuevoGrid = ...;
+     GridNavigationController nav = new GridNavigationController(nuevoGrid);
+   y no debe haber que escribir código específico de navegación para ese grid.
+   El nuevo grid recibe ← →, ↑ ↓, rueda, Home, End, PageUp, PageDown sin que
+   GridNavigationController sepa siquiera qué modo lo utiliza. Si para añadir un
+   grid hay que escribir if (modo == VISOR/DATOS/RENDER/PROYECTO) → se ha fallado.
+
+4. ALCANCE DE LA PRIMERA REFACTORIZACIÓN: F0 → F1 → F2 → F3 (solo estas 4).
+   F4 y F5 quedan DIFERIDAS (sección 6).
+
+5. FASES (cada una termina con `mvn compile`; revisar código tras F1)
+
+F0  CREAR controlador/GridUtils.java
+    - Funciones puras de geometría: calcularColumnasPorFila(JList), calcularFila,
+      calcularColumna, calcularIndiceFilaAnterior/Siguiente, clamp.
+    - Sin estado, sin dependencias de modo ni de negocio.
+    → mvn compile
+
+F1  CREAR controlador/GridNavigationController.java
+    - Opera sobre una JList cualquiera (no conoce modos).
+    - Métodos: next/previous, nextRow/previousRow, first/last, nextPage/prevPage,
+      moveTo(index).
+    - moveTo(index) = jList.setSelectedIndex(index) + jList.ensureIndexIsVisible(index)
+      → los listeners del modo hacen el resto; NO toca contextos ni negocio.
+    → mvn compile + revisión de código (aún no conectado a nada)
+
+F2  CONECTAR teclado + rueda (LA PARTE MÁS IMPORTANTE)
+    - DisplayModeManager: exponer getActiveGridList() (hoy privado, :352).
+    - Registrar tag GRID_NAVIGABLE en los 4 grids (doble tag, junto a WHEEL_NAVIGABLE):
+        ViewBuilder:160  (list.grid)
+        ProjectBuilder:290 (list.grid.proyecto)
+        ClientBuilder:109 (list.grid.cliente)
+        DataBuilder:491  (list.datamode.grid)
+    - GlobalInputManager (queda como router puro):
+        * Rueda: sustituir el check por layout (getLayoutOrientation()==HORIZONTAL_WRAP,
+          :236) por "grid configurado" (tag GRID_NAVIGABLE o comparación con
+          getActiveGridList()). Sustituir el bucle for(...navegarSiguiente) de las
+          líneas 259-264 por gridNav.moveRow(±rotation).
+        * Teclado: bifurcar flechas — si DisplayMode == GRID y hay grid activo →
+          GridNavigationController (↑↓ = fila, ←→ = ±1, Home/End, PageUp/Down);
+          si no → comportamiento 1×1 actual (líneas 479-484 intactas).
+        * ⚠️ DATOS (Precisión 2): ANTES de eliminar el branch 250-258, DEMOSTRAR
+          equivalencia: verificar que gridNav.moveRow(±rotation) con clamp (circular=off)
+          produce el MISMO targetIndex que el branch actual para la misma entrada.
+          Solo eliminar si es equivalente (con circular=on, documentar la diferencia
+          como cambio deseado). NO se borra código específico sin esa comprobación.
+    → mvn compile + probar rueda/teclado en VISOR, PROYECTO (grid principal),
+      CLIENTE y DATOS.
+
+F3  CONVERTIR grid RENDER a JList
+    - RenderPanel:358,363: JPanel(WrapLayout) → JList<RenderCandidate>
+      + HORIZONTAL_WRAP + celdas fijas + cell renderer; registrar con tag
+      GRID_NAVIGABLE + WHEEL_NAVIGABLE (integración con rueda).
+    - CREAR vista/renderers/RenderListCellRenderer.java: thumbnail + check aprobado
+      + borde selección/highlight.
+    - RenderController:
+        * addThumbnailToGrid → poblar DefaultListModel (eliminar MouseAdapter del JLabel).
+        * Eliminar resaltarEnGrid (:1623, iteración sobre JLabels) → sustituir por
+          renderer/selección.
+        * Añadir listener de selección de la JList → onCandidateSelected/preview.
+        * ESPACIO = alternar aprobado en modo RENDER.
+    - Conservar: thumbnailsAprobados (Set<Path>), showPreview, seleccionarCandidatoEnLista,
+      refreshGallery (sigue alimentándose de las listas de candidatos, no del grid).
+    → mvn compile + probar render completo (aprobado, preview, selección, galería,
+      pestañas de candidatos). Aplicar aquí la PRUEBA ARQUITECTÓNICA de la sección 3.
+
+6. DIFERIDAS (fuera de la primera refactorización)
+   F4  (Opcional) DataController.navegarBloque* usa 10 hardcodeado (:2800,2816)
+       → armonizar con GridUtils/ConfigKeys (SALTO_BLOQUE). No aporta al objetivo
+       "todos los grids se comportan igual"; se decide después, con el sistema estable.
+   F5  (Opcional) Limpieza general: "¿Qué clases/métodos han quedado definitivamente
+       huérfanos?" → ahí se decide sobre GridCoordinator (muerto, fuera del sistema;
+       NO se elimina en esta refactorización porque no interfiere y evita cambios
+       innecesarios) y cualquier código residual del wheel.
+
+7. NO TOCAR EN ESTA REFACTORIZACIÓN
+   GridDisplayPanel, GridCellRenderer, CustomGridCellPanel, GridCoordinator,
+   ListCoordinator, ProjectListCoordinator, ClientController, NavigationService,
+   VisorController, ViewBuilder, ProjectBuilder, ClientBuilder, DataBuilder,
+   y las 2 listas verticales laterales de PROYECTO (list.proyecto.nombres,
+   list.proyecto.descartes).
+
+8. RIESGO Y CONTROL
+   - Bajo si se respeta el orden F0→F1→F2→F3 con compilación tras cada fase.
+   - Punto crítico: F2 (teclado/rueda) → probar los 4 modos antes de pasar a F3.
+   - Punto delicado: eliminación del branch DATOS → exigencia de equivalencia (Precisión 2).
+   - RENDER (F3) es el único cambio quirúrgico real (riesgo medio, localizado en
+     RenderPanel + RenderController + renderer nuevo).

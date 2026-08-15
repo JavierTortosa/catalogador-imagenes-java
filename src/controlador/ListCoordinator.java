@@ -301,6 +301,12 @@ public class ListCoordinator extends AbstractListCoordinator {
         javax.swing.event.ListSelectionListener listener = (javax.swing.event.ListSelectionEvent e) -> {
             if (syncingMultiSelection || isSincronizandoUI()) return;
             if (e.getValueIsAdjusting()) return;
+            // La propagación multi-selección pertenece SOLO al modo VISUALIZADOR.
+            // En PROYECTO/CLIENTE/CARROUSEL/DATOS el grid compartido (list.grid ==
+            // list.grid.proyecto == list.grid.cliente) no debe sincronizar las listas
+            // del visualizador, ya que provocaría un bucle de sincronización y revertiría
+            // la selección del grid al índice oficial de la lista lateral.
+            if (model == null || model.getCurrentWorkMode() != WorkMode.VISUALIZADOR) return;
             Object src = e.getSource();
             if (!(src instanceof javax.swing.JList)) return;
             @SuppressWarnings("unchecked")

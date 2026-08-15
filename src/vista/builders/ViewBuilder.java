@@ -157,7 +157,7 @@ public class ViewBuilder {
         registry.register("panel.display.grid", sharedGridPanel);
         registry.register("scroll.grid.visualizador", sharedGridPanel.getScrollPane());
         JList<String> gridList = sharedGridPanel.getGridList();
-        registry.register("list.grid", gridList, "WHEEL_NAVIGABLE");
+        registry.register("list.grid", gridList, "WHEEL_NAVIGABLE", "GRID_NAVIGABLE");
 
         // 4. PolaroidDisplayPanel
         sharedPolaroidPanel = new PolaroidDisplayPanel(this.themeManager, this.model);

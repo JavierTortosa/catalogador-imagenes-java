@@ -30,6 +30,7 @@ import controlador.managers.interfaces.IProjectManager;
 import controlador.services.proyecto.ExportPreflightService;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
+import modelo.VisorModel.WorkMode;
 import modelo.proyecto.ExportConfig;
 import modelo.proyecto.ImageCheckboxOverlay;
 import modelo.proyecto.ProjectImage;
@@ -182,6 +183,15 @@ public class ClientController implements IModoController {
             return;
         }
         editingActive = false;
+
+        // Asegurar que el contexto del proyecto (selección + descartes) quede poblado
+        // antes de asignar los modelos. Al entrar directo en modo cliente (sin pasar antes
+        // por modo Proyecto) el contexto está vacío y el grid central y la navegación
+        // no muestran ninguna imagen.
+        if (generalController != null && generalController.getProjectController() != null) {
+            generalController.getProjectController().prepararDatosProyecto();
+        }
+
         if (registry != null) {
             asignarModelosTablas(project);
         }
@@ -193,7 +203,9 @@ public class ClientController implements IModoController {
         javax.swing.JList<String> gridList = registry != null ? registry.get("list.grid.cliente") : null;
         if (gridList != null && !gridListenerRegistered) {
             gridList.addListSelectionListener(e -> {
-                if (!e.getValueIsAdjusting()) {
+                if (!e.getValueIsAdjusting()
+                            && visorController != null && visorController.getModel() != null
+                            && visorController.getModel().getCurrentWorkMode() == WorkMode.CLIENTE) {
                     int idx = gridList.getLeadSelectionIndex();
                     if (idx >= 0 && idx < gridList.getModel().getSize()) {
                         String key = gridList.getModel().getElementAt(idx);

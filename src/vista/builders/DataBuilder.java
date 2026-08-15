@@ -488,7 +488,7 @@ public class DataBuilder {
         registry.register("panel.workmode.datos", dataModePanel);
         registry.register("tree.datamode.alltags", allTagsTree);
         registry.register("panel.datamode.grid", gridDisplayPanel);
-        registry.register("list.datamode.grid", gridDisplayPanel.getGridList(), "WHEEL_NAVIGABLE");
+        registry.register("list.datamode.grid", gridDisplayPanel.getGridList(), "WHEEL_NAVIGABLE", "GRID_NAVIGABLE");
         registry.register("panel.datamode.tagmanagement", tagManagementPanel);
         registry.register("panel.datamode.drives", driveListPanel);
         registry.register("list.datamode.drives", driveListPanel.getDriveList());

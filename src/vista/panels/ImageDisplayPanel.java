@@ -541,7 +541,7 @@ public class ImageDisplayPanel extends JPanel {
         String fullPath = rutaCarpeta.toString();
 
         String html = "<html><body style='text-align: center; color: white; padding: 20px;'>"
-                + "<div style='font-size: 18pt; font-weight: bold; color: #FFCC00;'>Carpeta sin imágenes</div><br><br>"
+                + "<div style='font-size: 18pt; font-weight: bold; color: #FFCC00;'>No hay imágenes disponibles</div><br><br>"
                 + "<div style='font-size: 14pt; color: #EEEEEE;'>La carpeta <b>" + folderName + "</b></div>"
                 + "<div style='font-size: 14pt; color: #EEEEEE;'>no contiene archivos de imagen compatibles.</div><br>"
                 + "<div style='font-size: 10pt; color: #AAAAAA;'>" + fullPath + "</div>"

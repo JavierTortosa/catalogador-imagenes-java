@@ -61,7 +61,8 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
         JList<String> gridListVisualizador = registry.get("list.grid");
         if (gridListVisualizador != null) {
             gridListVisualizador.addListSelectionListener(e -> {
-                if (!e.getValueIsAdjusting() && !isSyncingFromManager) {
+                if (!e.getValueIsAdjusting() && !isSyncingFromManager
+                            && model != null && model.getCurrentWorkMode() == WorkMode.VISUALIZADOR) {
                     if (gridListVisualizador.getSelectedIndices().length > 1) return;
                     int selectedIndex = gridListVisualizador.getLeadSelectionIndex();
                     if (selectedIndex != -1 && listCoordinator != null && selectedIndex != listCoordinator.getOfficialSelectedIndex()) {
@@ -77,7 +78,8 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
         JList<String> gridListProyecto = registry.get("list.grid.proyecto");
         if (gridListProyecto != null) {
             gridListProyecto.addListSelectionListener(e -> {
-                if (!e.getValueIsAdjusting() && !isSyncingFromManager) {
+                if (!e.getValueIsAdjusting() && !isSyncingFromManager
+                            && model != null && model.getCurrentWorkMode() == WorkMode.PROYECTO) {
                     if (gridListProyecto.getSelectedIndices().length > 1) return;
                     int selectedIndex = gridListProyecto.getLeadSelectionIndex();
                     if (selectedIndex != -1 && projectListCoordinator != null && selectedIndex != projectListCoordinator.getOfficialSelectedIndex()) {
@@ -349,7 +351,7 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
         }
     } // --- FIN de onMasterSelectionChanged
     
-    private JList<String> getActiveGridList() {
+    public JList<String> getActiveGridList() {
         if (model == null || registry == null) return null;
         if (model.getCurrentWorkMode() == WorkMode.PROYECTO) return registry.get("list.grid.proyecto");
         if (model.getCurrentWorkMode() == WorkMode.DATOS) return registry.get("list.datamode.grid");

@@ -287,7 +287,7 @@ public class ProjectBuilder implements ThemeChangeListener {
             registry.register("panel.display.grid.proyecto", sharedGridPanel);
             registry.register("scroll.grid.proyecto", sharedGridPanel.getScrollPane());
             JList<String> gridList = sharedGridPanel.getGridList();
-            registry.register("list.grid.proyecto", gridList, "WHEEL_NAVIGABLE");
+            registry.register("list.grid.proyecto", gridList, "WHEEL_NAVIGABLE", "GRID_NAVIGABLE");
         }
         if (sharedPolaroidPanel != null) {
             registry.register("panel.proyecto.display.polaroid", sharedPolaroidPanel);

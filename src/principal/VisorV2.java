@@ -76,6 +76,7 @@ public class VisorV2 {
     
     // TODO HACER SALTO DE CARPETA. Cuando estamos viendo una carpeta que vemos que no nos cuadra, poder saltar todas las imagenes de esa carpeta
     // TODO CTRL + SHIFT DEBE ACTIVAR EL MODO PANEO Y DESACTIVARLO CUANDO SE DEJA DE PULSAR
+    // FIXME el filtro tornado me coloca en el item 0 y no puedo empezar la visualizacion desde cero despues de 5000 archivos...
     
     
     // PROYECTO
