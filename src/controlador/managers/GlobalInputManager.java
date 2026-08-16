@@ -409,6 +409,15 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
         
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
             if (e.getComponent() instanceof javax.swing.text.JTextComponent) return false;
+            // En modo RENDER, ESPACIO alterna el aprobado del thumbnail seleccionado
+            if (model != null && model.getCurrentWorkMode() == WorkMode.RENDER) {
+                Action renderToggleAction = actionMap.get(AppActionCommands.CMD_RENDER_TOGGLE_APROBADO);
+                if (renderToggleAction != null && renderToggleAction.isEnabled()) {
+                    renderToggleAction.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, AppActionCommands.CMD_RENDER_TOGGLE_APROBADO));
+                    e.consume();
+                    return true;
+                }
+            }
             Action toggleMarkAction = actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
             if (toggleMarkAction != null && toggleMarkAction.isEnabled()) {
                 toggleMarkAction.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA));
@@ -488,8 +497,21 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
      */
     private GridNavigationController getGridNavSiActivo() {
         if (model == null || visorController == null || visorController.getDisplayModeManager() == null) return null;
+        // En modo RENDER el grid activo es el JList de thumbnails visible en la
+        // pestaña de candidatos actual (imágenes o renders 3D), independiente del
+        // DisplayMode del visor.
+        if (model.getCurrentWorkMode() == WorkMode.RENDER) {
+            try {
+                vista.panels.render.RenderPanel renderPanel = registry.get("panel.workmode.render");
+                JList<?> gridRender = renderPanel != null ? renderPanel.getActiveGridList() : null;
+                if (gridRender == null || gridRender.getModel().getSize() == 0) return null;
+                return crearGridNavigationController(gridRender);
+            } catch (ClassCastException ex) {
+                return null;
+            }
+        }
         if (model.getCurrentDisplayMode() != DisplayMode.GRID) return null;
-        javax.swing.JList<String> gridActivo = visorController.getDisplayModeManager().getActiveGridList();
+        javax.swing.JList<?> gridActivo = visorController.getDisplayModeManager().getActiveGridList();
         if (gridActivo == null || gridActivo.getModel().getSize() == 0) return null;
         return crearGridNavigationController(gridActivo);
     } // --- FIN de metodo getGridNavSiActivo ---

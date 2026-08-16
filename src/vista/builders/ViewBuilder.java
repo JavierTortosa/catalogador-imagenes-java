@@ -392,6 +392,8 @@ public class ViewBuilder {
         registry.register("panel.render.right", renderWorkModePanel.getRightPanel());
         registry.register("panel.render.viewer", renderWorkModePanel.getViewerCardPanel());
         registry.register("panel.render.layers.toolbar", renderWorkModePanel.getLayersToolbarContainer());
+        registry.register("list.render.grid.imagenes", renderWorkModePanel.getImagenesGrid(), "WHEEL_NAVIGABLE", "GRID_NAVIGABLE");
+        registry.register("list.render.grid.renders", renderWorkModePanel.getRendersGrid(), "WHEEL_NAVIGABLE", "GRID_NAVIGABLE");
         this.renderController = new controlador.RenderController(renderWorkModePanel, configuration, mainFrame);
         this.renderController.setRegistry(this.registry);
         javax.swing.Icon paletteIcon = iconUtils.getScaledCommonIcon("paint-palette--streamline-core.png", 16, 16);

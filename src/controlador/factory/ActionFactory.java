@@ -739,6 +739,7 @@ public class ActionFactory {
         registerAction(AppActionCommands.CMD_RENDER_ABRIR_TEMP, createRenderAbrirTempAction());
         registerAction(AppActionCommands.CMD_RENDER_DESCARGAR_ARCHIVOS, createRenderDescargarArchivosAction());
         registerAction(AppActionCommands.CMD_RENDER_EXPORTAR_APROBADOS, createRenderExportarAprobadosAction());
+        registerAction(AppActionCommands.CMD_RENDER_TOGGLE_APROBADO, createRenderToggleAprobadoAction());
         registerAction(AppActionCommands.CMD_RENDER_CLEAR_PREVIEW, createRenderClearPreviewAction());
 
         registerAction(AppActionCommands.CMD_EDITOR_NUEVO, createEditorNuevoAction());
@@ -1225,6 +1226,18 @@ public class ActionFactory {
             }
         };
     } // --- Fin del metodo createRenderExportarAprobadosAction ---
+
+
+    private Action createRenderToggleAprobadoAction() {
+        return new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (renderController != null) {
+                    renderController.toggleAprobadoDeSeleccion();
+                }
+            }
+        };
+    } // --- Fin del metodo createRenderToggleAprobadoAction ---
 
 
     private Action createRenderClearPreviewAction() {

@@ -1,9 +1,10 @@
 package modelo.renderer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javafx.scene.shape.TriangleMesh;
 
@@ -14,137 +15,136 @@ import javafx.scene.shape.TriangleMesh;
  */
 public class StlMeshBuilder {
 
+    private static final Logger logger = LoggerFactory.getLogger(StlMeshBuilder.class);
+
     /**
      * Construye un TriangleMesh a partir de la lista de triángulos.
+     * El resultado visual es idéntico a la versión anterior (mismo redondeo de
+     * soldadura, mismas normales, mismo orden de caras), pero sin crear objetos
+     * temporales por vértice/triángulo y dimensionando los acumuladores con el
+     * número real de vértices únicos.
      */
     public static TriangleMesh build(List<Triangle> triangles) {
+        long t0 = System.nanoTime();
         TriangleMesh mesh = new TriangleMesh();
 
         int n = triangles.size();
         int[] faces = new int[n * 6];
 
-        Map<VertexKey, Integer> vertexIndex = new HashMap<>();
-        List<float[]> vertexData = new ArrayList<>();
-        int[] normAccum = new int[n * 9];
-
+        // --- Soldadura de vértices (pasada 1) ---
+        LongTripletMap vertexIndex = new LongTripletMap(n);
+        List<float[]> vertexData = new ArrayList<>(n);
+        int[] vi = new int[3];
+        float[][] verts = new float[3][];
         int fi = 0;
         for (int i = 0; i < n; i++) {
             Triangle t = triangles.get(i);
-            float[] faceNormal = computeFaceNormal(t);
-            int[] vi = new int[3];
-            float[][] verts = new float[][]{t.v0, t.v1, t.v2};
+            verts[0] = t.v0;
+            verts[1] = t.v1;
+            verts[2] = t.v2;
             for (int k = 0; k < 3; k++) {
-                VertexKey key = new VertexKey(verts[k]);
-                Integer idx = vertexIndex.get(key);
-                int viK;
-                if (idx == null) {
-                    viK = vertexIndex.size();
-                    vertexIndex.put(key, viK);
-                    vertexData.add(verts[k]);
-                } else {
-                    viK = idx;
+                float[] v = verts[k];
+                long kx = Math.round(v[0] * 1e4f);
+                long ky = Math.round(v[1] * 1e4f);
+                long kz = Math.round(v[2] * 1e4f);
+                int idx = vertexIndex.get(kx, ky, kz);
+                if (idx < 0) {
+                    idx = vertexIndex.size();
+                    vertexIndex.put(kx, ky, kz, idx);
+                    vertexData.add(v);
                 }
-                vi[k] = viK;
-            }
-
-            for (int k = 0; k < 3; k++) {
-                faces[fi++] = vi[k];
+                vi[k] = idx;
+                faces[fi++] = idx;
                 faces[fi++] = 0;
             }
-
-            for (int k = 0; k < 3; k++) {
-                int vk = vi[k] * 3;
-                normAccum[vk]     += faceNormal[0];
-                normAccum[vk + 1] += faceNormal[1];
-                normAccum[vk + 2] += faceNormal[2];
-            }
         }
+        long tWelding = System.nanoTime();
 
         int vertexCount = vertexIndex.size();
+
+        // --- Normales por vértice (pasada 2, acumulador de tamaño exacto) ---
+        int[] normAccum = new int[vertexCount * 3];
+        for (int i = 0; i < n; i++) {
+            Triangle t = triangles.get(i);
+            float e1x = t.v1[0] - t.v0[0];
+            float e1y = t.v1[1] - t.v0[1];
+            float e1z = t.v1[2] - t.v0[2];
+            float e2x = t.v2[0] - t.v0[0];
+            float e2y = t.v2[1] - t.v0[1];
+            float e2z = t.v2[2] - t.v0[2];
+            float nx = e1y * e2z - e1z * e2y;
+            float ny = e1z * e2x - e1x * e2z;
+            float nz = e1x * e2y - e1y * e2x;
+            float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
+            if (len > 0.001f) {
+                nx /= len;
+                ny /= len;
+                nz /= len;
+            }
+            int base = i * 6;
+            for (int k = 0; k < 3; k++) {
+                int vk = faces[base + k * 2] * 3;
+                normAccum[vk] = (int) (normAccum[vk] + nx);
+                normAccum[vk + 1] = (int) (normAccum[vk + 1] + ny);
+                normAccum[vk + 2] = (int) (normAccum[vk + 2] + nz);
+            }
+        }
+        long tNormals = System.nanoTime();
+
         float[] normOut = new float[vertexCount * 3];
+        float[] pointsOut = new float[vertexCount * 3];
         for (int i = 0; i < vertexCount; i++) {
             int base = i * 3;
-            float nx = normAccum[base], ny = normAccum[base + 1], nz = normAccum[base + 2];
+            float nx = normAccum[base];
+            float ny = normAccum[base + 1];
+            float nz = normAccum[base + 2];
             float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
             if (len > 0.001f) {
                 normOut[base] = nx / len;
                 normOut[base + 1] = ny / len;
                 normOut[base + 2] = nz / len;
             } else {
-                normOut[base] = 0;
-                normOut[base + 1] = 0;
                 normOut[base + 2] = 1;
             }
-        }
-
-        float[] pointsOut = new float[vertexCount * 3];
-        for (int i = 0; i < vertexCount; i++) {
             float[] v = vertexData.get(i);
-            pointsOut[i * 3] = v[0];
-            pointsOut[i * 3 + 1] = v[1];
-            pointsOut[i * 3 + 2] = v[2];
+            pointsOut[base] = v[0];
+            pointsOut[base + 1] = v[1];
+            pointsOut[base + 2] = v[2];
         }
+        long tArrays = System.nanoTime();
 
         mesh.getPoints().setAll(pointsOut);
         mesh.getNormals().setAll(normOut);
         mesh.getTexCoords().setAll(new float[]{0, 0});
         mesh.getFaces().setAll(faces);
+        long tSetAll = System.nanoTime();
 
+        if (logger.isInfoEnabled()) {
+            logger.info("[MESH PERF] triangles={} uniqueVertices={} welding={}ms normals={}ms arrays={}ms setAll={}ms total={}ms",
+                    n, vertexCount,
+                    (tWelding - t0) / 1_000_000,
+                    (tNormals - tWelding) / 1_000_000,
+                    (tArrays - tNormals) / 1_000_000,
+                    (tSetAll - tArrays) / 1_000_000,
+                    (tSetAll - t0) / 1_000_000);
+        }
         return mesh;
     } // --- Fin del metodo build ---
-
-
-    /**
-     * Clave de vértice para soldar posiciones coincidentes con redondeo.
-     */
-    private static final class VertexKey {
-        private final long x;
-        private final long y;
-        private final long z;
-
-        VertexKey(float[] v) {
-            x = Math.round(v[0] * 1e4f);
-            y = Math.round(v[1] * 1e4f);
-            z = Math.round(v[2] * 1e4f);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (!(o instanceof VertexKey)) return false;
-            VertexKey k = (VertexKey) o;
-            return x == k.x && y == k.y && z == k.z;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = (int) (x ^ (x >>> 32));
-            result = 31 * result + (int) (y ^ (y >>> 32));
-            result = 31 * result + (int) (z ^ (z >>> 32));
-            return result;
-        }
-    }
-
-
-    /**
-     * Calcula la normal de la cara de un triángulo a partir de sus aristas.
-     */
-    private static float[] computeFaceNormal(Triangle t) {
-        float[] e1 = { t.v1[0] - t.v0[0], t.v1[1] - t.v0[1], t.v1[2] - t.v0[2] };
-        float[] e2 = { t.v2[0] - t.v0[0], t.v2[1] - t.v0[1], t.v2[2] - t.v0[2] };
-        float nx = e1[1] * e2[2] - e1[2] * e2[1];
-        float ny = e1[2] * e2[0] - e1[0] * e2[2];
-        float nz = e1[0] * e2[1] - e1[1] * e2[0];
-        float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
-        if (len > 0.001f) { nx /= len; ny /= len; nz /= len; }
-        return new float[]{nx, ny, nz};
-    } // --- Fin del metodo computeFaceNormal ---
 
 
     /**
      * Calcula el factor de escala para que el modelo mida ~200 unidades en su eje mayor.
      */
     public static float computeScale(List<Triangle> triangles) {
-        float[] bb = boundingBox(triangles);
+        return computeScale(boundingBox(triangles));
+    } // --- Fin del metodo computeScale ---
+
+
+    /**
+     * Calcula el factor de escala a partir de una caja envolvente ya calculada.
+     * Evita recorrer los triángulos dos veces cuando el llamador ya tiene la caja.
+     */
+    public static float computeScale(float[] bb) {
         float size = Math.max(bb[3] - bb[0], Math.max(bb[4] - bb[1], bb[5] - bb[2]));
         return size > 0.001f ? 200f / size : 1f;
     } // --- Fin del metodo computeScale ---
@@ -158,7 +158,8 @@ public class StlMeshBuilder {
         float minY = Float.MAX_VALUE, maxY = -Float.MAX_VALUE;
         float minZ = Float.MAX_VALUE, maxZ = -Float.MAX_VALUE;
         for (Triangle t : triangles) {
-            for (float[] v : new float[][]{t.v0, t.v1, t.v2}) {
+            for (int k = 0; k < 3; k++) {
+                float[] v = k == 0 ? t.v0 : (k == 1 ? t.v1 : t.v2);
                 if (v[0] < minX) minX = v[0];
                 if (v[0] > maxX) maxX = v[0];
                 if (v[1] < minY) minY = v[1];

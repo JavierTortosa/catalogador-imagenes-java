@@ -49,6 +49,7 @@ import modelo.renderer.ImageLayer;
 import modelo.renderer.StlEntry;
 import servicios.renderer.Zip2PngScanner.RenderCandidate;
 import vista.components.ThemedToggleButton;
+import vista.renderers.RenderThumbnailGridCellRenderer;
 import vista.theme.Tema;
 import vista.theme.ThemeChangeListener;
 import vista.theme.ThemeManager;
@@ -76,8 +77,12 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
 
     // --- Grid de resultados (panel central) ---
     private final JPanel gridCardPanel;
-    private final JPanel imagenesGrid;
-    private final JPanel rendersGrid;
+    private final DefaultListModel<RenderThumbnailItem> imagenesGridModel;
+    private final JList<RenderThumbnailItem> imagenesGrid;
+    private final DefaultListModel<RenderThumbnailItem> rendersGridModel;
+    private final JList<RenderThumbnailItem> rendersGrid;
+    private final RenderThumbnailGridCellRenderer gridCellRenderer;
+    private JList<RenderThumbnailItem> activeGrid;
     private final AdvanceEditPanel advanceEditPanel;
     private final ScannerPanel scannerPanel;
     private boolean scannerActive;
@@ -355,19 +360,24 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
         leftSplit.setPreferredSize(new Dimension(280, 0));
 
         // ---------- PANEL CENTRAL: grid contextual a la pestaña de candidatos ----------
-        imagenesGrid = new JPanel(new WrapLayout(FlowLayout.LEFT, 6, 6));
-        imagenesGrid.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        gridCellRenderer = new RenderThumbnailGridCellRenderer();
+
+        imagenesGridModel = new DefaultListModel<>();
+        imagenesGrid = new JList<>(imagenesGridModel);
+        configurarGrid(imagenesGrid);
         JScrollPane imagenesScroll = new JScrollPane(imagenesGrid);
         imagenesScroll.setBorder(BorderFactory.createTitledBorder("Imágenes extraídas"));
 
-        rendersGrid = new JPanel(new WrapLayout(FlowLayout.LEFT, 6, 6));
-        rendersGrid.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        rendersGridModel = new DefaultListModel<>();
+        rendersGrid = new JList<>(rendersGridModel);
+        configurarGrid(rendersGrid);
         JScrollPane rendersScroll = new JScrollPane(rendersGrid);
         rendersScroll.setBorder(BorderFactory.createTitledBorder("Renders 3D generados"));
 
         gridCardPanel = new JPanel(new CardLayout());
         gridCardPanel.add(imagenesScroll, CARD_GRID_IMG);
         gridCardPanel.add(rendersScroll, CARD_GRID_RENDER);
+        activeGrid = imagenesGrid;
 
         advanceEditPanel = new AdvanceEditPanel();
         gridCardPanel.add(advanceEditPanel, CARD_GRID_ADVANCE_EDIT);
@@ -898,7 +908,23 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
         add(wrapCollapsible("", leftSplit, true, true, wrapBg, wrapFg, wrapBorder), BorderLayout.WEST);
         add(gridCardPanel, BorderLayout.CENTER);
         add(wrapCollapsible("", rightPanel, true, false, wrapBg, wrapFg, wrapBorder), BorderLayout.EAST);
-    }
+    } // --- Fin del constructor RenderPanel ---
+
+
+    /**
+     * Configura un JList de miniaturas del modo Render: orientación horizontal
+     * con wrap, celdas fijas y el cell renderer compartido de thumbnails.
+     * @param grid la JList de miniaturas a configurar
+     */
+    private void configurarGrid(JList<RenderThumbnailItem> grid) {
+        grid.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        grid.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+        grid.setVisibleRowCount(-1);
+        grid.setFixedCellWidth(RenderThumbnailGridCellRenderer.LADO_CELDA);
+        grid.setFixedCellHeight(RenderThumbnailGridCellRenderer.LADO_CELDA);
+        grid.setBackground(themeColor("TabbedPane.contentAreaColor", 40, 40, 45));
+        grid.setCellRenderer(gridCellRenderer);
+    } // --- Fin del metodo configurarGrid ---
 
     private JPanel wrapCollapsible(String title, JComponent content, boolean expanded, boolean leftSide,
                                    Color bgHeader, Color fgTitle, Color borderColor) {
@@ -1163,11 +1189,12 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
         return candidateTabs.getSelectedIndex() == 1;
     }
 
-    public JPanel getImagenesGrid() { return imagenesGrid; }
-    public JPanel getRendersGrid() { return rendersGrid; }
-
-    // Backward compat: getThumbnailGrid() devuelve el grid de renders 3D
-    public JPanel getThumbnailGrid() { return rendersGrid; }
+    public JList<RenderThumbnailItem> getImagenesGrid() { return imagenesGrid; }
+    public JList<RenderThumbnailItem> getRendersGrid() { return rendersGrid; }
+    public DefaultListModel<RenderThumbnailItem> getImagenesGridModel() { return imagenesGridModel; }
+    public DefaultListModel<RenderThumbnailItem> getRendersGridModel() { return rendersGridModel; }
+    public JList<RenderThumbnailItem> getActiveGridList() { return activeGrid; }
+    public RenderThumbnailGridCellRenderer getGridCellRenderer() { return gridCellRenderer; }
 
     public boolean isCollageMode() { return collageMode; }
 
@@ -1262,9 +1289,15 @@ public class RenderPanel extends JPanel implements ThemeChangeListener {
 
     public void showGridCard(String card) {
         ((CardLayout) gridCardPanel.getLayout()).show(gridCardPanel, card);
+        activeGrid = null;
+        if (CARD_GRID_RENDER.equals(card)) {
+            activeGrid = rendersGrid;
+        } else if (CARD_GRID_IMG.equals(card)) {
+            activeGrid = imagenesGrid;
+        }
         gridCardPanel.revalidate();
         gridCardPanel.repaint();
-    }
+    } // --- Fin del metodo showGridCard ---
 
     public void syncGridToCandidateTab() {
         if (scannerActive) {

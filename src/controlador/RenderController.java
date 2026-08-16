@@ -8,14 +8,12 @@ import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.lang.ref.SoftReference;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -78,6 +76,7 @@ import vista.config.UIDefinitionService;
 import vista.dialogos.TaskProgressDialog;
 import vista.panels.render.PreviewPanel3DFX;
 import vista.panels.render.RenderPanel;
+import vista.panels.render.RenderThumbnailItem;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 
@@ -91,7 +90,13 @@ public class RenderController {
     private final Component parentFrame;
     private final DefaultListModel<StlEntry> contentModel;
     private final Map<Path, SourceInfo> pngSourceMap = new HashMap<>();
-    private final Map<Path, SoftReference<List<Triangle>>> triangleCache = new HashMap<>();
+    private volatile SwingWorker<Void, Object[]> thumbnailWorker;
+    private volatile int thumbnailGeneration;
+    private static final int MAX_CACHE_ENTRIES = 24;
+    private static final long MAX_CACHE_TRIANGLES = 12_000_000L;
+    private long totalCachedTriangles;
+    private final Map<Path, List<Triangle>> triangleCache = java.util.Collections.synchronizedMap(
+            new LinkedHashMap<Path, List<Triangle>>(128, 0.75f, true));
     private final AwtModelRenderer renderer = new AwtModelRenderer();
     private servicios.editor.EditorDocumentManager editorDocumentManager;
     private controlador.managers.ViewManager viewManager;
@@ -157,6 +162,8 @@ public class RenderController {
         wireBackgroundControls();
         initAdvanceEditIconSize();
         wireScannerPanel();
+        configurarRendererGrids();
+        wireGridSelection();
     }
 
     public void setModel(VisorModel model) {
@@ -193,7 +200,53 @@ public class RenderController {
             }
         });
         sp.addTableSelectionListener(e -> sp.refrescarResumen());
-    }
+    } // --- Fin del metodo wireScannerPanel ---
+
+
+    /**
+     * Conecta el cell renderer de los grids con el estado de thumbnails
+     * aprobados y el preview actual, para que las celdas se dibujen con el
+     * borde y el check correctos en cada repintado.
+     */
+    private void configurarRendererGrids() {
+        panel.getGridCellRenderer().setAprobadoProvider(p -> thumbnailsAprobados != null && thumbnailsAprobados.contains(p));
+        panel.getGridCellRenderer().setPreviewProvider(p -> p != null && p.equals(currentPreviewPath));
+    } // --- Fin del metodo configurarRendererGrids ---
+
+
+    /**
+     * Conecta la selección de los grids con la selección del candidato y el
+     * preview: al elegir una miniatura se selecciona el candidato en las
+     * pestañas y se muestra la previsualización correspondiente.
+     */
+    private void wireGridSelection() {
+        javax.swing.event.ListSelectionListener listener = e -> {
+            if (e.getValueIsAdjusting() || syncingFromGrid) return;
+            @SuppressWarnings("unchecked")
+            JList<RenderThumbnailItem> grid = (JList<RenderThumbnailItem>) e.getSource();
+            RenderThumbnailItem item = grid.getSelectedValue();
+            if (item == null) return;
+            seleccionarCandidatoEnLista(item.candidate());
+            showPreview(item.pngPath(), item.candidate());
+        };
+        panel.getRendersGrid().addListSelectionListener(listener);
+        panel.getImagenesGrid().addListSelectionListener(listener);
+    } // --- Fin del metodo wireGridSelection ---
+
+
+    /**
+     * Alterna el aprobado del thumbnail seleccionado en el grid activo del
+     * modo Render. Se invoca desde la acción de ESPACIO en modo RENDER.
+     */
+    public void toggleAprobadoDeSeleccion() {
+        JList<RenderThumbnailItem> grid = panel.getActiveGridList();
+        if (grid == null) return;
+        RenderThumbnailItem item = grid.getSelectedValue();
+        if (item != null) {
+            toggleAprobado(item.pngPath());
+        }
+    } // --- Fin del metodo toggleAprobadoDeSeleccion ---
+
 
     public void setRegistry(ComponentRegistry registry) {
         this.registry = registry;
@@ -683,7 +736,7 @@ public class RenderController {
         RenderCandidate selected = getSelectedCandidate();
         contentModel.clear();
         panel.getContentImageListModel().clear();
-        panel.getImagenesGrid().removeAll();
+        panel.getImagenesGridModel().clear();
         panel.getImagenesGrid().revalidate();
         panel.getImagenesGrid().repaint();
         if (selected == null || !selected.esComprimido) {
@@ -1012,10 +1065,10 @@ public class RenderController {
         panel.actualizarTitulosPestanyas();
         contentModel.clear();
         panel.getContentImageListModel().clear();
-        panel.getImagenesGrid().removeAll();
+        panel.getImagenesGridModel().clear();
         panel.getImagenesGrid().revalidate();
         panel.getImagenesGrid().repaint();
-        panel.getRendersGrid().removeAll();
+        panel.getRendersGridModel().clear();
         panel.getRendersGrid().revalidate();
         panel.getRendersGrid().repaint();
         pngSourceMap.clear();
@@ -1303,8 +1356,8 @@ public class RenderController {
 
     private void lanzarProcesamiento(List<RenderCandidate> candidatos) {
         limpiarOutputDeCandidatos(candidatos);
-        panel.getImagenesGrid().removeAll();
-        panel.getRendersGrid().removeAll();
+        panel.getImagenesGridModel().clear();
+        panel.getRendersGridModel().clear();
         panel.getRendersGrid().revalidate();
         panel.getRendersGrid().repaint();
         panel.getImagenesGrid().revalidate();
@@ -1420,50 +1473,91 @@ public class RenderController {
     }
 
     private void refreshThumbnails(Path highlightPng) {
-        panel.getRendersGrid().removeAll();
-        panel.getImagenesGrid().removeAll();
-
-        // Renders 3D: un thumbnail por candidato sin imagen
-        java.util.Enumeration<RenderCandidate> sinRender = panel.getListModelSinImagen().elements();
-        while (sinRender.hasMoreElements()) {
-            RenderCandidate c = sinRender.nextElement();
-            try {
-                Path png = outputDir.resolve(c.rutaSalida() + ".png");
-                if (Files.exists(png)) {
-                    addThumbnailToGrid(png, panel.getRendersGrid(), highlightPng, c.nombreBase, c);
-                }
-            } catch (InvalidPathException ex) {
-                logger.warn("Nombre base inválido para render 3D: '{}'", c.nombreBase);
-            }
+        if (thumbnailWorker != null) {
+            thumbnailWorker.cancel(false);
         }
+        int gen = ++thumbnailGeneration;
+        DefaultListModel<RenderThumbnailItem> rendersModel = panel.getRendersGridModel();
+        DefaultListModel<RenderThumbnailItem> imagenesModel = panel.getImagenesGridModel();
+        rendersModel.clear();
+        imagenesModel.clear();
 
-        // Imágenes: un thumbnail por candidato con imagen (primera imagen encontrada)
-        java.util.Enumeration<RenderCandidate> conImg = panel.getListModelConImagen().elements();
-        while (conImg.hasMoreElements()) {
-            RenderCandidate c = conImg.nextElement();
-            try {
-                Path png = outputDir.resolve(c.rutaSalida() + ".png");
-                if (Files.exists(png)) {
-                    addThumbnailToGrid(png, panel.getImagenesGrid(), highlightPng, c.nombreBase, c);
-                    continue;
+        List<RenderCandidate> sinRender = snapshotLista(panel.getListModelSinImagen());
+        List<RenderCandidate> conImg = snapshotLista(panel.getListModelConImagen());
+
+        // Miniaturas en segundo plano: el grid se llena al vuelo sin bloquear el EDT.
+        thumbnailWorker = new SwingWorker<Void, Object[]>() {
+            @Override
+            protected Void doInBackground() {
+                List<Object[]> lote = new ArrayList<>();
+                for (RenderCandidate c : sinRender) {
+                    try {
+                        Path png = outputDir.resolve(c.rutaSalida() + ".png");
+                        if (Files.exists(png)) {
+                            appendLoteIcono(lote, 0, png, c);
+                        }
+                    } catch (InvalidPathException ex) {
+                        logger.warn("Nombre base inválido para render 3D: '{}'", c.nombreBase);
+                    }
+                    if (lote.size() >= 16) {
+                        publish(lote.toArray(new Object[0][]));
+                        lote.clear();
+                    }
                 }
-                Path imgDir = imagesDir.resolve(c.rutaSalida());
-                if (Files.isDirectory(imgDir)) {
-                    try (var walk = Files.walk(imgDir, 3)) {
-                        walk.filter(Files::isRegularFile)
-                                .filter(p -> {
-                                    String n = p.getFileName().toString().toLowerCase();
-                                    return n.endsWith(".png") || n.endsWith(".jpg") || n.endsWith(".jpeg")
-                                            || n.endsWith(".gif") || n.endsWith(".bmp") || n.endsWith(".webp");
-                                })
-                                .findFirst()
-                                .ifPresent(imgPath -> addThumbnailToGrid(imgPath, panel.getImagenesGrid(), highlightPng, c.nombreBase, c));
-                    } catch (IOException ignored) {}
+                for (RenderCandidate c : conImg) {
+                    try {
+                        Path png = outputDir.resolve(c.rutaSalida() + ".png");
+                        if (Files.exists(png)) {
+                            appendLoteIcono(lote, 1, png, c);
+                        } else {
+                            Path imgDir = imagesDir.resolve(c.rutaSalida());
+                            if (Files.isDirectory(imgDir)) {
+                                try (Stream<Path> walk = Files.walk(imgDir, 3)) {
+                                    walk.filter(Files::isRegularFile)
+                                            .filter(p -> {
+                                                String n = p.getFileName().toString().toLowerCase();
+                                                return n.endsWith(".png") || n.endsWith(".jpg") || n.endsWith(".jpeg")
+                                                        || n.endsWith(".gif") || n.endsWith(".bmp") || n.endsWith(".webp");
+                                            })
+                                            .findFirst()
+                                            .ifPresent(imgPath -> appendLoteIcono(lote, 1, imgPath, c));
+                                } catch (IOException ignored) {
+                                }
+                            }
+                        }
+                    } catch (InvalidPathException ex) {
+                        logger.warn("Nombre base inválido para imagen: '{}'", c.nombreBase);
+                    }
+                    if (lote.size() >= 16) {
+                        publish(lote.toArray(new Object[0][]));
+                        lote.clear();
+                    }
                 }
-            } catch (InvalidPathException ex) {
-                logger.warn("Nombre base inválido para imagen: '{}'", c.nombreBase);
+                publish(lote.toArray(new Object[0][]));
+                return null;
             }
-        }
+
+            @Override
+            protected void process(List<Object[]> chunks) {
+                if (gen != thumbnailGeneration || isCancelled()) {
+                    return;
+                }
+                for (Object[] o : chunks) {
+                    int lista = (Integer) o[0];
+                    Path p = (Path) o[1];
+                    RenderCandidate c = (RenderCandidate) o[2];
+                    javax.swing.Icon icono = (javax.swing.Icon) o[3];
+                    String label = c.nombreBase + " - " + p.getFileName().toString();
+                    RenderThumbnailItem item = new RenderThumbnailItem(p, c, label, icono);
+                    if (lista == 0) {
+                        rendersModel.addElement(item);
+                    } else {
+                        imagenesModel.addElement(item);
+                    }
+                }
+            }
+        };
+        thumbnailWorker.execute();
 
         panel.getRendersGrid().revalidate();
         panel.getRendersGrid().repaint();
@@ -1471,64 +1565,141 @@ public class RenderController {
         panel.getImagenesGrid().repaint();
     }
 
-    private void addThumbnailToGrid(Path p, JPanel grid, Path highlightPng, String labelText, RenderCandidate candidate) {
-        try {
-            BufferedImage src = ImageIO.read(p.toFile());
-            if (src == null) {
-                logger.warn("No se pudo leer la imagen: {}", p);
-                return;
-            }
-            Image base = src.getScaledInstance(180, 180, java.awt.Image.SCALE_SMOOTH);
 
-            boolean aprobado = thumbnailsAprobados.contains(p);
+    // Copia los elementos del modelo en una lista para procesarlos desde el worker.
+    private List<RenderCandidate> snapshotLista(DefaultListModel<RenderCandidate> model) {
+        List<RenderCandidate> copia = new ArrayList<>();
+        java.util.Enumeration<RenderCandidate> en = model.elements();
+        while (en.hasMoreElements()) {
+            copia.add(en.nextElement());
+        }
+        return copia;
+    }
 
-            javax.swing.Icon icon;
-            if (aprobado) {
-                icon = crearIconoConCheck(base);
-            } else {
-                icon = new javax.swing.ImageIcon(base);
-            }
 
-            var label = new javax.swing.JLabel(icon);
-            String tooltip = labelText + " - " + p.getFileName().toString();
-            label.setToolTipText(tooltip);
-            label.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-
-            if (aprobado) {
-                label.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(0, 160, 0), 3));
-            } else if (highlightPng != null && p.getFileName().equals(highlightPng.getFileName())) {
-                label.setBorder(javax.swing.BorderFactory.createLineBorder(new Color(100, 200, 255), 3));
-            }
-
-            label.addMouseListener(new java.awt.event.MouseAdapter() {
-                @Override
-                public void mouseClicked(java.awt.event.MouseEvent ev) {
-                    if (ev.getClickCount() == 2) {
-                        toggleAprobado(p);
-                        return;
-                    }
-                    seleccionarCandidatoEnLista(candidate);
-                    showPreview(p, candidate);
-                }
-            });
-            grid.add(label);
-        } catch (Exception ex) {
-            logger.warn("No se pudo cargar thumbnail: {}", p);
+    // Lee el icono y lo añade al lote de publicación; si no se puede leer lo omite.
+    private void appendLoteIcono(List<Object[]> lote, int lista, Path p, RenderCandidate c) {
+        javax.swing.Icon icono = leerIconoThumbnail(p);
+        if (icono != null) {
+            lote.add(new Object[] { lista, p, c, icono });
         }
     }
 
-    private javax.swing.Icon crearIconoConCheck(Image base) {
-        BufferedImage img = new BufferedImage(180, 180, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = img.createGraphics();
-        g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
-        g.drawImage(base, 0, 0, null);
-        g.setColor(new Color(0, 160, 0));
-        g.setFont(g.getFont().deriveFont(java.awt.Font.BOLD, 22f));
-        g.drawString("\u2714", 153, 24);
-        g.dispose();
-        return new javax.swing.ImageIcon(img);
+
+    // Lee la imagen del disco, la escala a 180x180 y devuelve el icono; null si falla.
+    private javax.swing.Icon leerIconoThumbnail(Path p) {
+        try {
+            BufferedImage src = ImageIO.read(p.toFile());
+            if (src == null) {
+                return null;
+            }
+            BufferedImage sel = new BufferedImage(180, 180, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g2 = sel.createGraphics();
+            try {
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
+                        java.awt.RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                g2.drawImage(src, 0, 0, 180, 180, null);
+            } finally {
+                g2.dispose();
+            }
+            return new javax.swing.ImageIcon(sel);
+        } catch (Exception ex) {
+            logger.warn("No se pudo cargar thumbnail: {}", p);
+            return null;
+        }
     }
 
+
+    // Añade un único thumbnail al grid correcto (sin reconstruir todas las miniaturas).
+    private void anadirThumbnailIncremental(Path png, RenderCandidate c) {
+        if (png == null || c == null) {
+            return;
+        }
+        DefaultListModel<RenderThumbnailItem> model = gridModelDeCandidato(c);
+        for (int i = 0; i < model.size(); i++) {
+            if (model.get(i).pngPath().equals(png)) {
+                panel.getRendersGrid().repaint();
+                panel.getImagenesGrid().repaint();
+                return;
+            }
+        }
+        String label = c.nombreBase + " - " + png.getFileName().toString();
+        RenderThumbnailItem item = new RenderThumbnailItem(png, c, label, null);
+        model.addElement(item);
+        cargarIconoDeItemAsync(model, item);
+        panel.getRendersGrid().revalidate();
+        panel.getRendersGrid().repaint();
+        panel.getImagenesGrid().revalidate();
+        panel.getImagenesGrid().repaint();
+    }
+
+
+    // Elige el grid según la lista a la que pertenece el candidato.
+    private DefaultListModel<RenderThumbnailItem> gridModelDeCandidato(RenderCandidate c) {
+        if (panel.getListModelSinImagen().contains(c)) {
+            return panel.getRendersGridModel();
+        }
+        return panel.getImagenesGridModel();
+    }
+
+
+    // Carga el icono de un único thumbnail fuera del EDT y sustituye su ítem al terminar.
+    private void cargarIconoDeItemAsync(DefaultListModel<RenderThumbnailItem> model, RenderThumbnailItem item) {
+        new SwingWorker<javax.swing.Icon, Void>() {
+            @Override
+            protected javax.swing.Icon doInBackground() {
+                return leerIconoThumbnail(item.pngPath());
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    javax.swing.Icon icono = get();
+                    if (icono == null) {
+                        return;
+                    }
+                    int i = indicePorRuta(model, item.pngPath());
+                    if (i >= 0) {
+                        model.set(i, new RenderThumbnailItem(item.pngPath(), item.candidate(), item.label(), icono));
+                    }
+                } catch (Exception ex) {
+                    logger.warn("No se pudo cargar thumbnail: {}", item.pngPath());
+                }
+            }
+        }.execute();
+    }
+
+
+    // Índice del primer ítem del grid cuya ruta coincide con la indicada; -1 si no existe.
+    private int indicePorRuta(DefaultListModel<RenderThumbnailItem> model, Path png) {
+        for (int i = 0; i < model.size(); i++) {
+            if (model.get(i).pngPath().equals(png)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+
+    // Busca el candidato asociado a un thumbnail en cualquiera de los dos grids.
+    private RenderCandidate candidatoDeThumbnail(Path png) {
+        RenderCandidate c = candidatoEn(panel.getRendersGridModel(), png);
+        if (c != null) {
+            return c;
+        }
+        return candidatoEn(panel.getImagenesGridModel(), png);
+    }
+
+
+    private RenderCandidate candidatoEn(DefaultListModel<RenderThumbnailItem> model, Path png) {
+        for (int i = 0; i < model.size(); i++) {
+            RenderThumbnailItem it = model.get(i);
+            if (it.pngPath().equals(png)) {
+                return it.candidate();
+            }
+        }
+        return null;
+    }
 
     private void toggleAprobado(Path p) {
         if (thumbnailsAprobados.contains(p)) {
@@ -1536,7 +1707,8 @@ public class RenderController {
         } else {
             thumbnailsAprobados.add(p);
         }
-        refreshThumbnails(null);
+        panel.getRendersGrid().repaint();
+        panel.getImagenesGrid().repaint();
     }
 
     private void seleccionarCandidatoEnLista(RenderCandidate candidate) {
@@ -1597,13 +1769,27 @@ public class RenderController {
 
     private List<Triangle> getCachedTriangles(Path path) {
         if (path == null) return null;
-        SoftReference<List<Triangle>> ref = triangleCache.get(path);
-        return ref != null ? ref.get() : null;
+        return triangleCache.get(path);
     }
 
     private void putCachedTriangles(Path path, List<Triangle> tris) {
-        if (path != null && tris != null) {
-            triangleCache.put(path, new SoftReference<>(tris));
+        if (path == null || tris == null || tris.isEmpty()) return;
+        synchronized (triangleCache) {
+            List<Triangle> prev = triangleCache.put(path, tris);
+            if (prev != null) {
+                totalCachedTriangles -= prev.size();
+            }
+            totalCachedTriangles += tris.size();
+            // Presupuesto de memoria por peso (nº de triángulos) y no por número de
+            // entradas, para evitar parones de GC con STL grandes.
+            while (totalCachedTriangles > MAX_CACHE_TRIANGLES || triangleCache.size() > MAX_CACHE_ENTRIES) {
+                if (triangleCache.isEmpty()) break;
+                Path eldestKey = triangleCache.keySet().iterator().next();
+                List<Triangle> rem = triangleCache.remove(eldestKey);
+                if (rem != null) {
+                    totalCachedTriangles -= rem.size();
+                }
+            }
         }
     }
 
@@ -1621,23 +1807,10 @@ public class RenderController {
     }
 
     private void resaltarThumbnail(Path pngPath) {
-        resaltarEnGrid(pngPath, panel.getRendersGrid());
-        resaltarEnGrid(pngPath, panel.getImagenesGrid());
-    }
-
-    private void resaltarEnGrid(Path pngPath, JPanel grid) {
-        for (java.awt.Component comp : grid.getComponents()) {
-            if (comp instanceof javax.swing.JLabel label) {
-                String tip = label.getToolTipText();
-                if (tip != null && (tip.startsWith(pngPath.getFileName().toString())
-                        || tip.endsWith(pngPath.getFileName().toString()))) {
-                    label.setBorder(javax.swing.BorderFactory.createLineBorder(
-                            new java.awt.Color(100, 200, 255), 3));
-                } else if (label.getBorder() != null) {
-                    label.setBorder(null);
-                }
-            }
-        }
+        // El cell renderer compara cada thumbnail con currentPreviewPath, así que
+        // basta con repintar ambos grids para actualizar el borde de preview.
+        panel.getRendersGrid().repaint();
+        panel.getImagenesGrid().repaint();
     }
 
     private void mostrarErrorCarga(String mensaje) {
@@ -1665,6 +1838,7 @@ public class RenderController {
             private String errorMsg;
             @Override
             protected List<Triangle> doInBackground() throws Exception {
+                long t0 = System.nanoTime();
                 logger.debug("[RenderController] Worker doInBackground: buscando SourceInfo...");
                 SourceInfo info = pngSourceMap.get(pathSiendoCargado);
                 if (info == null && candidate != null) {
@@ -1685,9 +1859,12 @@ public class RenderController {
                         + ", esComprimido=" + info.candidate().esComprimido
                         + ", stl=" + info.stlEntry().filename());
                 if (info.candidate().esComprimido) {
-                    logger.debug("[RenderController] Extrayendo comprimido...");
-                    Path tempDir = ZipExtractor.extractToTemp(info.candidate().path);
+                    logger.debug("[RenderController] Extrayendo STL del comprimido...");
+                    Path tempDir = java.nio.file.Files.createTempDirectory("zip2png_");
                     try {
+                        long tEx = System.nanoTime();
+                        ZipExtractor.extractSingleFile(info.candidate().path, info.stlEntry().filename(), tempDir);
+                        long tExDone = System.nanoTime();
                         Path stlPath = tempDir.resolve(info.stlEntry().filename());
                         logger.debug("[RenderController] STL path: " + stlPath);
                         if (!Files.exists(stlPath)) {
@@ -1696,15 +1873,22 @@ public class RenderController {
                             return null;
                         }
                         logger.debug("[RenderController] Parseando STL...");
+                        long tPa = System.nanoTime();
                         List<Triangle> tris = StlParser.parse(stlPath.toFile());
-                        logger.debug("[RenderController] STL parseado: " + tris.size() + " triángulos");
+                        logger.info("[LOAD PERF] 7z={}ms parse={}ms tris={} workerTotal={}ms",
+                                (tExDone - tEx) / 1_000_000, (System.nanoTime() - tPa) / 1_000_000,
+                                tris.size(), (System.nanoTime() - t0) / 1_000_000);
                         return tris;
                     } finally {
                         RenderTempFileManager.deleteDir(tempDir);
                     }
                 } else {
                     logger.debug("[RenderController] Parseando STL (no comprimido)...");
-                    return StlParser.parse(info.candidate().path.toFile());
+                    long tPa = System.nanoTime();
+                    List<Triangle> tris = StlParser.parse(info.candidate().path.toFile());
+                    logger.info("[LOAD PERF] parse={}ms tris={} workerTotal={}ms",
+                            (System.nanoTime() - tPa) / 1_000_000, tris.size(), (System.nanoTime() - t0) / 1_000_000);
+                    return tris;
                 }
             }
             @Override
@@ -1844,10 +2028,10 @@ public class RenderController {
         }
 
         limpiarOutputDeCandidatos(List.of(selected));
-        panel.getRendersGrid().removeAll();
+        panel.getRendersGridModel().clear();
         panel.getRendersGrid().revalidate();
         panel.getRendersGrid().repaint();
-        panel.getImagenesGrid().removeAll();
+        panel.getImagenesGridModel().clear();
         panel.getImagenesGrid().revalidate();
         panel.getImagenesGrid().repaint();
         currentWorker = null;
@@ -2187,7 +2371,7 @@ public class RenderController {
                 logger.info("Imagen original copiada al grid: {}", dest.getFileName());
             }
             thumbnailsAprobados.add(dest);
-            refreshThumbnails(dest);
+            anadirThumbnailIncremental(dest, selected);
         } catch (IOException e) {
             logger.error("Error al asignar imagen al grid", e);
             JOptionPane.showMessageDialog(parentFrame,
@@ -2213,7 +2397,7 @@ public class RenderController {
                     currentPreviewPath.getFileName(), img.getWidth(), img.getHeight());
             putCachedTriangles(currentPreviewPath, currentTriangles);
             thumbnailsAprobados.add(currentPreviewPath);
-            refreshThumbnails(currentPreviewPath);
+            anadirThumbnailIncremental(currentPreviewPath, candidatoDeThumbnail(currentPreviewPath));
         } catch (IOException e) {
             logger.error("Error al guardar PNG re-renderizado: {}", currentPreviewPath, e);
             JOptionPane.showMessageDialog(parentFrame,
@@ -2442,6 +2626,8 @@ public class RenderController {
         panel.getPreview3DFX().setCrosshairVisible(panel.isCrosshair());
         currentPreviewPath = null;
         currentTriangles = null;
+        panel.getRendersGrid().repaint();
+        panel.getImagenesGrid().repaint();
         logger.info("[RenderController] Preview limpiado.");
     } // --- Fin del metodo clearPreview ---
 

@@ -57,6 +57,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Transform;
+import modelo.renderer.StlDecimator;
 import modelo.renderer.StlMeshBuilder;
 import modelo.renderer.Triangle;
 
@@ -102,6 +103,12 @@ public class PreviewPanel3DFX extends JFXPanel {
     private Group subRoot;
     private LinearGradient backgroundGradient;
     private int fillLight2Intensity = 40;
+
+    private final java.util.concurrent.atomic.AtomicInteger meshBuildVersion = new java.util.concurrent.atomic.AtomicInteger();
+
+    private TriangleMesh previewMesh;
+    private TriangleMesh fullMesh;
+    private static final int PREVIEW_TARGET_TRIANGLES = 150_000;
     
     
     // --- Background mode support ---
@@ -237,39 +244,90 @@ public class PreviewPanel3DFX extends JFXPanel {
         logger.debug("[PreviewPanel3DFX] setMesh llamado: " + (triangles != null ? triangles.size() + " tri" + (char)225 + "ngulos" : "null")
             + " | JFXPanel size=" + getWidth() + "x" + getHeight()
             + " | scene set=" + (getScene() != null));
+        if (triangles == null || triangles.isEmpty()) {
+            clearMesh();
+            return;
+        }
+        int v = meshBuildVersion.incrementAndGet();
+        long tSetMesh = System.nanoTime();
         Platform.runLater(() -> {
-            try {
-                doSetMesh(triangles);
-            } catch (Exception e) {
-                logger.error("[PreviewPanel3DFX] Excepción en doSetMesh", e);
+            if (loadingText != null) {
+                loadingText.setVisible(true);
             }
         });
+        Thread t = new Thread(() -> {
+            try {
+                float[] bb = StlMeshBuilder.boundingBox(triangles);
+                float cx = (bb[0] + bb[3]) / 2.0f;
+                float cy = (bb[1] + bb[4]) / 2.0f;
+                float cz = (bb[2] + bb[5]) / 2.0f;
+                float scale = StlMeshBuilder.computeScale(bb);
+
+                // Malla reducida para interacción fluida; se adjunta primero.
+                long tDec0 = System.nanoTime();
+                List<Triangle> previewTris = StlDecimator.decimate(triangles, PREVIEW_TARGET_TRIANGLES);
+                long tDecMs = (System.nanoTime() - tDec0) / 1_000_000;
+                long tPrev0 = System.nanoTime();
+                TriangleMesh previewM = StlMeshBuilder.build(previewTris);
+                long tPrevMs = (System.nanoTime() - tPrev0) / 1_000_000;
+                // Si el modelo ya está por debajo del objetivo, decimate devuelve la
+                // misma lista y la malla reducida ES la completa: no hay que construirla dos veces.
+                boolean yaCompleta = previewTris == triangles;
+                TriangleMesh fullM = yaCompleta ? previewM : null;
+                Platform.runLater(() -> {
+                    long tFx0 = System.nanoTime();
+                    if (v != meshBuildVersion.get()) {
+                        return;
+                    }
+                    previewMesh = previewM;
+                    if (yaCompleta) {
+                        fullMesh = previewM;
+                    }
+                    installMesh(previewM, bb, cx, cy, cz, scale);
+                    logger.info("[PREVIEW LOAD PERF] input={} previewOutput={} decimate={}ms previewBuild={}ms fxInstall={}ms interactiveReady={}ms",
+                            triangles.size(), previewTris.size(), tDecMs, tPrevMs,
+                            (System.nanoTime() - tFx0) / 1_000_000,
+                            (System.nanoTime() - tSetMesh) / 1_000_000);
+                });
+
+                // Malla completa (alta calidad) para capturas y renderizado.
+                if (!yaCompleta) {
+                    long tFull0 = System.nanoTime();
+                    fullM = StlMeshBuilder.build(triangles);
+                    long tFullMs = (System.nanoTime() - tFull0) / 1_000_000;
+                    TriangleMesh fullMRef = fullM;
+                    Platform.runLater(() -> {
+                        if (v != meshBuildVersion.get()) {
+                            return;
+                        }
+                        fullMesh = fullMRef;
+                        logger.info("[PREVIEW FULL BUILD] triangles={} fullBuild={}ms",
+                                triangles.size(), tFullMs);
+                    });
+                }
+            } catch (Exception e) {
+                logger.error("[PreviewPanel3DFX] Error construyendo mallas en segundo plano", e);
+            }
+        }, "stl-mesh-builder");
+        t.setDaemon(true);
+        t.start();
     } // --- Fin del metodo setMesh ---
 
 
     /**
-     * Construye el TriangleMesh, centra el modelo y ajusta la vista.
+     * Asigna la malla ya construida a la escena y ajusta la vista (hilo FX).
      */
-    private void doSetMesh(List<Triangle> triangles) {
-        if (triangles == null || triangles.isEmpty()) return;
-
+    private void installMesh(TriangleMesh mesh, float[] bb, float cx, float cy, float cz, float scale) {
         modelGroup.getTransforms().clear();
         modelGroup.setTranslateX(0);
         modelGroup.setTranslateY(0);
         modelGroup.setTranslateZ(0);
 
-        TriangleMesh mesh = StlMeshBuilder.build(triangles);
         meshView.setMesh(mesh);
 
-        float[] bb = StlMeshBuilder.boundingBox(triangles);
-        float centerX = (bb[0] + bb[3]) / 2.0f;
-        float centerY = (bb[1] + bb[4]) / 2.0f;
-        float centerZ = (bb[2] + bb[5]) / 2.0f;
-        float scale = StlMeshBuilder.computeScale(triangles);
-
-        meshView.setTranslateX(-centerX);
-        meshView.setTranslateY(-centerY);
-        meshView.setTranslateZ(-centerZ);
+        meshView.setTranslateX(-cx);
+        meshView.setTranslateY(-cy);
+        meshView.setTranslateZ(-cz);
 
         modelGroup.setScaleX(scale);
         modelGroup.setScaleY(scale);
@@ -285,16 +343,21 @@ public class PreviewPanel3DFX extends JFXPanel {
         fitToView(new javafx.geometry.BoundingBox(0, 0, 0, width, height, depth));
 
         modelGroup.setVisible(true);
-        loadingText.setVisible(false);
-    } // --- Fin del metodo doSetMesh ---
+        if (loadingText != null) {
+            loadingText.setVisible(false);
+        }
+    } // --- Fin del metodo installMesh ---
 
 
     /**
      * Limpia el modelo actual y vuelve al estado inicial.
      */
     public void clearMesh() {
+        meshBuildVersion.incrementAndGet();
         Platform.runLater(() -> {
             try {
+                previewMesh = null;
+                fullMesh = null;
                 meshView.setMesh(null);
                 modelGroup.setVisible(false);
                 loadingText.setVisible(true);
@@ -303,6 +366,28 @@ public class PreviewPanel3DFX extends JFXPanel {
             }
         });
     } // --- Fin del metodo clearMesh ---
+
+
+    /**
+     * Ejecuta fxWork en el hilo FX cambiando momentáneamente a la malla completa
+     * (alta calidad) para las capturas y restaurando la malla reducida al
+     * terminar. No-op si aún no hay malla completa o si la escena no muestra la
+     * reducida.
+     */
+    private <T> T conMallaCompleta(Supplier<T> fxWork) {
+        javafx.scene.shape.Mesh m = meshView.getMesh();
+        boolean swap = fullMesh != null && m != null && m == previewMesh;
+        if (swap) {
+            meshView.setMesh(fullMesh);
+        }
+        try {
+            return fxWork.get();
+        } finally {
+            if (swap) {
+                meshView.setMesh(previewMesh);
+            }
+        }
+    } // --- Fin del metodo conMallaCompleta ---
 
 
     /**
@@ -885,7 +970,7 @@ public class PreviewPanel3DFX extends JFXPanel {
     public BufferedImage capturarEscena3D() {
         if (subScene == null || modelGroup == null || !modelGroup.isVisible()) return null;
 
-        WritableImage snap = snapshotEnFxThread(() -> subScene.snapshot(null, null), 3000);
+        WritableImage snap = snapshotEnFxThread(() -> conMallaCompleta(() -> subScene.snapshot(null, null)), 3000);
         if (snap == null) return null;
         return toBufferedImage(snap);
     } // --- Fin del metodo capturarEscena3D ---
@@ -936,7 +1021,7 @@ public class PreviewPanel3DFX extends JFXPanel {
 
             long t0 = System.nanoTime();
             try {
-                return subScene.snapshot(params, new WritableImage(sw, sh));
+                return conMallaCompleta(() -> subScene.snapshot(params, new WritableImage(sw, sh)));
             } finally {
                 tSnapNs[0] = System.nanoTime() - t0;
             }
@@ -1050,7 +1135,7 @@ public class PreviewPanel3DFX extends JFXPanel {
 
                 long t0 = System.nanoTime();
                 // A) snapshot normal (como producción)
-                WritableImage a = subScene.snapshot(null, null);
+                WritableImage a = conMallaCompleta(() -> subScene.snapshot(null, null));
                 long tSnapA = (System.nanoTime() - t0) / 1_000_000;
 
                 // B) supersample x4 con la misma escena (cámara/FOV/aspect intactos)
@@ -1060,8 +1145,8 @@ public class PreviewPanel3DFX extends JFXPanel {
                 params.setDepthBuffer(true);
                 params.setTransform(Transform.scale(s, s));
                 t0 = System.nanoTime();
-                WritableImage b = subScene.snapshot(params,
-                        new WritableImage((int) Math.rint(w * s), (int) Math.rint(h * s)));
+                WritableImage b = conMallaCompleta(() -> subScene.snapshot(params,
+                        new WritableImage((int) Math.rint(w * s), (int) Math.rint(h * s))));
                 long tSnapB = (System.nanoTime() - t0) / 1_000_000;
 
                 t0 = System.nanoTime();
