@@ -2789,7 +2789,8 @@ public class DataController {
 
 
     /**
-     * Navega un bloque (10 imágenes) hacia atrás en el grid del modo DATOS.
+     * Navega un bloque de imágenes hacia atrás en el grid del modo DATOS.
+     * El tamaño del bloque se obtiene de la configuración (SALTO_BLOQUE).
      */
     public void navegarBloqueAnterior() {
         JList<String> gridList = registry.get("list.datamode.grid");
@@ -2797,7 +2798,7 @@ public class DataController {
         DefaultListModel<String> listModel = (DefaultListModel<String>) gridList.getModel();
         if (listModel == null || listModel.isEmpty()) return;
         int currentIndex = gridList.getSelectedIndex();
-        int prevIndex = Math.max(0, currentIndex - 10);
+        int prevIndex = Math.max(0, currentIndex - getSaltoBloque());
         if (prevIndex != currentIndex) {
             seleccionarIndiceGrid(gridList, prevIndex);
         }
@@ -2805,7 +2806,8 @@ public class DataController {
 
 
     /**
-     * Navega un bloque (10 imágenes) hacia adelante en el grid del modo DATOS.
+     * Navega un bloque de imágenes hacia adelante en el grid del modo DATOS.
+     * El tamaño del bloque se obtiene de la configuración (SALTO_BLOQUE).
      */
     public void navegarBloqueSiguiente() {
         JList<String> gridList = registry.get("list.datamode.grid");
@@ -2813,11 +2815,26 @@ public class DataController {
         DefaultListModel<String> listModel = (DefaultListModel<String>) gridList.getModel();
         if (listModel == null || listModel.isEmpty()) return;
         int currentIndex = gridList.getSelectedIndex();
-        int nextIndex = Math.min(currentIndex + 10, listModel.getSize() - 1);
+        int nextIndex = Math.min(currentIndex + getSaltoBloque(), listModel.getSize() - 1);
         if (nextIndex != currentIndex) {
             seleccionarIndiceGrid(gridList, nextIndex);
         }
     } // --- Fin del método navegarBloqueSiguiente ---
+
+
+    /**
+     * Devuelve el tamaño de salto de bloque configurado para la navegación
+     * (mínimo 1), con el mismo origen que el resto de grids: la clave
+     * {@link servicios.ConfigKeys#COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE}.
+     */
+    private int getSaltoBloque() {
+        if (visorController != null && visorController.getConfigurationManager() != null) {
+            int salto = visorController.getConfigurationManager().getInt(
+                    servicios.ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE, 10);
+            return Math.max(1, salto);
+        }
+        return 10;
+    } // --- Fin del método getSaltoBloque ---
 
 
 } // --- FIN de clase DataController ---
