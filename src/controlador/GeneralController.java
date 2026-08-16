@@ -653,11 +653,11 @@ public class GeneralController
             logger.error("Error al guardar la configuración tras limpiar la clave de recuperación.", e);
         }
 
-        String[] opciones = {"Restaurar Sesión", "Abrir un Proyecto", "Cancelar"};
+        String[] opciones = {"Restaurar Sesión", "Abrir un Proyecto", "Nuevo Proyecto", "Cancelar"};
         int seleccion = JOptionPane.showOptionDialog(
                 null,
                 "<html>Se ha detectado una sesión anterior con cambios sin guardar.<br>" +
-                "¿Deseas <b>restaurar</b> el trabajo de la sesión anterior o <b>abrir otro proyecto</b>?</html>",
+                "¿Deseas <b>restaurar</b> el trabajo de la sesión anterior, <b>abrir otro proyecto</b> o <b>empezar uno nuevo</b>?</html>",
                 "Recuperación de Proyecto",
                 JOptionPane.YES_NO_CANCEL_OPTION,
                 JOptionPane.QUESTION_MESSAGE,
@@ -689,8 +689,13 @@ public class GeneralController
                 return false;
             }
             return true;
+        } else if (seleccion == 2) { // Nuevo Proyecto
+            logger.info("  -> El usuario decidió descartar la recuperación y empezar un proyecto nuevo.");
+            pm.eliminarSesionDeRecuperacion();
+            projectController.solicitarNuevoProyecto();
+            return false; // solicitarNuevoProyecto ya concluye entrando en modo proyecto
         } else {
-            // Cancelar (seleccion == 2 o cerrar el diálogo)
+            // Cancelar (seleccion == 3 o cerrar el diálogo)
             logger.debug("  -> El usuario canceló el diálogo de recuperación.");
             return false;
         }

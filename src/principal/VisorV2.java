@@ -24,7 +24,7 @@ public class VisorV2 {
         // Desactivamos la función de unmapping de PDFBox para evitar errores de acceso a memoria en Java 17+
         System.setProperty("org.apache.pdfbox.io.IOUtils.unmapSupported", "false");
 
-        version = "V2.70.20";
+        version = "V2.70.50";
 
         System.out.println("Iniciando Visor de Imágenes " + version);
 
@@ -76,18 +76,15 @@ public class VisorV2 {
     
     // TODO HACER SALTO DE CARPETA. Cuando estamos viendo una carpeta que vemos que no nos cuadra, poder saltar todas las imagenes de esa carpeta
     // TODO CTRL + SHIFT DEBE ACTIVAR EL MODO PANEO Y DESACTIVARLO CUANDO SE DEJA DE PULSAR
-    // FIXME el filtro tornado me coloca en el item 0 y no puedo empezar la visualizacion desde cero despues de 5000 archivos...
-    // FIXME cuando cierro el programa con un proyecto sin guardar, al abrir la aplicacion de nuevo, si no entro en proyecto, no me pide si quiero seguir con la sesion anterior. si marco una imagen sin entrar en proyecto, me pide si quiero restaurar o abrir un proyecto o cancelar... no puedo empezar de cero. habria que poner un boton de nuevo o que al abrir la aplicacion ya detecte que hemos dejado cosas pendientes de guardar y a ver si queremos restaurar el proyecto de la sesion anterior
+    // TODO al restaurar la sesión, comprobar que la carpeta raíz sigue existiendo antes de entrar en modo proyecto
     
     
     // PROYECTO
     
-    // TODO hacer que el salto de pagina avance o retroceda los items que se estipulan en el config, ahora lo hace pero de la lista general, no en la lista especifica, si movemos items a descartes pasa del item 0 al 10 pero si en medio no hay items porque estan en descartes va al item 10 igual
     // TODO hacer que la lista de imagenes cargada pueda copiar las imagenes al portapapeles para enviar por whatsapp por ej....
     // TODO añadir el tornado en seleccion
     // TODO en el panel de pdf, poder ordenar las imagenes mediante drag & drop o algun otro sistema
     // FIXME el panel de detalles de pdf no tiene el split para ajustar la altura
-    // FIXME el panel de control de asignaciones no detecta los stl como archivo representado por una imagen
     
     // CLIENTE
     

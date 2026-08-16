@@ -478,6 +478,11 @@ public class FilterManager {
             // SIEMPRE filtramos desde la lista maestra absoluta
             listaResultado = applyFilters(this.absoluteMasterList);
 
+            // Continuidad de revisión: no volver al índice 0, sino mantenerse en
+            // el elemento equivalente dentro de la lista filtrada (o el siguiente
+            // sobreviviente tras la posición actual si este ha quedado oculto).
+            indiceASeleccionar = calcularIndiceContinuacion(listaResultado, this.absoluteMasterList, model.getSelectedImageKey());
+
         } else { // No hay filtros activos
             // Restauramos la lista maestra absoluta
             listaResultado = this.absoluteMasterList;
@@ -521,6 +526,44 @@ public class FilterManager {
             }
         });
     } // --- Fin del método actualizarListaVisibleConResultado ---
+
+    /**
+     * Calcula el índice a seleccionar en la lista filtrada para continuar la
+     * revisión donde se estaba, en lugar de volver al principio.
+     * Selecciona el primer elemento de la lista filtrada cuya posición en la
+     * lista maestra sea mayor o igual que la del elemento actual. Si el elemento
+     * actual sobrevive al filtro, se mantiene; si queda oculto, se salta al
+     * siguiente sobreviviente; si no hay ninguno tras esa posición, se queda en
+     * el último.
+     *
+     * @param listaFiltrada La lista ya filtrada sobre la que se seleccionará.
+     * @param listaMaestra La lista completa sin filtrar (fuente de verdad de posiciones).
+     * @param keyActual La clave del elemento seleccionado antes de filtrar.
+     * @return El índice a seleccionar en la lista filtrada, o -1 si está vacía.
+     */
+    private int calcularIndiceContinuacion(DefaultListModel<String> listaFiltrada, DefaultListModel<String> listaMaestra, String keyActual) {
+        if (listaFiltrada == null || listaFiltrada.isEmpty()) return -1;
+        if (listaMaestra == null || listaMaestra.isEmpty() || keyActual == null) return 0;
+
+        // Construimos una sola vez el mapa key -> índice en la lista maestra (O(n)).
+        Map<String, Integer> posicionEnMaestra = new HashMap<>();
+        for (int i = 0; i < listaMaestra.getSize(); i++) {
+            posicionEnMaestra.put(listaMaestra.getElementAt(i), i);
+        }
+
+        Integer posicionActual = posicionEnMaestra.get(keyActual);
+        if (posicionActual == null) return 0;
+
+        for (int i = 0; i < listaFiltrada.getSize(); i++) {
+            Integer pos = posicionEnMaestra.get(listaFiltrada.getElementAt(i));
+            if (pos != null && pos >= posicionActual) {
+                return i;
+            }
+        }
+
+        // Nada tras la posición actual: nos quedamos al final de la lista filtrada.
+        return listaFiltrada.getSize() - 1;
+    } // --- Fin del método calcularIndiceContinuacion ---
 
     // --- LÓGICA DE FILTRO EN VIVO (TORNADO) ---
 
@@ -604,12 +647,17 @@ public class FilterManager {
                     }
 
                     DefaultListModel<String> filteredContent = get(); // Obtiene el resultado del doInBackground
-                    
+
+                    // Capturamos la selección actual ANTES de limpiar el modelo visible,
+                    // para poder continuar la revisión en la lista filtrada.
+                    String keyActualAntesDeFiltrar = model.getSelectedImageKey();
+
                     DefaultListModel<String> modeloEnUso = model.getModeloLista();
                     modeloEnUso.clear();
                     modeloEnUso.addAll(java.util.Collections.list(filteredContent.elements()));
 
-                    visorController.getListCoordinator().reiniciarYSeleccionarIndice(modeloEnUso.isEmpty() ? -1 : 0);
+                    int indiceContinuacion = calcularIndiceContinuacion(modeloEnUso, masterModelSinFinito, keyActualAntesDeFiltrar);
+                    visorController.getListCoordinator().reiniciarYSeleccionarIndice(indiceContinuacion);
                     
                     int totalArchivos = getAbsoluteMasterListSize();
                     String titulo = isFilterActive() ? "Archivos (Filtro): " + totalArchivos + " - " + modeloEnUso.getSize() : "Archivos: " + modeloEnUso.getSize();

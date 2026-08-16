@@ -387,6 +387,12 @@ public class ProjectManager implements IProjectManager {
             this.lastSavedProjectState = deepCopyProjectModel(this.currentProject);
             logger.debug("   -> Estado 'lastSavedProjectState' actualizado tras guardado definitivo.");
 
+            // Un guardado definitivo invalida cualquier sesión de recuperación
+            // pendiente: si el proyecto queda guardado correctamente, ya no hay
+            // trabajo sin guardar que restaurar en el próximo arranque.
+            eliminarSesionDeRecuperacion();
+            logger.debug("   -> Recuperación pendiente invalidada tras guardado definitivo.");
+
             if (this.hayCambiosSinGuardar) {
                 this.hayCambiosSinGuardar = false;
                 fireProjectStateChanged();

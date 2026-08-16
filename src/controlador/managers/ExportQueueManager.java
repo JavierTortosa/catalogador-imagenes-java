@@ -157,7 +157,7 @@ public class ExportQueueManager {
                     // La condición clave: el nombre del candidato debe EMPEZAR con el nombre base de la imagen
                     // y tener una extensión comprimida. Esto captura "nombre.zip", "nombre.part1.rar", etc.
                     return nombreCandidato.toLowerCase().startsWith(nombreBaseImagen.toLowerCase()) && 
-                           esExtensionComprimida(nombreCandidato);
+                           esExtensionAsociada(nombreCandidato);
                 })
                 .collect(Collectors.toList());
 
@@ -196,12 +196,15 @@ public class ExportQueueManager {
     } // ---FIN de metodo [obtenerNombreBase]---
     
     
-    private boolean esExtensionComprimida(String nombreArchivo) {
+    private boolean esExtensionAsociada(String nombreArchivo) {
         String nombreEnMinusculas = nombreArchivo.toLowerCase();
         return nombreEnMinusculas.endsWith(".zip") || 
                nombreEnMinusculas.endsWith(".rar") || 
-               nombreEnMinusculas.endsWith(".7z");
-    } // --- Fin del método esExtensionComprimida ---
+               nombreEnMinusculas.endsWith(".7z") ||
+               nombreEnMinusculas.endsWith(".stl") ||
+               nombreEnMinusculas.endsWith(".obj") ||
+               nombreEnMinusculas.endsWith(".3mf");
+    } // --- Fin del método esExtensionAsociada ---
     
     
     /**

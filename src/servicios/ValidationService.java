@@ -79,7 +79,7 @@ public class ValidationService {
                     Path fn = path.getFileName();
                     String nombreCandidato = (fn != null) ? fn.toString() : path.toString();
                     return nombreCandidato.toLowerCase().startsWith(nombreBaseImagen.toLowerCase()) && 
-                           esExtensionComprimida(nombreCandidato);
+                           esExtensionAsociada(nombreCandidato);
                 })
                 .count();
                 
@@ -103,14 +103,18 @@ public class ValidationService {
 
 
     /**
-     * Comprueba si la extensión del archivo corresponde a un formato comprimido.
+     * Comprueba si la extensión del archivo corresponde a un formato asociado
+     * (comprimidos ZIP/RAR/7Z o 3D directos STL/OBJ/3MF).
      */
-    private boolean esExtensionComprimida(String nombreArchivo) {
+    private boolean esExtensionAsociada(String nombreArchivo) {
         String nombreEnMinusculas = nombreArchivo.toLowerCase();
         return nombreEnMinusculas.endsWith(".zip") || 
                nombreEnMinusculas.endsWith(".rar") || 
-               nombreEnMinusculas.endsWith(".7z");
-    } // --- FIN del metodo esExtensionComprimida ---
+               nombreEnMinusculas.endsWith(".7z") ||
+               nombreEnMinusculas.endsWith(".stl") ||
+               nombreEnMinusculas.endsWith(".obj") ||
+               nombreEnMinusculas.endsWith(".3mf");
+    } // --- FIN del metodo esExtensionAsociada ---
 
 
 } // --- FIN de clase ValidationService ---
